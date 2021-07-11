@@ -9,6 +9,7 @@ bool var_debug_mode = false;
 bool var_flash_mode = false;
 bool var_wifi_enabled = false;
 bool var_high_resolution_mode = true;
+bool var_3d_mode = false;
 u8 var_wifi_state = 0;
 u8 var_wifi_signal = 0;
 u8 var_battery_charge = 0;

@@ -52,7 +52,10 @@
 <51>Start recording (top screen)</51>
 <52>Start recording (bottom screen)</52>
 <53>Stop recording</53>
-<54>High resolution mode(top screen)</54>
+<54>Screen mode(top screen)</54>
 <55>To record screen, you must
-turn off the 'high resolution mode'
-(Settings->LCD->high resolution mode).</55>
+turn off the '800px mode'
+(Settings->LCD->Screen mode).</55>
+<56>800px</56>
+<57>3D</57>
+<58>Nothing</58>

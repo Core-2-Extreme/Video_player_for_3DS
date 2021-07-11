@@ -107,7 +107,7 @@
 #define DEF_MENU_CHECK_INTERNET_STR (std::string)"Menu/Check internet thread"
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 56
+#define DEF_SEM_NUM_OF_MSG 59
 #define DEF_SEM_INIT_STR (std::string)"Sem/Init"
 #define DEF_SEM_EXIT_STR (std::string)"Sem/Exit"
 #define DEF_SEM_WORKER_THREAD_STR (std::string)"Sem/Worker thread"

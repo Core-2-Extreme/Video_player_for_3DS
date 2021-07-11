@@ -70,7 +70,7 @@ void Menu_init(void)
 
 	Sem_init();
 	Sem_suspend();
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode).code);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode, var_3d_mode).code);
 	Draw_frame_ready();
 	Draw_screen_ready(0, DEF_DRAW_WHITE);
 	Draw_screen_ready(1, DEF_DRAW_WHITE);

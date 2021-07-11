@@ -32,9 +32,9 @@ void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int a
 
 void Draw_debug_info(void);
 
-Result_with_string Draw_init(bool wide);
+Result_with_string Draw_init(bool wide, bool _3d);
 
-void Draw_reinit(bool wide);
+void Draw_reinit(bool wide, bool _3d);
 
 Result_with_string Draw_load_system_font(int system_font_num);
 

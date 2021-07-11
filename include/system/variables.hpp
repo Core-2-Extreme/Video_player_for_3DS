@@ -9,6 +9,7 @@ extern bool var_debug_mode;
 extern bool var_flash_mode;
 extern bool var_wifi_enabled;
 extern bool var_high_resolution_mode;
+extern bool var_3d_mode;
 extern u8 var_wifi_state;
 extern u8 var_wifi_signal;
 extern u8 var_battery_charge;

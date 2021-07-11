@@ -74,7 +74,7 @@ void Sem_init(void)
 	u8 model;
 	u8* cache = (u8*)malloc(0x1000);
 	u32 read_size = 0;
-	std::string data[10];
+	std::string data[11];
 	Result_with_string result;
 
 	if(CFGU_SecureInfoGetRegion(&region) == 0)
@@ -108,7 +108,7 @@ void Sem_init(void)
 	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_SEM_INIT_STR , "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 
-	result = Util_parse_file((char*)cache, 10, data);
+	result = Util_parse_file((char*)cache, 11, data);
 	Util_log_save(DEF_SEM_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 	if(result.code == 0)
 	{
@@ -122,6 +122,7 @@ void Sem_init(void)
 		var_eco_mode = (data[7] == "1");
 		wifi_state = (data[8] == "1");
 		var_high_resolution_mode = (data[9] == "1");
+		var_3d_mode = (data[10] == "1");
 
 		if(var_lang != "jp" && var_lang != "en")
 			var_lang = "en";
@@ -137,6 +138,9 @@ void Sem_init(void)
 
 	if(var_model == "OLD 2DS")//OLD 2DS doesn't support high resolution mode
 		var_high_resolution_mode = false;
+	
+	if(var_model == "OLD 2DS" || var_model == "NEW 2DS XL")//2DSs don't support 3d mode
+		var_3d_mode = false;
 
 	sem_thread_run = true;
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
@@ -166,7 +170,7 @@ void Sem_exit(void)
 	std::string data = "<0>" + var_lang + "</0><1>" + std::to_string(var_lcd_brightness) + "</1><2>" + std::to_string(var_time_to_turn_off_lcd)
 	+ "</2><3>" + std::to_string(var_scroll_speed) + "</3><4>" + std::to_string(var_allow_send_app_info) + "</4><5>" + std::to_string(var_num_of_app_start)
 	+ "</5><6>" + std::to_string(var_night_mode) + "</6><7>" + std::to_string(var_eco_mode) + "</7><8>" + std::to_string(var_wifi_enabled) + "</8>"
-	+ "<9>" + std::to_string(var_high_resolution_mode) + "</9>";
+	+ "<9>" + std::to_string(var_high_resolution_mode) + "</9><10>" + std::to_string(var_3d_mode) + "</10>";
 	Result_with_string result;
 
 	sem_stop_record_request = true;
@@ -313,21 +317,41 @@ void Sem_main(void)
 			if (var_flash_mode)
 				cache_color[2] = DEF_DRAW_RED;
 
-			if((sem_record_request || var_model == "OLD 2DS") && var_night_mode)
+			if(sem_record_request && var_night_mode)
+			{
+				cache_color[3] = DEF_DRAW_WEAK_WHITE;
+				cache_color[4] = DEF_DRAW_WEAK_WHITE;
+				cache_color[5] = DEF_DRAW_WEAK_WHITE;
+			}
+			else if(sem_record_request)
+			{
+				cache_color[3] = DEF_DRAW_WEAK_BLACK;
+				cache_color[4] = DEF_DRAW_WEAK_BLACK;
+				cache_color[5] = DEF_DRAW_WEAK_BLACK;
+			}
+
+			if(var_model == "OLD 2DS" && var_night_mode)
 			{
 				cache_color[3] = DEF_DRAW_WEAK_WHITE;
 				cache_color[4] = DEF_DRAW_WEAK_WHITE;
 			}
-			else if(sem_record_request || var_model == "OLD 2DS")
+			else if(var_model == "OLD 2DS")
 			{
 				cache_color[3] = DEF_DRAW_WEAK_BLACK;
 				cache_color[4] = DEF_DRAW_WEAK_BLACK;
 			}
 
+			if(var_model == "NEW 2DS XL" && var_night_mode)
+				cache_color[4] = DEF_DRAW_WEAK_WHITE;
+			else if(var_model == "NEW 2DS XL")
+				cache_color[4] = DEF_DRAW_WEAK_BLACK;
+
 			if (var_high_resolution_mode)
 				cache_color[3] = DEF_DRAW_RED;
-			else
+			else if(var_3d_mode)
 				cache_color[4] = DEF_DRAW_RED;
+			else
+				cache_color[5] = DEF_DRAW_RED;
 
 			//Night mode
 			Draw(sem_msg[11], 0, 25, 0.5, 0.5, color);
@@ -353,14 +377,17 @@ void Sem_main(void)
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 10, 127.5, 300, 5);
 			Draw_texture(var_square_image[0], color, (var_time_to_turn_off_lcd), 120, 4, 20);
 
-			//High resolution mode
+			//Screen mode
 			Draw(sem_msg[54], 0, 145, 0.5, 0.5, color);
-			//ON
+			//800px
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 160, 90, 20);
-			Draw(sem_msg[12], 10, 160, 0.65, 0.65, cache_color[3]);
-			//OFF
+			Draw(sem_msg[56], 10, 160, 0.65, 0.65, cache_color[3]);
+			//3D
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 110, 160, 90, 20);
-			Draw(sem_msg[13], 110, 160, 0.65, 0.65, cache_color[4]);
+			Draw(sem_msg[57], 110, 160, 0.65, 0.65, cache_color[4]);
+			//Nothing
+			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 210, 160, 90, 20);
+			Draw(sem_msg[58], 210, 160, 0.65, 0.65, cache_color[5]);
 		}
 		else if (sem_selected_menu_mode == 4)
 		{
@@ -818,13 +845,22 @@ void Sem_main(void)
 					if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 99 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != "OLD 2DS")
 					{
 						var_high_resolution_mode = true;
-						Draw_reinit(var_high_resolution_mode);
+						var_3d_mode = false;
+						Draw_reinit(var_high_resolution_mode, var_3d_mode);
 						var_need_reflesh = true;
 					}
-					else if (key.p_touch && key.touch_x >= 110 && key.touch_x <= 199 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request)
+					else if (key.p_touch && key.touch_x >= 110 && key.touch_x <= 199 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != "OLD 2DS" && var_model != "NEW 2DS XL")
 					{
 						var_high_resolution_mode = false;
-						Draw_reinit(var_high_resolution_mode);
+						var_3d_mode = true;
+						Draw_reinit(var_high_resolution_mode, var_3d_mode);
+						var_need_reflesh = true;
+					}
+					else if (key.p_touch && key.touch_x >= 210 && key.touch_x <= 299 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request)
+					{
+						var_high_resolution_mode = false;
+						var_3d_mode = false;
+						Draw_reinit(var_high_resolution_mode, var_3d_mode);
 						var_need_reflesh = true;
 					}
 				}

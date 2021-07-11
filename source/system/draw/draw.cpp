@@ -3,7 +3,7 @@
 double draw_frametime[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 std::string draw_part_text[2][1024];
 C2D_Font system_fonts[4];
-C3D_RenderTarget* screen[2];
+C3D_RenderTarget* screen[3];
 C2D_SpriteSheet sheet_texture[128];
 C2D_Image wifi_icon_image[9];
 C2D_Image battery_level_icon_image[21];
@@ -536,18 +536,32 @@ Result_with_string Draw_load_kanji_samples(void)
 	return result;
 }
 
-Result_with_string Draw_init(bool wide)
+Result_with_string Draw_init(bool wide, bool _3d)
 {
 	Result_with_string result;
 	gfxInitDefault();
-	gfxSetWide(wide);
+
+	//gfxSet3D(_3d);
+	//gfxSetWide(wide);
+	gfxSet3D(false);
+	gfxSetWide(false);
+
+	if(wide)
+		gfxSetWide(wide);
+	else if(_3d)
+		gfxSet3D(_3d);
+
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 	screen[0] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	screen[1] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	screen[2] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
+
 	C2D_TargetClear(screen[0], C2D_Color32f(0, 0, 0, 0));
 	C2D_TargetClear(screen[1], C2D_Color32f(0, 0, 0, 0));
+	C2D_TargetClear(screen[2], C2D_Color32f(0, 0, 0, 0));
+
 	osTickCounterStart(&draw_frame_time_timer);
 
 	result = Draw_load_texture("romfs:/gfx/draw/wifi_signal.t3x", 0, wifi_icon_image, 0, 9);
@@ -575,19 +589,27 @@ Result_with_string Draw_init(bool wide)
 	return result;
 }
 
-void Draw_reinit(bool wide)
+void Draw_reinit(bool wide, bool _3d)
 {
 	C2D_Fini();
 	C3D_Fini();
-	//gfxExit();
 
-	//gfxInitDefault();
-	gfxSetWide(wide);
+	//gfxSet3D(_3d);
+	//gfxSetWide(wide);
+	gfxSet3D(false);
+	gfxSetWide(false);
+
+	if(wide)
+		gfxSetWide(wide);
+	else if(_3d)
+		gfxSet3D(_3d);
+
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 	screen[0] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	screen[1] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	screen[2] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
 }
 
 Result_with_string Draw_load_system_font(int system_font_num)
@@ -656,7 +678,7 @@ void Draw_frame_ready(void)
 
 void Draw_screen_ready(int screen_num, int abgr8888)
 {
-	if (screen_num >= 0 && screen_num <= 1)
+	if (screen_num >= 0 && screen_num <= 2)
 	{
 		C2D_TargetClear(screen[screen_num], abgr8888);
 		C2D_SceneBegin(screen[screen_num]);

@@ -1,0 +1,1 @@
+ ./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --disable-avs --enable-static

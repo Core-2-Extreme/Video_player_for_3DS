@@ -29,6 +29,7 @@
 #define DEF_SAPP0_INIT_STR (std::string)"Vid/Init"
 #define DEF_SAPP0_EXIT_STR (std::string)"Vid/Exit"
 #define DEF_SAPP0_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
+#define DEF_SAPP0_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
 #define DEF_SAPP0_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
 
 //video player(mvd)

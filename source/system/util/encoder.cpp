@@ -16,7 +16,7 @@ int util_audio_increase_pts[3] = { 0, 0, 0, };
 AVPacket* util_audio_encoder_packet[3] = { NULL, NULL, NULL, };
 AVFrame* util_audio_encoder_raw_data[3] = { NULL, NULL, NULL, };
 AVCodecContext* util_audio_encoder_context[3] = { NULL, NULL, NULL, };
-AVCodec* util_audio_encoder_codec[3] = { NULL, NULL, NULL, };
+const AVCodec* util_audio_encoder_codec[3] = { NULL, NULL, NULL, };
 SwrContext* util_audio_encoder_swr_context[3] = { NULL, NULL, NULL, };
 AVStream* util_audio_encoder_stream[3] = { NULL, NULL, NULL, };
 
@@ -25,7 +25,7 @@ int util_video_increase_pts[3] = { 0, 0, 0, };
 AVPacket* util_video_encoder_packet[3] = { NULL, NULL, NULL, };
 AVFrame* util_video_encoder_raw_data[3] = { NULL, NULL, NULL, };
 AVCodecContext* util_video_encoder_context[3] = { NULL, NULL, NULL, };
-AVCodec* util_video_encoder_codec[3] = { NULL, NULL, NULL, };
+const AVCodec* util_video_encoder_codec[3] = { NULL, NULL, NULL, };
 AVStream* util_video_encoder_stream[3] = { NULL, NULL, NULL, };
 
 AVFormatContext* util_encoder_format_context[3] = { NULL, NULL, NULL, };

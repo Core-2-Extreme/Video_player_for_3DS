@@ -9,14 +9,14 @@ int util_audio_muxer_stream_num[2] = { -1, -1, };
 AVPacket* util_audio_muxer_packet[2] = { NULL, NULL, };
 AVFormatContext* util_audio_muxer_format_context[2] = { NULL, NULL, };
 AVCodecContext* util_audio_muxer_context[2] = { NULL, NULL, };
-AVCodec* util_audio_muxer_codec[2] = { NULL, NULL, };
+const AVCodec* util_audio_muxer_codec[2] = { NULL, NULL, };
 AVStream* util_audio_muxer_format_stream[2] = { NULL, NULL, };
 
 int util_video_muxer_stream_num[2] = { -1, -1, };
 AVPacket* util_video_muxer_packet[2] = { NULL, NULL, };
 AVFormatContext* util_video_muxer_format_context[2] = { NULL, NULL, };
 AVCodecContext* util_video_muxer_context[2] = { NULL, NULL, };
-AVCodec* util_video_muxer_codec[2] = { NULL, NULL, };
+const AVCodec* util_video_muxer_codec[2] = { NULL, NULL, };
 AVStream* util_video_muxer_format_stream[2] = { NULL, NULL, };
 
 AVFormatContext* util_muxer_format_context[2] = { NULL, NULL, };

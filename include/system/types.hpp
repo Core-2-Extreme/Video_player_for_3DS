@@ -9,7 +9,7 @@ struct Result_with_string
 
 struct Image_data
 {
-	C2D_Image c2d;
+	C2D_Image c2d = { .tex = NULL, };
 	Tex3DS_SubTexture* subtex = NULL;
 };
 

@@ -26,7 +26,7 @@ AccessControlInfo:
   
   # Minimum Required Kernel Version (below is for 4.5.0)
   ReleaseKernelMajor            : "02"
-  ReleaseKernelMinor            : "33" 
+  ReleaseKernelMinor            : "44"
 
   # ExtData
   UseExtSaveData                : false # enables ExtData       

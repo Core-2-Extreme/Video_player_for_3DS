@@ -9,13 +9,16 @@ bool vid_thread_suspend = true;
 bool vid_play_request = false;
 bool vid_change_video_request = false;
 bool vid_convert_request = false;
-bool vid_wait_request = false;
+bool vid_convert_wait_request = false;
+bool vid_decode_video_request = false;
+bool vid_decode_video_wait_request = false;
 bool vid_detail_mode = false;
 bool vid_pause_request = false;
 bool vid_seek_request = false;
 bool vid_linear_filter = true;
 bool vid_show_controls = false;
 bool vid_allow_skip_frames = false;
+bool vid_image_enabled[8][2];
 double vid_time[2][320];
 double vid_copy_time[2] = { 0, 0, };
 double vid_audio_time = 0;
@@ -27,6 +30,7 @@ double vid_duration = 0;
 double vid_zoom = 1;
 double vid_x = 0;
 double vid_y = 15;
+double vid_3d_x_offset = 0;
 double vid_current_pos = 0;
 double vid_seek_pos = 0;
 double vid_min_time = 0;
@@ -37,19 +41,22 @@ double vid_recent_total_time = 0;
 int vid_total_frames = 0;
 int vid_width = 0;
 int vid_height = 0;
-int vid_tex_width[4] = { 0, 0, 0, 0, };
-int vid_tex_height[4] = { 0, 0, 0, 0, };
+int vid_tex_width[8] = { 0, 0, 0, 0, 0, 0, 0, 0, };
+int vid_tex_height[8] = { 0, 0, 0, 0, 0, 0, 0, 0, };
 int vid_lr_count = 0;
 int vid_cd_count = 0;
+int vid_image_num = 0;
+int vid_image_num_3d = 0;
+int vid_packet_index[2] = { 0, 0, };
 std::string vid_file = "";
 std::string vid_dir = "";
 std::string vid_video_format = "n/a";
 std::string vid_audio_format = "n/a";
 std::string vid_msg[DEF_SAPP0_NUM_OF_MSG];
-Image_data vid_image[8];
+Image_data vid_image[8][2];
 C2D_Image vid_banner[2];
 C2D_Image vid_control[2];
-Thread vid_decode_thread, vid_convert_thread;
+Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread;
 
 void Sapp0_callback(std::string file, std::string dir)
 {
@@ -82,30 +89,25 @@ void Sapp0_decode_thread(void* arg)
 	int sample_rate = 0;
 	int ch = 0;
 	int audio_size = 0;
-	int w = 0;
-	int h = 0;
-	int skip = 0;
+	int packet_index = 0;
 	double pos = 0;
-	bool key = false;
 	bool has_audio = false;
 	bool has_video = false;
+	bool has_3d = false;
 	u8* audio = NULL;
 	std::string format = "";
-	std::string type = (char*)arg;
-	TickCounter counter[3];
-	osTickCounterStart(&counter[0]);
-	osTickCounterStart(&counter[1]);
-	osTickCounterStart(&counter[2]);
-	if(type == "1")
-		APT_SetAppCpuTimeLimit(80);
+	std::string type = "";
+	TickCounter counter;
+	osTickCounterStart(&counter);
 
 	while (vid_thread_run)
 	{
 		if(vid_play_request || vid_change_video_request)
 		{
-			skip = 0;
+			packet_index = 0;
 			vid_x = 0;
 			vid_y = 15;
+			vid_3d_x_offset = 0;
 			vid_frametime = 0;
 			vid_framerate = 0;
 			vid_current_pos = 0;
@@ -117,15 +119,19 @@ void Sapp0_decode_thread(void* arg)
 			vid_audio_format = "n/a";
 			vid_change_video_request = false;
 			vid_play_request = true;
+			vid_decode_video_request = false;
+			vid_convert_request = false;
+			vid_linear_filter = true;
 			vid_total_time = 0;
 			vid_total_frames = 0;
 			vid_min_time = 99999999;
 			vid_max_time = 0;
 			vid_recent_total_time = 0;
+			vid_image_num = 0;
 			for(int i = 0; i < 90; i++)
 				vid_recent_time[i] = 0;
 			
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < 8; i++)
 			{
 				vid_tex_width[i] = 0;
 				vid_tex_height[i] = 0;
@@ -143,7 +149,7 @@ void Sapp0_decode_thread(void* arg)
 			vid_copy_time[1] = 0;
 			vid_convert_time = 0;
 
-			result = Util_decoder_open_file(vid_dir + vid_file, &has_audio, &has_video, 0);
+			result = Util_decoder_open_file(vid_dir + vid_file, &has_audio, &has_video, &has_3d, 0);
 			Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_decoder_open_file()..." + result.string + result.error_description, result.code);
 			if(result.code != 0)
 				vid_play_request = false;
@@ -163,7 +169,7 @@ void Sapp0_decode_thread(void* arg)
 			}
 			if(has_video && vid_play_request)
 			{
-				result = Util_video_decoder_init(0, 0);
+				result = Util_video_decoder_init(0, has_3d, 0);
 				Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_video_decoder_init()..." + result.string + result.error_description, result.code);
 				if(result.code != 0)
 					vid_play_request = false;
@@ -172,6 +178,8 @@ void Sapp0_decode_thread(void* arg)
 				{
 					Util_video_decoder_get_info(&vid_width, &vid_height, &vid_framerate, &vid_video_format, &vid_duration, 0);
 					vid_frametime = (1000.0 / vid_framerate);
+					if(has_3d)
+						vid_frametime /= 2;
 
 					//fit to screen size
 					while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 225) && vid_zoom > 0.05)
@@ -185,6 +193,111 @@ void Sapp0_decode_thread(void* arg)
 						vid_width += 16 - vid_width % 16;
 					if(vid_height % 16 != 0)
 						vid_height += 16 - vid_height % 16;
+
+					for(int k = 0; k < (has_3d ? 2 : 1); k++)
+					{
+						result = Draw_c2d_image_init(&vid_image[0][k], 1024, 1024, GPU_RGB565);
+						if(result.code != 0)
+							break;
+						else
+							vid_image_enabled[0][k] = true;
+
+						result = Draw_c2d_image_init(&vid_image[4][k], 1024, 1024, GPU_RGB565);
+						if(result.code != 0)
+							break;
+						else
+							vid_image_enabled[4][k] = true;
+
+						if(vid_width > 1024)
+						{
+							result = Draw_c2d_image_init(&vid_image[1][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[1][k] = true;
+
+							result = Draw_c2d_image_init(&vid_image[5][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[5][k] = true;
+						}
+
+						if(vid_height > 1024)
+						{
+							result = Draw_c2d_image_init(&vid_image[2][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[2][k] = true;
+
+							result = Draw_c2d_image_init(&vid_image[6][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[6][k] = true;
+						}
+
+						if(vid_width > 1024 && vid_height > 1024)
+						{
+							result = Draw_c2d_image_init(&vid_image[3][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[3][k] = true;
+
+							result = Draw_c2d_image_init(&vid_image[7][k], 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								break;
+							else
+								vid_image_enabled[7][k] = true;
+						}
+					}
+
+					if(result.code != 0)
+					{
+						result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+						result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+						vid_play_request = false;
+					}
+					else
+					{
+						for(int i = 0; i < 2; i++)
+						{
+							if(vid_width > 1024 && vid_height > 1024)
+							{
+								vid_tex_width[i * 4] = 1024;
+								vid_tex_width[i * 4 + 1] = vid_width - 1024;
+								vid_tex_width[i * 4 + 2] = 1024;
+								vid_tex_width[i * 4 + 3] = vid_width - 1024;
+								vid_tex_height[i * 4] = 1024;
+								vid_tex_height[i * 4 + 1] = 1024;
+								vid_tex_height[i * 4 + 2] = vid_height - 1024;
+								vid_tex_height[i * 4 + 3] = vid_height - 1024;
+							}
+							else if(vid_width > 1024)
+							{
+								vid_tex_width[i * 4] = 1024;
+								vid_tex_width[i * 4 + 1] = vid_width - 1024;
+								vid_tex_height[i * 4] = vid_height;
+								vid_tex_height[i * 4 + 1] = vid_height;
+							}
+							else if(vid_height > 1024)
+							{
+								vid_tex_width[i * 4] = vid_width;
+								vid_tex_width[i * 4 + 1] = vid_width;
+								vid_tex_height[i * 4] = 1024;
+								vid_tex_height[i * 4 + 1] = vid_height - 1024;
+							}
+							else
+							{
+								vid_tex_width[i * 4] = vid_width;
+								vid_tex_height[i * 4] = vid_height;
+							}
+						}
+						if(vid_width <= 1024 && vid_height <= 1024)
+							result = Util_converter_y2r_init();
+					}
 				}
 			}
 
@@ -195,13 +308,18 @@ void Sapp0_decode_thread(void* arg)
 				var_need_reflesh = true;
 			}
 
-			osTickCounterUpdate(&counter[2]);
 			while(vid_play_request)
 			{
-				result = Util_decoder_read_packet(&type, 0);
+				while(vid_decode_video_request && vid_play_request)
+					usleep(1000);
+
+				if(!vid_play_request)
+					break;
+
+				result = Util_decoder_read_packet(&type, &packet_index, 0);
 				if(result.code != 0)
 					Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_decoder_read_packet()..." + result.string + result.error_description, result.code);
-				
+
 				var_afk_time = 0;
 
 				if(vid_pause_request)
@@ -210,7 +328,6 @@ void Sapp0_decode_thread(void* arg)
 					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
 						usleep(20000);
 					
-					osTickCounterUpdate(&counter[2]);
 					Util_speaker_resume(0);
 				}
 
@@ -231,10 +348,10 @@ void Sapp0_decode_thread(void* arg)
 					result = Util_decoder_ready_audio_packet(0);
 					if(result.code == 0)
 					{
-						osTickCounterUpdate(&counter[1]);
+						osTickCounterUpdate(&counter);
 						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, 0);
-						osTickCounterUpdate(&counter[1]);
-						vid_audio_time = osTickCounterRead(&counter[1]);
+						osTickCounterUpdate(&counter);
+						vid_audio_time = osTickCounterRead(&counter);
 						
 						if(!has_video && !std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos;
@@ -261,69 +378,14 @@ void Sapp0_decode_thread(void* arg)
 				}
 				else if(type == "video")
 				{
-					if(vid_allow_skip_frames && skip > vid_frametime)
-					{
-						skip -= vid_frametime;
-						Util_decoder_skip_video_packet(0);
-					}
-					else
-					{
-						result = Util_decoder_ready_video_packet(0);
-
-						if(result.code == 0)
-						{
-							while(vid_wait_request)
-								usleep(1000);
-
-							osTickCounterUpdate(&counter[0]);
-							result = Util_video_decoder_decode(&w, &h, &key, &pos, 0);
-							osTickCounterUpdate(&counter[0]);
-							vid_video_time = osTickCounterRead(&counter[0]);
-
-							if(!std::isnan(pos) && !std::isinf(pos))
-								vid_current_pos = pos;
-
-							if(result.code == 0)
-								vid_convert_request = true;
-							else
-								Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_video_decoder_decode()..." + result.string + result.error_description, result.code);
-
-							osTickCounterUpdate(&counter[2]);
-							vid_time[0][319] = osTickCounterRead(&counter[2]);
-
-							if(vid_frametime - vid_time[0][319] > 0)
-								usleep((vid_frametime - vid_time[0][319]) * 1000);
-							else if(vid_allow_skip_frames)
-								skip -= vid_frametime - vid_time[0][319];
-
-							osTickCounterUpdate(&counter[2]);
-							if(vid_min_time > vid_time[0][319])
-								vid_min_time = vid_time[0][319];
-							if(vid_max_time < vid_time[0][319])
-								vid_max_time = vid_time[0][319];
-							
-							vid_total_time += vid_time[0][319];
-							vid_total_frames++;
-
-							vid_recent_time[89] = vid_time[0][319];
-							vid_recent_total_time = 0;
-							for(int i = 0; i < 90; i++)
-								vid_recent_total_time += vid_recent_time[i];
-
-							for(int i = 1; i < 90; i++)
-								vid_recent_time[i - 1] = vid_recent_time[i];
-
-							for(int i = 1; i < 320; i++)
-								vid_time[0][i - 1] = vid_time[0][i];
-						}
-						else
-							Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_decoder_ready_video_packet()..." + result.string + result.error_description, result.code);
-					}
+					vid_packet_index[0] = packet_index;
+					vid_decode_video_request = true;
 				}
 			}
 
+			vid_decode_video_request = false;
 			vid_convert_request = false;
-			while(vid_wait_request)
+			while(vid_convert_wait_request || vid_decode_video_wait_request)
 				usleep(10000);
 
 			if(has_audio)
@@ -338,6 +400,20 @@ void Sapp0_decode_thread(void* arg)
 				Util_video_decoder_exit(0);
 
 			Util_decoder_close_file(0);
+			if(vid_width <= 1024 && vid_height <= 1024)
+				Util_converter_y2r_exit();
+			
+			for(int k = 0; k < 2; k++)
+			{
+				for(int i = 0; i < 8; i++)
+				{
+					if(vid_image_enabled[i][k])
+					{
+						Draw_c2d_image_free(vid_image[i][k]);
+						vid_image_enabled[i][k] = false;
+					}
+				}
+			}
 
 			vid_pause_request = false;
 			vid_seek_request = false;
@@ -355,11 +431,129 @@ void Sapp0_decode_thread(void* arg)
 	threadExit(0);
 }
 
+void Sapp0_decode_video_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP0_DECODE_VIDEO_THREAD_STR, "Thread started.");
+	bool key = false;
+	int packet_index = 0;
+	int w = 0;
+	int h = 0;
+	int skip = 0;
+	double pos = 0;
+	TickCounter counter;
+	Result_with_string result;
+
+	osTickCounterStart(&counter);
+
+	while (vid_thread_run)
+	{
+		if(vid_play_request)
+		{
+			key = false;
+			w = 0;
+			h = 0;
+			skip = 0;
+			pos = 0;
+
+			while(vid_play_request)
+			{
+				if(vid_decode_video_request)
+				{
+					vid_decode_video_wait_request = true;
+					packet_index = vid_packet_index[0];
+					if(vid_allow_skip_frames && skip > vid_frametime)
+					{
+						skip -= vid_frametime;
+						Util_decoder_skip_video_packet(packet_index, 0);
+						vid_decode_video_wait_request = false;
+						vid_decode_video_request = false;
+					}
+					else
+					{
+						result = Util_decoder_ready_video_packet(packet_index, 0);
+						vid_decode_video_request = false;
+
+						if(result.code == 0)
+						{
+							osTickCounterUpdate(&counter);
+							result = Util_video_decoder_decode(&w, &h, &key, &pos, packet_index, 0);
+							osTickCounterUpdate(&counter);
+							vid_video_time = osTickCounterRead(&counter);
+
+							if(!std::isnan(pos) && !std::isinf(pos))
+								vid_current_pos = pos;
+
+							if(result.code == 0)
+							{
+								vid_packet_index[1] = packet_index;
+								vid_convert_request = true;
+							}
+							else
+								Util_log_save(DEF_SAPP0_DECODE_VIDEO_THREAD_STR, "Util_video_decoder_decode()..." + result.string + result.error_description, result.code);
+
+							vid_decode_video_wait_request = false;
+
+							vid_time[0][319] = vid_video_time;
+
+							if(vid_frametime - vid_video_time > 0)
+								usleep((vid_frametime - vid_video_time) * 1000);
+							else if(vid_allow_skip_frames)
+								skip -= vid_frametime - vid_video_time;
+
+							if(vid_min_time > vid_video_time)
+								vid_min_time = vid_video_time;
+							if(vid_max_time < vid_video_time)
+								vid_max_time = vid_video_time;
+							
+							vid_total_time += vid_video_time;
+							vid_total_frames++;
+
+							vid_recent_time[89] = vid_video_time;
+							vid_recent_total_time = 0;
+							for(int i = 0; i < 90; i++)
+								vid_recent_total_time += vid_recent_time[i];
+
+							for(int i = 1; i < 90; i++)
+								vid_recent_time[i - 1] = vid_recent_time[i];
+
+							for(int i = 1; i < 320; i++)
+								vid_time[0][i - 1] = vid_time[0][i];
+						}
+						else
+						{
+							vid_decode_video_wait_request = false;
+							Util_log_save(DEF_SAPP0_DECODE_VIDEO_THREAD_STR, "Util_decoder_ready_video_packet()..." + result.string + result.error_description, result.code);
+						}
+					}
+				}
+				else
+					usleep(1000);
+			}
+		}
+		
+		usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+
+		while (vid_thread_suspend)
+			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
+	}
+	
+	Util_log_save(DEF_SAPP0_DECODE_VIDEO_THREAD_STR, "Thread exit.");
+	threadExit(0);
+}
+
 void Sapp0_convert_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Thread started.");
 	u8* yuv_video = NULL;
 	u8* video = NULL;
+	int packet_index = 0;
+	int image_num = 0;
+	std::string type = (char*)arg;
+	if(type == "1")
+		APT_SetAppCpuTimeLimit(80);
+	else
+		APT_SetAppCpuTimeLimit(5);
+
 	TickCounter counter[4];
 	Result_with_string result;
 
@@ -370,116 +564,110 @@ void Sapp0_convert_thread(void* arg)
 
 	while (vid_thread_run)
 	{	
-		if(vid_play_request)
+		while(vid_play_request)
 		{
-			while(vid_play_request)
+			if(vid_convert_request)
 			{
-				if(vid_convert_request)
+				vid_convert_wait_request = true;
+				packet_index = vid_packet_index[1];
+				osTickCounterUpdate(&counter[3]);
+				osTickCounterUpdate(&counter[2]);
+				result = Util_video_decoder_get_image(&yuv_video, vid_width, vid_height, packet_index, 0);
+				osTickCounterUpdate(&counter[2]);
+				vid_copy_time[0] = osTickCounterRead(&counter[2]);
+
+				vid_convert_request = false;
+				if(result.code == 0)
 				{
-					vid_wait_request = true;
-					osTickCounterUpdate(&counter[3]);
-					osTickCounterUpdate(&counter[2]);
-					result = Util_video_decoder_get_image(&yuv_video, vid_width, vid_height, 0);
-					osTickCounterUpdate(&counter[2]);
-					vid_copy_time[0] = osTickCounterRead(&counter[2]);
-					
-					vid_convert_request = false;
-					vid_wait_request = false;
+					osTickCounterUpdate(&counter[0]);
+					if(vid_width <= 1024 && vid_height <= 1024)
+						result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_width, vid_height);
+					else
+						result = Util_converter_yuv420p_to_bgr565(yuv_video, &video, vid_width, vid_height);
+					osTickCounterUpdate(&counter[0]);
+					vid_convert_time = osTickCounterRead(&counter[0]);
+
 					if(result.code == 0)
 					{
-						osTickCounterUpdate(&counter[0]);
-						result = Util_converter_yuv420p_to_bgr565(yuv_video, &video, vid_width, vid_height);
-						osTickCounterUpdate(&counter[0]);
-						vid_convert_time = osTickCounterRead(&counter[0]);
+						osTickCounterUpdate(&counter[1]);
+						if(packet_index == 0)
+							image_num = vid_image_num;
+						else if(packet_index == 1)
+							image_num = vid_image_num_3d;
 
-						if(result.code == 0)
+						result = Draw_set_texture_data(&vid_image[image_num * 4][packet_index], video, vid_width, vid_height, 1024, 1024, GPU_RGB565);
+						if(result.code != 0)
+							Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+
+						if(vid_width > 1024)
 						{
-							osTickCounterUpdate(&counter[1]);
-							if(vid_width > 1024 && vid_height > 1024)
-							{
-								vid_tex_width[0] = 1024;
-								vid_tex_width[1] = vid_width - 1024;
-								vid_tex_width[2] = 1024;
-								vid_tex_width[3] = vid_width - 1024;
-								vid_tex_height[0] = 1024;
-								vid_tex_height[1] = 1024;
-								vid_tex_height[2] = vid_height - 1024;
-								vid_tex_height[3] = vid_height - 1024;
-							}
-							else if(vid_width > 1024)
-							{
-								vid_tex_width[0] = 1024;
-								vid_tex_width[1] = vid_width - 1024;
-								vid_tex_height[0] = vid_height;
-								vid_tex_height[1] = vid_height;
-							}
-							else if(vid_height > 1024)
-							{
-								vid_tex_width[0] = vid_width;
-								vid_tex_width[1] = vid_width;
-								vid_tex_height[0] = 1024;
-								vid_tex_height[1] = vid_height - 1024;
-							}
-							else
-							{
-								vid_tex_width[0] = vid_width;
-								vid_tex_height[0] = vid_height;
-							}
-
-							result = Draw_set_texture_data(&vid_image[0], video, vid_width, vid_height, 1024, 1024, GPU_RGB565);
+							result = Draw_set_texture_data(&vid_image[image_num * 4 + 1][packet_index], video, vid_width, vid_height, 1024, 0, 1024, 1024, GPU_RGB565);
 							if(result.code != 0)
 								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-
-							if(vid_width > 1024)
-							{
-								result = Draw_set_texture_data(&vid_image[1], video, vid_width, vid_height, 1024, 0, 1024, 1024, GPU_RGB565);
-								if(result.code != 0)
-									Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-							}
-							if(vid_height > 1024)
-							{
-								result = Draw_set_texture_data(&vid_image[2], video, vid_width, vid_height, 0, 1024, 1024, 1024, GPU_RGB565);
-								if(result.code != 0)
-									Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-							}
-							if(vid_width > 1024 && vid_height > 1024)
-							{
-								result = Draw_set_texture_data(&vid_image[3], video, vid_width, vid_height, 1024, 1024, 1024, 1024, GPU_RGB565);
-								if(result.code != 0)
-									Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-							}
-
-							osTickCounterUpdate(&counter[1]);
-							vid_copy_time[1] = osTickCounterRead(&counter[1]);
-							
-							free(yuv_video);
-							free(video);
-							yuv_video = NULL;
-							video = NULL;
-							var_need_reflesh = true;
 						}
-						else
-							Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Util_converter_yuv420p_to_bgr565()..." + result.string + result.error_description, result.code);
+						if(vid_height > 1024)
+						{
+							result = Draw_set_texture_data(&vid_image[image_num * 4 + 2][packet_index], video, vid_width, vid_height, 0, 1024, 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+						}
+						if(vid_width > 1024 && vid_height > 1024)
+						{
+							result = Draw_set_texture_data(&vid_image[image_num * 4 + 3][packet_index], video, vid_width, vid_height, 1024, 1024, 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+						}
+
+						if(packet_index == 0)
+						{
+							if(image_num == 0)
+								vid_image_num = 1;
+							else
+								vid_image_num = 0;
+						}
+						else if(packet_index == 1)
+						{
+							if(image_num == 0)
+								vid_image_num_3d = 1;
+							else
+								vid_image_num_3d = 0;
+						}
+
+						osTickCounterUpdate(&counter[1]);
+						vid_copy_time[1] = osTickCounterRead(&counter[1]);
+						
+						if(packet_index == 0)
+							var_need_reflesh = true;
 					}
 					else
-						Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
-
-					osTickCounterUpdate(&counter[3]);
-					vid_time[1][319] = osTickCounterRead(&counter[3]);
-					for(int i = 1; i < 320; i++)
-						vid_time[1][i - 1] = vid_time[1][i];
+						Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Util_converter_yuv420p_to_bgr565()..." + result.string + result.error_description, result.code);
 				}
 				else
-					usleep(1000);
+					Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+
+				free(yuv_video);
+				free(video);
+				yuv_video = NULL;
+				video = NULL;
+
+				vid_convert_wait_request = false;
+				osTickCounterUpdate(&counter[3]);
+				vid_time[1][319] = osTickCounterRead(&counter[3]);
+				for(int i = 1; i < 320; i++)
+					vid_time[1][i - 1] = vid_time[1][i];
 			}
+			else
+				usleep(1000);
 		}
-		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+		
+		usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 
 		while (vid_thread_suspend)
 			usleep(DEF_INACTIVE_THREAD_SLEEP_TIME);
 	}
-	
+
+	APT_SetAppCpuTimeLimit(5);
+
 	Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
@@ -509,13 +697,15 @@ void Sapp0_init(void)
 	vid_thread_run = true;
 	if(new_3ds)
 	{
-		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
-		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
+		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 	}
 	else
 	{
-		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)("1"), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
-		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
+		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)("1"), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 	}
 
 	vid_total_time = 0;
@@ -526,7 +716,7 @@ void Sapp0_init(void)
 	for(int i = 0; i < 90; i++)
 		vid_recent_time[i] = 0;
 
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < 8; i++)
 	{
 		vid_tex_width[i] = 0;
 		vid_tex_height[i] = 0;
@@ -538,22 +728,17 @@ void Sapp0_init(void)
 		vid_time[1][i] = 0;
 	}
 
+	for(int k = 0; k < 2; k++)
+	{
+		for(int i = 0; i < 8; i++)
+			vid_image_enabled[i][k] = false;
+	}
+
 	vid_audio_time = 0;
 	vid_video_time = 0;
 	vid_copy_time[0] = 0;
 	vid_copy_time[1] = 0;
 	vid_convert_time = 0;
-
-	for(int i = 0 ; i < 4; i++)
-	{
-		result = Draw_c2d_image_init(&vid_image[i], 1024, 1024, GPU_RGB565);
-		if(result.code != 0)
-		{
-			Util_err_set_error_message(DEF_ERR_OUT_OF_LINEAR_MEMORY_STR, "", DEF_SAPP0_INIT_STR, DEF_ERR_OUT_OF_LINEAR_MEMORY);
-			Util_err_set_error_show_flag(true);
-			vid_thread_run = false;
-		}
-	}
 
 	result = Draw_load_texture("romfs:/gfx/draw/video_player/banner.t3x", 61, vid_banner, 0, 2);
 	Util_log_save(DEF_SAPP0_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
@@ -568,6 +753,7 @@ void Sapp0_init(void)
 	vid_cd_count = 0;
 	vid_x = 0;
 	vid_y = 15;
+	vid_3d_x_offset = 0;
 	vid_frametime = 0;
 	vid_framerate = 0;
 	vid_current_pos = 0;
@@ -598,18 +784,18 @@ void Sapp0_exit(void)
 	vid_thread_suspend = false;
 	vid_thread_run = false;
 	vid_convert_request = false;
+	vid_decode_video_request = false;
 	vid_play_request = false;
 
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_thread, time_out));
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_video_thread, time_out));
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_convert_thread, time_out));
 	threadFree(vid_decode_thread);
+	threadFree(vid_decode_video_thread);
 	threadFree(vid_convert_thread);
 
 	Draw_free_texture(61);
 	Draw_free_texture(62);
-
-	for(int i = 0; i < 4; i++)
-		Draw_c2d_image_free(vid_image[i]);
 	
 	Util_log_save(DEF_SAPP0_EXIT_STR, "Exited.");
 }
@@ -618,6 +804,8 @@ void Sapp0_main(void)
 {
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
+	int image_num = 0;
+	int image_num_3d = 0;
 	Hid_info key;
 	Util_hid_query_key_state(&key);
 	Util_hid_key_flag_reset();
@@ -627,6 +815,11 @@ void Sapp0_main(void)
 		color = DEF_DRAW_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
+	if(vid_image_num == 0)
+		image_num = 1;
+
+	if(vid_image_num_3d == 0)
+		image_num_3d = 1;
 
 	if(var_need_reflesh || !var_eco_mode)
 	{
@@ -637,13 +830,13 @@ void Sapp0_main(void)
 		if(vid_play_request)
 		{
 			//video
-			Draw_texture(vid_image[0].c2d, vid_x, vid_y, vid_tex_width[0] * vid_zoom, vid_tex_height[0] * vid_zoom);
+			Draw_texture(vid_image[image_num * 4][0].c2d, vid_x, vid_y, vid_tex_width[image_num * 4] * vid_zoom, vid_tex_height[image_num * 4] * vid_zoom);
 			if(vid_width > 1024)
-				Draw_texture(vid_image[1].c2d, (vid_x + vid_tex_width[0] * vid_zoom), vid_y, vid_tex_width[1] * vid_zoom, vid_tex_height[1] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), vid_y, vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * vid_zoom);
 			if(vid_height > 1024)
-				Draw_texture(vid_image[2].c2d, vid_x, (vid_y + vid_tex_width[0] * vid_zoom), vid_tex_width[2] * vid_zoom, vid_tex_height[2] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x, (vid_y + vid_tex_width[image_num * 4] * vid_zoom), vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * vid_zoom);
 			if(vid_width > 1024 && vid_height > 1024)
-				Draw_texture(vid_image[3].c2d, (vid_x + vid_tex_width[0] * vid_zoom), (vid_y + vid_tex_height[0] * vid_zoom), vid_tex_width[3] * vid_zoom, vid_tex_height[3] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), (vid_y + vid_tex_height[image_num * 4] * vid_zoom), vid_tex_width[image_num * 4 + 3] * vid_zoom, vid_tex_height[image_num * 4 + 3] * vid_zoom);
 		}
 		else
 			Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -652,6 +845,30 @@ void Sapp0_main(void)
 			Util_log_draw();
 
 		Draw_top_ui();
+
+		if(var_3d_mode)
+		{
+			Draw_screen_ready(2, back_color);
+
+			if(vid_play_request)
+			{
+				//video
+				Draw_texture(vid_image[image_num_3d * 4][1].c2d, vid_x + vid_3d_x_offset, vid_y, vid_tex_width[image_num_3d * 4] * vid_zoom, vid_tex_height[image_num_3d * 4] * vid_zoom);
+				if(vid_width > 1024)
+					Draw_texture(vid_image[image_num_3d * 4 + 1][1].c2d, (vid_x  + vid_3d_x_offset + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_y, vid_tex_width[image_num_3d * 4 + 1] * vid_zoom, vid_tex_height[image_num_3d * 4 + 1] * vid_zoom);
+				if(vid_height > 1024)
+					Draw_texture(vid_image[image_num_3d * 4 + 2][1].c2d, vid_x + vid_3d_x_offset, (vid_y + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_tex_width[image_num_3d * 4 + 2] * vid_zoom, vid_tex_height[image_num_3d * 4 + 2] * vid_zoom);
+				if(vid_width > 1024 && vid_height > 1024)
+					Draw_texture(vid_image[image_num_3d * 4 + 3][1].c2d, (vid_x + vid_3d_x_offset + vid_tex_width[image_num_3d * 4] * vid_zoom), (vid_y + vid_tex_height[image_num_3d * 4] * vid_zoom), vid_tex_width[image_num_3d * 4 + 3] * vid_zoom, vid_tex_height[image_num_3d * 4 + 3] * vid_zoom);
+			}
+			else
+				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
+
+			if(Util_log_query_log_show_flag())
+				Util_log_draw();
+
+			Draw_top_ui();
+		}
 
 		Draw_screen_ready(1, back_color);
 
@@ -665,13 +882,13 @@ void Sapp0_main(void)
 		if(vid_play_request)
 		{
 			//video
-			Draw_texture(vid_image[0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[0] * vid_zoom, vid_tex_height[0] * vid_zoom);
+			Draw_texture(vid_image[image_num * 4][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[image_num * 4] * vid_zoom, vid_tex_height[image_num * 4] * vid_zoom);
 			if(vid_width > 1024)
-				Draw_texture(vid_image[1].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40, vid_y - 240, vid_tex_width[1] * vid_zoom, vid_tex_height[1] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, vid_y - 240, vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * vid_zoom);
 			if(vid_height > 1024)
-				Draw_texture(vid_image[2].c2d, vid_x - 40, (vid_y + vid_tex_width[0] * vid_zoom) - 240, vid_tex_width[2] * vid_zoom, vid_tex_height[2] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x - 40, (vid_y + vid_tex_width[image_num * 4] * vid_zoom) - 240, vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * vid_zoom);
 			if(vid_width > 1024 && vid_height > 1024)
-				Draw_texture(vid_image[3].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40, (vid_y + vid_tex_height[0] * vid_zoom) - 240, vid_tex_width[3] * vid_zoom, vid_tex_height[3] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, (vid_y + vid_tex_height[image_num * 4] * vid_zoom) - 240, vid_tex_width[image_num * 4 + 3] * vid_zoom, vid_tex_height[image_num * 4 + 3] * vid_zoom);
 		}
 
 		//controls
@@ -793,8 +1010,14 @@ void Sapp0_main(void)
 		else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 180 && key.touch_y <= 189)
 		{
 			vid_linear_filter = !vid_linear_filter;
-			for(int i = 0; i < 4; i++)
-				Draw_c2d_image_set_filter(&vid_image[i], vid_linear_filter);
+			for(int k = 0; k < 2; k++)
+			{
+				for(int i = 0; i < 8; i++)
+				{
+					if(vid_image_enabled[i][k])
+						Draw_c2d_image_set_filter(&vid_image[i][k], vid_linear_filter);
+				}
+			}
 
 			var_need_reflesh = true;
 		}
@@ -833,7 +1056,41 @@ void Sapp0_main(void)
 					vid_y += 5 * var_scroll_speed * key.count;
 			}
 
-			if(key.p_c_right || key.p_d_right)
+			if(key.p_c_right)
+				vid_x -= 1 * var_scroll_speed * key.count;
+			else if(key.h_c_right)
+			{
+				if(vid_cd_count > 600)
+					vid_x -= 10 * var_scroll_speed * key.count;
+				else if(vid_cd_count > 240)
+					vid_x -= 7.5 * var_scroll_speed * key.count;
+				else if(vid_cd_count > 5)
+					vid_x -= 5 * var_scroll_speed * key.count;
+			}
+
+			if(key.p_c_left)
+				vid_x += 1 * var_scroll_speed * key.count;
+			else if(key.h_c_left)
+			{
+				if(vid_cd_count > 600)
+					vid_x += 10 * var_scroll_speed * key.count;
+				else if(vid_cd_count > 240)
+					vid_x += 7.5 * var_scroll_speed * key.count;
+				else if(vid_cd_count > 5)
+					vid_x += 5 * var_scroll_speed * key.count;
+			}
+
+			if(key.p_d_right)
+				vid_3d_x_offset -= 1 * var_scroll_speed * key.count;
+			else if(key.h_d_right)
+				vid_3d_x_offset -= 2.5 * var_scroll_speed * key.count;
+
+			if(key.p_d_left)
+				vid_3d_x_offset += 1 * var_scroll_speed * key.count;
+			else if(key.h_d_left)
+				vid_3d_x_offset += 2.5 * var_scroll_speed * key.count;
+
+			/*if(key.p_c_right || key.p_d_right)
 				vid_x -= 1 * var_scroll_speed * key.count;
 			else if(key.h_c_right || key.h_d_right)
 			{
@@ -855,7 +1112,7 @@ void Sapp0_main(void)
 					vid_x += 7.5 * var_scroll_speed * key.count;
 				else if(vid_cd_count > 5)
 					vid_x += 5 * var_scroll_speed * key.count;
-			}
+			}*/
 
 			if(vid_x > 400)
 				vid_x = 400;
@@ -866,6 +1123,11 @@ void Sapp0_main(void)
 				vid_y = 480;
 			else if(vid_y < -vid_height * vid_zoom)
 				vid_y = -vid_height * vid_zoom;
+
+			if(vid_3d_x_offset > 400)
+				vid_3d_x_offset = 400;
+			else if(vid_3d_x_offset < -400)
+				vid_3d_x_offset = -400;
 
 			vid_cd_count++;
 			var_need_reflesh = true;

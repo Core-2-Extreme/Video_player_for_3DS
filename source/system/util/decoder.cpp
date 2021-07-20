@@ -24,7 +24,9 @@ bool util_video_decoder_lock[2][6] = { { false, false, false, false, false, fals
 int util_video_decoder_buffer_num[2][2] = { { 0, 3, }, { 0, 3, }, };
 int util_video_decoder_ready_buffer_num[2][2] = { { 0, 3, }, { 0, 3, }, };
 int util_video_decoder_stream_num[2][2] = { { -1, -1, }, { -1, -1, }, };
+int util_video_decoder_mvd_packet_size = 0;
 u8* util_video_decoder_mvd_raw_data = NULL;
+u8* util_video_decoder_mvd_packet = NULL;
 AVPacket* util_video_decoder_packet[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
 AVPacket* util_video_decoder_cache_packet[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
 AVFrame* util_video_decoder_raw_data[2][6] = { { NULL, NULL, NULL, NULL, NULL, NULL, }, { NULL, NULL, NULL, NULL, NULL, NULL, } };
@@ -35,15 +37,36 @@ AVFormatContext* util_decoder_format_context[2] = { NULL, NULL, };
 
 MVDSTD_Config util_decoder_mvd_config;
 
-Result_with_string Util_mvd_video_decoder_init(void)
+Result_with_string Util_mvd_video_decoder_init(int session)
 {
+	int width = 0;
+	int height = 0;
 	Result_with_string result;
 
 	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 2, NULL);
 	if(result.code != 0)
 		result.string = "mvdstdInit() failed. ";
 	else
-		util_video_decoder_mvd_first = true;
+	{
+		width = util_video_decoder_context[session][0]->width;
+		height = util_video_decoder_context[session][0]->height;
+		if(width % 16 != 0)
+			width += 16 - width % 16;
+		if(height % 16 != 0)
+			height += 16 - height % 16;
+		
+		util_video_decoder_mvd_packet_size = 1024 * 256;
+		util_video_decoder_mvd_packet = (u8*)linearAlloc(util_video_decoder_mvd_packet_size);
+		util_video_decoder_mvd_raw_data = (u8*)linearAlloc(width * height * 2);
+		if(!util_video_decoder_mvd_packet || !util_video_decoder_mvd_raw_data)
+		{
+			result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+			result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+			Util_mvd_video_decoder_exit();
+		}
+		else
+			util_video_decoder_mvd_first = true;
+	}
 
 	return result;
 }
@@ -550,7 +573,6 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 	int size = 0;
 	double framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
 	double current_frame = (double)util_video_decoder_packet[session][0]->dts / util_video_decoder_packet[session][0]->duration;
-	u8* packet = NULL;
 	Result_with_string result;
 	*width = util_video_decoder_context[session][0]->width;
 	*height = util_video_decoder_context[session][0]->height;
@@ -570,30 +592,39 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 		*key_frame = false;
 	
 	mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
-	
-	packet = (u8*)linearAlloc(util_video_decoder_packet[session][0]->size);	
+
+	if(util_video_decoder_packet[session][0]->size > util_video_decoder_mvd_packet_size)
+	{
+		util_video_decoder_mvd_packet_size = util_video_decoder_packet[session][0]->size;
+		linearFree(util_video_decoder_mvd_packet);
+		util_video_decoder_mvd_packet = NULL;
+		util_video_decoder_mvd_packet = (u8*)linearAlloc(util_video_decoder_mvd_packet_size);
+		if(!util_video_decoder_mvd_packet)
+			goto fail;
+	}
+
 	if(util_video_decoder_mvd_first)
 	{
 		//set extra data
 		offset = 0;
-		memset(packet, 0x0, 0x2);
+		memset(util_video_decoder_mvd_packet, 0x0, 0x2);
 		offset += 2;
-		memset(packet + offset, 0x1, 0x1);
+		memset(util_video_decoder_mvd_packet + offset, 0x1, 0x1);
 		offset += 1;
-		memcpy(packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
+		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
 		offset += *(util_video_decoder_context[session][0]->extradata + 7);
 
-		result.code = mvdstdProcessVideoFrame(packet, offset, 0, NULL);
+		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 
 		offset = 0;
-		memset(packet, 0x0, 0x2);
+		memset(util_video_decoder_mvd_packet, 0x0, 0x2);
 		offset += 2;
-		memset(packet + offset, 0x1, 0x1);
+		memset(util_video_decoder_mvd_packet + offset, 0x1, 0x1);
 		offset += 1;
-		memcpy(packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
+		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
 		offset += *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7));
 
-		result.code = mvdstdProcessVideoFrame(packet, offset, 0, NULL);
+		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 	}
 
 	offset = 0;
@@ -607,37 +638,39 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 		source_offset += 4;
 
 		//set nal prefix 0x0 0x0 0x1
-		memset(packet + offset, 0x0, 0x2);
+		memset(util_video_decoder_mvd_packet + offset, 0x0, 0x2);
 		offset += 2;
-		memset(packet + offset, 0x1, 0x1);
+		memset(util_video_decoder_mvd_packet + offset, 0x1, 0x1);
 		offset += 1;
 
 		//copy raw nal data
-		memcpy(packet + offset, (util_video_decoder_packet[session][0]->data + source_offset), size);
+		memcpy(util_video_decoder_mvd_packet + offset, (util_video_decoder_packet[session][0]->data + source_offset), size);
 		offset += size;
 		source_offset += size;
 	}
 
-	if(!util_video_decoder_mvd_raw_data)
-		util_video_decoder_mvd_raw_data = (u8*)linearAlloc(*width * *height * 2);
-
 	util_decoder_mvd_config.physaddr_outdata0 = osConvertVirtToPhys(util_video_decoder_mvd_raw_data);
 
-	result.code = mvdstdProcessVideoFrame(packet, offset, 0, NULL);
+	result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 
 	if(util_video_decoder_mvd_first)
 	{
 		//Do I need to send same nal data at first frame?
-		result.code = mvdstdProcessVideoFrame(packet, offset, 0, NULL);
+		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 		util_video_decoder_mvd_first = false;
 	}
 
 	if(result.code == MVD_STATUS_FRAMEREADY)
 		result.code = 0;
 
-	linearFree(packet);
-	packet = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
+	return result;
+
+	fail:
+
+	av_packet_free(&util_video_decoder_packet[session][0]);
+	result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+	result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
 	return result;
 }
 
@@ -685,7 +718,10 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 	}
 
 	result.code = mvdstdRenderVideoFrame(&util_decoder_mvd_config, true);
-	result.code = 0;
+	if(result.code == MVD_STATUS_OK)
+		result.code = 0;
+	else
+		result.string = DEF_ERR_OTHER_STR;
 
 	memcpy_asm(*raw_data, util_video_decoder_mvd_raw_data, cpy_size);
 	
@@ -744,7 +780,9 @@ void Util_mvd_video_decoder_exit(void)
 {
 	mvdstdExit();
 	linearFree(util_video_decoder_mvd_raw_data);
+	linearFree(util_video_decoder_mvd_packet);
 	util_video_decoder_mvd_raw_data = NULL;
+	util_video_decoder_mvd_packet = NULL;
 }
 
 Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_data, int* width, int* height)

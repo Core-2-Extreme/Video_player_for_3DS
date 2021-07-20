@@ -316,6 +316,9 @@ void Menu_main(void)
 			Util_err_main(key);
 		else
 		{
+			if (key.p_touch || key.h_touch)
+				var_need_reflesh = true;
+
 			if(menu_check_exit_request)
 			{
 				if (key.p_a)

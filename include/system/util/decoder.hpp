@@ -1,6 +1,6 @@
 #pragma once
 
-Result_with_string Util_mvd_video_decoder_init(void);
+Result_with_string Util_mvd_video_decoder_init(int session);
 
 Result_with_string Util_decoder_open_file(std::string file_path, bool* has_audio, bool* has_video, bool* has_3d, int session);
 

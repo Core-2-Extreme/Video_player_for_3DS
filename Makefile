@@ -40,7 +40,7 @@ GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
-APP_VER					:= 1042
+APP_VER					:= 1056
 APP_TITLE				:= Video player for 3DS
 APP_DESCRIPTION				:= Video player for 3DS
 APP_AUTHOR				:= Core_2_Extreme

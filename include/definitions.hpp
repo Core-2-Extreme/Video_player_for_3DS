@@ -11,7 +11,7 @@
 #define DEF_CHECK_UPDATE_URL (std::string)"https://script.google.com/macros/s/AKfycbwTd3jzV0npUE9MNKmZIv3isazVR5D9_7A8rexsG1vr9SE7iavDBxgtzlph8dZipwu9/exec"
 #define DEF_HTTP_USER_AGENT (std::string)"video player for 3ds v1.2.0"
 #define DEF_CURRENT_APP_VER (std::string)"v1.2.0"
-#define DEF_CURRENT_APP_VER_INT 1042
+#define DEF_CURRENT_APP_VER_INT 1056
 #define DEF_ENABLE_SUB_APP0
 #define DEF_ENABLE_SUB_APP1
 //#define DEF_ENABLE_SUB_APP2

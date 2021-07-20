@@ -333,3 +333,121 @@ Result_with_string Util_converter_bgr888_to_yuv420p(u8* bgr888, u8** yuv420p, in
 	
 	return result;*/
 }
+
+Result_with_string Util_converter_y2r_init(void)
+{
+	Result_with_string result;
+
+	result.code = y2rInit();
+	if(result.code != 0)
+		result.string = "[Error] y2rInit() failed. ";
+	
+	return result;
+}
+
+Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height)
+{
+	bool finished = false;
+	Y2RU_ConversionParams y2r_parameters;
+	Result_with_string result;
+
+	*bgr565 = (u8*)malloc(width * height * 2);
+	if(*bgr565 == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+
+	y2r_parameters.input_format = INPUT_YUV420_INDIV_8;
+	y2r_parameters.output_format = OUTPUT_RGB_16_565;
+	y2r_parameters.rotation = ROTATION_NONE;
+	y2r_parameters.block_alignment = BLOCK_LINE;
+	y2r_parameters.input_line_width = width;
+	y2r_parameters.input_lines = height;
+	y2r_parameters.standard_coefficient = COEFFICIENT_ITU_R_BT_601;
+	y2r_parameters.alpha = 0xFF;
+
+	result.code = Y2RU_SetConversionParams(&y2r_parameters);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetConversionParams() failed. ";
+		return result;
+	}
+
+	/*result.code = Y2RU_SetInputFormat(INPUT_YUV420_INDIV_8);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetInputFormat() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetOutputFormat(OUTPUT_RGB_16_565);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetOutputFormat() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetInputLineWidth(width);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetInputLineWidth() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetInputLines(height);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetInputLines() failed. ";
+		return result;
+	}*/
+
+	result.code = Y2RU_SetSendingY(yuv420p, width * height, width, 0);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetSendingY() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetSendingU(yuv420p + (width * height), width * height / 4, width / 2, 0);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetSendingU() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetSendingV(yuv420p + ((width * height) + (width * height / 4)), width * height / 4, width / 2, 0);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetSendingV() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_SetReceiving(*bgr565, width * height * 2, width * 2, 0);
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_SetReceiving() failed. ";
+		return result;
+	}
+
+	result.code = Y2RU_StartConversion();
+	if(result.code != 0)
+	{
+		result.string = "[Error] Y2RU_StartConversion() failed. ";
+		return result;
+	}
+
+	while(!finished)
+	{
+		Y2RU_IsDoneReceiving(&finished);
+		usleep(1000);
+	}
+
+	return result;
+}
+
+void Util_converter_y2r_exit(void)
+{
+	y2rExit();
+}

@@ -10,7 +10,4 @@
 <9>Move the video</9>
 <10>Seek</10>
 <11>Zoom out/in</11>
-<12>H.264 hardware decoder β
-Known issues : 
-*It does not work in .cia
-</12>
+<12>H.264 hardware decoder</12>

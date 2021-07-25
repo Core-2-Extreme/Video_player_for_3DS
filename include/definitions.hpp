@@ -23,6 +23,9 @@
 
 //video player
 #define DEF_SAPP0_NUM_OF_MSG 12
+#define DEF_SAPP0_ENABLE_ICON
+//#define DEF_SAPP0_ENABLE_NAME
+#define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
 #define DEF_SAPP0_NAME (std::string)"Video\nplayer"
 #define DEF_SAPP0_VER (std::string)"v1.2.0"
 #define DEF_SAPP0_MAIN_STR (std::string)"Vid/Main"
@@ -34,6 +37,9 @@
 
 //video player(mvd)
 #define DEF_SAPP1_NUM_OF_MSG 13
+#define DEF_SAPP1_ENABLE_ICON
+//#define DEF_SAPP1_ENABLE_NAME
+#define DEF_SAPP1_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_mvd_icon.t3x"
 #define DEF_SAPP1_NAME (std::string)"mvd test"
 #define DEF_SAPP1_VER (std::string)"v1.2.0"
 #define DEF_SAPP1_MAIN_STR (std::string)"Vid/Main"
@@ -45,6 +51,9 @@
 
 //sample app 2
 #define DEF_SAPP2_NUM_OF_MSG 1
+//#define DEF_SAPP2_ENABLE_ICON
+#define DEF_SAPP2_ENABLE_NAME
+#define DEF_SAPP2_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP2_NAME (std::string)"sample 2"
 #define DEF_SAPP2_VER (std::string)"v0.0.1"
 #define DEF_SAPP2_MAIN_STR (std::string)"Sapp2/Main"
@@ -54,6 +63,9 @@
 
 //sample app 3
 #define DEF_SAPP3_NUM_OF_MSG 1
+//#define DEF_SAPP3_ENABLE_ICON
+#define DEF_SAPP3_ENABLE_NAME
+#define DEF_SAPP3_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP3_NAME (std::string)"sample 3"
 #define DEF_SAPP3_VER (std::string)"v0.0.1"
 #define DEF_SAPP3_MAIN_STR (std::string)"Sapp3/Main"
@@ -63,6 +75,9 @@
 
 //sample app 4
 #define DEF_SAPP4_NUM_OF_MSG 1
+//#define DEF_SAPP4_ENABLE_ICON
+#define DEF_SAPP4_ENABLE_NAME
+#define DEF_SAPP4_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP4_NAME (std::string)"sample 4"
 #define DEF_SAPP4_VER (std::string)"v0.0.1"
 #define DEF_SAPP4_MAIN_STR (std::string)"Sapp4/Main"
@@ -72,6 +87,9 @@
 
 //sample app 5
 #define DEF_SAPP5_NUM_OF_MSG 1
+//#define DEF_SAPP5_ENABLE_ICON
+#define DEF_SAPP5_ENABLE_NAME
+#define DEF_SAPP5_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP5_NAME (std::string)"sample 5"
 #define DEF_SAPP5_VER (std::string)"v0.0.1"
 #define DEF_SAPP5_MAIN_STR (std::string)"Sapp5/Main"
@@ -81,6 +99,9 @@
 
 //sample app 6
 #define DEF_SAPP6_NUM_OF_MSG 1
+//#define DEF_SAPP6_ENABLE_ICON
+#define DEF_SAPP6_ENABLE_NAME
+#define DEF_SAPP6_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP6_NAME (std::string)"sample 6"
 #define DEF_SAPP6_VER (std::string)"v0.0.1"
 #define DEF_SAPP6_MAIN_STR (std::string)"Sapp6/Main"
@@ -90,6 +111,9 @@
 
 //sample app 7
 #define DEF_SAPP7_NUM_OF_MSG 1
+//#define DEF_SAPP7_ENABLE_ICON
+#define DEF_SAPP7_ENABLE_NAME
+#define DEF_SAPP7_ICON_PATH (std::string)"romfs:/"
 #define DEF_SAPP7_NAME (std::string)"sample 7"
 #define DEF_SAPP7_VER (std::string)"v0.0.1"
 #define DEF_SAPP7_MAIN_STR (std::string)"Sapp7/Main"
@@ -110,6 +134,10 @@
 
 //setting menu
 #define DEF_SEM_NUM_OF_MSG 59
+#define DEF_SEM_ENABLE_ICON
+//#define DEF_SEM_ENABLE_NAME
+#define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
+#define DEF_SEM_NAME (std::string)"Settings"
 #define DEF_SEM_INIT_STR (std::string)"Sem/Init"
 #define DEF_SEM_EXIT_STR (std::string)"Sem/Exit"
 #define DEF_SEM_WORKER_THREAD_STR (std::string)"Sem/Worker thread"
@@ -128,6 +156,9 @@
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
 
+//draw
+#define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS 128
+
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00
@@ -144,6 +175,10 @@
 #define DEF_DRAW_WEAK_AQUA 0x50FFFF00
 #define DEF_DRAW_WEAK_YELLOW 0x5000C5FF
 #define DEF_DRAW_NO_COLOR 0x0
+
+//decoder 
+#define DEF_DECODER_MAX_AUDIO_TRACKS 16
+#define DEF_DECODER_MAX_VIDEO_TRACKS 2
 
 //error num
 #define DEF_ERR_SUMMARY 0

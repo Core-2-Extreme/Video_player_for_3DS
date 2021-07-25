@@ -11,31 +11,30 @@ extern "C" {
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
-int util_audio_decoder_stream_num[2] = { -1, -1, };
-AVPacket* util_audio_decoder_packet[2] = { NULL, NULL, };
-AVPacket* util_audio_decoder_cache_packet[2] = { NULL, NULL, };
-AVFrame* util_audio_decoder_raw_data[2] = { NULL, NULL, };
-AVCodecContext* util_audio_decoder_context[2] = { NULL, NULL, };
-const AVCodec* util_audio_decoder_codec[2] = { NULL, NULL, };
-SwrContext* util_audio_decoder_swr_context[2] = { NULL, NULL, };
+int util_audio_decoder_stream_num[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_cache_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVFrame* util_audio_decoder_raw_data[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVCodecContext* util_audio_decoder_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+const AVCodec* util_audio_decoder_codec[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+SwrContext* util_audio_decoder_swr_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
 
 bool util_video_decoder_mvd_first = false;
-bool util_video_decoder_lock[2][6] = { { false, false, false, false, false, false, }, { false, false, false, false, false, false, } };
-int util_video_decoder_buffer_num[2][2] = { { 0, 3, }, { 0, 3, }, };
-int util_video_decoder_ready_buffer_num[2][2] = { { 0, 3, }, { 0, 3, }, };
-int util_video_decoder_stream_num[2][2] = { { -1, -1, }, { -1, -1, }, };
+bool util_video_decoder_lock[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+int util_video_decoder_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_ready_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_stream_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_packet_size = 0;
 u8* util_video_decoder_mvd_raw_data = NULL;
 u8* util_video_decoder_mvd_packet = NULL;
-AVPacket* util_video_decoder_packet[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
-AVPacket* util_video_decoder_cache_packet[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
-AVFrame* util_video_decoder_raw_data[2][6] = { { NULL, NULL, NULL, NULL, NULL, NULL, }, { NULL, NULL, NULL, NULL, NULL, NULL, } };
-AVCodecContext* util_video_decoder_context[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
-const AVCodec* util_video_decoder_codec[2][2] = { { NULL, NULL, }, { NULL, NULL, } };
+AVPacket* util_video_decoder_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVPacket* util_video_decoder_cache_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVFrame* util_video_decoder_raw_data[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+AVCodecContext* util_video_decoder_context[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+const AVCodec* util_video_decoder_codec[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+MVDSTD_Config util_decoder_mvd_config;
 
 AVFormatContext* util_decoder_format_context[2] = { NULL, NULL, };
-
-MVDSTD_Config util_decoder_mvd_config;
 
 Result_with_string Util_mvd_video_decoder_init(int session)
 {
@@ -71,13 +70,14 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	return result;
 }
 
-Result_with_string Util_decoder_open_file(std::string file_path, bool* has_audio, bool* has_video, bool* has_3d, int session)
+Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_audio_tracks, int* num_of_video_tracks, int session)
 {
 	int ffmpeg_result = 0;
+	int audio_index = 0;
+	int video_index = 0;
 	Result_with_string result;
-	*has_audio = false;
-	*has_video = false;
-	*has_3d = false;
+	*num_of_video_tracks = 0;
+	*num_of_audio_tracks = 0;
 
 	util_decoder_format_context[session] = avformat_alloc_context();
 	ffmpeg_result = avformat_open_input(&util_decoder_format_context[session], file_path.c_str(), NULL, NULL);
@@ -94,33 +94,35 @@ Result_with_string Util_decoder_open_file(std::string file_path, bool* has_audio
 		goto fail;
 	}
 
-	util_audio_decoder_stream_num[session] = -1;
-	util_video_decoder_stream_num[session][0] = -1;
-	util_video_decoder_stream_num[session][1] = -1;
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+		util_audio_decoder_stream_num[session][i] = -1;
+
+	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+		util_video_decoder_stream_num[session][i] = -1;
+
 	for(int i = 0; i < (int)util_decoder_format_context[session]->nb_streams; i++)
 	{
-		if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+		if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && audio_index < DEF_DECODER_MAX_AUDIO_TRACKS)
 		{
-			*has_audio = true;
-			util_audio_decoder_stream_num[session] = i;
+			util_audio_decoder_stream_num[session][audio_index] = i;
+			audio_index++;
 		}
-		else if(util_video_decoder_stream_num[session][0] == -1 && util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+		else if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && video_index < DEF_DECODER_MAX_VIDEO_TRACKS)
 		{
-			*has_video = true;
-			util_video_decoder_stream_num[session][0] = i;
-		}
-		else if(util_video_decoder_stream_num[session][1] == -1 && util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-		{
-			*has_3d = true;
-			util_video_decoder_stream_num[session][1] = i;
+			util_video_decoder_stream_num[session][video_index] = i;
+			video_index++;
 		}
 	}
 
-	if(util_audio_decoder_stream_num[session] == -1 && util_video_decoder_stream_num[session][0] == -1)
+	if(audio_index == 0 && video_index == 0)
 	{
 		result.error_description = "No audio and video data";
 		goto fail;
 	}
+
+	*num_of_audio_tracks = audio_index;
+	*num_of_video_tracks = video_index;
+
 	return result;
 
 	fail:
@@ -131,53 +133,56 @@ Result_with_string Util_decoder_open_file(std::string file_path, bool* has_audio
 	return result;
 }
 
-Result_with_string Util_audio_decoder_init(int session)
+Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 {
 	int ffmpeg_result = 0;
 	Result_with_string result;
-
-	util_audio_decoder_codec[session] = avcodec_find_decoder(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session]]->codecpar->codec_id);
-	if(!util_audio_decoder_codec[session])
+	
+	for(int i = 0; i < num_of_audio_tracks; i++)
 	{
-		result.error_description = "avcodec_find_decoder() failed";
-		goto fail;
-	}
+		util_audio_decoder_codec[session][i] = avcodec_find_decoder(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][i]]->codecpar->codec_id);
+		if(!util_audio_decoder_codec[session][i])
+		{
+			result.error_description = "avcodec_find_decoder() failed";
+			goto fail;
+		}
 
-	util_audio_decoder_context[session] = avcodec_alloc_context3(util_audio_decoder_codec[session]);
-	if(!util_audio_decoder_context[session])
-	{
-		result.error_description = "avcodec_alloc_context3() failed";
-		goto fail;
-	}
+		util_audio_decoder_context[session][i] = avcodec_alloc_context3(util_audio_decoder_codec[session][i]);
+		if(!util_audio_decoder_context[session][i])
+		{
+			result.error_description = "avcodec_alloc_context3() failed";
+			goto fail;
+		}
 
-	ffmpeg_result = avcodec_parameters_to_context(util_audio_decoder_context[session], util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session]]->codecpar);
-	if(ffmpeg_result != 0)
-	{
-		result.error_description = "avcodec_parameters_to_context() failed " + std::to_string(ffmpeg_result);
-		goto fail;
-	}
+		ffmpeg_result = avcodec_parameters_to_context(util_audio_decoder_context[session][i], util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][i]]->codecpar);
+		if(ffmpeg_result != 0)
+		{
+			result.error_description = "avcodec_parameters_to_context() failed " + std::to_string(ffmpeg_result);
+			goto fail;
+		}
 
-	ffmpeg_result = avcodec_open2(util_audio_decoder_context[session], util_audio_decoder_codec[session], NULL);
-	if(ffmpeg_result != 0)
-	{
-		result.error_description = "avcodec_open2() failed " + std::to_string(ffmpeg_result);
-		goto fail;
-	}
+		ffmpeg_result = avcodec_open2(util_audio_decoder_context[session][i], util_audio_decoder_codec[session][i], NULL);
+		if(ffmpeg_result != 0)
+		{
+			result.error_description = "avcodec_open2() failed " + std::to_string(ffmpeg_result);
+			goto fail;
+		}
 
-	util_audio_decoder_swr_context[session] = swr_alloc();
-	swr_alloc_set_opts(util_audio_decoder_swr_context[session], av_get_default_channel_layout(util_audio_decoder_context[session]->channels), AV_SAMPLE_FMT_S16, util_audio_decoder_context[session]->sample_rate,
-		av_get_default_channel_layout(util_audio_decoder_context[session]->channels), util_audio_decoder_context[session]->sample_fmt, util_audio_decoder_context[session]->sample_rate, 0, NULL);
-	if(!util_audio_decoder_swr_context[session])
-	{
-		result.error_description = "swr_alloc_set_opts() failed " + std::to_string(ffmpeg_result);
-		goto fail;
-	}
+		util_audio_decoder_swr_context[session][i] = swr_alloc();
+		swr_alloc_set_opts(util_audio_decoder_swr_context[session][i], av_get_default_channel_layout(util_audio_decoder_context[session][i]->channels), AV_SAMPLE_FMT_S16, util_audio_decoder_context[session][i]->sample_rate,
+			av_get_default_channel_layout(util_audio_decoder_context[session][i]->channels), util_audio_decoder_context[session][i]->sample_fmt, util_audio_decoder_context[session][i]->sample_rate, 0, NULL);
+		if(!util_audio_decoder_swr_context[session][i])
+		{
+			result.error_description = "swr_alloc_set_opts() failed " + std::to_string(ffmpeg_result);
+			goto fail;
+		}
 
-	ffmpeg_result = swr_init(util_audio_decoder_swr_context[session]);
-	if(ffmpeg_result != 0)
-	{
-		result.error_description = "swr_init() failed " + std::to_string(ffmpeg_result);
-		goto fail;
+		ffmpeg_result = swr_init(util_audio_decoder_swr_context[session][i]);
+		if(ffmpeg_result != 0)
+		{
+			result.error_description = "swr_init() failed " + std::to_string(ffmpeg_result);
+			goto fail;
+		}
 	}
 
 	return result;
@@ -190,16 +195,18 @@ Result_with_string Util_audio_decoder_init(int session)
 	return result;
 }
 
-Result_with_string Util_video_decoder_init(int low_resolution, bool has_3d, int session)
+Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int session)
 {
 	int ffmpeg_result = 0;
 	Result_with_string result;
 
-	util_video_decoder_buffer_num[session][0] = 0;
-	util_video_decoder_buffer_num[session][1] = 3;
-	util_video_decoder_ready_buffer_num[session][0] = 0;
-	util_video_decoder_ready_buffer_num[session][1] = 3;
-	for(int i = 0; i < 2; i++)
+	for (int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	{
+		util_video_decoder_buffer_num[session][i] = i * 3;
+		util_video_decoder_ready_buffer_num[session][i] = i * 3;
+	}
+
+	for(int i = 0; i < num_of_video_tracks; i++)
 	{
 		util_video_decoder_codec[session][i] = avcodec_find_decoder(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][i]]->codecpar->codec_id);
 		if(!util_video_decoder_codec[session][i])
@@ -215,7 +222,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, bool has_3d, int 
 			goto fail;
 		}
 
-		ffmpeg_result = avcodec_parameters_to_context(util_video_decoder_context[session][i], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->codecpar);
+		ffmpeg_result = avcodec_parameters_to_context(util_video_decoder_context[session][i], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][i]]->codecpar);
 		if(ffmpeg_result != 0)
 		{
 			result.error_description = "avcodec_parameters_to_context() failed " + std::to_string(ffmpeg_result);
@@ -230,9 +237,6 @@ Result_with_string Util_video_decoder_init(int low_resolution, bool has_3d, int 
 			result.error_description = "avcodec_open2() failed " + std::to_string(ffmpeg_result);
 			goto fail;
 		}
-
-		if(!has_3d)
-			break;
 	}
 
 	return result;
@@ -245,31 +249,32 @@ Result_with_string Util_video_decoder_init(int low_resolution, bool has_3d, int 
 	return result;
 }
 
-void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::string* format_name, double* duration, int session)
+void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::string* format_name, double* duration, int audio_index, int session)
 {
-	*bitrate = util_audio_decoder_context[session]->bit_rate;
-	*sample_rate = util_audio_decoder_context[session]->sample_rate;
-	*ch = util_audio_decoder_context[session]->channels;
-	*format_name = util_audio_decoder_codec[session]->long_name;
+	*bitrate = util_audio_decoder_context[session][audio_index]->bit_rate;
+	*sample_rate = util_audio_decoder_context[session][audio_index]->sample_rate;
+	*ch = util_audio_decoder_context[session][audio_index]->channels;
+	*format_name = util_audio_decoder_codec[session][audio_index]->long_name;
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int session)
+void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int video_index, int session)
 {
-	*width = util_video_decoder_context[session][0]->width;
-	*height = util_video_decoder_context[session][0]->height;
-	*framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
-	*format_name = util_video_decoder_codec[session][0]->long_name;
+	*width = util_video_decoder_context[session][video_index]->width;
+	*height = util_video_decoder_context[session][video_index]->height;
+	*framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
+	*format_name = util_video_decoder_codec[session][video_index]->long_name;
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index, int session)
+Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index, bool* key_frame, int session)
 {
 	Result_with_string result;
 	int ffmpeg_result = 0;
 	AVPacket* cache_packet = NULL;
-	*type = "unknown";
+	*key_frame = false;
 	*packet_index = -1;
+	*type = "unknown";
 
 	cache_packet = av_packet_alloc();
 	if(!cache_packet)
@@ -285,27 +290,35 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 		goto fail;
 	}
 
-	if(cache_packet->stream_index == util_audio_decoder_stream_num[session])//audio packet
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)	
 	{
-		util_audio_decoder_cache_packet[session] = av_packet_alloc();
-		if(!util_audio_decoder_cache_packet[session])
+		if(cache_packet->stream_index == util_audio_decoder_stream_num[session][i])//audio packet
 		{
-			result.error_description = "av_packet_alloc() failed" + std::to_string(ffmpeg_result);
-			goto fail;
-		}
+			util_audio_decoder_cache_packet[session][i] = av_packet_alloc();
+			if(!util_audio_decoder_cache_packet[session][i])
+			{
+				result.error_description = "av_packet_alloc() failed" + std::to_string(ffmpeg_result);
+				av_packet_free(&util_audio_decoder_cache_packet[session][i]);
+				goto fail;
+			}
 
-		av_packet_unref(util_audio_decoder_cache_packet[session]);
-		ffmpeg_result = av_packet_ref(util_audio_decoder_cache_packet[session], cache_packet);
-		if(ffmpeg_result != 0)
-		{
-			result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
-			goto fail;
+			av_packet_unref(util_audio_decoder_cache_packet[session][i]);
+			ffmpeg_result = av_packet_ref(util_audio_decoder_cache_packet[session][i], cache_packet);
+			if(ffmpeg_result != 0)
+			{
+				result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
+				av_packet_free(&util_audio_decoder_cache_packet[session][i]);
+				goto fail;
+			}
+			*packet_index = i;
+			*type = "audio";
+			break;
 		}
-		*type = "audio";
 	}
-	else
+
+	if(*type == "unknown")
 	{
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 		{
 			if(cache_packet->stream_index == util_video_decoder_stream_num[session][i])//video packet
 			{
@@ -313,6 +326,7 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 				if(!util_video_decoder_cache_packet[session][i])
 				{
 					result.error_description = "av_packet_alloc() failed";
+					av_packet_free(&util_video_decoder_cache_packet[session][i]);
 					goto fail;
 				}
 
@@ -321,10 +335,13 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 				if(ffmpeg_result != 0)
 				{
 					result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
+					av_packet_free(&util_video_decoder_cache_packet[session][i]);
 					goto fail;
 				}
 				*packet_index = i;
 				*type = "video";
+				*key_frame = util_video_decoder_cache_packet[session][i]->flags;
+				
 				break;
 			}
 		}
@@ -335,42 +352,40 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 
 	fail:
 
-	av_packet_free(&util_audio_decoder_cache_packet[session]);
-	av_packet_free(&util_video_decoder_cache_packet[session][0]);
-	av_packet_free(&util_video_decoder_cache_packet[session][1]);
 	av_packet_free(&cache_packet);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-Result_with_string Util_decoder_ready_audio_packet(int session)
+Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session)
 {
 	Result_with_string result;
 	int ffmpeg_result = 0;
 
-	av_packet_free(&util_audio_decoder_packet[session]);
-	util_audio_decoder_packet[session] = av_packet_alloc();
-	if(!util_audio_decoder_packet[session])
+	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
+	util_audio_decoder_packet[session][packet_index] = av_packet_alloc();
+	if(!util_audio_decoder_packet[session][packet_index])
 	{
 		result.error_description = "av_packet_alloc() failed";
 		goto fail;
 	}
 
-	av_packet_unref(util_audio_decoder_packet[session]);
-	ffmpeg_result = av_packet_ref(util_audio_decoder_packet[session], util_audio_decoder_cache_packet[session]);
+	av_packet_unref(util_audio_decoder_packet[session][packet_index]);
+	ffmpeg_result = av_packet_ref(util_audio_decoder_packet[session][packet_index], util_audio_decoder_cache_packet[session][packet_index]);
 	if(ffmpeg_result != 0)
 	{
 		result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
 		goto fail;
 	}
 
-	av_packet_free(&util_audio_decoder_cache_packet[session]);
+	av_packet_free(&util_audio_decoder_cache_packet[session][packet_index]);
 	return result;
 
 	fail:
 
-	av_packet_free(&util_audio_decoder_packet[session]);
+	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
+	av_packet_free(&util_audio_decoder_cache_packet[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -403,14 +418,15 @@ Result_with_string Util_decoder_ready_video_packet(int packet_index, int session
 	fail:
 
 	av_packet_free(&util_video_decoder_packet[session][packet_index]);
+	av_packet_free(&util_video_decoder_cache_packet[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-void Util_decoder_skip_audio_packet(int session)
+void Util_decoder_skip_audio_packet(int packet_index, int session)
 {
-	av_packet_free(&util_audio_decoder_cache_packet[session]);
+	av_packet_free(&util_audio_decoder_cache_packet[session][packet_index]);
 }
 
 void Util_decoder_skip_video_packet(int packet_index, int session)
@@ -418,31 +434,31 @@ void Util_decoder_skip_video_packet(int packet_index, int session)
 	av_packet_free(&util_video_decoder_cache_packet[session][packet_index]);
 }
 
-Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* current_pos, int session)
+Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* current_pos, int packet_index, int session)
 {
 	int ffmpeg_result = 0;
-	double current_frame = (double)util_audio_decoder_packet[session]->dts / util_audio_decoder_packet[session]->duration;
+	double current_frame = (double)util_audio_decoder_packet[session][packet_index]->dts / util_audio_decoder_packet[session][packet_index]->duration;
 	Result_with_string result;
 	*size = 0;
 	*current_pos = 0;
 	
-	util_audio_decoder_raw_data[session] = av_frame_alloc();
-	if(!util_audio_decoder_raw_data[session])
+	util_audio_decoder_raw_data[session][packet_index] = av_frame_alloc();
+	if(!util_audio_decoder_raw_data[session][packet_index])
 	{
 		result.error_description = "av_frame_alloc() failed";
 		goto fail;
 	}
 	
-	ffmpeg_result = avcodec_send_packet(util_audio_decoder_context[session], util_audio_decoder_packet[session]);
+	ffmpeg_result = avcodec_send_packet(util_audio_decoder_context[session][packet_index], util_audio_decoder_packet[session][packet_index]);
 	if(ffmpeg_result == 0)
 	{
-		ffmpeg_result = avcodec_receive_frame(util_audio_decoder_context[session], util_audio_decoder_raw_data[session]);
+		ffmpeg_result = avcodec_receive_frame(util_audio_decoder_context[session][packet_index], util_audio_decoder_raw_data[session][packet_index]);
 		if(ffmpeg_result == 0)
 		{
-			*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session]->sample_rate) * util_audio_decoder_raw_data[session]->nb_samples);//calc pos
+			*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session][packet_index]->sample_rate) * util_audio_decoder_raw_data[session][packet_index]->nb_samples);//calc pos
 
-			*raw_data = (u8*)malloc(util_audio_decoder_raw_data[session]->nb_samples * 2 * util_audio_decoder_context[session]->channels);
-			*size = swr_convert(util_audio_decoder_swr_context[session], raw_data, util_audio_decoder_raw_data[session]->nb_samples, (const uint8_t**)util_audio_decoder_raw_data[session]->data, util_audio_decoder_raw_data[session]->nb_samples);
+			*raw_data = (u8*)malloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
+			*size = swr_convert(util_audio_decoder_swr_context[session][packet_index], raw_data, util_audio_decoder_raw_data[session][packet_index]->nb_samples, (const uint8_t**)util_audio_decoder_raw_data[session][packet_index]->data, util_audio_decoder_raw_data[session][packet_index]->nb_samples);
 			*size *= 2;
 		}
 		else
@@ -457,25 +473,25 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 		goto fail;
 	}
 
-	av_packet_free(&util_audio_decoder_packet[session]);
-	av_frame_free(&util_audio_decoder_raw_data[session]);
+	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
+	av_frame_free(&util_audio_decoder_raw_data[session][packet_index]);
 	return result;
 
 	fail:
 
-	av_packet_free(&util_audio_decoder_packet[session]);
-	av_frame_free(&util_audio_decoder_raw_data[session]);
+	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
+	av_frame_free(&util_audio_decoder_raw_data[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-Result_with_string Util_video_decoder_decode(int* width, int* height, bool* key_frame, double* current_pos, int packet_index, int session)
+Result_with_string Util_video_decoder_decode(int* width, int* height, double* current_pos, int packet_index, int session)
 {
 	int ffmpeg_result = 0;
 	int count = 0;
 	int buffer_num = util_video_decoder_buffer_num[session][packet_index];
-	double framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
+	double framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
 	double current_frame = (double)util_video_decoder_packet[session][packet_index]->dts / util_video_decoder_packet[session][packet_index]->duration;
 	Result_with_string result;
 	*width = 0;
@@ -483,11 +499,6 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, bool* key_
 	*current_pos = 0;
 	if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
-
-	if(util_video_decoder_packet[session][packet_index]->flags == 1)
-		*key_frame = true;
-	else
-		*key_frame = false;
 	
 	util_video_decoder_raw_data[session][buffer_num] = av_frame_alloc();
 	if(!util_video_decoder_raw_data[session][buffer_num])
@@ -566,7 +577,7 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, bool* key_
 	return result;
 }
 
-Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* key_frame, double* current_pos, int session)
+Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double* current_pos, int session)
 {
 	int offset = 0;
 	int source_offset = 0;
@@ -585,11 +596,6 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 	*current_pos = 0;
 	if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
-
-	if(util_video_decoder_packet[session][0]->flags == 1)
-		*key_frame = true;
-	else
-		*key_frame = false;
 	
 	mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
 
@@ -614,7 +620,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
 		offset += *(util_video_decoder_context[session][0]->extradata + 7);
 
-		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
+		mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 
 		offset = 0;
 		memset(util_video_decoder_mvd_packet, 0x0, 0x2);
@@ -624,7 +630,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, bool* 
 		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
 		offset += *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7));
 
-		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
+		mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 	}
 
 	offset = 0;
@@ -751,28 +757,25 @@ void Util_decoder_close_file(int session)
 
 void Util_audio_decoder_exit(int session)
 {
-	avcodec_free_context(&util_audio_decoder_context[session]);
-	av_packet_free(&util_audio_decoder_packet[session]);
-	av_packet_free(&util_audio_decoder_cache_packet[session]);
-	av_frame_free(&util_audio_decoder_raw_data[session]);
-	swr_free(&util_audio_decoder_swr_context[session]);
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+	{
+		avcodec_free_context(&util_audio_decoder_context[session][i]);
+		av_packet_free(&util_audio_decoder_packet[session][i]);
+		av_packet_free(&util_audio_decoder_cache_packet[session][i]);
+		av_frame_free(&util_audio_decoder_raw_data[session][i]);
+		swr_free(&util_audio_decoder_swr_context[session][i]);
+	}
 }
 
 void Util_video_decoder_exit(int session)
 {
-	for(int i = 0; i < 2; i ++)
+	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
 		avcodec_free_context(&util_video_decoder_context[session][i]);
 		av_packet_free(&util_video_decoder_packet[session][i]);
 		av_packet_free(&util_video_decoder_cache_packet[session][i]);
 	}
-
-	util_video_decoder_ready_buffer_num[session][0] = 0;
-	util_video_decoder_ready_buffer_num[session][1] = 3;
-	util_video_decoder_buffer_num[session][0] = 0;
-	util_video_decoder_buffer_num[session][1] = 3;
-
-	for(int i = 0; i < 6; i ++)
+	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS * 3; i++)
 		av_frame_free(&util_video_decoder_raw_data[session][i]);
 }
 

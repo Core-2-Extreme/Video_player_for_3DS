@@ -1003,8 +1003,8 @@ void Sapp0_main(void)
 			for(int i = 0; i < vid_num_of_audio_tracks; i++)
 				Draw("Track " + std::to_string(i) + "(" + vid_audio_track_lang[i] + ")", 42.5, 40 + (i * 10), 0.5, 0.5, i == vid_selected_audio_track ? DEF_DRAW_RED : color);
 
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 150, 150, 20, 10);
-			Draw("OK", 152.5, 150, 0.45, 0.45, DEF_DRAW_BLACK);
+			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
+			Draw("OK", 152.5, 140, 0.4, 0.4, DEF_DRAW_BLACK);
 		}
 
 		if(Util_expl_query_show_flag())
@@ -1058,7 +1058,22 @@ void Sapp0_main(void)
 			vid_detail_mode = !vid_detail_mode;
 			var_need_reflesh = true;
 		}
-		else if(key.p_touch && key.touch_x >= 150 && key.touch_x <= 169 && key.touch_y >= 150 && key.touch_y <= 159)
+		else if(key.p_touch && key.touch_x >= 40 && key.touch_x <= 279 && key.touch_y >= 40 && key.touch_y <= 109)
+		{
+			if(vid_select_audio_track_request)
+			{
+				for(int i = 0; i < vid_num_of_audio_tracks; i++)
+				{
+					if(key.touch_y >= 40 + (i * 10) && key.touch_y <= 49 + (i * 10))
+					{
+						vid_selected_audio_track = i;
+						var_need_reflesh = true;
+						break;
+					}
+				}
+			}
+		}
+		else if(key.p_touch && key.touch_x >= 150 && key.touch_x <= 169 && key.touch_y >= 140 && key.touch_y <= 149)
 		{
 			if(vid_select_audio_track_request)
 				vid_select_audio_track_request = false;

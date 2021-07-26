@@ -10,3 +10,5 @@
 <9>Move the video</9>
 <10>Seek</10>
 <11>Zoom out/in</11>
+<12>Audio track selection</12>
+<13>Select audio track</13>

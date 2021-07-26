@@ -11,3 +11,5 @@
 <10>Seek</10>
 <11>Zoom out/in</11>
 <12>H.264 hardware decoder</12>
+<13>Audio track selection</13>
+<14>Select audio track</14>

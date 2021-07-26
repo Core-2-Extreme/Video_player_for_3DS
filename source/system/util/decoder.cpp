@@ -254,9 +254,9 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 	*track_lang = "language:und";
 	AVDictionaryEntry *data = NULL;
 
-	if(util_decoder_format_context[session]->streams[audio_index]->metadata)
+	if(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata)
 	{
-		data = av_dict_get(util_decoder_format_context[session]->streams[audio_index]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
+		data = av_dict_get(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
 		if(data)
 			*track_lang = (std::string)data->key + ":" + data->value;
 	}

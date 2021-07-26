@@ -1,10 +1,11 @@
 #include "headers.hpp"
 
+bool draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
 double draw_frametime[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 std::string draw_part_text[2][1024];
 C2D_Font system_fonts[4];
 C3D_RenderTarget* screen[3];
-C2D_SpriteSheet sheet_texture[128];
+C2D_SpriteSheet sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
 C2D_Image wifi_icon_image[9];
 C2D_Image battery_level_icon_image[21];
 C2D_Image battery_charge_icon_image[1];
@@ -377,27 +378,39 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	C2D_TextBufDelete(c2d_buf);
 }
 
+int Draw_get_free_sheet_num(void)
+{
+	for(int i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
+	{
+		if(draw_sheet_texture_free[i])
+			return i;
+	}
+	return -1;
+}
+
 Result_with_string Draw_load_texture(std::string file_name, int sheet_map_num, C2D_Image return_image[], int start_num, int num_of_array)
 {
 	size_t num_of_images;
 	bool function_fail = false;
-	Result_with_string load_texture_result;
+	Result_with_string result;
 
 	sheet_texture[sheet_map_num] = C2D_SpriteSheetLoad(file_name.c_str());
 	if (sheet_texture[sheet_map_num] == NULL)
 	{
-		load_texture_result.code = -1;
-		load_texture_result.string = "[Error] Couldn't load texture file : " + file_name + " ";
+		result.code = DEF_ERR_OTHER;
+		result.string = "[Error] Couldn't load texture file : " + file_name + " ";
 		function_fail = true;
 	}
+	else
+		draw_sheet_texture_free[sheet_map_num] = false;
 
 	if (!function_fail)
 	{
 		num_of_images = C2D_SpriteSheetCount(sheet_texture[sheet_map_num]);
 		if ((int)num_of_images < num_of_array)
 		{
-			load_texture_result.code = -2;
-			load_texture_result.string = "[Error] num of arry " + std::to_string(num_of_array) + " is bigger than spritesheet has num of image(s) " + std::to_string(num_of_images) + " ";
+			result.code = DEF_ERR_OTHER;
+			result.string = "[Error] num of arry " + std::to_string(num_of_array) + " is bigger than spritesheet has num of image(s) " + std::to_string(num_of_images) + " ";
 			function_fail = true;
 		}
 	}
@@ -407,7 +420,7 @@ Result_with_string Draw_load_texture(std::string file_name, int sheet_map_num, C
 		for (int i = 0; i <= (num_of_array - 1); i++)
 			return_image[start_num + i] = C2D_SpriteSheetGetImage(sheet_texture[sheet_map_num], i);
 	}
-	return load_texture_result;
+	return result;
 }
 
 void Draw_touch_pos(void)
@@ -562,6 +575,9 @@ Result_with_string Draw_init(bool wide, bool _3d)
 	C2D_TargetClear(screen[1], C2D_Color32f(0, 0, 0, 0));
 	C2D_TargetClear(screen[2], C2D_Color32f(0, 0, 0, 0));
 
+	for (int i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
+		draw_sheet_texture_free[i] = true;
+
 	osTickCounterStart(&draw_frame_time_timer);
 
 	result = Draw_load_texture("romfs:/gfx/draw/wifi_signal.t3x", 0, wifi_icon_image, 0, 9);
@@ -652,10 +668,14 @@ void Draw_free_system_font(int system_font_num)
 
 void Draw_free_texture(int sheet_map_num)
 {
-	if (sheet_texture[sheet_map_num] != NULL)
+	if(sheet_map_num >= 0 && sheet_map_num < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS)
 	{
-		C2D_SpriteSheetFree(sheet_texture[sheet_map_num]);
-		sheet_texture[sheet_map_num] = NULL;
+		if (sheet_texture[sheet_map_num] != NULL)
+		{
+			C2D_SpriteSheetFree(sheet_texture[sheet_map_num]);
+			sheet_texture[sheet_map_num] = NULL;
+		}
+		draw_sheet_texture_free[sheet_map_num] = true;
 	}
 }
 

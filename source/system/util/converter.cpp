@@ -424,7 +424,7 @@ Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565
 		return result;
 	}
 
-	result.code = Y2RU_SetReceiving(*bgr565, width * height * 2, width * 2, 0);
+	result.code = Y2RU_SetReceiving(*bgr565, width * height * 2, width * 2 * 4, 0);
 	if(result.code != 0)
 	{
 		result.string = "[Error] Y2RU_SetReceiving() failed. ";

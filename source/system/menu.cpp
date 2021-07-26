@@ -15,9 +15,10 @@ bool menu_main_run = true;
 bool menu_must_exit = false;
 bool menu_check_exit_request = false;
 bool menu_update_available = false;
+int menu_icon_texture_num[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, };
 std::string menu_msg[DEF_MENU_NUM_OF_MSG];
 Thread menu_worker_thread, menu_send_app_info_thread, menu_check_connectivity_thread, menu_update_thread;
-C2D_Image menu_app_icon[4];
+C2D_Image menu_icon_image[10];
 
 bool Menu_query_must_exit_flag(void)
 {
@@ -96,8 +97,59 @@ void Menu_init(void)
 	if (var_allow_send_app_info)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
 
-	result = Draw_load_texture("romfs:/gfx/draw/app_icon.t3x", 60, menu_app_icon, 0, 4);
+#ifdef DEF_SAPP0_ENABLE_ICON
+	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1);
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP1_ENABLE_ICON
+	menu_icon_texture_num[1] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[1], menu_icon_image, 1, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP2_ENABLE_ICON
+	menu_icon_texture_num[2] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[2], menu_icon_image, 2, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP3_ENABLE_ICON
+	menu_icon_texture_num[3] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[3], menu_icon_image, 3, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP4_ENABLE_ICON
+	menu_icon_texture_num[4] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[4], menu_icon_image, 4, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP5_ENABLE_ICON
+	menu_icon_texture_num[5] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[5], menu_icon_image, 5, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP6_ENABLE_ICON
+	menu_icon_texture_num[6] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[6], menu_icon_image, 6, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SAPP7_ENABLE_ICON
+	menu_icon_texture_num[7] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[7], menu_icon_image, 7, 1);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
+
+#ifdef DEF_SEM_ENABLE_ICON
+	menu_icon_texture_num[8] = Draw_get_free_sheet_num();
+	result = Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], menu_icon_image, 8, 2);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+#endif
 
 	Menu_get_system_info();
 
@@ -147,6 +199,9 @@ void Menu_exit(void)
 #endif
 	if (Sem_query_init_flag())
 		Sem_exit();
+
+	for(int i = 0; i < 8; i++)
+		Draw_free_texture(menu_icon_texture_num[i]);
 
 	Util_hid_exit();
 	Util_expl_exit();
@@ -224,8 +279,14 @@ void Menu_main(void)
 
 #ifdef DEF_ENABLE_SUB_APP0
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
-			Draw_texture(menu_app_icon[0], 0.0, 0.0, 60.0, 60.0);
-			//Draw(DEF_SAPP0_NAME, 10.0, 25.0, 0.4, 0.4, color);
+
+#ifdef DEF_SAPP0_ENABLE_ICON
+			Draw_texture(menu_icon_image[0], 0.0, 0.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP0_ENABLE_NAME
+			Draw(DEF_SAPP0_NAME, 10.0, 25.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp0_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
@@ -234,8 +295,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP1
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
-			Draw_texture(menu_app_icon[1], 80.0, 0.0, 60.0, 60.0);
-			//Draw(DEF_SAPP1_NAME, 90.0, 25.0, 0.4, 0.4, color);
+
+#ifdef DEF_SAPP1_ENABLE_ICON
+			Draw_texture(menu_icon_image[1], 80.0, 0.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP1_ENABLE_NAME
+			Draw(DEF_SAPP1_NAME, 90.0, 25.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp1_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
@@ -244,7 +311,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP2
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP2_ENABLE_ICON
+			Draw_texture(menu_icon_image[2], 160.0, 0.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP2_ENABLE_NAME
 			Draw(DEF_SAPP2_NAME, 170.0, 25.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp2_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
@@ -253,7 +327,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP3
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP3_ENABLE_ICON
+			Draw_texture(menu_icon_image[3], 240.0, 0.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP3_ENABLE_NAME
 			Draw(DEF_SAPP3_NAME, 250.0, 25.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp3_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
@@ -262,7 +343,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP4
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP4_ENABLE_ICON
+			Draw_texture(menu_icon_image[4], 0.0, 80.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP4_ENABLE_NAME
 			Draw(DEF_SAPP4_NAME, 10.0, 105.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp4_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
@@ -271,7 +359,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP5
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP5_ENABLE_ICON
+			Draw_texture(menu_icon_image[5], 80.0, 80.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP5_ENABLE_NAME
 			Draw(DEF_SAPP5_NAME, 90.0, 105.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp5_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
@@ -280,7 +375,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP6
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP6_ENABLE_ICON
+			Draw_texture(menu_icon_image[6], 160.0, 80.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP6_ENABLE_NAME
 			Draw(DEF_SAPP6_NAME, 170.0, 105.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp6_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
@@ -289,7 +391,14 @@ void Menu_main(void)
 #endif
 #ifdef DEF_ENABLE_SUB_APP7
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
+
+#ifdef DEF_SAPP7_ENABLE_ICON
+			Draw_texture(menu_icon_image[7], 240.0, 80.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SAPP7_ENABLE_NAME
 			Draw(DEF_SAPP7_NAME, 250.0, 105.0, 0.4, 0.4, color);
+#endif
+
 			if(Sapp7_query_init_flag())
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
@@ -298,8 +407,13 @@ void Menu_main(void)
 #endif
 
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
-			Draw_texture(menu_app_icon[2 + var_night_mode], 260.0, 170.0, 60.0, 60.0);
-			//Draw("Settings", 270.0, 205.0, 0.4, 0.4, color);
+
+#ifdef DEF_SEM_ENABLE_ICON
+			Draw_texture(menu_icon_image[8 + var_night_mode], 260.0, 170.0, 60.0, 60.0);
+#endif
+#ifdef DEF_SEM_ENABLE_NAME
+			Draw(DEF_SEM_NAME, 270.0, 205.0, 0.4, 0.4, color);
+#endif
 
 			if(Util_err_query_error_show_flag())
 				Util_err_draw();

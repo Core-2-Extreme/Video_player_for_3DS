@@ -9,6 +9,7 @@ bool exfont_load_external_font_request = false;
 bool exfont_unload_external_font_request = false;
 bool exfont_load_system_font_request = false;
 bool exfont_unload_system_font_request = false;
+int exfont_texture_num[DEF_EXFONT_NUM_OF_FONT_NAME];
 double exfont_font_interval[10240] =
 {
   //#0000~#007F (128) Basic latin
@@ -774,6 +775,7 @@ void Exfont_init(void)
     {
         exfont_loaded_external_font[i] = false;
         exfont_request_external_font_state[i] = false;
+        exfont_texture_num[i] = 0;
     }
 
     free(fs_buffer);
@@ -1078,7 +1080,8 @@ Result_with_string Exfont_load_exfont(int exfont_num)
     Result_with_string result;
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
     {
-        result = Draw_load_texture("romfs:/gfx/font/" + exfont_font_name[exfont_num] + "_font.t3x", exfont_num + 5, exfont_font_images, exfont_font_start_num[exfont_num], exfont_font_characters[exfont_num]);
+        exfont_texture_num[exfont_num] = Draw_get_free_sheet_num();
+        result = Draw_load_texture("romfs:/gfx/font/" + exfont_font_name[exfont_num] + "_font.t3x", exfont_texture_num[exfont_num], exfont_font_images, exfont_font_start_num[exfont_num], exfont_font_characters[exfont_num]);
 
         if (result.code == 0)
         {
@@ -1109,7 +1112,7 @@ void Exfont_unload_exfont(int exfont_num)
 {
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
     {
-        Draw_free_texture(5 + exfont_num);
+        Draw_free_texture(exfont_texture_num[exfont_num]);
         for (int j = exfont_font_start_num[exfont_num]; j < exfont_font_characters[exfont_num]; j++)
             exfont_font_images[j].tex = NULL;
 

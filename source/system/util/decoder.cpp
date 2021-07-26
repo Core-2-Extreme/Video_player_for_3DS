@@ -249,8 +249,18 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 	return result;
 }
 
-void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::string* format_name, double* duration, int audio_index, int session)
+void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::string* format_name, double* duration, int audio_index, std::string* track_lang, int session)
 {
+	*track_lang = "language:und";
+	AVDictionaryEntry *data = NULL;
+
+	if(util_decoder_format_context[session]->streams[audio_index]->metadata)
+	{
+		data = av_dict_get(util_decoder_format_context[session]->streams[audio_index]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
+		if(data)
+			*track_lang = (std::string)data->key + ":" + data->value;
+	}
+		
 	*bitrate = util_audio_decoder_context[session][audio_index]->bit_rate;
 	*sample_rate = util_audio_decoder_context[session][audio_index]->sample_rate;
 	*ch = util_audio_decoder_context[session][audio_index]->channels;

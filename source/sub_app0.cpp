@@ -138,6 +138,7 @@ void Sapp0_decode_thread(void* arg)
 			vid_max_time = 0;
 			vid_recent_total_time = 0;
 			vid_image_num = 0;
+			vid_selected_audio_track = 0;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 				vid_audio_track_lang[i] = "";

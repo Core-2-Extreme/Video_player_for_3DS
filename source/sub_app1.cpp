@@ -133,6 +133,8 @@ void Sapp1_decode_thread(void* arg)
 			vid_mvd_min_time = 99999999;
 			vid_mvd_max_time = 0;
 			vid_mvd_recent_total_time = 0;
+			vid_mvd_selected_audio_track = 0;
+			
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 				vid_mvd_audio_track_lang[i] = "";
 			

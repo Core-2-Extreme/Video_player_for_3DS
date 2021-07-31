@@ -1,19 +1,22 @@
 ﻿#include "headers.hpp"
 
+#define LOG_BUFFER_LINES 512
+#define LOG_DISPLAYED_LINES 23
+
 bool log_show_logs = false;
 int log_current_log_num = 0;
 int log_y = 0;
 double log_x = 0.0;
 double log_up_time_ms = 0.0;
-double log_spend_time[512];
-std::string log_logs[512];
+double log_spend_time[LOG_BUFFER_LINES];
+std::string log_logs[LOG_BUFFER_LINES];
 TickCounter log_up_time_stopwatch;
 
 void Util_log_init(void)
 {
 	osTickCounterStart(&log_up_time_stopwatch);
 	log_up_time_ms = 0;
-	for(int i = 0; i < 512; i++)
+	for(int i = 0; i < LOG_BUFFER_LINES; i++)
 	{
 		log_spend_time[i] = 0;
 		log_logs[i] = "";
@@ -54,13 +57,13 @@ int Util_log_save(std::string type, std::string text, int result)
 	log_logs[log_current_log_num] = app_log_cache;
 	log_current_log_num++;
 	return_log_num = log_current_log_num;
-	if (log_current_log_num >= 512)
+	if (log_current_log_num >= LOG_BUFFER_LINES)
 		log_current_log_num = 0;
 
-	if (log_current_log_num < 23)
+	if (log_current_log_num < LOG_DISPLAYED_LINES)
 		log_y = 0;
 	else
-		log_y = log_current_log_num - 23;
+		log_y = log_current_log_num - LOG_DISPLAYED_LINES;
 	
 	if(log_show_logs)
 		var_need_reflesh = true;
@@ -103,7 +106,7 @@ void Util_log_main(Hid_info key)
 	}
 	if (key.h_c_down)
 	{
-		if (log_y + 1 < 512)
+		if (log_y + 1 <= LOG_BUFFER_LINES - LOG_DISPLAYED_LINES)
 		{
 			var_need_reflesh = true;
 			log_y++;
@@ -131,6 +134,6 @@ void Util_log_main(Hid_info key)
 
 void Util_log_draw(void)
 {
-	for (int i = 0; i < 23; i++)
+	for (int i = 0; i < LOG_DISPLAYED_LINES; i++)
 		Draw(log_logs[log_y + i], log_x, 10.0 + (i * 10), 0.4, 0.4, DEF_LOG_COLOR);
 }

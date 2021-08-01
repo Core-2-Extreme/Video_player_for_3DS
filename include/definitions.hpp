@@ -203,6 +203,10 @@
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] ffmpeg returned NOT success. "
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 
+//log
+#define DEF_LOG_BUFFER_LINES 512
+#define DEF_LOG_DISPLAYED_LINES 23
+
 //thread
 #define DEF_STACKSIZE (64 * 1024)
 #define DEF_INACTIVE_THREAD_SLEEP_TIME 100000

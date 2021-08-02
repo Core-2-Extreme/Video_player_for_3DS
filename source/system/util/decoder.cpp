@@ -607,8 +607,6 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 	
-	mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
-
 	if(util_video_decoder_packet[session][0]->size > util_video_decoder_mvd_packet_size)
 	{
 		util_video_decoder_mvd_packet_size = util_video_decoder_packet[session][0]->size;
@@ -621,6 +619,9 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 
 	if(util_video_decoder_mvd_first)
 	{
+		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
+		util_decoder_mvd_config.physaddr_outdata0 = osConvertVirtToPhys(util_video_decoder_mvd_raw_data);
+
 		//set extra data
 		offset = 0;
 		memset(util_video_decoder_mvd_packet, 0x0, 0x2);
@@ -665,8 +666,6 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		source_offset += size;
 	}
 
-	util_decoder_mvd_config.physaddr_outdata0 = osConvertVirtToPhys(util_video_decoder_mvd_raw_data);
-
 	result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 
 	if(util_video_decoder_mvd_first)
@@ -677,7 +676,14 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	}
 
 	if(result.code == MVD_STATUS_FRAMEREADY)
-		result.code = 0;
+	{
+		result.code = mvdstdRenderVideoFrame(&util_decoder_mvd_config, true);
+
+		if(result.code == MVD_STATUS_OK)
+			result.code = 0;
+		else
+			result.string = DEF_ERR_OTHER_STR;
+	}
 
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	return result;
@@ -732,12 +738,6 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 		return result;
 	}
-
-	result.code = mvdstdRenderVideoFrame(&util_decoder_mvd_config, true);
-	if(result.code == MVD_STATUS_OK)
-		result.code = 0;
-	else
-		result.string = DEF_ERR_OTHER_STR;
 
 	memcpy_asm(*raw_data, util_video_decoder_mvd_raw_data, cpy_size);
 	

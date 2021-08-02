@@ -762,26 +762,42 @@ void Menu_worker_thread(void* arg)
 			var_need_reflesh = true;
 			var_afk_time++;
 			count = 0;
+		}
 
-			if(var_afk_time > var_time_to_turn_off_lcd)
+		if(var_afk_time > var_time_to_turn_off_lcd)
+		{
+			result = Util_cset_set_screen_state(true, true, false);
+			if(result.code != 0)
+				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+		}
+		else if(var_afk_time > (var_time_to_turn_off_lcd - 10))
+		{
+			result = Util_cset_set_screen_brightness(true, true, 10);
+			if(result.code != 0)
+				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+		}
+		else
+		{
+			result = Util_cset_set_screen_state(true, false, var_turn_on_top_lcd);
+			if(result.code != 0)
+				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+
+			result = Util_cset_set_screen_state(false, true, var_turn_on_bottom_lcd);
+			if(result.code != 0)
+				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
+			
+			if(var_top_lcd_brightness == var_lcd_brightness && var_bottom_lcd_brightness == var_lcd_brightness)
 			{
-				result = Util_cset_set_screen_state(true, true, false);
-				if(result.code != 0)
-					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
-			}
-			else if(var_afk_time > (var_time_to_turn_off_lcd - 10))
-			{
-				result = Util_cset_set_screen_brightness(true, true, 10);
+				result = Util_cset_set_screen_brightness(true, true, var_lcd_brightness);
 				if(result.code != 0)
 					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
 			}
 			else
 			{
-				result = Util_cset_set_screen_state(true, true, true);
+				result = Util_cset_set_screen_brightness(true, false, var_top_lcd_brightness);
 				if(result.code != 0)
-					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
-				
-				result = Util_cset_set_screen_brightness(true, true, var_lcd_brightness);
+					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
+				result = Util_cset_set_screen_brightness(false, true, var_bottom_lcd_brightness);
 				if(result.code != 0)
 					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
 			}

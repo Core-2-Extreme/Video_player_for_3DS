@@ -134,6 +134,9 @@ void Sem_init(void)
 			var_scroll_speed = 0.5;
 		if(var_num_of_app_start < 0)
 			var_num_of_app_start = 0;
+		
+		var_top_lcd_brightness = var_lcd_brightness;
+		var_bottom_lcd_brightness = var_lcd_brightness;
 	}
 
 	if(var_model == "OLD 2DS")//OLD 2DS doesn't support high resolution mode
@@ -830,6 +833,8 @@ void Sem_main(void)
 					else if (key.h_touch && sem_bar_selected[0] && key.touch_x >= 10 && key.touch_x <= 309)
 					{
 						var_lcd_brightness = (key.touch_x / 2) + 10;
+						var_top_lcd_brightness = var_lcd_brightness;
+						var_bottom_lcd_brightness = var_lcd_brightness;
 						sem_change_brightness_request = true;
 						var_need_reflesh = true;
 					}

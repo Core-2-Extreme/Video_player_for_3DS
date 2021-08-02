@@ -12,3 +12,4 @@
 <11>Zoom out/in</11>
 <12>Audio track selection</12>
 <13>Select audio track</13>
+<14>Press any key or touch screen to exit full screen</14>

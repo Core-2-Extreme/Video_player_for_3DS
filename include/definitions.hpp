@@ -22,7 +22,7 @@
 //#define DEF_ENABLE_SUB_APP7
 
 //video player
-#define DEF_SAPP0_NUM_OF_MSG 14
+#define DEF_SAPP0_NUM_OF_MSG 15
 #define DEF_SAPP0_ENABLE_ICON
 //#define DEF_SAPP0_ENABLE_NAME
 #define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
@@ -36,7 +36,7 @@
 #define DEF_SAPP0_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
 
 //video player(mvd)
-#define DEF_SAPP1_NUM_OF_MSG 15
+#define DEF_SAPP1_NUM_OF_MSG 16
 #define DEF_SAPP1_ENABLE_ICON
 //#define DEF_SAPP1_ENABLE_NAME
 #define DEF_SAPP1_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_mvd_icon.t3x"

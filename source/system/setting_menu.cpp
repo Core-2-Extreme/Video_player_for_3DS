@@ -148,8 +148,12 @@ void Sem_init(void)
 	sem_thread_run = true;
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_worker_thread = threadCreate(Sem_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
-	sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+	if(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS")
+		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
+	else
+		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
+
 	sem_reload_msg_request = true;
 
 	result = Util_cset_set_wifi_state(wifi_state);
@@ -1153,27 +1157,27 @@ void Sem_record_thread(void* arg)
 				rec_width = 400;
 				rec_height = 480;
 				if(new_3ds)
-					rec_framerate = 9;
+					rec_framerate = 20;
 				else
-					rec_framerate = 3;
+					rec_framerate = 5;
 			}
 			else if(mode == 1)
 			{
 				rec_width = 400;
 				rec_height = 240;
 				if(new_3ds)
-					rec_framerate = 15;
+					rec_framerate = 30;
 				else
-					rec_framerate = 5;
+					rec_framerate = 10;
 			}
 			else if(mode == 2)
 			{
 				rec_width = 320;
 				rec_height = 240;
 				if(new_3ds)
-					rec_framerate = 15;
+					rec_framerate = 30;
 				else
-					rec_framerate = 5;
+					rec_framerate = 10;
 			}
 			sem_rec_width = rec_width;
 			sem_rec_height = rec_height;
@@ -1186,13 +1190,7 @@ void Sem_record_thread(void* arg)
 				sem_record_request = false;
 
 			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_video_encoder_init()...");
-			result = Util_video_encoder_init(AV_CODEC_ID_H264, rec_width, rec_height, rec_framerate, 0);
-			Util_log_add(log_num, result.string + result.error_description, result.code);
-			if(result.code != 0)
-				sem_record_request = false;
-
-			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_encoder_write_header()...");
-			result = Util_encoder_write_header(0);
+			result = Util_video_encoder_init(AV_CODEC_ID_MJPEG, rec_width, rec_height, rec_framerate, 0);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 			if(result.code != 0)
 				sem_record_request = false;

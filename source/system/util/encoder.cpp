@@ -194,12 +194,16 @@ Result_with_string Util_video_encoder_init(AVCodecID codec, int width, int heigh
 		goto fail;
 	}
 	
-	util_video_encoder_context[session]->bit_rate = 100000;
+	util_video_encoder_context[session]->bit_rate = 200000;
 	util_video_encoder_context[session]->width = width;
 	util_video_encoder_context[session]->height = height;
 	util_video_encoder_context[session]->time_base = (AVRational){ 1, fps };
-	util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUV420P;
 	util_video_encoder_context[session]->gop_size = fps;
+	if(codec == AV_CODEC_ID_MJPEG)
+		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUVJ420P;
+	else
+		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUV420P;
+
 	//util_video_encoder_context[session]->flags2 = AV_CODEC_FLAG2_FAST;
 	/*util_video_encoder_context[session]->flags |= AV_CODEC_FLAG_QSCALE;
 	util_video_encoder_context[session]->global_quality = 31;
@@ -266,10 +270,6 @@ Result_with_string Util_video_encoder_init(AVCodecID codec, int width, int heigh
 		result.error_description = "av_image_alloc() failed " + std::to_string(ffmpeg_result);
 		goto fail;
 	}
-	/*Util_log_save("", std::to_string(util_video_encoder_raw_data[session]->linesize[0]));
-	Util_log_save("", std::to_string(util_video_encoder_raw_data[session]->linesize[1]));
-	Util_log_save("", std::to_string(util_video_encoder_raw_data[session]->linesize[2]));
-	Util_log_save("", std::to_string(util_video_encoder_raw_data[session]->linesize[3]));*/
 
 	av_frame_make_writable(util_video_encoder_raw_data[session]);
 
@@ -280,14 +280,22 @@ Result_with_string Util_video_encoder_init(AVCodecID codec, int width, int heigh
 		goto fail;
 	}
 	
-	if (util_encoder_format_context[session]->oformat->flags & AVFMT_GLOBALHEADER)
-		util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-
 	ffmpeg_result = avcodec_parameters_from_context(util_video_encoder_stream[session]->codecpar, util_video_encoder_context[session]);
 	if(ffmpeg_result != 0)
 	{
 		result.error_description = "avcodec_parameters_from_context() failed";
 		goto fail;
+	}
+
+	if (util_encoder_format_context[session]->oformat->flags & AVFMT_GLOBALHEADER)
+	{
+		util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+		ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
+		if(ffmpeg_result != 0)
+		{
+			result.error_description = "avformat_write_header() failed";
+			goto fail;
+		}
 	}
 
 	return result;
@@ -299,21 +307,6 @@ Result_with_string Util_video_encoder_init(AVCodecID codec, int width, int heigh
 	return result;
 }
 
-Result_with_string Util_encoder_write_header(int session)
-{
-	int ffmpeg_result = 0;
-	Result_with_string result;
-
-	ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
-	if(ffmpeg_result != 0)
-	{
-		result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-		result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-		result.error_description = "avformat_write_header() failed";
-	}
-
-	return result;
-}
 
 Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session)
 {
@@ -406,7 +399,7 @@ Result_with_string Util_video_encoder_encode(u8* yuv420p, int session)
 	//set pts
 	util_video_encoder_raw_data[session]->pts = util_video_pos[session];
 	util_video_pos[session] += util_video_increase_pts[session];
-	
+
 	ffmpeg_result = avcodec_send_frame(util_video_encoder_context[session], util_video_encoder_raw_data[session]);
 	if(ffmpeg_result != 0)
 	{

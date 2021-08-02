@@ -63,7 +63,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 
 		if (!function_fail)
 		{
-			result.code = httpcOpenContext(&httpc_context, HTTPC_METHOD_GET, last_url->c_str(), 0);
+			result.code = httpcOpenContext(&httpc_context, HTTPC_METHOD_GET, url.c_str(), 0);
 			if (result.code != 0)
 			{
 				result.error_description = "This'll occur in the case the wrong URL was specified.\nPlease check the URL.";
@@ -116,6 +116,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 			if (result.code == 0)
 			{
 				*last_url = moved_url;
+				url = moved_url;
 				redirect = true;
 			}
 			else
@@ -124,6 +125,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 				if (result.code == 0)
 				{
 					*last_url = moved_url;
+					url = moved_url;
 					redirect = true;
 				}
 			}
@@ -312,6 +314,7 @@ u32* downloaded_data_size, u32* status_code, bool follow_redirect, int max_redir
 			if (result.code == 0)
 			{
 				*last_url = moved_url;
+				url = moved_url;
 				redirect = true;
 			}
 			else
@@ -320,6 +323,7 @@ u32* downloaded_data_size, u32* status_code, bool follow_redirect, int max_redir
 				if (result.code == 0)
 				{
 					*last_url = moved_url;
+					url = moved_url;
 					redirect = true;
 				}
 			}

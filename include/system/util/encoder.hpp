@@ -11,8 +11,6 @@ Result_with_string Util_audio_encoder_init(AVCodecID format, int original_sample
 
 Result_with_string Util_video_encoder_init(AVCodecID format, int width, int height, int fps, int session);
 
-Result_with_string Util_encoder_write_header(int session);
-
 Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session);
 
 Result_with_string Util_video_encoder_encode(u8* yuv420p, int session);

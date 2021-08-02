@@ -236,7 +236,6 @@ void Menu_main(void)
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
 
-	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 	if(var_debug_mode)
 		var_need_reflesh = true;
 
@@ -632,7 +631,7 @@ void Menu_get_system_info(void)
 
 	var_wifi_signal = osGetWifiStrength();
 	//Get wifi state from shared memory #0x1FF81067
-	memcpy(&var_wifi_state, (void*)0x1FF81067, 0x1);
+	var_wifi_state = *(u8*)0x1FF81067;
 	if(var_wifi_state == 2)
 	{
 		if (!var_connect_test_succes)
@@ -660,6 +659,8 @@ void Menu_get_system_info(void)
 		var_free_ram = Menu_check_free_ram();
 		var_free_linear_ram = linearSpaceFree();
 	}
+
+	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 }
 
 int Menu_check_free_ram(void)
@@ -756,9 +757,11 @@ void Menu_worker_thread(void* arg)
 		usleep(49000);
 		count++;
 
+		if(count % 2 == 0)
+			Menu_get_system_info();
+
 		if (count >= 20)
 		{
-			Menu_get_system_info();
 			var_need_reflesh = true;
 			var_afk_time++;
 			count = 0;

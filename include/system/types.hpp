@@ -38,6 +38,7 @@ struct Hid_info
 	bool p_cs_left = false;
 	bool p_cs_right = false;
 	bool p_touch = false;
+	bool p_any = false;
 	bool h_a = false;
 	bool h_b = false;
 	bool h_x = false;
@@ -61,6 +62,7 @@ struct Hid_info
 	bool h_cs_left = false;
 	bool h_cs_right = false;
 	bool h_touch = false;
+	bool h_any = false;
 	int cpad_x = 0;
 	int cpad_y = 0;
 	int touch_x = 0;

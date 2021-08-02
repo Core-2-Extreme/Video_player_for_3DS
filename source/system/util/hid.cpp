@@ -24,6 +24,7 @@ bool hid_key_CS_DOWN_press = false;
 bool hid_key_CS_RIGHT_press = false;
 bool hid_key_CS_LEFT_press = false;
 bool hid_key_touch_press = false;
+bool hid_key_any_press = false;
 bool hid_key_A_held = false;
 bool hid_key_B_held = false;
 bool hid_key_X_held = false;
@@ -47,6 +48,7 @@ bool hid_key_CS_DOWN_held = false;
 bool hid_key_CS_RIGHT_held = false;
 bool hid_key_CS_LEFT_held = false;
 bool hid_key_touch_held = false;
+bool hid_key_any_held = false;
 int hid_cpad_pos_x = 0;
 int hid_cpad_pos_y = 0;
 int hid_touch_pos_x = 0;
@@ -98,6 +100,7 @@ void Util_hid_query_key_state(Hid_info* out_key_state)
 	out_key_state->p_cs_left = hid_key_CS_LEFT_press;
 	out_key_state->p_cs_right = hid_key_CS_RIGHT_press;
 	out_key_state->p_touch = hid_key_touch_press;
+	out_key_state->p_any = hid_key_any_press;
 	out_key_state->h_a = hid_key_A_held;
 	out_key_state->h_b = hid_key_B_held;
 	out_key_state->h_x = hid_key_X_held;
@@ -121,6 +124,7 @@ void Util_hid_query_key_state(Hid_info* out_key_state)
 	out_key_state->h_cs_left = hid_key_CS_LEFT_held;
 	out_key_state->h_cs_right = hid_key_CS_RIGHT_held;
 	out_key_state->h_touch = hid_key_touch_held;
+	out_key_state->h_any = hid_key_any_held;
 	out_key_state->cpad_x = hid_cpad_pos_x;
 	out_key_state->cpad_y = hid_cpad_pos_y;
 	out_key_state->touch_x = hid_touch_pos_x;
@@ -156,6 +160,7 @@ void Util_hid_key_flag_reset(void)
 	hid_key_CS_RIGHT_press = false;
 	hid_key_CS_LEFT_press = false;
 	hid_key_touch_press = false;
+	hid_key_any_press = false;
 	hid_key_A_held = false;
 	hid_key_B_held = false;
 	hid_key_X_held = false;
@@ -179,6 +184,7 @@ void Util_hid_key_flag_reset(void)
 	hid_key_CS_RIGHT_held = false;
 	hid_key_CS_LEFT_held = false;
 	hid_key_touch_held = false;
+	hid_key_any_held = false;
 	hid_touch_pos_x = 0;
 	hid_touch_pos_y = 0;
 	hid_count = 0;
@@ -410,14 +416,35 @@ void Util_hid_scan_hid_thread(void* arg)
 		hid_cpad_pos_x = circle_pos.dx;
 		hid_cpad_pos_y = circle_pos.dy;
 
-		if (hid_key_A_press || hid_key_B_press || hid_key_X_press || hid_key_Y_press || hid_key_D_RIGHT_press
-			|| hid_key_D_LEFT_press || hid_key_ZL_press || hid_key_ZR_press || hid_key_L_press || hid_key_R_press
-			|| hid_key_START_press || hid_key_SELECT_press || hid_key_touch_press || hid_key_A_held || hid_key_B_held
-			|| hid_key_X_held || hid_key_Y_held || hid_key_D_DOWN_held || hid_key_D_RIGHT_held
-			|| hid_key_D_LEFT_held || hid_key_C_UP_held || hid_key_C_DOWN_held || hid_key_C_RIGHT_held
-			|| hid_key_C_LEFT_held || hid_key_D_UP_held || hid_key_touch_held || hid_key_ZL_held
-			|| hid_key_ZR_held || hid_key_L_held || hid_key_R_held)
+		if (hid_key_A_press || hid_key_B_press || hid_key_X_press || hid_key_Y_press || 
+			hid_key_C_UP_press || hid_key_C_RIGHT_press || hid_key_C_DOWN_press || hid_key_C_LEFT_press || 
+			hid_key_D_UP_press || hid_key_D_RIGHT_press || hid_key_D_DOWN_press || hid_key_D_LEFT_press || 
+			hid_key_L_press || hid_key_R_press || hid_key_ZL_press || hid_key_ZR_press || 
+			hid_key_START_press || hid_key_SELECT_press || hid_key_CS_UP_press || hid_key_CS_DOWN_press || 
+			hid_key_CS_RIGHT_press || hid_key_CS_LEFT_press || hid_key_touch_press ||  hid_key_A_held || 
+			hid_key_B_held || hid_key_X_held || hid_key_Y_held || hid_key_C_UP_held || hid_key_C_DOWN_held || 
+			hid_key_C_RIGHT_held || hid_key_C_LEFT_held || hid_key_D_UP_held || hid_key_D_DOWN_held || 
+			hid_key_D_RIGHT_held || hid_key_D_LEFT_held || hid_key_L_held || hid_key_R_held || hid_key_ZL_held || 
+			hid_key_ZR_held || hid_key_START_held || hid_key_SELECT_held || hid_key_CS_UP_held || 
+			hid_key_CS_DOWN_held || hid_key_CS_RIGHT_held || hid_key_CS_LEFT_held || hid_key_touch_held)
+		{
+			if(hid_key_A_press || hid_key_B_press || hid_key_X_press || hid_key_Y_press || 
+			hid_key_C_UP_press || hid_key_C_RIGHT_press || hid_key_C_DOWN_press || hid_key_C_LEFT_press || 
+			hid_key_D_UP_press || hid_key_D_RIGHT_press || hid_key_D_DOWN_press || hid_key_D_LEFT_press || 
+			hid_key_L_press || hid_key_R_press || hid_key_ZL_press || hid_key_ZR_press || 
+			hid_key_START_press || hid_key_SELECT_press || hid_key_CS_UP_press || hid_key_CS_DOWN_press || 
+			hid_key_CS_RIGHT_press || hid_key_CS_LEFT_press || hid_key_touch_press)
+				hid_key_any_press = true;
+			if(hid_key_A_held || 
+			hid_key_B_held || hid_key_X_held || hid_key_Y_held || hid_key_C_UP_held || hid_key_C_DOWN_held || 
+			hid_key_C_RIGHT_held || hid_key_C_LEFT_held || hid_key_D_UP_held || hid_key_D_DOWN_held || 
+			hid_key_D_RIGHT_held || hid_key_D_LEFT_held || hid_key_L_held || hid_key_R_held || hid_key_ZL_held || 
+			hid_key_ZR_held || hid_key_START_held || hid_key_SELECT_held || hid_key_CS_UP_held || 
+			hid_key_CS_DOWN_held || hid_key_CS_RIGHT_held || hid_key_CS_LEFT_held || hid_key_touch_held)
+				hid_key_any_held = true;
+
 			var_afk_time = 0;
+		}
 
 		if (hid_key_D_UP_held || hid_key_D_DOWN_held || hid_key_D_RIGHT_held || hid_key_D_LEFT_held
 			|| hid_key_C_UP_held || hid_key_C_DOWN_held || hid_key_C_RIGHT_held || hid_key_C_LEFT_held

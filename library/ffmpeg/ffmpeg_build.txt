@@ -2,19 +2,31 @@
 
 /*
 replace configure line 6322~6347
-from : 
-
-if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
-    if check_lib pthreads pthread.h pthread_join   -pthread &&
-...
-...
-        check_func pthread_cancel $pthreads_extralibs
+from :
+    if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
+        if check_lib pthreads pthread.h pthread_join   -pthread &&
+    ...
+    ...
+    ...
+            check_func pthread_cancel $pthreads_extralibs
+        fi
     fi
-fi
 
 to :
+    if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
+        enable pthreads
+    fi
 
-if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
-    enable pthreads
-fi
+
+
+replace libavutil/slicethread.c line 73~74
+from :
+    pthread_mutex_lock(&w->mutex);
+    pthread_cond_signal(&w->cond);
+
+to :
+    pthread_mutex_lock(&w->mutex);
+    w->done = 1;
+    pthread_cond_signal(&w->cond);
+
 */

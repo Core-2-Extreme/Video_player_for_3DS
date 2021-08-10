@@ -1,14 +1,15 @@
 #pragma once
 
+#include "definitions.hpp"
 #include <3ds.h>
 #include <algorithm>
 #include <cstring>
 #include <malloc.h>
+#include <pthread.h>
 #include <string>
 #include <unistd.h>
 #include "citro2d.h"
 
-#include "definitions.hpp"
 #include "system/types.hpp"
 #include "system/variables.hpp"
 #include "system/draw/draw.hpp"
@@ -16,6 +17,7 @@
 #include "system/util/change_setting.hpp"
 #include "system/util/error.hpp"
 #include "system/util/explorer.hpp"
+#include "system/util/fake_pthread.hpp"
 #include "system/util/file.hpp"
 #include "system/util/hid.hpp"
 #include "system/util/httpc.hpp"

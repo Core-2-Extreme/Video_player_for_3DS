@@ -46,10 +46,16 @@ void Menu_suspend(void)
 	menu_main_run = false;
 }
 
+void Menu_check_core_thread(void* arg)
+{
+	threadExit(0);
+}
+
 void Menu_init(void)
 {
 	Result_with_string result;
-	
+	Thread core_2, core_3;
+
 	Util_log_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Initializing..." + DEF_CURRENT_APP_VER);
 
@@ -93,6 +99,27 @@ void Menu_init(void)
 	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 	menu_check_connectivity_thread = threadCreate(Menu_check_connectivity_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
+
+	core_2 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+	if(!core_2)
+		var_core_2_available = false;
+	else
+	{
+		threadJoin(core_2, U64_MAX);
+		var_core_2_available = true;
+	}
+
+	core_3 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 3, false);
+	if(!core_3)
+		var_core_3_available = false;
+	else
+	{
+		threadJoin(core_3, U64_MAX);
+		var_core_3_available = true;
+	}
+	
+	threadFree(core_2);
+	threadFree(core_3);
 
 	if (var_allow_send_app_info)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);

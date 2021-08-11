@@ -13,4 +13,4 @@
 <12>H.264 hardware decoder</12>
 <13>Audio track selection</13>
 <14>Select audio track</14>
-<15>Press any key or touch screen to exit full screen</15>
+<15>Press Select key or touch screen to exit full screen</15>

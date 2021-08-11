@@ -1091,10 +1091,30 @@ void Sapp0_main(void)
 	else
 	{
 		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
-			Sapp0_suspend();
-		else if(key.p_select)
 		{
 			if(!vid_full_screen_mode)
+				Sapp0_suspend();
+		}
+		else if(key.p_select || (key.p_touch && vid_full_screen_mode))
+		{
+			if(vid_full_screen_mode)
+			{
+				//fit to screen size
+				vid_zoom = 1;
+				while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 225) && vid_zoom > 0.05)
+					vid_zoom -= 0.001;
+
+				vid_x = (400 - (vid_width * vid_zoom)) / 2;
+				vid_y = (225 - (vid_height * vid_zoom)) / 2;
+				vid_y += 15;
+				vid_turn_off_bottom_screen_count = 0;
+				vid_full_screen_mode = false;
+				var_turn_on_bottom_lcd = true;
+				var_top_lcd_brightness = var_lcd_brightness;
+				var_bottom_lcd_brightness = var_lcd_brightness;
+				var_need_reflesh = true;
+			}
+			else if(!vid_full_screen_mode && key.p_select)
 			{
 				//fit to screen size
 				vid_zoom = 1;
@@ -1107,13 +1127,12 @@ void Sapp0_main(void)
 				vid_full_screen_mode = true;
 				var_top_lcd_brightness = var_lcd_brightness;
 				var_bottom_lcd_brightness = var_lcd_brightness;
-				key.p_any = false;
 				var_need_reflesh = true;
 			}
 		}
 		else if(key.p_a)
 		{
-			if(vid_select_audio_track_request)
+			if(vid_select_audio_track_request && !vid_full_screen_mode)
 				vid_select_audio_track_request = false;
 			else if(vid_play_request)
 				vid_pause_request = !vid_pause_request;
@@ -1124,25 +1143,32 @@ void Sapp0_main(void)
 		}
 		else if(key.p_b)
 		{
-			if(!vid_select_audio_track_request)
+			if(!vid_select_audio_track_request && !vid_full_screen_mode)
+			{
 				vid_play_request = false;
-			
-			var_need_reflesh = true;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_x)
 		{
-			Util_expl_set_show_flag(true);
-			Util_expl_set_callback(Sapp0_callback);
-			Util_expl_set_cancel_callback(Sapp0_cancel);
+			if(!vid_full_screen_mode)
+			{
+				Util_expl_set_show_flag(true);
+				Util_expl_set_callback(Sapp0_callback);
+				Util_expl_set_cancel_callback(Sapp0_cancel);
+			}
 		}
 		else if(key.p_y)
 		{
-			vid_detail_mode = !vid_detail_mode;
-			var_need_reflesh = true;
+			if(!vid_full_screen_mode)
+			{
+				vid_detail_mode = !vid_detail_mode;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_touch && key.touch_x >= 40 && key.touch_x <= 279 && key.touch_y >= 40 && key.touch_y <= 109)
 		{
-			if(vid_select_audio_track_request)
+			if(vid_select_audio_track_request && !vid_full_screen_mode)
 			{
 				for(int i = 0; i < vid_num_of_audio_tracks; i++)
 				{
@@ -1157,45 +1183,60 @@ void Sapp0_main(void)
 		}
 		else if(key.p_touch && key.touch_x >= 150 && key.touch_x <= 169 && key.touch_y >= 140 && key.touch_y <= 149)
 		{
-			if(vid_select_audio_track_request)
+			if(vid_select_audio_track_request && !vid_full_screen_mode)
+			{
 				vid_select_audio_track_request = false;
-
-			var_need_reflesh = true;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 165 && key.touch_y <= 174)
 		{
-			vid_select_audio_track_request = !vid_select_audio_track_request;
-			var_need_reflesh = true;
+			if(!vid_full_screen_mode)
+			{
+				vid_select_audio_track_request = !vid_select_audio_track_request;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 165 && key.touch_y <= 174)
 		{
-			vid_show_controls = !vid_show_controls;
-			var_need_reflesh = true;
+			if(!vid_full_screen_mode)
+			{
+				vid_show_controls = !vid_show_controls;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 180 && key.touch_y <= 189)
 		{
-			vid_linear_filter = !vid_linear_filter;
-			for(int k = 0; k < 2; k++)
+			if(!vid_full_screen_mode)
 			{
-				for(int i = 0; i < 8; i++)
+				vid_linear_filter = !vid_linear_filter;
+				for(int k = 0; k < 2; k++)
 				{
-					if(vid_image_enabled[i][k])
-						Draw_c2d_image_set_filter(&vid_image[i][k], vid_linear_filter);
+					for(int i = 0; i < 8; i++)
+					{
+						if(vid_image_enabled[i][k])
+							Draw_c2d_image_set_filter(&vid_image[i][k], vid_linear_filter);
+					}
 				}
+				var_need_reflesh = true;
 			}
-
-			var_need_reflesh = true;
 		}
 		else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 180 && key.touch_y <= 189)
 		{
-			vid_allow_skip_frames = !vid_allow_skip_frames;
-			var_need_reflesh = true;
+			if(!vid_full_screen_mode)
+			{
+				vid_allow_skip_frames = !vid_allow_skip_frames;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.p_touch && key.touch_x >= 5 && key.touch_x <= 314 && key.touch_y >= 195 && key.touch_y <= 204)
 		{
-			vid_seek_pos = (vid_duration * 1000) * (((double)key.touch_x - 5) / 310);
-			vid_seek_request = true;
-			var_need_reflesh = true;
+			if(!vid_full_screen_mode)
+			{
+				vid_seek_pos = (vid_duration * 1000) * (((double)key.touch_x - 5) / 310);
+				vid_seek_request = true;
+				var_need_reflesh = true;
+			}
 		}
 		else if(key.h_touch || key.p_touch)
 			var_need_reflesh = true;
@@ -1203,158 +1244,143 @@ void Sapp0_main(void)
 		if(key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
 		|| key.p_d_down || key.p_d_up || key.p_d_right || key.p_d_left || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left)
 		{
-			if(key.p_c_down || key.p_d_down)
+			if(!vid_full_screen_mode)
 			{
-				if(vid_select_audio_track_request && vid_selected_audio_track + 1 < vid_num_of_audio_tracks)
-					vid_selected_audio_track++;
-				else if(!vid_select_audio_track_request)
-					vid_y -= 1 * var_scroll_speed * key.count;
-			}
-			else if(key.h_c_down || key.h_d_down)
-			{
-				if(!vid_select_audio_track_request)
+				if(key.p_c_down || key.p_d_down)
+				{
+					if(vid_select_audio_track_request && vid_selected_audio_track + 1 < vid_num_of_audio_tracks)
+						vid_selected_audio_track++;
+					else if(!vid_select_audio_track_request)
+						vid_y -= 1 * var_scroll_speed * key.count;
+				}
+				else if(key.h_c_down || key.h_d_down)
+				{
+					if(!vid_select_audio_track_request)
+					{
+						if(vid_cd_count > 600)
+							vid_y -= 10 * var_scroll_speed * key.count;
+						else if(vid_cd_count > 240)
+							vid_y -= 7.5 * var_scroll_speed * key.count;
+						else if(vid_cd_count > 5)
+							vid_y -= 5 * var_scroll_speed * key.count;
+					}
+				}
+
+				if(key.p_c_up || key.p_d_up)
+				{
+					if(vid_select_audio_track_request && vid_selected_audio_track - 1 > -1)
+						vid_selected_audio_track--;
+					else if(!vid_select_audio_track_request)
+						vid_y += 1 * var_scroll_speed * key.count;
+				}
+				else if(key.h_c_up || key.h_d_up)
+				{
+					if(!vid_select_audio_track_request)
+					{
+						if(vid_cd_count > 600)
+							vid_y += 10 * var_scroll_speed * key.count;
+						else if(vid_cd_count > 240)
+							vid_y += 7.5 * var_scroll_speed * key.count;
+						else if(vid_cd_count > 5)
+							vid_y += 5 * var_scroll_speed * key.count;
+					}
+				}
+
+				if(key.p_c_right)
+					vid_x -= 1 * var_scroll_speed * key.count;
+				else if(key.h_c_right)
 				{
 					if(vid_cd_count > 600)
-						vid_y -= 10 * var_scroll_speed * key.count;
+						vid_x -= 10 * var_scroll_speed * key.count;
 					else if(vid_cd_count > 240)
-						vid_y -= 7.5 * var_scroll_speed * key.count;
+						vid_x -= 7.5 * var_scroll_speed * key.count;
 					else if(vid_cd_count > 5)
-						vid_y -= 5 * var_scroll_speed * key.count;
+						vid_x -= 5 * var_scroll_speed * key.count;
 				}
-			}
 
-			if(key.p_c_up || key.p_d_up)
-			{
-				if(vid_select_audio_track_request && vid_selected_audio_track - 1 > -1)
-					vid_selected_audio_track--;
-				else if(!vid_select_audio_track_request)
-					vid_y += 1 * var_scroll_speed * key.count;
-			}
-			else if(key.h_c_up || key.h_d_up)
-			{
-				if(!vid_select_audio_track_request)
+				if(key.p_c_left)
+					vid_x += 1 * var_scroll_speed * key.count;
+				else if(key.h_c_left)
 				{
 					if(vid_cd_count > 600)
-						vid_y += 10 * var_scroll_speed * key.count;
+						vid_x += 10 * var_scroll_speed * key.count;
 					else if(vid_cd_count > 240)
-						vid_y += 7.5 * var_scroll_speed * key.count;
+						vid_x += 7.5 * var_scroll_speed * key.count;
 					else if(vid_cd_count > 5)
-						vid_y += 5 * var_scroll_speed * key.count;
+						vid_x += 5 * var_scroll_speed * key.count;
 				}
+
+				if(key.p_d_right)
+					vid_3d_x_offset -= 1 * var_scroll_speed * key.count;
+				else if(key.h_d_right)
+					vid_3d_x_offset -= 2.5 * var_scroll_speed * key.count;
+
+				if(key.p_d_left)
+					vid_3d_x_offset += 1 * var_scroll_speed * key.count;
+				else if(key.h_d_left)
+					vid_3d_x_offset += 2.5 * var_scroll_speed * key.count;
+
+				if(vid_x > 400)
+					vid_x = 400;
+				else if(vid_x < -vid_codec_width * vid_zoom)
+					vid_x = -vid_codec_width * vid_zoom;
+
+				if(vid_y > 480)
+					vid_y = 480;
+				else if(vid_y < -vid_codec_height * vid_zoom)
+					vid_y = -vid_codec_height * vid_zoom;
+
+				if(vid_3d_x_offset > 400)
+					vid_3d_x_offset = 400;
+				else if(vid_3d_x_offset < -400)
+					vid_3d_x_offset = -400;
+
+				vid_cd_count++;
+				var_need_reflesh = true;
 			}
-
-			if(key.p_c_right)
-				vid_x -= 1 * var_scroll_speed * key.count;
-			else if(key.h_c_right)
-			{
-				if(vid_cd_count > 600)
-					vid_x -= 10 * var_scroll_speed * key.count;
-				else if(vid_cd_count > 240)
-					vid_x -= 7.5 * var_scroll_speed * key.count;
-				else if(vid_cd_count > 5)
-					vid_x -= 5 * var_scroll_speed * key.count;
-			}
-
-			if(key.p_c_left)
-				vid_x += 1 * var_scroll_speed * key.count;
-			else if(key.h_c_left)
-			{
-				if(vid_cd_count > 600)
-					vid_x += 10 * var_scroll_speed * key.count;
-				else if(vid_cd_count > 240)
-					vid_x += 7.5 * var_scroll_speed * key.count;
-				else if(vid_cd_count > 5)
-					vid_x += 5 * var_scroll_speed * key.count;
-			}
-
-			if(key.p_d_right)
-				vid_3d_x_offset -= 1 * var_scroll_speed * key.count;
-			else if(key.h_d_right)
-				vid_3d_x_offset -= 2.5 * var_scroll_speed * key.count;
-
-			if(key.p_d_left)
-				vid_3d_x_offset += 1 * var_scroll_speed * key.count;
-			else if(key.h_d_left)
-				vid_3d_x_offset += 2.5 * var_scroll_speed * key.count;
-
-			if(vid_x > 400)
-				vid_x = 400;
-			else if(vid_x < -vid_codec_width * vid_zoom)
-				vid_x = -vid_codec_width * vid_zoom;
-
-			if(vid_y > 480)
-				vid_y = 480;
-			else if(vid_y < -vid_codec_height * vid_zoom)
-				vid_y = -vid_codec_height * vid_zoom;
-
-			if(vid_3d_x_offset > 400)
-				vid_3d_x_offset = 400;
-			else if(vid_3d_x_offset < -400)
-				vid_3d_x_offset = -400;
-
-			vid_cd_count++;
-			var_need_reflesh = true;
 		}
 		else
 			vid_cd_count = 0;
 
 		if(key.p_l || key.p_r || key.h_l || key.h_r)
 		{
-			if(key.p_l)
-				vid_zoom -= 0.005 * var_scroll_speed * key.count;
-			else if(key.h_l)
+			if(!vid_full_screen_mode)
 			{
-				if(vid_lr_count > 360)
-					vid_zoom -= 0.05 * var_scroll_speed * key.count;
-				else if(vid_lr_count > 120)
-					vid_zoom -= 0.01 * var_scroll_speed * key.count;
-				else if(vid_lr_count > 5)
+				if(key.p_l)
 					vid_zoom -= 0.005 * var_scroll_speed * key.count;
-			}
+				else if(key.h_l)
+				{
+					if(vid_lr_count > 360)
+						vid_zoom -= 0.05 * var_scroll_speed * key.count;
+					else if(vid_lr_count > 120)
+						vid_zoom -= 0.01 * var_scroll_speed * key.count;
+					else if(vid_lr_count > 5)
+						vid_zoom -= 0.005 * var_scroll_speed * key.count;
+				}
 
-			if(key.p_r)
-				vid_zoom += 0.005 * var_scroll_speed * key.count;
-			else if(key.h_r)
-			{
-				if(vid_lr_count > 360)
-					vid_zoom += 0.05 * var_scroll_speed * key.count;
-				else if(vid_lr_count > 120)
-					vid_zoom += 0.01 * var_scroll_speed * key.count;
-				else if(vid_lr_count > 5)
+				if(key.p_r)
 					vid_zoom += 0.005 * var_scroll_speed * key.count;
+				else if(key.h_r)
+				{
+					if(vid_lr_count > 360)
+						vid_zoom += 0.05 * var_scroll_speed * key.count;
+					else if(vid_lr_count > 120)
+						vid_zoom += 0.01 * var_scroll_speed * key.count;
+					else if(vid_lr_count > 5)
+						vid_zoom += 0.005 * var_scroll_speed * key.count;
+				}
+
+				if(vid_zoom < 0.05)
+					vid_zoom = 0.05;
+				else if(vid_zoom > 10)
+					vid_zoom = 10;
+
+				vid_lr_count++;
+				var_need_reflesh = true;
 			}
-
-			if(vid_zoom < 0.05)
-				vid_zoom = 0.05;
-			else if(vid_zoom > 10)
-				vid_zoom = 10;
-
-			vid_lr_count++;
-			var_need_reflesh = true;
 		}
 		else
 			vid_lr_count = 0;
-	}
-
-	if(key.p_any)
-	{
-		if(vid_full_screen_mode)
-		{
-			//fit to screen size
-			vid_zoom = 1;
-			while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 225) && vid_zoom > 0.05)
-				vid_zoom -= 0.001;
-
-			vid_x = (400 - (vid_width * vid_zoom)) / 2;
-			vid_y = (225 - (vid_height * vid_zoom)) / 2;
-			vid_y += 15;
-			vid_turn_off_bottom_screen_count = 0;
-			vid_full_screen_mode = false;
-			var_turn_on_bottom_lcd = true;
-			var_top_lcd_brightness = var_lcd_brightness;
-			var_bottom_lcd_brightness = var_lcd_brightness;
-			var_need_reflesh = true;
-		}
 	}
 	
 	if(Util_log_query_log_show_flag())

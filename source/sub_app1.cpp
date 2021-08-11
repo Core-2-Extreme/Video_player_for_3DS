@@ -102,6 +102,7 @@ void Sapp1_decode_thread(void* arg)
 	int packet_index = 0;
 	int num_of_video_tracks = 0;
 	int num_of_audio_tracks = 0;
+	int thread_type = 0;
 	double pos = 0;
 	u8* audio = NULL;
 	std::string format = "";
@@ -197,7 +198,7 @@ void Sapp1_decode_thread(void* arg)
 			}
 			if(num_of_video_tracks > 0 && vid_mvd_play_request)
 			{
-				result = Util_video_decoder_init(0, 1, 1);
+				result = Util_video_decoder_init(0, 1, 1, DEF_DECODER_THREAD_TYPE_NONE, 1);
 				Util_log_save(DEF_SAPP1_DECODE_THREAD_STR, "Util_video_decoder_init()..." + result.string + result.error_description, result.code);
 				if(result.code != 0)
 					vid_mvd_play_request = false;
@@ -209,7 +210,7 @@ void Sapp1_decode_thread(void* arg)
 				
 				if(vid_mvd_play_request)
 				{
-					Util_video_decoder_get_info(&vid_mvd_width, &vid_mvd_height, &vid_mvd_framerate, &vid_mvd_video_format, &vid_mvd_duration, 0, 1);
+					Util_video_decoder_get_info(&vid_mvd_width, &vid_mvd_height, &vid_mvd_framerate, &vid_mvd_video_format, &vid_mvd_duration, &thread_type, 0, 1);
 					vid_mvd_frametime = (1000.0 / vid_mvd_framerate);
 
 					vid_mvd_codec_width = vid_mvd_width;

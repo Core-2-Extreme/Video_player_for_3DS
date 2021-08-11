@@ -22,6 +22,7 @@ bool vid_allow_skip_frames = false;
 bool vid_do_not_skip_request = false;
 bool vid_full_screen_mode = false;
 bool vid_image_enabled[8][2];
+bool vid_enabled_cores[4] = { false, false, false, false, };
 double vid_time[2][320];
 double vid_copy_time[2] = { 0, 0, };
 double vid_audio_time = 0;
@@ -41,6 +42,9 @@ double vid_max_time = 0;
 double vid_total_time = 0;
 double vid_recent_time[90];
 double vid_recent_total_time = 0;
+int vid_num_of_threads = 1;
+int vid_request_thread_mode = DEF_DECODER_THREAD_TYPE_AUTO;
+int vid_thread_mode = DEF_DECODER_THREAD_TYPE_NONE;
 int vid_turn_off_bottom_screen_count = 0;
 int vid_num_of_audio_tracks = 0;
 int vid_selected_audio_track = 0;
@@ -95,7 +99,7 @@ void Sapp0_decode_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Thread started.");
 
-	Result_with_string result;
+	bool key_frame = false;
 	int audio_track = 0;
 	int bitrate = 0;
 	int sample_rate = 0;
@@ -104,12 +108,12 @@ void Sapp0_decode_thread(void* arg)
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
-	bool key_frame = false;
 	double pos = 0;
 	u8* audio = NULL;
 	std::string format = "";
 	std::string type = "";
 	TickCounter counter;
+	Result_with_string result;
 	osTickCounterStart(&counter);
 
 	while (vid_thread_run)
@@ -203,14 +207,15 @@ void Sapp0_decode_thread(void* arg)
 			}
 			if(num_of_video_tracks && vid_play_request)
 			{
-				result = Util_video_decoder_init(0, num_of_video_tracks, 0);
+				Util_fake_pthread_set_enabled_core(vid_enabled_cores);
+				result = Util_video_decoder_init(0, num_of_video_tracks, vid_num_of_threads, vid_request_thread_mode, 0);
 				Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_video_decoder_init()..." + result.string + result.error_description, result.code);
 				if(result.code != 0)
 					vid_play_request = false;
 				
 				if(vid_play_request)
 				{
-					Util_video_decoder_get_info(&vid_width, &vid_height, &vid_framerate, &vid_video_format, &vid_duration, 0, 0);
+					Util_video_decoder_get_info(&vid_width, &vid_height, &vid_framerate, &vid_video_format, &vid_duration, &vid_thread_mode, 0, 0);
 					vid_frametime = (1000.0 / vid_framerate);
 					if(num_of_video_tracks == 2)
 						vid_frametime /= 2;
@@ -599,11 +604,7 @@ void Sapp0_convert_thread(void* arg)
 	u8* video = NULL;
 	int packet_index = 0;
 	int image_num = 0;
-	std::string type = (char*)arg;
-	if(type == "1")
-		APT_SetAppCpuTimeLimit(80);
-	else
-		APT_SetAppCpuTimeLimit(5);
+	APT_SetAppCpuTimeLimit(80);
 
 	TickCounter counter[4];
 	Result_with_string result;
@@ -748,21 +749,38 @@ void Sapp0_init(void)
 	vid_thread_run = true;
 	if(new_3ds)
 	{
+		vid_num_of_threads = 2;
+		vid_enabled_cores[0] = true;
+		vid_enabled_cores[1] = true;
+		vid_enabled_cores[2] = var_core_2_available;
+		vid_enabled_cores[3] = var_core_3_available;
+		if(var_core_2_available)
+			vid_num_of_threads++;
+		if(var_core_3_available)
+			vid_num_of_threads++;
+		
 		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
-		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
-		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, var_core_2_available ? 2 : 0, false);
+		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, var_core_3_available ? 3 : 1, false);
 	}
 	else
 	{
+		vid_num_of_threads = 2;
+		vid_enabled_cores[0] = true;
+		vid_enabled_cores[1] = true;
+		vid_enabled_cores[2] = false;
+		vid_enabled_cores[3] = false;
 		vid_decode_thread = threadCreate(Sapp0_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
-		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
-		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)("1"), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+		vid_decode_video_thread = threadCreate(Sapp0_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+		vid_convert_thread = threadCreate(Sapp0_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, false);
 	}
 
 	vid_full_screen_mode = false;
 	vid_detail_mode = false;
 	vid_show_controls = false;
 	vid_allow_skip_frames = false;
+	vid_request_thread_mode = DEF_DECODER_THREAD_TYPE_AUTO;
+	vid_thread_mode = DEF_DECODER_THREAD_TYPE_NONE;
 	vid_num_of_audio_tracks = 0;
 	vid_selected_audio_track = 0;
 	vid_lr_count = 0;
@@ -1010,8 +1028,11 @@ void Sapp0_main(void)
 				Draw_line(0, 110 - vid_frametime, 0xFFFFFF00, 320, 110 - vid_frametime, 0xFFFFFF00, 2);
 				if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0)
 				{
-					Draw("avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + " min " + std::to_string(1000 / vid_max_time).substr(0, 5) 
-					+  " max " + std::to_string(1000 / vid_min_time).substr(0, 5) + " recent avg " + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, 110, 0.4, 0.4, color);
+					if(vid_thread_mode == DEF_DECODER_THREAD_TYPE_FRAME)
+						Draw("*When thread_type == frame, the red graph is unusable", 0, 110, 0.4, 0.4, color);
+					else
+						Draw("avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + " min " + std::to_string(1000 / vid_max_time).substr(0, 5) 
+						+  " max " + std::to_string(1000 / vid_min_time).substr(0, 5) + " recent avg " + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, 110, 0.4, 0.4, color);
 				}
 
 				Draw("Deadline : " + std::to_string(vid_frametime).substr(0, 5) + "ms", 0, 120, 0.4, 0.4, 0xFFFFFF00);

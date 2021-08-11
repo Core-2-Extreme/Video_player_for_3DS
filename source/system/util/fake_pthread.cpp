@@ -116,7 +116,7 @@ int	pthread_create(pthread_t *__pthread, const pthread_attr_t  *__attr, void *(*
     if(util_fake_pthread_enabled_cores == 0)
         return -1;
 
-    handle = threadCreate((ThreadFunc)__start_routine, __arg, DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], false);
+    handle = threadCreate((ThreadFunc)__start_routine, __arg, DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
     *__pthread = (pthread_t)handle;
 
     if(util_fake_pthread_core_offset + 1 < util_fake_pthread_enabled_cores)

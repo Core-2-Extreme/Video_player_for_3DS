@@ -286,10 +286,11 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int video_index, int session)
+void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int video_index, int session)
 {
 	*width = util_video_decoder_context[session][video_index]->width;
 	*height = util_video_decoder_context[session][video_index]->height;
+	*thread_type = util_video_decoder_context[session][video_index]->thread_type;
 	*framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
 	*format_name = util_video_decoder_codec[session][video_index]->long_name;
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;

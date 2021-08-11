@@ -6,7 +6,7 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_vid
 
 Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session);
 
-Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int session);
+Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int num_of_threads, int thread_type, int session);
 
 void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::string* format_name, double* duration, int audio_index, std::string* track_lang, int session);
 

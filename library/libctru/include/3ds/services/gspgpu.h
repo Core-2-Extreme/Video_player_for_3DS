@@ -100,9 +100,16 @@ bool gspHasGpuRight(void);
  * @param fb_b Pointer to the secondary framebuffer (only used in stereo mode for the right eye, otherwise pass the same as fb_a)
  * @param stride Stride in bytes between scanlines
  * @param mode Mode configuration to be written to LCD register
+ * @return true if a buffer had already been presented to the screen but not processed yet by GSP, false otherwise.
  * @note The most recently presented buffer is processed and configured during the specified screen's next VBlank event.
  */
-void gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
+bool gspPresentBuffer(unsigned screen, unsigned swap, const void* fb_a, const void* fb_b, u32 stride, u32 mode);
+
+/**
+ * @brief Returns true if a prior \ref gspPresentBuffer command is still pending to be processed by GSP.
+ * @param screen Screen ID (see \ref GSP_SCREEN_TOP and \ref GSP_SCREEN_BOTTOM)
+ */
+bool gspIsPresentPending(unsigned screen);
 
 /**
  * @brief Configures a callback to run when a GSPGPU event occurs.
@@ -156,7 +163,7 @@ GSPGPU_Event gspWaitForAnyEvent(void);
  * @brief Submits a GX command.
  * @param gxCommand GX command to execute.
  */
-Result gspSubmitGxCommand(u32 gxCommand[0x8]);
+Result gspSubmitGxCommand(const u32 gxCommand[0x8]);
 
 /**
  * @brief Acquires GPU rights.
@@ -171,7 +178,7 @@ Result GSPGPU_ReleaseRight(void);
  * @brief Retrieves display capture info.
  * @param captureinfo Pointer to output capture info to.
  */
-Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo*captureinfo);
+Result GSPGPU_ImportDisplayCaptureInfo(GSPGPU_CaptureInfo* captureinfo);
 
 /// Saves the VRAM sys area.
 Result GSPGPU_SaveVramSysArea(void);
@@ -193,7 +200,7 @@ Result GSPGPU_SetLcdForceBlack(u8 flags);
  * @param screenid ID of the screen to update.
  * @param framebufinfo Framebuffer information to update with.
  */
-Result GSPGPU_SetBufferSwap(u32 screenid, GSPGPU_FramebufferInfo*framebufinfo);
+Result GSPGPU_SetBufferSwap(u32 screenid, const GSPGPU_FramebufferInfo* framebufinfo);
 
 /**
  * @brief Flushes memory from the data cache.
@@ -215,7 +222,7 @@ Result GSPGPU_InvalidateDataCache(const void* adr, u32 size);
  * @param data Data to write.
  * @param size Size of the data to write.
  */
-Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size);
+Result GSPGPU_WriteHWRegs(u32 regAddr, const u32* data, u8 size);
 
 /**
  * @brief Writes to GPU hardware registers with a mask.
@@ -225,7 +232,7 @@ Result GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size);
  * @param maskdata Data of the mask.
  * @param masksize Size of the mask.
  */
-Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, u32* data, u8 datasize, u32* maskdata, u8 masksize);
+Result GSPGPU_WriteHWRegsWithMask(u32 regAddr, const u32* data, u8 datasize, const u32* maskdata, u8 masksize);
 
 /**
  * @brief Reads from GPU hardware registers.

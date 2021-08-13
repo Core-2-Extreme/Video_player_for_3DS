@@ -89,7 +89,7 @@ void Sem_init(void)
 			var_system_region = 0;
 	}
 
-	if(CFGU_GetSystemModel(&model))
+	if(CFGU_GetSystemModel(&model) == 0)
 		var_model = model;
 
 	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);

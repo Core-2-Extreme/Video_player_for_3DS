@@ -100,26 +100,29 @@ void Menu_init(void)
 	menu_check_connectivity_thread = threadCreate(Menu_check_connectivity_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 
-	core_2 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
-	if(!core_2)
-		var_core_2_available = false;
-	else
+	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 	{
-		threadJoin(core_2, U64_MAX);
-		var_core_2_available = true;
-	}
+		core_2 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		if(!core_2)
+			var_core_2_available = false;
+		else
+		{
+			threadJoin(core_2, U64_MAX);
+			var_core_2_available = true;
+		}
 
-	core_3 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 3, false);
-	if(!core_3)
-		var_core_3_available = false;
-	else
-	{
-		threadJoin(core_3, U64_MAX);
-		var_core_3_available = true;
+		core_3 = threadCreate(Menu_check_core_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 3, false);
+		if(!core_3)
+			var_core_3_available = false;
+		else
+		{
+			threadJoin(core_3, U64_MAX);
+			var_core_3_available = true;
+		}
+		
+		threadFree(core_2);
+		threadFree(core_3);
 	}
-	
-	threadFree(core_2);
-	threadFree(core_3);
 
 	if (var_allow_send_app_info)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);

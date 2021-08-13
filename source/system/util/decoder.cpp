@@ -229,7 +229,11 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			goto fail;
 		}
 
-		util_video_decoder_context[session][i]->lowres = low_resolution;
+		if(util_video_decoder_codec[session][i]->max_lowres < low_resolution)
+			util_video_decoder_context[session][i]->lowres = util_video_decoder_codec[session][i]->max_lowres;
+		else
+			util_video_decoder_context[session][i]->lowres = low_resolution;
+		
 		util_video_decoder_context[session][i]->flags = AV_CODEC_FLAG_OUTPUT_CORRUPT;
 		util_video_decoder_context[session][i]->thread_count = num_of_threads;
 		if(thread_type == DEF_DECODER_THREAD_TYPE_AUTO)
@@ -238,6 +242,11 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
 			else if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
+			else
+			{
+				util_video_decoder_context[session][i]->thread_type = 0;
+				util_video_decoder_context[session][i]->thread_count = 1;
+			}
 		}
 		else if(thread_type == DEF_DECODER_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 			util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;

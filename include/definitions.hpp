@@ -15,7 +15,7 @@
 #define DEF_CURRENT_APP_VER (std::string)"v1.2.0"
 #define DEF_CURRENT_APP_VER_INT 1056
 #define DEF_ENABLE_SUB_APP0
-#define DEF_ENABLE_SUB_APP1
+//#define DEF_ENABLE_SUB_APP1
 //#define DEF_ENABLE_SUB_APP2
 //#define DEF_ENABLE_SUB_APP3
 //#define DEF_ENABLE_SUB_APP4
@@ -24,7 +24,7 @@
 //#define DEF_ENABLE_SUB_APP7
 
 //video player
-#define DEF_SAPP0_NUM_OF_MSG 15
+#define DEF_SAPP0_NUM_OF_MSG 21
 #define DEF_SAPP0_ENABLE_ICON
 //#define DEF_SAPP0_ENABLE_NAME
 #define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
@@ -36,20 +36,21 @@
 #define DEF_SAPP0_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
 #define DEF_SAPP0_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
 #define DEF_SAPP0_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
+#define DEF_SAPP0_MENU_NONE -1
+#define DEF_SAPP0_MENU_SETTINGS 0
+#define DEF_SAPP0_MENU_INFO 1
 
-//video player(mvd)
-#define DEF_SAPP1_NUM_OF_MSG 16
-#define DEF_SAPP1_ENABLE_ICON
-//#define DEF_SAPP1_ENABLE_NAME
-#define DEF_SAPP1_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_mvd_icon.t3x"
-#define DEF_SAPP1_NAME (std::string)"mvd test"
-#define DEF_SAPP1_VER (std::string)"v1.2.0"
-#define DEF_SAPP1_MAIN_STR (std::string)"Vid/Main"
-#define DEF_SAPP1_INIT_STR (std::string)"Vid/Init"
-#define DEF_SAPP1_EXIT_STR (std::string)"Vid/Exit"
-#define DEF_SAPP1_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
-#define DEF_SAPP1_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
-#define DEF_SAPP1_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
+//sample app 1
+#define DEF_SAPP1_NUM_OF_MSG 1
+//#define DEF_SAPP1_ENABLE_ICON
+#define DEF_SAPP1_ENABLE_NAME
+#define DEF_SAPP1_ICON_PATH (std::string)"romfs:/"
+#define DEF_SAPP1_NAME (std::string)"sample 1"
+#define DEF_SAPP1_VER (std::string)"v0.0.1"
+#define DEF_SAPP1_MAIN_STR (std::string)"Sapp1/Main"
+#define DEF_SAPP1_INIT_STR (std::string)"Sapp1/Init"
+#define DEF_SAPP1_EXIT_STR (std::string)"Sapp1/Exit"
+#define DEF_SAPP1_THREAD_STR (std::string)"Sapp1/Sub thread"
 
 //sample app 2
 #define DEF_SAPP2_NUM_OF_MSG 1

@@ -3,7 +3,7 @@
 <2>Controls</2>
 <3>Allow skip frames : OFF</3>
 <4>Allow skip frames : ON</4>
-<5>Debug</5>
+<5>Settings</5>
 <6>Select a file</6>
 <7>Play/Pause</7>
 <8>Stop</8>
@@ -13,3 +13,9 @@
 <12>Audio track selection</12>
 <13>Select audio track</13>
 <14>Press Select key or touch screen to exit full screen</14>
+<15>Use hardware decoder (if available) : OFF</15>
+<16>Use hardware decoder (if available) : ON</16>
+<17>Use hardware color conversion (if available) : OFF</17>
+<18>Use hardware color conversion (if available) : ON</18>
+<19>Use multi-threaded decoding (if available) : OFF</19>
+<20>Use multi-threaded decoding (if available) : ON</20>

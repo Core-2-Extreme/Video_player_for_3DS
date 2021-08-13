@@ -90,20 +90,7 @@ void Sem_init(void)
 	}
 
 	if(CFGU_GetSystemModel(&model))
-	{
-		if(model == 0)
-			var_model = "OLD 3DS";
-		else if(model == 1)
-			var_model = "OLD 3DS XL";
-		else if(model == 2)
-			var_model = "NEW 3DS";
-		else if(model == 3)
-			var_model = "OLD 2DS";
-		else if(model == 4)
-			var_model = "NEW 3DS XL";
-		else if(model == 5)
-			var_model = "NEW 2DS XL";
-	}
+		var_model = model;
 
 	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_SEM_INIT_STR , "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
@@ -139,17 +126,17 @@ void Sem_init(void)
 		var_bottom_lcd_brightness = var_lcd_brightness;
 	}
 
-	if(var_model == "OLD 2DS")//OLD 2DS doesn't support high resolution mode
+	if(var_model == CFG_MODEL_2DS)//OLD 2DS doesn't support high resolution mode
 		var_high_resolution_mode = false;
 	
-	if(var_model == "OLD 2DS" || var_model == "NEW 2DS XL")//2DSs don't support 3d mode
+	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_N2DSXL)//2DSs don't support 3d mode
 		var_3d_mode = false;
 
 	sem_thread_run = true;
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_worker_thread = threadCreate(Sem_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-	if(var_model == "NEW 2DS XL" || var_model == "NEW 3DS XL" || var_model == "NEW 3DS")
+	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
 	else
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
@@ -337,20 +324,20 @@ void Sem_main(void)
 				cache_color[5] = DEF_DRAW_WEAK_BLACK;
 			}
 
-			if(var_model == "OLD 2DS" && var_night_mode)
+			if(var_model == CFG_MODEL_2DS && var_night_mode)
 			{
 				cache_color[3] = DEF_DRAW_WEAK_WHITE;
 				cache_color[4] = DEF_DRAW_WEAK_WHITE;
 			}
-			else if(var_model == "OLD 2DS")
+			else if(var_model == CFG_MODEL_2DS)
 			{
 				cache_color[3] = DEF_DRAW_WEAK_BLACK;
 				cache_color[4] = DEF_DRAW_WEAK_BLACK;
 			}
 
-			if(var_model == "NEW 2DS XL" && var_night_mode)
+			if(var_model == CFG_MODEL_N2DSXL && var_night_mode)
 				cache_color[4] = DEF_DRAW_WEAK_WHITE;
-			else if(var_model == "NEW 2DS XL")
+			else if(var_model == CFG_MODEL_N2DSXL)
 				cache_color[4] = DEF_DRAW_WEAK_BLACK;
 
 			if (var_high_resolution_mode)
@@ -851,14 +838,14 @@ void Sem_main(void)
 						sem_bar_selected[0] = true;
 					else if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 309 && key.touch_y >= 120 && key.touch_y <= 139)
 						sem_bar_selected[1] = true;
-					if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 99 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != "OLD 2DS")
+					if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 99 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != CFG_MODEL_2DS)
 					{
 						var_high_resolution_mode = true;
 						var_3d_mode = false;
 						Draw_reinit(var_high_resolution_mode, var_3d_mode);
 						var_need_reflesh = true;
 					}
-					else if (key.p_touch && key.touch_x >= 110 && key.touch_x <= 199 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != "OLD 2DS" && var_model != "NEW 2DS XL")
+					else if (key.p_touch && key.touch_x >= 110 && key.touch_x <= 199 && key.touch_y >= 160 && key.touch_y <= 179 && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
 					{
 						var_high_resolution_mode = false;
 						var_3d_mode = true;

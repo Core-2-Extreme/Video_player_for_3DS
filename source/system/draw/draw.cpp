@@ -1,7 +1,7 @@
 #include "headers.hpp"
 
 bool draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
-double draw_frametime[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+double draw_frametime[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 std::string draw_part_text[2][1024];
 C2D_Font system_fonts[4];
 C3D_RenderTarget* screen[3];
@@ -16,16 +16,16 @@ TickCounter draw_frame_time_timer;
 
 double Draw_query_frametime(void)
 {
-	return draw_frametime[19];
+	return draw_frametime[9];
 }
 
 double Draw_query_fps(void)
 {
 	double cache = 0;
-	for(int i = 0; i < 20; i++)
+	for(int i = 0; i < 10; i++)
 		cache += draw_frametime[i];
-
-	return 1000.0 / (cache / 20);
+	
+	return 1000.0 / (cache / 10);
 }
 
 extern "C" void memcpy_asm_4b(u8*, u8*);
@@ -423,14 +423,6 @@ Result_with_string Draw_load_texture(std::string file_name, int sheet_map_num, C
 	return result;
 }
 
-void Draw_touch_pos(void)
-{
-	Hid_info key;
-	Util_hid_query_key_state(&key);
-	if(key.p_touch || key.h_touch)
-		Draw("●", key.touch_x, key.touch_y, 0.20, 0.20, DEF_DRAW_RED);
-}
-
 void Draw_top_ui(void)
 {
 	Draw_texture(var_square_image[0], DEF_DRAW_BLACK, 0.0, 0.0, 400.0, 15.0);
@@ -523,7 +515,7 @@ void Draw_debug_info(void)
 	Draw("touch x: " + std::to_string(key.touch_x) + ", y: " + std::to_string(key.touch_y), 0.0, 160.0, 0.4, 0.4, color);
 	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0.0, 170.0, 0.4, 0.4, color);
 	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0.0, 180.0, 0.4, 0.4, color);
-	Draw("Frametime: " + std::to_string(draw_frametime[19]).substr(0, 6) + "ms", 0.0, 190.0, 0.4, 0.4, color);
+	Draw("Frametime: " + std::to_string(draw_frametime[9]).substr(0, 6) + "ms", 0.0, 190.0, 0.4, 0.4, color);
 	Draw("RAM: " + std::to_string(var_free_ram / 1000.0).substr(0, 5) + " MB", 0.0, 200.0, 0.4, 0.4, color);
 	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1000.0 / 1000.0).substr(0, 5) +" MB", 0.0, 210.0, 0.4, 0.4, color);
 }
@@ -709,7 +701,7 @@ void Draw_apply_draw(void)
 {
 	C3D_FrameEnd(0);
 	osTickCounterUpdate(&draw_frame_time_timer);
-	draw_frametime[19] = osTickCounterRead(&draw_frame_time_timer);
-	for(int i = 0; i < 19; i++)
+	draw_frametime[9] = osTickCounterRead(&draw_frame_time_timer);
+	for(int i = 0; i < 9; i++)
 		draw_frametime[i] = draw_frametime[i + 1];
 }

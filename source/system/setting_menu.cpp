@@ -653,7 +653,6 @@ void Sem_main(void)
 			Util_err_draw();
 
 		Draw_bot_ui();
-		Draw_touch_pos();
 
 		Draw_apply_draw();
 	}
@@ -674,7 +673,6 @@ void Sem_main(void)
 				sem_touch_x_move_left = key.touch_x_move;
 				sem_touch_y_move_left = key.touch_y_move;
 			}
-			var_need_reflesh = true;
 		}
 		else
 		{
@@ -753,15 +751,25 @@ void Sem_main(void)
 				if(sem_selected_menu_mode == 5)//Scroll bar
 				{
 					if (key.h_c_down || key.h_c_up)
+					{
 						sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
+						var_need_reflesh = true;
+					}
 
 					if (key.h_touch && sem_scroll_bar_selected)
+					{
 						sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
+						var_need_reflesh = true;
+					}
 
 					if (key.p_touch && key.touch_x >= 305 && key.touch_x <= 320 && key.touch_y >= 15)
 						sem_scroll_bar_selected = true;
 
-					sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
+					if(sem_touch_y_move_left * var_scroll_speed != 0)
+					{
+						sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
+						var_need_reflesh = true;
+					}
 				}
 
 				if (sem_selected_menu_mode == 0)

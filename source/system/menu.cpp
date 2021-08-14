@@ -448,7 +448,6 @@ void Menu_main(void)
 				Util_err_draw();
 
 			Draw_bot_ui();
-			Draw_touch_pos();
 
 			Draw_apply_draw();
 		}
@@ -787,7 +786,7 @@ void Menu_worker_thread(void* arg)
 		usleep(49000);
 		count++;
 
-		if(count % 2 == 0)
+		if(count % 5 == 0)
 			Menu_get_system_info();
 
 		if (count >= 20)

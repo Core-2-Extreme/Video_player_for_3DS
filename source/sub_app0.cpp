@@ -1131,7 +1131,7 @@ void Sapp0_main(void)
 
 				//allow skip key frames
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 165, 80, 145, 10);
-				Draw(vid_msg[DEF_SAPP0_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 167.5, 80, 0.4, 0.4, vid_allow_skip_frames ? color : disabled_color);
+				Draw(vid_msg[DEF_SAPP0_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 167.5, 80, 0.35, 0.35, vid_allow_skip_frames ? color : disabled_color);
 
 				//use hw decoding
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 100, 300, 10);
@@ -1230,7 +1230,6 @@ void Sapp0_main(void)
 				Util_err_draw();
 
 			Draw_bot_ui();
-			//Draw_touch_pos();
 		}
 
 		Draw_apply_draw();

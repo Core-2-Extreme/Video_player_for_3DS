@@ -20,8 +20,6 @@ int Draw_get_free_sheet_num(void);
 
 Result_with_string Draw_load_texture(std::string file_name, int sheet_map_num, C2D_Image return_image[], int start_num, int num_of_array);
 
-void Draw_touch_pos(void);
-
 void Draw_top_ui(void);
 
 void Draw_bot_ui(void);

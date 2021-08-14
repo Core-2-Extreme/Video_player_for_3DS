@@ -121,7 +121,6 @@ void Sapp4_main(void)
 			Util_err_draw();
 
 		Draw_bot_ui();
-		Draw_touch_pos();
 
 		Draw_apply_draw();
 	}

@@ -111,7 +111,7 @@ void Sem_init(void)
 		var_high_resolution_mode = (data[9] == "1");
 		var_3d_mode = (data[10] == "1");
 
-		if(var_lang != "jp" && var_lang != "en")
+		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu")
 			var_lang = "en";
 		if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
 			var_lcd_brightness = 100;
@@ -229,8 +229,17 @@ void Sem_main(void)
 			if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 			{
 				//Back
+				//Back
+				if (var_lang == "hu")
+				{
+				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 55, 25);
+				Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
+				}
+				else
+				{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
 				Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
+				}
 			}
 		}
 
@@ -290,9 +299,11 @@ void Sem_main(void)
 			//Languages
 			if (var_lang == "en")
 				cache_color[0] = DEF_DRAW_RED;
-			else
+			else if (var_lang == "jp")
 				cache_color[1] = DEF_DRAW_RED;
-
+			else
+				cache_color[2] = DEF_DRAW_RED;
+			
 			//English
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
 			Draw(sem_msg[9], 10, 25, 0.75, 0.75, cache_color[0]);
@@ -300,6 +311,10 @@ void Sem_main(void)
 			//Japanese
 			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 50, 240, 20);
 			Draw(sem_msg[10], 10, 50, 0.75, 0.75, cache_color[1]);
+			
+			//Hungarian
+			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 75, 240, 20);
+			Draw(sem_msg[59], 10, 75, 0.75, 0.75, cache_color[2]);
 		}
 		else if (sem_selected_menu_mode == 3)
 		{
@@ -808,6 +823,12 @@ void Sem_main(void)
 					else if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 249 && key.touch_y >= 50 && key.touch_y <= 69)
 					{
 						var_lang = "jp";
+						sem_reload_msg_request = true;
+						var_need_reflesh = true;
+					}
+					else if (key.p_touch && key.touch_x >= 10 && key.touch_x <= 249 && key.touch_y >= 75 && key.touch_y <= 94)
+					{
+						var_lang = "hu";
 						sem_reload_msg_request = true;
 						var_need_reflesh = true;
 					}

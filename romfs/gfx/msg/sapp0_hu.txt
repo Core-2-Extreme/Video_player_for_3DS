@@ -10,7 +10,8 @@
 <9>Átméretezés</9>
 <10>Hangsáv választás</10>
 <11>Válassz hangsávot</11>
-<12>Nyomd meg a Select gombot, vagy érintsd meg a képernyöt a teljes képernyös módból kilépéshez</12>
+<12>Nyomd meg a Select gombot, vagy érintsd meg a
+képernyöt a teljes képernyös módból kilépéshez</12>
 <13>Hardver dekódoló használata (ha elérhetö) : </13>
 <14>Hardver színkorrekció (ha elérhetö) : </14>
 <15>Többszálas dekódolás használata (ha elérhetö) : </15>

@@ -1,6 +1,13 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.3.0
+The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track)
+Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle)
+Hardware decoder has been merged (Press Y key-> use hw decoder to toggle)
+Full screen mode has been supported (Press select key to toggle)
+Other minor changes
+
 ### v1.2.0
 Hardware decoding won't work in .cia has been fixed \
 Hardware decoding won't work in some resolution has been fixed \
@@ -35,11 +42,11 @@ Zoom in/out video ✅ \
 Move video ✅ \
 File explorer ✅
 
-### *0 New 3DS or New 2DS only
-### *1 New 3DS or 3DS only, software decoder only, in order to see 3D video as 3D
-### you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
+#### *0 New 3DS or New 2DS only
+#### *1 New 3DS or 3DS only, software decoder only, in order to see 3D video as 3D
+#### you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 
-### Performance
+## Performance
 
 Software decoding
 * 256x144(144p)@30fps(H.264) on OLD 3DS
@@ -54,18 +61,18 @@ Known issues :
 * ~~It does not work in .cia~~ (fixed in v1.2.0 by 
 windows-server-2003)
 
-### Supported languages
+## Supported languages
 * English
 * Japanese/日本語
 * Hungarian/magyar (translated by vargaviktor)
 
-### Supported video codec
+## Supported video codec
 * Motion jpeg
 * MPEG4 (MPEG4 part2)
 * H.264 (MPEG4 part10)
 * H.265 (HEVC)
 
-### Supported audio codec
+## Supported audio codec
 * mp1 (MPEG audio layer 1)
 * mp2 (MPEG audio layer 2)
 * mp3 (MPEG audio layer 3)
@@ -74,7 +81,7 @@ windows-server-2003)
 * ogg (Vorbis)
 * pcm audio
 
-### Contorols
+## Contorols
 * A : Play/Pause
 * B : Stop
 * Y : Debug
@@ -84,7 +91,7 @@ windows-server-2003)
 * C/DPAD : Move video
 * touch the bar : Seek
 
-### Credits
+## Credits
 * Core 2 Extreme
 * dixy52-beep (icon, banner, in app texture)
 * windows-server-2003 (bug fix)

@@ -101,7 +101,14 @@ void Util_expl_draw(void)
 	int color = DEF_DRAW_BLACK;
 
 	Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
+	
+	if (var_lang=="jp")
 	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.4, 0.4, DEF_DRAW_BLACK);
+    else if (var_lang=="hu")
+	Draw("A : Kiválaszt, B : Vissza, Y : Bezár, ↑↓→← : Mozgás", 12.5, 185.0, 0.4, 0.4, DEF_DRAW_BLACK);
+	else
+	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.4, 0.4, DEF_DRAW_BLACK);
+
 	Draw(expl_current_patch, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 	for (int i = 0; i < 16; i++)
 	{
@@ -340,6 +347,8 @@ void Util_expl_read_dir_thread(void* arg)
 					expl_num_of_file += 1;
 					if (var_lang == "jp")
 						expl_files[0] = "親ディレクトリへ移動";
+					else if (var_lang == "hu")
+						expl_files[0] = "Lépés a szülö könyvtárba";
 					else
 						expl_files[0] = "Move to parent directory";
 				}

@@ -1,0 +1,11 @@
+<0>Szeretnél kilépni a szoftverböl?</0>
+<1>A - Bezár</1>
+<2>B - Vissza</2>
+<3>☢Új verzió érhetö el!☢</3>
+<4>Hogyan frissíts: 
+Beállítások
+->Frissítés
+->Frissítések ellenörzése
+->Menj a kiadásokra
+->Válaszd a .3dsx vagy .cia fájlt
+->Letöltés & telepítés</4>

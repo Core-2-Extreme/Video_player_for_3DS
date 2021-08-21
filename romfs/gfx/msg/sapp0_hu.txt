@@ -1,0 +1,18 @@
+<0>Textúra szürö : </0>
+<1>Irányítás</1>
+<2>Képkocka ugrás : </2>
+<3>Beállítások</3>
+<4>Fájl választás</4>
+<5>Lejátszás/Szünet</5>
+<6>Stop</6>
+<7>Videó mozgatás</7>
+<8>Beletekerés</8>
+<9>Átméretezés</9>
+<10>Hangsáv választás</10>
+<11>Válassz hangsávot</11>
+<12>Nyomd meg a Select gombot, vagy érintsd meg a képernyöt a teljes képernyös módból kilépéshez</12>
+<13>Hardver dekódoló használata (ha elérhetö) : </13>
+<14>Hardver színkorrekció (ha elérhetö) : </14>
+<15>Többszálas dekódolás használata (ha elérhetö) : </15>
+<16>Kulcskockák átugrása : </16>
+<17>Felbontás csökkentése (ha támogatja a codec) : </17>

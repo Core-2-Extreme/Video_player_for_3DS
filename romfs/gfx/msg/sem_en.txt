@@ -59,3 +59,4 @@ turn off the '800px mode'
 <56>800px</56>
 <57>3D</57>
 <58>Nothing</58>
+<59>Magyar</59>

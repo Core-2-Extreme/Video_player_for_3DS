@@ -1,0 +1,61 @@
+﻿<0>Frissítések</0>
+<1>Nyelvek</1>
+<2>LCD</2>
+<3>Irányítás</3>
+<4>Karakterkészlet</4>
+<5>Wi-Fi</5>
+<6>Speciális beállítások</6>
+<7>Akkumulátor</7>
+<8>Frissítések ellenörzése</8>
+<9>English</9>
+<10>日本語</10>
+<11>Éjszakai mód</11>
+<12>BE</12>
+<13>KI</13>
+<14>Flash</14>
+<15>Képernyö fényesség : </15>
+<16>LCD kikapcsolás ideje : </16>
+<17>s</17>
+<18>Görgetési sebesség : </18>
+<19>JPN</19>
+<20>CHN</20>
+<21>KOR</21>
+<22>TWN</22>
+<23>Mind betölt</23>
+<24>Mind töröl</24>
+<25>App infó küldés engedélyezése</25>
+<26>ENGED</26>
+<27>TILT</27>
+<28>Debug mód</28>
+<29>Eco mód</29>
+<30>Vissza</30>
+<31>Ellenörzés...</31>
+<32>Ellenörzés sikertelen.</32>
+<33>Aktuális verzió.</33>
+<34>Új verzió elérhetö.</34>
+<35>Vissza (B)</35>
+<36>Kiadások választása (A)</36>
+<37>.3dsx</37>
+<38>.cia</38>
+<39>A fájl lementésre kerül ide: </39>
+<40>Letöltés...</40>
+<41>Telepítés...</41>
+<42>Sikeres</42>
+<43>Sikertelen</43>
+<44>Indítsd újra az appot a frissítések érvénybe lépéséhez.</44>
+<45>Letöltés & telepítés (X)</45>
+<46>App bezárása</46>
+<47>Wifi</47>
+<48>Csatlakoztatva : </48>
+<49>Képernyö rögzítés</49>
+<50>Rögzítés (mindkét képernyö)</50>
+<51>Rögzítés (felsö képernyö)</51>
+<52>Rögzítés (alsó képernyö)</52>
+<53>Rögzítés leállítása</53>
+<54>Képernyö mód (felsö képernyö)</54>
+<55>A képernyö rögzítéshez ki kell kapcsolnod a '800px' módot
+(Beállítások->LCD->Képernyö mód).</55>
+<56>800px</56>
+<57>3D</57>
+<58>Semmi</58>
+<59>Magyar</59>

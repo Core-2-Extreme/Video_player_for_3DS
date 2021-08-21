@@ -148,7 +148,7 @@
 #define DEF_MENU_CHECK_INTERNET_STR (std::string)"Menu/Check internet thread"
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 59
+#define DEF_SEM_NUM_OF_MSG 60
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"

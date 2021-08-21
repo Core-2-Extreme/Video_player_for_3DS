@@ -229,17 +229,11 @@ void Sem_main(void)
 			if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 			{
 				//Back
-				//Back
-				if (var_lang == "hu")
-				{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 55, 25);
-				Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
-				}
-				else
-				{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
-				Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
-				}
+				if (var_lang == "hu")
+					Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.475, 0.475, color);
+				else
+					Draw(sem_msg[30], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
 			}
 		}
 
@@ -1343,6 +1337,7 @@ void Sem_worker_thread(void* arg)
 		{
 			result = Util_load_msg("sem_" + var_lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Util_load_msg()..." + result.string + result.error_description, result.code);
+			var_need_reflesh = true;
 			sem_reload_msg_request = false;
 		}
 		else if(sem_change_brightness_request)

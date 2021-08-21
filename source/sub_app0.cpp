@@ -1053,7 +1053,7 @@ void Sapp0_main(void)
 			
 			if(vid_full_screen_mode && vid_turn_off_bottom_screen_count > 0 && vid_show_full_screen_msg)
 			{
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_BLACK, 40, 20, 320, 20);
+				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_BLACK, 40, 20, 320, 30);
 				Draw(vid_msg[DEF_SAPP0_FULL_SCREEN_MSG], 42.5, 20, 0.45, 0.45, DEF_DRAW_WHITE);
 			}
 

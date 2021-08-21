@@ -2,10 +2,10 @@
 
 ## Patch note
 ### v1.3.0
-The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track)
-Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle)
-Hardware decoder has been merged (Press Y key-> use hw decoder to toggle)
-Full screen mode has been supported (Press select key to toggle)
+The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track) \
+Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle) \
+Hardware decoder has been merged (Press Y key-> use hw decoder to toggle) \
+Full screen mode has been supported (Press select key to toggle) \
 Other minor changes
 
 ### v1.2.0

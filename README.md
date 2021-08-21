@@ -51,7 +51,13 @@ Hardware decoding
 Known issues : 
 * ~~Video won't play in some resolution~~ (fixed in v1.2.0)
 * ~~Video will not be decoded correctly at first~~ (fixed in v1.1.1)
-* ~~It does not work in .cia~~ (fixed in v1.2.0)
+* ~~It does not work in .cia~~ (fixed in v1.2.0 by 
+windows-server-2003)
+
+### Supported languages
+* English
+* Japanese/日本語
+* Hungarian/magyar (translated by vargaviktor)
 
 ### Supported video codec
 * Motion jpeg
@@ -81,3 +87,5 @@ Known issues :
 ### Credits
 * Core 2 Extreme
 * dixy52-beep (icon, banner, in app texture)
+* windows-server-2003 (bug fix)
+* vargaviktor (hungarian translation)

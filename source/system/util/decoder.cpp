@@ -777,7 +777,7 @@ Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session)
 	int ffmpeg_result;
 	Result_with_string result;
 
-	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, seek_pos, seek_pos, seek_pos, flag);//AVSEEK_FLAG_FRAME 8 AVSEEK_FLAG_ANY 4  AVSEEK_FLAG_BACKWORD 1
+	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, INT64_MIN, seek_pos, INT64_MAX, flag);//AVSEEK_FLAG_FRAME 8 AVSEEK_FLAG_ANY 4  AVSEEK_FLAG_BACKWORD 1
 	if(ffmpeg_result < 0)
 	{
 		result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;

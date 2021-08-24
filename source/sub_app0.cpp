@@ -435,14 +435,17 @@ void Sapp0_decode_thread(void* arg)
 					Util_speaker_resume(0);
 				}
 
-				if(vid_seek_adjust_request && wait_count < 0)
+				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == "video"))
 				{
 					//Util_log_save("", std::to_string(vid_current_pos) + " " +std::to_string(vid_seek_pos) + " " + std::to_string(wait_count));
-					if(vid_current_pos >= vid_seek_pos)
-						vid_seek_adjust_request = false;
+					if(wait_count <= 0)
+					{
+						if(vid_current_pos >= vid_seek_pos)
+							vid_seek_adjust_request = false;
+					}
+					else
+						wait_count--;
 				}
-				else
-					wait_count--;
 
 				if(vid_seek_request)
 				{
@@ -453,7 +456,7 @@ void Sapp0_decode_thread(void* arg)
 					if(result.code == 0)
 					{
 						vid_seek_adjust_request = true;
-						wait_count = 5;//sometimes cached previous frames so ignore first 5 frames 
+						wait_count = 3;//sometimes cached previous frames so ignore first 3 frames 
 					}
 
 					vid_seek_request = false;
@@ -1310,6 +1313,26 @@ void Sapp0_main(void)
 					vid_pause_request = !vid_pause_request;
 				else
 					vid_play_request = true;
+				var_need_reflesh = true;
+			}
+			else if(key.p_d_right)
+			{
+				if(vid_current_pos + 10000 > vid_duration * 1000)
+					vid_seek_pos = vid_duration * 1000;
+				else
+					vid_seek_pos = vid_current_pos + 10000;
+
+				vid_seek_request = true;
+				var_need_reflesh = true;
+			}
+			else if(key.p_d_left)
+			{
+				if(vid_current_pos - 10000 < 0)
+					vid_seek_pos = 0;
+				else
+					vid_seek_pos = vid_current_pos - 10000;
+				
+				vid_seek_request = true;
 				var_need_reflesh = true;
 			}
 		}

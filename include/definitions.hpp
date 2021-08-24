@@ -24,7 +24,7 @@
 //#define DEF_ENABLE_SUB_APP7
 
 //video player
-#define DEF_SAPP0_NUM_OF_MSG 18
+#define DEF_SAPP0_NUM_OF_MSG 19
 #define DEF_SAPP0_ENABLE_ICON
 //#define DEF_SAPP0_ENABLE_NAME
 #define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
@@ -48,6 +48,7 @@
 #define DEF_SAPP0_MULTI_THREAD_MSG 15
 #define DEF_SAPP0_SKIP_KEY_FRAME_MSG 16
 #define DEF_SAPP0_LOWER_RESOLUTION_MSG 17
+#define DEF_SAPP0_SEEK_MSG 18
 #define DEF_SAPP0_MENU_NONE -1
 #define DEF_SAPP0_MENU_SETTINGS 0
 #define DEF_SAPP0_MENU_INFO 1

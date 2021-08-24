@@ -109,6 +109,7 @@ void Sapp0_decode_thread(void* arg)
 	Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Thread started.");
 
 	bool key_frame = false;
+	int wait_count = 0;
 	int audio_track = 0;
 	int bitrate = 0;
 	int sample_rate = 0;
@@ -130,6 +131,7 @@ void Sapp0_decode_thread(void* arg)
 		if(vid_play_request || vid_change_video_request)
 		{
 			packet_index = 0;
+			wait_count = 0;
 			vid_num_of_audio_tracks = 0;
 			vid_selected_audio_track = 0;
 			vid_x = 0;
@@ -388,8 +390,12 @@ void Sapp0_decode_thread(void* arg)
 					}
 				}
 			}
-			vid_full_screen_mode = true;
-			vid_turn_off_bottom_screen_count = 300;
+
+			if(num_of_video_tracks > 0)
+			{
+				vid_full_screen_mode = true;
+				vid_turn_off_bottom_screen_count = 300;
+			}
 
 			if(result.code != 0)
 			{
@@ -429,6 +435,15 @@ void Sapp0_decode_thread(void* arg)
 					Util_speaker_resume(0);
 				}
 
+				if(vid_seek_adjust_request && wait_count < 0)
+				{
+					//Util_log_save("", std::to_string(vid_current_pos) + " " +std::to_string(vid_seek_pos) + " " + std::to_string(wait_count));
+					if(vid_current_pos >= vid_seek_pos)
+						vid_seek_adjust_request = false;
+				}
+				else
+					wait_count--;
+
 				if(vid_seek_request)
 				{
 					//µs
@@ -436,7 +451,10 @@ void Sapp0_decode_thread(void* arg)
 					Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
 					Util_speaker_clear_buffer(0);
 					if(result.code == 0)
+					{
 						vid_seek_adjust_request = true;
+						wait_count = 5;//sometimes cached previous frames so ignore first 5 frames 
+					}
 
 					vid_seek_request = false;
 				}
@@ -444,7 +462,7 @@ void Sapp0_decode_thread(void* arg)
 				if(!vid_play_request || vid_change_video_request || result.code != 0)
 					break;
 
-				if(!vid_seek_adjust_request && type == "audio" && packet_index == audio_track)
+				if(type == "audio" && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -457,7 +475,7 @@ void Sapp0_decode_thread(void* arg)
 						if(num_of_video_tracks == 0 && !std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos;
 						
-						if(result.code == 0)
+						if(result.code == 0 && !vid_seek_adjust_request)
 						{
 							while(true)
 							{
@@ -536,6 +554,8 @@ void Sapp0_decode_thread(void* arg)
 			var_turn_on_bottom_lcd = true;
 			vid_full_screen_mode = false;
 			vid_pause_request = false;
+			vid_seek_adjust_request = false;
+			vid_seek_request = false;
 			if(!vid_change_video_request)
 				vid_play_request = false;
 		}
@@ -611,11 +631,7 @@ void Sapp0_decode_video_thread(void* arg)
 									vid_convert_request = true;
 								}
 								else
-								{
-									if(pos >= vid_seek_pos)
-										vid_seek_adjust_request = false;
 									var_need_reflesh = true;
-								}
 							}
 							else
 							{
@@ -1076,6 +1092,12 @@ void Sapp0_main(void)
 				Draw(vid_msg[DEF_SAPP0_FULL_SCREEN_MSG], 42.5, 20, 0.45, 0.45, DEF_DRAW_WHITE);
 			}
 
+			if(vid_seek_request || vid_seek_adjust_request)
+			{
+				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_BLACK, 150, 220, 100, 20);
+				Draw(vid_msg[DEF_SAPP0_SEEK_MSG], 152.5, 220, 0.5, 0.5, DEF_DRAW_WHITE);
+			}
+
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -1531,13 +1553,21 @@ void Sapp0_main(void)
 
 				if(key.p_d_right)
 				{
-					vid_seek_pos = vid_current_pos + 10000;
+					if(vid_current_pos + 10000 > vid_duration * 1000)
+						vid_seek_pos = vid_duration * 1000;
+					else
+						vid_seek_pos = vid_current_pos + 10000;
+
 					vid_seek_request = true;
 					var_need_reflesh = true;
 				}
 				if(key.p_d_left)
 				{
-					vid_seek_pos = vid_current_pos - 10000;
+					if(vid_current_pos - 10000 < 0)
+						vid_seek_pos = 0;
+					else
+						vid_seek_pos = vid_current_pos - 10000;
+					
 					vid_seek_request = true;
 					var_need_reflesh = true;
 				}

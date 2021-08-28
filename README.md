@@ -1,6 +1,12 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.3.1
+Volume adjustment has been added (from 0% to 999%) \
+Direction pad seeking has been added (from 1 second to 99 seconds) \
+Hungarian(magyar) translation has been added (by vargaviktor) \
+Other minor changes
+
 ### v1.3.0
 The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track) \
 Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle) \
@@ -96,3 +102,4 @@ windows-server-2003)
 * dixy52-beep (icon, banner, in app texture)
 * windows-server-2003 (bug fix)
 * vargaviktor (hungarian translation)
+* HIDE810 (bug fix)

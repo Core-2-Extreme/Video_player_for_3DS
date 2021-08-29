@@ -365,7 +365,7 @@ Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565
 	y2r_parameters.block_alignment = BLOCK_LINE;
 	y2r_parameters.input_line_width = width;
 	y2r_parameters.input_lines = height;
-	y2r_parameters.standard_coefficient = COEFFICIENT_ITU_R_BT_601;
+	y2r_parameters.standard_coefficient = COEFFICIENT_ITU_R_BT_709_SCALING;
 	y2r_parameters.alpha = 0xFF;
 
 	result.code = Y2RU_SetConversionParams(&y2r_parameters);

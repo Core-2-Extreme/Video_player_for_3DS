@@ -1,4 +1,4 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 bool var_connect_test_succes = false;
 bool var_need_reflesh = true;
@@ -17,7 +17,7 @@ bool var_core_3_available = false;
 u8 var_wifi_state = 0;
 u8 var_wifi_signal = 0;
 u8 var_battery_charge = 0;
-u8 var_model = -1;
+u8 var_model = 0;
 int var_hours = 0;
 int var_minutes = 0;
 int var_seconds = 0;

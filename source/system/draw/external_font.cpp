@@ -1,16 +1,16 @@
-﻿#include "headers.hpp"
+﻿#include "system/headers.hpp"
 
-bool exfont_loaded_external_font[DEF_EXFONT_NUM_OF_FONT_NAME];
-bool exfont_request_external_font_state[DEF_EXFONT_NUM_OF_FONT_NAME];
-bool exfont_loaded_system_font[4] = { false, false, false, false, };
-bool exfont_request_system_font_state[4] = { false, false, false, false, };
-bool exfont_thread_run = false;
-bool exfont_load_external_font_request = false;
-bool exfont_unload_external_font_request = false;
-bool exfont_load_system_font_request = false;
-bool exfont_unload_system_font_request = false;
-int exfont_texture_num[DEF_EXFONT_NUM_OF_FONT_NAME];
-double exfont_font_interval[10240] =
+bool util_exfont_loaded_external_font[DEF_EXFONT_NUM_OF_FONT_NAME];
+bool util_exfont_request_external_font_state[DEF_EXFONT_NUM_OF_FONT_NAME];
+bool util_exfont_loaded_system_font[4] = { false, false, false, false, };
+bool util_exfont_request_system_font_state[4] = { false, false, false, false, };
+bool util_exfont_thread_run = false;
+bool util_exfont_load_external_font_request = false;
+bool util_exfont_unload_external_font_request = false;
+bool util_exfont_load_system_font_request = false;
+bool util_exfont_unload_system_font_request = false;
+int util_exfont_texture_num[DEF_EXFONT_NUM_OF_FONT_NAME];
+double util_exfont_font_interval[10240] =
 {
   //#0000~#007F (128) Basic latin
   20,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
@@ -609,11 +609,11 @@ double exfont_font_interval[10240] =
   17, 14, 14, 14, 15, 14, 16, 14, 16, 14, 14, 14, 14, 14, 14, 14,
 };
 
-std::string exfont_part_string[1024];
-std::string exfont_font_samples[10241];
-std::string exfont_font_right_to_left_samples[257];
-std::string exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME];
-std::string exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F";
+std::string util_exfont_part_string[1024];
+std::string util_exfont_font_samples[10241];
+std::string util_exfont_font_right_to_left_samples[257];
+std::string util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME];
+std::string util_exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F";
 /*
    0 ~   95  (128) Basic latin
   96 ~  223   (96) Latin 1 supplement
@@ -661,71 +661,77 @@ std::string exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2
 6579 ~ 6803  (225) Halfwidth and fullwidth forms
 6804 ~ 7571  (768) Miscellaneous symbols and pictographs
 */
-C2D_Image exfont_font_images[10240];
+C2D_Image util_exfont_font_images[10240];
 
-int exfont_font_characters[DEF_EXFONT_NUM_OF_FONT_NAME] = {
+int util_exfont_font_characters[DEF_EXFONT_NUM_OF_FONT_NAME] = {
  128,  96,  96,  80, 112, 135, 256,  48,  89,  88,  255, 128, 79,  72,  96,  88,
   90,  87,  67, 211,  88, 640, 128,  63, 233,  71,  42,  33, 112, 256, 256,  11,
  160, 128,  32,  96, 256, 192, 128, 252,  64,  93,  96, 256, 1165, 55,  32, 225,
  768,  80,
 };
-int exfont_num_of_right_left_charcters = 0;
-int exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME];
-Thread exfont_load_font_thread;
+int util_exfont_num_of_right_left_charcters = 0;
+int util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME];
+Thread util_exfont_load_font_thread;
 
 void Exfont_load_font_thread(void* arg)
 {
     Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Thread started.");
     Result_with_string result;
 
-    while(exfont_thread_run)
+    while(util_exfont_thread_run)
     {
-        if(exfont_load_external_font_request)
+        if(util_exfont_load_external_font_request)
         {
             for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
             {
-                if(exfont_request_external_font_state[i] && !exfont_loaded_external_font[i])
+                if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
                 {
                     result = Exfont_load_exfont(i);
 					Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Exfont_load_exfont()..." + result.string + result.error_description, result.code);
+                    var_need_reflesh = true;
                 }
             }
-            exfont_load_external_font_request = false;
+            util_exfont_load_external_font_request = false;
         }
-        else if(exfont_unload_external_font_request)
+        else if(util_exfont_unload_external_font_request)
         {
             for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
             {
-                if(!exfont_request_external_font_state[i] && exfont_loaded_external_font[i])
+                if(!util_exfont_request_external_font_state[i] && util_exfont_loaded_external_font[i])
+                {
 					Exfont_unload_exfont(i);
+                    var_need_reflesh = true;
+                }
             }
-            exfont_unload_external_font_request = false;
+            util_exfont_unload_external_font_request = false;
         }
-        else if(exfont_load_system_font_request)
+        else if(util_exfont_load_system_font_request)
         {
             for(int i = 0; i < 4; i++)
             {
-                if(exfont_request_system_font_state[i] && !exfont_loaded_system_font[i])
+                if(util_exfont_request_system_font_state[i] && !util_exfont_loaded_system_font[i])
                 {
 					result = Draw_load_system_font(i);
 					Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Draw_load_system_font()..." + result.string + result.error_description, result.code);
+                    var_need_reflesh = true;
                     if(result.code == 0 || i == var_system_region)
-                        exfont_loaded_system_font[i] = true;
+                        util_exfont_loaded_system_font[i] = true;
                 }
             }
-            exfont_load_system_font_request = false;
+            util_exfont_load_system_font_request = false;
         }
-        else if(exfont_unload_system_font_request)
+        else if(util_exfont_unload_system_font_request)
         {
             for(int i = 0; i < 4; i++)
             {
-                if(!exfont_request_system_font_state[i] && exfont_loaded_system_font[i])
+                if(!util_exfont_request_system_font_state[i] && util_exfont_loaded_system_font[i])
                 {
 					Draw_free_system_font(i);
-                    exfont_loaded_system_font[i] = false;
+                    var_need_reflesh = true;
+                    util_exfont_loaded_system_font[i] = false;
                 }
             }
-            exfont_unload_system_font_request = false;
+            util_exfont_unload_system_font_request = false;
         }
         else
             usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
@@ -746,41 +752,41 @@ void Exfont_init(void)
     result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", fs_buffer, 0x2000, &read_size);
     Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
     
-    result = Util_parse_file((char*)fs_buffer, DEF_EXFONT_NUM_OF_FONT_NAME, exfont_font_name);
+    result = Util_parse_file((char*)fs_buffer, DEF_EXFONT_NUM_OF_FONT_NAME, util_exfont_font_name);
     Util_log_save(DEF_EXFONT_INIT_STR, "Util_parse_file()..." + result.string + result.error_description, result.code);
 
     memset((void*)fs_buffer, 0x0, 0x8000);
     result = Util_file_load_from_rom("font_samples.txt", "romfs:/gfx/font/sample/", fs_buffer, 0x8000, &read_size);
     Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
     if (result.code == 0)
-        Exfont_text_parse((char*)fs_buffer, exfont_font_samples, 10240, &characters);
+        Exfont_text_parse((char*)fs_buffer, util_exfont_font_samples, 10240, &characters);
 
     for (int i = characters; i > -1; i--)
-        exfont_font_samples[i + 1] = exfont_font_samples[i];
+        util_exfont_font_samples[i + 1] = util_exfont_font_samples[i];
 
     memset((void*)fs_buffer, 0x0, 0x8000);
     result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", fs_buffer, 0x8000, &read_size);
     Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
     if (result.code == 0)
-        Exfont_text_parse((char*)fs_buffer, exfont_font_right_to_left_samples, 256, &characters);
+        Exfont_text_parse((char*)fs_buffer, util_exfont_font_right_to_left_samples, 256, &characters);
 
-    exfont_num_of_right_left_charcters = characters;
+    util_exfont_num_of_right_left_charcters = characters;
 
-    exfont_font_samples[0] = "\u0000";
-    exfont_font_start_num[0] = 0;
+    util_exfont_font_samples[0] = "\u0000";
+    util_exfont_font_start_num[0] = 0;
     for (int i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-        exfont_font_start_num[i] = exfont_font_start_num[i - 1] + exfont_font_characters[i - 1];
+        util_exfont_font_start_num[i] = util_exfont_font_start_num[i - 1] + util_exfont_font_characters[i - 1];
     
     for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
     {
-        exfont_loaded_external_font[i] = false;
-        exfont_request_external_font_state[i] = false;
-        exfont_texture_num[i] = 0;
+        util_exfont_loaded_external_font[i] = false;
+        util_exfont_request_external_font_state[i] = false;
+        util_exfont_texture_num[i] = 0;
     }
 
     free(fs_buffer);
-	exfont_thread_run = true;
-	exfont_load_font_thread = threadCreate(Exfont_load_font_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+	util_exfont_thread_run = true;
+	util_exfont_load_font_thread = threadCreate(Exfont_load_font_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
 	Util_log_save(DEF_EXFONT_INIT_STR, "Initialized.");
 }
@@ -789,9 +795,9 @@ void Exfont_exit(void)
 {
     Util_log_save(DEF_EXFONT_EXIT_STR, "Exiting...");
 
-    exfont_thread_run = false;
-	Util_log_save(DEF_EXFONT_EXIT_STR, "threadJoin()...", threadJoin(exfont_load_font_thread, 10000000000));
-	threadFree(exfont_load_font_thread);
+    util_exfont_thread_run = false;
+	Util_log_save(DEF_EXFONT_EXIT_STR, "threadJoin()...", threadJoin(util_exfont_load_font_thread, 10000000000));
+	threadFree(util_exfont_load_font_thread);
 
 	Util_log_save(DEF_EXFONT_EXIT_STR, "Exited.");
 }
@@ -799,7 +805,7 @@ void Exfont_exit(void)
 std::string Exfont_query_external_font_name(int exfont_num)
 {
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
-        return exfont_font_name[exfont_num];
+        return util_exfont_font_name[exfont_num];
     else
         return "";
 }
@@ -807,69 +813,69 @@ std::string Exfont_query_external_font_name(int exfont_num)
 bool Exfont_is_loaded_external_font(int exfont_num)
 {
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
-        return exfont_loaded_external_font[exfont_num];
+        return util_exfont_loaded_external_font[exfont_num];
     else
         return false;
 }
 
 bool Exfont_is_loading_external_font(void)
 {
-    return exfont_load_external_font_request;
+    return util_exfont_load_external_font_request;
 }
 
 bool Exfont_is_unloading_external_font(void)
 {
-    return exfont_unload_external_font_request;
+    return util_exfont_unload_external_font_request;
 }
 
 bool Exfont_is_loaded_system_font(int system_font_num)
 {
     if (system_font_num >= 0 && system_font_num < 4)
-        return exfont_loaded_system_font[system_font_num];
+        return util_exfont_loaded_system_font[system_font_num];
     else
         return false;
 }
 
 bool Exfont_is_loading_system_font(void)
 {
-    return exfont_load_system_font_request;
+    return util_exfont_load_system_font_request;
 }
 
 bool Exfont_is_unloading_system_font(void)
 {
-    return exfont_unload_system_font_request;
+    return util_exfont_unload_system_font_request;
 }
 
 void Exfont_set_external_font_request_state(int exfont_num, bool flag)
 {
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
-        exfont_request_external_font_state[exfont_num] = flag;
+        util_exfont_request_external_font_state[exfont_num] = flag;
 }
 
 void Exfont_request_load_external_font(void)
 {
-    exfont_load_external_font_request = true;
+    util_exfont_load_external_font_request = true;
 }
 
 void Exfont_request_unload_external_font(void)
 {
-    exfont_unload_external_font_request = true;
+    util_exfont_unload_external_font_request = true;
 }
 
 void Exfont_set_system_font_request_state(int system_font_num, bool flag)
 {
     if (system_font_num >= 0 && system_font_num < 4)
-        exfont_request_system_font_state[system_font_num] = flag;
+        util_exfont_request_system_font_state[system_font_num] = flag;
 }
 
 void Exfont_request_load_system_font(void)
 {
-    exfont_load_system_font_request = true;
+    util_exfont_load_system_font_request = true;
 }
 
 void Exfont_request_unload_system_font(void)
 {
-    exfont_unload_system_font_request = true;
+    util_exfont_unload_system_font_request = true;
 }
 
 std::string Exfont_text_sort(std::string sorce_part_string[], int max_loop)
@@ -882,17 +888,17 @@ std::string Exfont_text_sort(std::string sorce_part_string[], int max_loop)
     for (int i = 0; i < max_loop; i++)
     {
         found = false;
-        if (memcmp((void*)sorce_part_string[i].c_str(), (void*)exfont_font_samples[0].c_str(), 0x1) == 0)
+        if (memcmp((void*)sorce_part_string[i].c_str(), (void*)util_exfont_font_samples[0].c_str(), 0x1) == 0)
             break;
 
-        if (exfont_font_right_to_left_samples[201] == sorce_part_string[i])
+        if (util_exfont_font_right_to_left_samples[201] == sorce_part_string[i])
             found = true;
         else if (sorce_part_string[i].length() == 2 && memcmp((void*)sorce_part_string[i].c_str(), (void*)right_to_left_sample[0].c_str(), 0x2) > 0
             && memcmp((void*)sorce_part_string[i].c_str(), (void*)right_to_left_sample[1].c_str(), 0x2) < 0)
         {
-            for (int j = 0; j < exfont_num_of_right_left_charcters - 1; j++)
+            for (int j = 0; j < util_exfont_num_of_right_left_charcters - 1; j++)
             {
-                if (memcmp((void*)sorce_part_string[i].c_str(), (void*)exfont_font_right_to_left_samples[j].c_str(), 0x2) == 0)
+                if (memcmp((void*)sorce_part_string[i].c_str(), (void*)util_exfont_font_right_to_left_samples[j].c_str(), 0x2) == 0)
                 {
                     found = true;
                     break;
@@ -971,51 +977,51 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
     *out_width = 0;
     *out_height = 0;
 
-    Exfont_text_parse(in_string, exfont_part_string, 1023, &characters);
+    Exfont_text_parse(in_string, util_exfont_part_string, 1023, &characters);
 
     for (int s = 0; s < characters; s++)
     {
         block = -1;
         unknown = true;
-        if (memcmp((void*)exfont_part_string[s].c_str(), (void*)exfont_font_samples[0].c_str(), 0x1) == 0)
+        if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)util_exfont_font_samples[0].c_str(), 0x1) == 0)
             break;
 
-        if (exfont_part_string[s].length() == 1)
+        if (util_exfont_part_string[s].length() == 1)
         {
             char_size = 1;
-            if (memcmp((void*)exfont_part_string[s].c_str(), (void*)sample_one_byte[0].c_str(), 0x1) < 0)
+            if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)sample_one_byte[0].c_str(), 0x1) < 0)
                 block = 0;
         }
-        else if (exfont_part_string[s].length() == 2)
+        else if (util_exfont_part_string[s].length() == 2)
         {
             char_size = 2;
             for (int i = 0; i < 10; i++)
             {
-                if (memcmp((void*)exfont_part_string[s].c_str(), (void*)samples_two_bytes[i].c_str(), 0x2) < 0)
+                if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_two_bytes[i].c_str(), 0x2) < 0)
                 {
                     block = i + 1;
                     break;
                 }
             }
         }
-        else if (exfont_part_string[s].length() == 3)
+        else if (util_exfont_part_string[s].length() == 3)
         {
             char_size = 3;
             for (int i = 0; i < 37; i++)
             {
-                if (memcmp((void*)exfont_part_string[s].c_str(), (void*)samples_three_bytes[i].c_str(), 0x3) < 0)
+                if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_three_bytes[i].c_str(), 0x3) < 0)
                 {
                     block = i + 11;
                     break;
                 }
             }
         }
-        else if (exfont_part_string[s].length() == 4)
+        else if (util_exfont_part_string[s].length() == 4)
         {
             char_size = 4;
             for (int i = 0; i < 2; i++)
             {
-                if (memcmp((void*)exfont_part_string[s].c_str(), (void*)samples_four_bytes[i].c_str(), 0x4) < 0)
+                if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_four_bytes[i].c_str(), 0x4) < 0)
                 {
                     block = i + 48;
                     break;
@@ -1025,14 +1031,14 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
 
         if (block == 25 || block == 46)
         {
-            if (!(exfont_ignore_chars.find(exfont_part_string[s]) == std::string::npos))
+            if (!(util_exfont_ignore_chars.find(util_exfont_part_string[s]) == std::string::npos))
             {
                 unknown = false;
                 block = -1;
             }
         }
 
-        if (block != -1 && exfont_loaded_external_font[block] && char_size >= 1 && char_size <= 4)
+        if (block != -1 && util_exfont_loaded_external_font[block] && char_size >= 1 && char_size <= 4)
         {
             reverse = false;
             for (int k = 0;;)
@@ -1042,32 +1048,32 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
                 else
                     k--;
 
-                if ((k < 0 || k > exfont_font_characters[block]) && reverse)
+                if ((k < 0 || k > util_exfont_font_characters[block]) && reverse)
                     break;
                 else
-                    memcmp_result = memcmp((void*)exfont_part_string[s].c_str(), (void*)exfont_font_samples[exfont_font_start_num[block] + k].c_str(), char_size);
+                    memcmp_result = memcmp((void*)util_exfont_part_string[s].c_str(), (void*)util_exfont_font_samples[util_exfont_font_start_num[block] + k].c_str(), char_size);
 
                 if (memcmp_result == 0)
                 {
                     unknown = false;
-                    x_size = (exfont_font_interval[exfont_font_start_num[block] + k] + interval_offset) * texture_size_x;
-                    Draw_texture(exfont_font_images[exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
+                    x_size = (util_exfont_font_interval[util_exfont_font_start_num[block] + k] + interval_offset) * texture_size_x;
+                    Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
                     x_offset += x_size;
                     break;
                 }
-                else if (memcmp_result < 0 || k >= exfont_font_characters[block])
+                else if (memcmp_result < 0 || k >= util_exfont_font_characters[block])
                 {
                     reverse = true;
-                    if (k >= exfont_font_characters[block])
-                        k = exfont_font_characters[block];
+                    if (k >= util_exfont_font_characters[block])
+                        k = util_exfont_font_characters[block];
                 }
             }
         }
 
         if (unknown)
         {
-            x_size = (exfont_font_interval[0] + interval_offset) * texture_size_x;
-            Draw_texture(exfont_font_images[0], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
+            x_size = (util_exfont_font_interval[0] + interval_offset) * texture_size_x;
+            Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
             x_offset += x_size;
         }
     }
@@ -1080,23 +1086,23 @@ Result_with_string Exfont_load_exfont(int exfont_num)
     Result_with_string result;
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
     {
-        exfont_texture_num[exfont_num] = Draw_get_free_sheet_num();
-        result = Draw_load_texture("romfs:/gfx/font/" + exfont_font_name[exfont_num] + "_font.t3x", exfont_texture_num[exfont_num], exfont_font_images, exfont_font_start_num[exfont_num], exfont_font_characters[exfont_num]);
+        util_exfont_texture_num[exfont_num] = Draw_get_free_sheet_num();
+        result = Draw_load_texture("romfs:/gfx/font/" + util_exfont_font_name[exfont_num] + "_font.t3x", util_exfont_texture_num[exfont_num], util_exfont_font_images, util_exfont_font_start_num[exfont_num], util_exfont_font_characters[exfont_num]);
 
         if (result.code == 0)
         {
-            for (int i = 0; i < exfont_font_characters[exfont_num]; i++)
+            for (int i = 0; i < util_exfont_font_characters[exfont_num]; i++)
             {
-                C3D_TexSetFilter(exfont_font_images[exfont_font_start_num[exfont_num] + i].tex, GPU_LINEAR, GPU_LINEAR);
-                C3D_TexSetWrap(exfont_font_images[exfont_font_start_num[exfont_num] + i].tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+                C3D_TexSetFilter(util_exfont_font_images[util_exfont_font_start_num[exfont_num] + i].tex, GPU_LINEAR, GPU_LINEAR);
+                C3D_TexSetWrap(util_exfont_font_images[util_exfont_font_start_num[exfont_num] + i].tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
             }
-            exfont_loaded_external_font[exfont_num] = true;
+            util_exfont_loaded_external_font[exfont_num] = true;
         }
 
         if (result.code != 0)
         {
             Exfont_unload_exfont(exfont_num);
-            exfont_loaded_external_font[exfont_num] = false;
+            util_exfont_loaded_external_font[exfont_num] = false;
         }
     }
     else
@@ -1112,10 +1118,10 @@ void Exfont_unload_exfont(int exfont_num)
 {
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
     {
-        Draw_free_texture(exfont_texture_num[exfont_num]);
-        for (int j = exfont_font_start_num[exfont_num]; j < exfont_font_characters[exfont_num]; j++)
-            exfont_font_images[j].tex = NULL;
+        Draw_free_texture(util_exfont_texture_num[exfont_num]);
+        for (int j = util_exfont_font_start_num[exfont_num]; j < util_exfont_font_characters[exfont_num]; j++)
+            util_exfont_font_images[j].tex = NULL;
 
-        exfont_loaded_external_font[exfont_num] = false;
+        util_exfont_loaded_external_font[exfont_num] = false;
     }
 }

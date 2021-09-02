@@ -1,31 +1,31 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 Result_with_string Util_parse_file(std::string source_data, int num_of_items, std::string out_data[])
 {
 	Result_with_string result;
 
-	size_t parse_start_num = 0;
-	size_t parse_end_num = 0;
-	std::string parse_start_text;
-	std::string parse_end_text;
+	size_t start_num = 0;
+	size_t end_num = 0;
+	std::string start_text;
+	std::string end_text;
 
 	for (int i = 0; i < num_of_items; i++)
 	{
-		parse_start_text = "<" + std::to_string(i) + ">";
-		parse_start_num = source_data.find(parse_start_text);
-		parse_end_text = "</" + std::to_string(i) + ">";
-		parse_end_num = source_data.find(parse_end_text);
+		start_text = "<" + std::to_string(i) + ">";
+		start_num = source_data.find(start_text);
+		end_text = "</" + std::to_string(i) + ">";
+		end_num = source_data.find(end_text);
 
-		if (parse_end_num == std::string::npos || parse_start_num == std::string::npos)
+		if (end_num == std::string::npos || start_num == std::string::npos)
 		{
 			result.code = -1;
 			result.string = "[Error] Failed to parse file. error pos : " + std::to_string(i) + " ";
 			break;
 		}
 
-		parse_start_num += parse_start_text.length();
-		parse_end_num -= parse_start_num;
-		out_data[i] = source_data.substr(parse_start_num, parse_end_num);
+		start_num += start_text.length();
+		end_num -= start_num;
+		out_data[i] = source_data.substr(start_num, end_num);
 	}
 
 	return result;

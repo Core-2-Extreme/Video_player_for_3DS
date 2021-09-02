@@ -1,4 +1,4 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -6,35 +6,34 @@ extern "C" {
 #include "libswresample/swresample.h"
 }
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image/stb_image.h"
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
-int util_audio_decoder_stream_num[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVPacket* util_audio_decoder_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVPacket* util_audio_decoder_cache_packet[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVFrame* util_audio_decoder_raw_data[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-AVCodecContext* util_audio_decoder_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-const AVCodec* util_audio_decoder_codec[2][DEF_DECODER_MAX_AUDIO_TRACKS];
-SwrContext* util_audio_decoder_swr_context[2][DEF_DECODER_MAX_AUDIO_TRACKS];
+int util_audio_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVPacket* util_audio_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVFrame* util_audio_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
+SwrContext* util_audio_decoder_swr_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 
 bool util_video_decoder_mvd_first = false;
-bool util_video_decoder_lock[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
-int util_video_decoder_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-int util_video_decoder_ready_buffer_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-int util_video_decoder_stream_num[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+bool util_video_decoder_lock[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+int util_video_decoder_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_ready_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_packet_size = 0;
 u8* util_video_decoder_mvd_raw_data = NULL;
 u8* util_video_decoder_mvd_packet = NULL;
-AVPacket* util_video_decoder_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-AVPacket* util_video_decoder_cache_packet[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-AVFrame* util_video_decoder_raw_data[2][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
-AVCodecContext* util_video_decoder_context[2][DEF_DECODER_MAX_VIDEO_TRACKS];
-const AVCodec* util_video_decoder_codec[2][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+AVFrame* util_video_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
+AVCodecContext* util_video_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 MVDSTD_Config util_decoder_mvd_config;
 
-AVFormatContext* util_decoder_format_context[2] = { NULL, NULL, };
+AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { NULL, NULL, };
 
 Result_with_string Util_mvd_video_decoder_init(int session)
 {
@@ -229,11 +228,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			goto fail;
 		}
 
-		if(util_video_decoder_codec[session][i]->max_lowres < low_resolution)
-			util_video_decoder_context[session][i]->lowres = util_video_decoder_codec[session][i]->max_lowres;
-		else
-			util_video_decoder_context[session][i]->lowres = low_resolution;
-		
+		util_video_decoder_context[session][i]->lowres = low_resolution;
 		util_video_decoder_context[session][i]->flags = AV_CODEC_FLAG_OUTPUT_CORRUPT;
 		util_video_decoder_context[session][i]->thread_count = num_of_threads;
 		if(thread_type == DEF_DECODER_THREAD_TYPE_AUTO)
@@ -242,11 +237,6 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
 			else if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
-			else
-			{
-				util_video_decoder_context[session][i]->thread_type = 0;
-				util_video_decoder_context[session][i]->thread_count = 1;
-			}
 		}
 		else if(thread_type == DEF_DECODER_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 			util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
@@ -777,7 +767,7 @@ Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session)
 	int ffmpeg_result;
 	Result_with_string result;
 
-	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, INT64_MIN, seek_pos, INT64_MAX, flag);//AVSEEK_FLAG_FRAME 8 AVSEEK_FLAG_ANY 4  AVSEEK_FLAG_BACKWORD 1
+	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, seek_pos, seek_pos, seek_pos, flag);//AVSEEK_FLAG_FRAME 8 AVSEEK_FLAG_ANY 4  AVSEEK_FLAG_BACKWORD 1
 	if(ffmpeg_result < 0)
 	{
 		result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;

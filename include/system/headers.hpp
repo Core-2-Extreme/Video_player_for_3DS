@@ -1,5 +1,6 @@
 #pragma once
 
+#include "system/system_definitions.hpp"
 #include "definitions.hpp"
 #include <3ds.h>
 #include <algorithm>

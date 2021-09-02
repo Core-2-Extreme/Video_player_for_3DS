@@ -1,6 +1,6 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
-ndspWaveBuf util_ndsp_buffer[24][60];
+ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS];
 
 void Util_speaker_init(int play_ch, int music_ch, int sample_rate)
 {
@@ -23,7 +23,7 @@ void Util_speaker_init(int play_ch, int music_ch, int sample_rate)
 	ndspChnSetInterp(play_ch, NDSP_INTERP_LINEAR);
 	ndspChnSetRate(play_ch, sample_rate);
 	memset(util_ndsp_buffer[play_ch], 0, sizeof(util_ndsp_buffer[play_ch]));
-	for(int i = 0; i < 60; i++)
+	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 }
 
@@ -32,7 +32,7 @@ Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer
 	Result_with_string result;
 	int free_queue = -1;
 
-	for(int i = 0; i < 60; i++)
+	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
 		if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_FREE || util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_DONE)
 		{
@@ -95,7 +95,7 @@ void Util_speaker_exit(int play_ch)
 {
 	ndspChnWaveBufClear(play_ch);
 	ndspChnSetPaused(play_ch, false);
-	for(int i = 0; i < 60; i++)
+	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
 		linearFree((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;

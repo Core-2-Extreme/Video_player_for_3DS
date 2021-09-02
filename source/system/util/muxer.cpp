@@ -1,25 +1,25 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
 
-int util_audio_muxer_stream_num[2] = { -1, -1, };
-AVPacket* util_audio_muxer_packet[2] = { NULL, NULL, };
-AVFormatContext* util_audio_muxer_format_context[2] = { NULL, NULL, };
-AVCodecContext* util_audio_muxer_context[2] = { NULL, NULL, };
-const AVCodec* util_audio_muxer_codec[2] = { NULL, NULL, };
-AVStream* util_audio_muxer_format_stream[2] = { NULL, NULL, };
+int util_audio_muxer_stream_num[DEF_MUXER_MAX_SESSIONS];
+AVPacket* util_audio_muxer_packet[DEF_MUXER_MAX_SESSIONS];
+AVFormatContext* util_audio_muxer_format_context[DEF_MUXER_MAX_SESSIONS];
+AVCodecContext* util_audio_muxer_context[DEF_MUXER_MAX_SESSIONS];
+const AVCodec* util_audio_muxer_codec[DEF_MUXER_MAX_SESSIONS];
+AVStream* util_audio_muxer_format_stream[DEF_MUXER_MAX_SESSIONS];
 
-int util_video_muxer_stream_num[2] = { -1, -1, };
-AVPacket* util_video_muxer_packet[2] = { NULL, NULL, };
-AVFormatContext* util_video_muxer_format_context[2] = { NULL, NULL, };
-AVCodecContext* util_video_muxer_context[2] = { NULL, NULL, };
-const AVCodec* util_video_muxer_codec[2] = { NULL, NULL, };
-AVStream* util_video_muxer_format_stream[2] = { NULL, NULL, };
+int util_video_muxer_stream_num[DEF_MUXER_MAX_SESSIONS];
+AVPacket* util_video_muxer_packet[DEF_MUXER_MAX_SESSIONS];
+AVFormatContext* util_video_muxer_format_context[DEF_MUXER_MAX_SESSIONS];
+AVCodecContext* util_video_muxer_context[DEF_MUXER_MAX_SESSIONS];
+const AVCodec* util_video_muxer_codec[DEF_MUXER_MAX_SESSIONS];
+AVStream* util_video_muxer_format_stream[DEF_MUXER_MAX_SESSIONS];
 
-AVFormatContext* util_muxer_format_context[2] = { NULL, NULL, };
+AVFormatContext* util_muxer_format_context[DEF_MUXER_MAX_SESSIONS];
 
 Result_with_string Util_muxer_mux(std::string file_name, int session)
 {

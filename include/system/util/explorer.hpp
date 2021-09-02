@@ -27,5 +27,3 @@ void Util_expl_exit(void);
 void Util_expl_draw(void);
 
 void Util_expl_main(Hid_info key);
-
-void Util_expl_read_dir_thread(void* arg);

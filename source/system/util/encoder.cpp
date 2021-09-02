@@ -1,4 +1,4 @@
-#include "headers.hpp"
+#include "system/headers.hpp"
 
 extern "C" 
 {
@@ -11,24 +11,24 @@ extern "C"
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
-int util_audio_pos[3] = { 0, 0, 0, };
-int util_audio_increase_pts[3] = { 0, 0, 0, };
-AVPacket* util_audio_encoder_packet[3] = { NULL, NULL, NULL, };
-AVFrame* util_audio_encoder_raw_data[3] = { NULL, NULL, NULL, };
-AVCodecContext* util_audio_encoder_context[3] = { NULL, NULL, NULL, };
-const AVCodec* util_audio_encoder_codec[3] = { NULL, NULL, NULL, };
-SwrContext* util_audio_encoder_swr_context[3] = { NULL, NULL, NULL, };
-AVStream* util_audio_encoder_stream[3] = { NULL, NULL, NULL, };
+int util_audio_pos[DEF_ENCODER_MAX_SESSIONS];
+int util_audio_increase_pts[DEF_ENCODER_MAX_SESSIONS];
+AVPacket* util_audio_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
+AVFrame* util_audio_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS];
+AVCodecContext* util_audio_encoder_context[DEF_ENCODER_MAX_SESSIONS];
+const AVCodec* util_audio_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
+SwrContext* util_audio_encoder_swr_context[DEF_ENCODER_MAX_SESSIONS];
+AVStream* util_audio_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
 
-int util_video_pos[3] = { 0, 0, 0, };
-int util_video_increase_pts[3] = { 0, 0, 0, };
-AVPacket* util_video_encoder_packet[3] = { NULL, NULL, NULL, };
-AVFrame* util_video_encoder_raw_data[3] = { NULL, NULL, NULL, };
-AVCodecContext* util_video_encoder_context[3] = { NULL, NULL, NULL, };
-const AVCodec* util_video_encoder_codec[3] = { NULL, NULL, NULL, };
-AVStream* util_video_encoder_stream[3] = { NULL, NULL, NULL, };
+int util_video_pos[DEF_ENCODER_MAX_SESSIONS];
+int util_video_increase_pts[DEF_ENCODER_MAX_SESSIONS];
+AVPacket* util_video_encoder_packet[DEF_ENCODER_MAX_SESSIONS];
+AVFrame* util_video_encoder_raw_data[DEF_ENCODER_MAX_SESSIONS];
+AVCodecContext* util_video_encoder_context[DEF_ENCODER_MAX_SESSIONS];
+const AVCodec* util_video_encoder_codec[DEF_ENCODER_MAX_SESSIONS];
+AVStream* util_video_encoder_stream[DEF_ENCODER_MAX_SESSIONS];
 
-AVFormatContext* util_encoder_format_context[3] = { NULL, NULL, NULL, };
+AVFormatContext* util_encoder_format_context[DEF_ENCODER_MAX_SESSIONS];
 
 Result_with_string Util_encoder_create_output_file(std::string file_name, int session)
 {
@@ -203,15 +203,6 @@ Result_with_string Util_video_encoder_init(AVCodecID codec, int width, int heigh
 		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUVJ420P;
 	else
 		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUV420P;
-
-	//util_video_encoder_context[session]->flags2 = AV_CODEC_FLAG2_FAST;
-	/*util_video_encoder_context[session]->flags |= AV_CODEC_FLAG_QSCALE;
-	util_video_encoder_context[session]->global_quality = 31;
-	util_video_encoder_context[session]->qmin = 1;
-	util_video_encoder_context[session]->qmax = 1;
-	util_video_encoder_context[session]->i_quant_factor = 0.1;
-	util_video_encoder_context[session]->qcompress = 0.1;
-	*/
 	
 	if(codec == AV_CODEC_ID_H264)
 	{

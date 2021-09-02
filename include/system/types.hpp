@@ -11,6 +11,10 @@ struct Image_data
 {
 	C2D_Image c2d = { .tex = NULL, };
 	Tex3DS_SubTexture* subtex = NULL;
+	double x = -1;
+	double y = -1;
+	double x_size = -1;
+	double y_size = -1;
 };
 
 struct Hid_info
@@ -63,6 +67,30 @@ struct Hid_info
 	bool h_cs_right = false;
 	bool h_touch = false;
 	bool h_any = false;
+	bool r_a = false;
+	bool r_b = false;
+	bool r_x = false;
+	bool r_y = false;
+	bool r_c_up = false;
+	bool r_c_down = false;
+	bool r_c_left = false;
+	bool r_c_right = false;
+	bool r_d_up = false;
+	bool r_d_down = false;
+	bool r_d_left = false;
+	bool r_d_right = false;
+	bool r_l = false;
+	bool r_r = false;
+	bool r_zl = false;
+	bool r_zr = false;
+	bool r_start = false;
+	bool r_select = false;
+	bool r_cs_up = false;
+	bool r_cs_down = false;
+	bool r_cs_left = false;
+	bool r_cs_right = false;
+	bool r_touch = false;
+	bool r_any = false;
 	int cpad_x = 0;
 	int cpad_y = 0;
 	int touch_x = 0;

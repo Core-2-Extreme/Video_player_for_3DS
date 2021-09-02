@@ -10,7 +10,7 @@ Result_with_string Draw_set_texture_data(Image_data* c2d_image, u8* buf, int pic
 
 void Draw_c2d_image_set_filter(Image_data* c2d_image, bool filter);
 
-Result_with_string Draw_c2d_image_init(Image_data* c2d_image,int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format);
+Result_with_string Draw_c2d_image_init(Image_data* c2d_image, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format);
 
 void Draw_c2d_image_free(Image_data c2d_image);
 
@@ -27,6 +27,10 @@ void Draw_bot_ui(void);
 void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size);
 
 void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size, float y_size);
+
+void Draw_texture(Image_data* image, float x, float y, float x_size, float y_size);
+
+void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size);
 
 void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int abgr8888_1, float width);
 

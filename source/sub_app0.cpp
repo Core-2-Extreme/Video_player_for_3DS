@@ -1,6 +1,4 @@
-#include "headers.hpp"
-
-#include "sub_app0.hpp"
+#include "system/headers.hpp"
 
 bool vid_main_run = false;
 bool vid_thread_run = false;
@@ -865,6 +863,11 @@ void Sapp0_suspend(void)
 	Menu_resume();
 }
 
+Result_with_string Sapp0_load_msg(void)
+{
+	return Util_load_msg("sapp0_" + var_lang + ".txt", vid_msg, DEF_SAPP0_NUM_OF_MSG);
+}
+
 void Sapp0_init(void)
 {
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initializing...");
@@ -1029,9 +1032,6 @@ void Sapp0_init(void)
 	result = Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x", vid_control_texture_num, vid_control, 0, 2);
 	Util_log_save(DEF_SAPP0_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
 
-	result = Util_load_msg("sapp0_" + var_lang + ".txt", vid_msg, DEF_SAPP0_NUM_OF_MSG);
-	Util_log_save(DEF_SAPP0_INIT_STR, "Util_load_msg()..." + result.string + result.error_description, result.code);
-
 	Sapp0_resume();
 	vid_already_init = true;
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");
@@ -1040,7 +1040,6 @@ void Sapp0_init(void)
 void Sapp0_exit(void)
 {
 	Util_log_save(DEF_SAPP0_EXIT_STR, "Exiting...");
-	u64 time_out = 10000000000;
 	std::string data = "";
 	Result_with_string result;
 
@@ -1059,9 +1058,9 @@ void Sapp0_exit(void)
 	+ std::to_string(vid_seek_duration) + "</8>";
 	Util_file_save_to_file("vid_settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
 
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_thread, time_out));
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_video_thread, time_out));
-	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_convert_thread, time_out));
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_video_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_convert_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(vid_decode_thread);
 	threadFree(vid_decode_video_thread);
 	threadFree(vid_convert_thread);

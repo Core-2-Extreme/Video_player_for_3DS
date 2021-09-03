@@ -49,6 +49,7 @@ void Util_swkbd_set_feature(u32 feature)
 
 std::string Util_swkbd_launch(int max_length, std::string* out_data)
 {
+	max_length++;
 	char swkb_input_text[max_length];
 	std::string button = "";
 	SwkbdButton press_button;

@@ -1374,7 +1374,7 @@ void Sapp0_main(void)
 	{
 		if(vid_full_screen_mode)
 		{
-			if(key.p_select || key.p_touch)
+			if(key.p_select || key.p_touch || aptShouldJumpToHome())
 			{
 				//fit to screen size
 				vid_zoom = 1;

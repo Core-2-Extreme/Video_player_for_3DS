@@ -29,6 +29,10 @@ bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
 bool vid_image_enabled[8][2];
 bool vid_enabled_cores[4] = { false, false, false, false, };
+bool vid_select_audio_track_button_selected, vid_texture_filter_button_selected, vid_allow_skip_frames_button_selected,
+vid_allow_skip_key_frames_button_selected, vid_volume_button_selected, vid_seek_duration_button_selected, vid_use_hw_decoding_button_selected,
+vid_use_hw_color_conversion_button_selected, vid_use_multi_threaded_decoding_button_selected, vid_lower_resolution_button_selected,
+vid_menu_button_selected[3], vid_control_button_selected, vid_ok_button_selected, vid_audio_track_button_selected[DEF_DECODER_MAX_AUDIO_TRACKS];
 double vid_time[2][320];
 double vid_copy_time[2] = { 0, 0, };
 double vid_audio_time = 0;
@@ -82,6 +86,9 @@ Image_data vid_image[8][2];
 C2D_Image vid_banner[2];
 C2D_Image vid_control[2];
 Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread;
+Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_skip_frames_button, vid_allow_skip_key_frames_button,
+vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
+vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS];
 
 void Sapp0_callback(std::string file, std::string dir)
 {
@@ -1032,6 +1039,25 @@ void Sapp0_init(void)
 	result = Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x", vid_control_texture_num, vid_control, 0, 2);
 	Util_log_save(DEF_SAPP0_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
 
+	vid_select_audio_track_button.c2d = var_square_image[0];
+	vid_texture_filter_button.c2d = var_square_image[0];
+	vid_allow_skip_frames_button.c2d = var_square_image[0];
+	vid_allow_skip_key_frames_button.c2d = var_square_image[0];
+	vid_volume_button.c2d = var_square_image[0];
+	vid_seek_duration_button.c2d = var_square_image[0];
+	vid_use_hw_decoding_button.c2d = var_square_image[0];
+	vid_use_hw_color_conversion_button.c2d = var_square_image[0];
+	vid_use_multi_threaded_decoding_button.c2d = var_square_image[0];
+	vid_lower_resolution_button.c2d = var_square_image[0];
+	vid_menu_button[0].c2d = var_square_image[0];
+	vid_menu_button[1].c2d = var_square_image[0];
+	vid_menu_button[2].c2d = var_square_image[0];
+	vid_control_button.c2d = var_square_image[0];
+	vid_ok_button.c2d = var_square_image[0];
+
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+		vid_audio_track_button[i].c2d = var_square_image[0];
+
 	Sapp0_resume();
 	vid_already_init = true;
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");
@@ -1202,55 +1228,55 @@ void Sapp0_main(void)
 			if(vid_menu_mode == DEF_SAPP0_MENU_SETTINGS_0)
 			{
 				//select audio track
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 60, 145, 10);
+				Draw_texture(&vid_select_audio_track_button, vid_select_audio_track_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_AUDIO_TRACK_MSG], 12.5, 60, 0.4, 0.4, color);
 
 				//texture filter
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 165, 60, 145, 10);
+				Draw_texture(&vid_texture_filter_button, vid_texture_filter_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 60, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_TEX_FILTER_MSG] + (vid_linear_filter ? "ON" : "OFF"), 167.5, 60, 0.4, 0.4, color);
 
 				//allow skip frames
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 80, 145, 10);
+				Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, color);
 
 				//allow skip key frames
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 165, 80, 145, 10);
+				Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 80, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 167.5, 80, 0.35, 0.35, vid_allow_skip_frames ? color : disabled_color);
 
 				//volume
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 100, 145, 10);
+				Draw_texture(&vid_volume_button, vid_volume_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_VOLUME_MSG] + std::to_string(vid_volume) + "%", 12.5, 100, 0.4, 0.4, vid_too_big ? DEF_DRAW_RED : color);
 
 				//seek duration
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 165, 100, 145, 10);
+				Draw_texture(&vid_seek_duration_button, vid_seek_duration_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 100, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 167.5, 100, 0.4, 0.4, color);
 
 				Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 0, 180, 100, 8);
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+				Draw_texture(&vid_menu_button[1], vid_menu_button_selected[1] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
+				Draw_texture(&vid_menu_button[2], vid_menu_button_selected[2] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
 			}
 			else if(vid_menu_mode == DEF_SAPP0_MENU_SETTINGS_1)
 			{
 				//use hw decoding
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 60, 300, 10);
+				Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 300, 10);
 				Draw(vid_msg[DEF_SAPP0_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
 				(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
 
 				//use hw color conversion
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 80, 300, 10);
+				Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 300, 10);
 				Draw(vid_msg[DEF_SAPP0_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 				//use multi-threaded decoding (in software decoding)
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 100, 300, 10);
+				Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 300, 10);
 				Draw(vid_msg[DEF_SAPP0_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 				//lower resolution
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
+				Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
 				Draw(vid_msg[DEF_SAPP0_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
+				Draw_texture(&vid_menu_button[0], vid_menu_button_selected[0] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 				Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 110, 180, 100, 8);
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+				Draw_texture(&vid_menu_button[2], vid_menu_button_selected[2] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
 			}
 			else if(vid_menu_mode == DEF_SAPP0_MENU_INFO)
 			{
@@ -1284,13 +1310,13 @@ void Sapp0_main(void)
 				Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 160, 160, 0.4, 0.4, color);
 				Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_thread_mode], 0, 170, 0.4, 0.4, color);
 
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
+				Draw_texture(&vid_menu_button[0], vid_menu_button_selected[0] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
+				Draw_texture(&vid_menu_button[1], vid_menu_button_selected[1] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
 				Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 220, 180, 100, 8);
 			}
 
 			//controls
-			Draw_texture(var_square_image[0], DEF_DRAW_WEAK_AQUA, 165, 195, 145, 10);
+			Draw_texture(&vid_control_button, vid_control_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 195, 145, 10);
 			Draw(vid_msg[DEF_SAPP0_CONTROLS_MSG], 167.5, 195, 0.4, 0.4, color);
 
 			//time bar
@@ -1317,9 +1343,12 @@ void Sapp0_main(void)
 				Draw(vid_msg[DEF_SAPP0_AUDIO_TRACK_DESCRIPTION_MSG], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
 
 				for(int i = 0; i < vid_num_of_audio_tracks; i++)
-					Draw("Track " + std::to_string(i) + "(" + vid_audio_track_lang[i] + ")", 42.5, 40 + (i * 10), 0.5, 0.5, i == vid_selected_audio_track ? DEF_DRAW_RED : color);
+				{
+					Draw_texture(&vid_audio_track_button[i], vid_audio_track_button_selected[i] ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
+					Draw("Track " + std::to_string(i) + "(" + vid_audio_track_lang[i] + ")", 42.5, 40 + (i * 12), 0.475, 0.475, i == vid_selected_audio_track ? DEF_DRAW_RED : color);
+				}
 
-				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
+				Draw_texture(&vid_ok_button, vid_ok_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
 				Draw("OK", 152.5, 140, 0.4, 0.4, DEF_DRAW_BLACK);
 			}
 
@@ -1394,12 +1423,7 @@ void Sapp0_main(void)
 		}
 		else if(vid_select_audio_track_request)
 		{
-			if(key.p_a)
-			{
-				vid_select_audio_track_request = false;
-				var_need_reflesh = true;
-			}
-			else if(key.p_d_down || key.p_c_down)
+			if(key.p_d_down || key.p_c_down)
 			{
 				if(vid_selected_audio_track + 1 < vid_num_of_audio_tracks)
 					vid_selected_audio_track++;
@@ -1411,32 +1435,41 @@ void Sapp0_main(void)
 					vid_selected_audio_track--;
 				var_need_reflesh = true;
 			}
-			else if(key.p_touch && key.touch_x >= 40 && key.touch_x <= 279 && key.touch_y >= 40 && key.touch_y <= 109)
+			else if(Util_hid_is_pressed(key, vid_ok_button))
 			{
-				for(int i = 0; i < vid_num_of_audio_tracks; i++)
-				{
-					if(key.touch_y >= 40 + (i * 10) && key.touch_y <= 49 + (i * 10))
-					{
-						vid_selected_audio_track = i;
-						var_need_reflesh = true;
-						break;
-					}
-				}
+				vid_ok_button_selected = true;
+				var_need_reflesh = true;
 			}
-			else if(key.p_touch && key.touch_x >= 150 && key.touch_x <= 169 && key.touch_y >= 140 && key.touch_y <= 149)
+			else if(key.p_a || (Util_hid_is_released(key, vid_ok_button) && vid_ok_button_selected))
 			{
 				vid_select_audio_track_request = false;
 				var_need_reflesh = true;
 			}
+
+			for(int i = 0; i < vid_num_of_audio_tracks; i++)
+			{
+				if(Util_hid_is_pressed(key, vid_audio_track_button[i]))
+				{
+					vid_audio_track_button_selected[i] = true;
+					var_need_reflesh = true;
+					break;
+				}
+				else if(Util_hid_is_released(key, vid_audio_track_button[i]) && vid_audio_track_button_selected[i])
+				{
+					vid_selected_audio_track = i;
+					var_need_reflesh = true;
+					break;
+				}
+			}
 		}
 		else if(vid_show_controls)
 		{
-			if(key.p_a)
+			if(Util_hid_is_pressed(key, vid_control_button))
 			{
-				vid_show_controls = false;
+				vid_control_button_selected = true;
 				var_need_reflesh = true;
 			}
-			else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 195 && key.touch_y <= 204)
+			else if((key.p_a || Util_hid_is_released(key, vid_control_button)) && vid_control_button_selected)
 			{
 				vid_show_controls = false;
 				var_need_reflesh = true;
@@ -1446,12 +1479,22 @@ void Sapp0_main(void)
 		{
 			if(vid_menu_mode == DEF_SAPP0_MENU_SETTINGS_0)
 			{
-				if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 60 && key.touch_y <= 69)
+				if(Util_hid_is_pressed(key, vid_select_audio_track_button))
+				{
+					vid_select_audio_track_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_select_audio_track_button) && vid_select_audio_track_button_selected)
 				{
 					vid_select_audio_track_request = !vid_select_audio_track_request;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 60 && key.touch_y <= 69)
+				else if(Util_hid_is_pressed(key, vid_texture_filter_button))
+				{
+					vid_texture_filter_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_texture_filter_button) && vid_texture_filter_button_selected)
 				{
 					vid_linear_filter = !vid_linear_filter;
 					for(int k = 0; k < 2; k++)
@@ -1464,19 +1507,34 @@ void Sapp0_main(void)
 					}
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 80 && key.touch_y <= 89)
+				else if(Util_hid_is_pressed(key, vid_allow_skip_frames_button))
+				{
+					vid_allow_skip_frames_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_allow_skip_frames_button) && vid_allow_skip_frames_button_selected)
 				{
 					vid_allow_skip_frames = !vid_allow_skip_frames;
 					if(vid_allow_skip_key_frames)
 						vid_allow_skip_key_frames = false;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 80 && key.touch_y <= 89 && vid_allow_skip_frames)
+				else if(Util_hid_is_pressed(key, vid_allow_skip_key_frames_button) && vid_allow_skip_frames)
+				{
+					vid_allow_skip_key_frames_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_allow_skip_key_frames_button) && vid_allow_skip_key_frames_button_selected && vid_allow_skip_frames)
 				{
 					vid_allow_skip_key_frames = !vid_allow_skip_key_frames;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 154 && key.touch_y >= 100 && key.touch_y <= 109)
+				else if(Util_hid_is_pressed(key, vid_volume_button))
+				{
+					vid_volume_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_volume_button) && vid_volume_button_selected)
 				{
 					vid_pause_request = true;
 					Util_swkbd_init(SWKBD_TYPE_NUMPAD, SWKBD_NOTEMPTY, 1, 3, "", std::to_string(vid_volume));
@@ -1485,7 +1543,12 @@ void Sapp0_main(void)
 					vid_pause_request = false;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 100 && key.touch_y <= 109)
+				else if(Util_hid_is_pressed(key, vid_seek_duration_button))
+				{
+					vid_seek_duration_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_seek_duration_button) && vid_seek_duration_button_selected)
 				{
 					vid_pause_request = true;
 					Util_swkbd_init(SWKBD_TYPE_NUMPAD, SWKBD_NOTEMPTY, 1, 2, "", std::to_string(vid_seek_duration));
@@ -1496,12 +1559,22 @@ void Sapp0_main(void)
 					vid_pause_request = false;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 110 && key.touch_x <= 209 && key.touch_y >= 180 && key.touch_y <= 187)
+				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
+				{
+					vid_menu_button_selected[1] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button_selected[1])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_SETTINGS_1;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 220 && key.touch_x <= 319 && key.touch_y >= 180 && key.touch_y <= 187)
+				else if(Util_hid_is_pressed(key, vid_menu_button[2]))
+				{
+					vid_menu_button_selected[2] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button_selected[2])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_INFO;
 					var_need_reflesh = true;
@@ -1509,23 +1582,42 @@ void Sapp0_main(void)
 			}
 			if(vid_menu_mode == DEF_SAPP0_MENU_SETTINGS_1)
 			{
-				if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 309 && key.touch_y >= 60 && key.touch_y <= 69
-				&& !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request)
+				if(Util_hid_is_pressed(key, vid_use_hw_decoding_button) && !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request)
+				{
+					vid_use_hw_decoding_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_use_hw_decoding_button) && !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request && vid_use_hw_decoding_button_selected)
 				{
 					vid_use_hw_decoding_request = !vid_use_hw_decoding_request;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 309 && key.touch_y >= 80 && key.touch_y <= 89 && !vid_play_request)
+				else if(Util_hid_is_pressed(key, vid_use_hw_color_conversion_button) && !vid_play_request)
+				{
+					vid_use_hw_color_conversion_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_use_hw_color_conversion_button) && !vid_play_request && vid_use_hw_color_conversion_button_selected)
 				{
 					vid_use_hw_color_conversion_request = !vid_use_hw_color_conversion_request;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 309 && key.touch_y >= 100 && key.touch_y <= 109 && !vid_play_request)
+				else if(Util_hid_is_pressed(key, vid_use_multi_threaded_decoding_button) && !vid_play_request)
+				{
+					vid_use_multi_threaded_decoding_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_use_multi_threaded_decoding_button) && !vid_play_request && vid_use_multi_threaded_decoding_button_selected)
 				{
 					vid_use_multi_threaded_decoding_request = !vid_use_multi_threaded_decoding_request;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 10 && key.touch_x <= 309 && key.touch_y >= 120 && key.touch_y <= 129 && !vid_play_request)
+				else if(Util_hid_is_pressed(key, vid_lower_resolution_button) && !vid_play_request)
+				{
+					vid_lower_resolution_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_lower_resolution_button) && !vid_play_request && vid_lower_resolution_button_selected)
 				{
 					if(vid_lower_resolution + 1 > 2)
 						vid_lower_resolution = 0;
@@ -1533,12 +1625,22 @@ void Sapp0_main(void)
 						vid_lower_resolution++;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 0 && key.touch_x <= 99 && key.touch_y >= 180 && key.touch_y <= 187)
+				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
+				{
+					vid_menu_button_selected[0] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button_selected[0])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 220 && key.touch_x <= 319 && key.touch_y >= 180 && key.touch_y <= 187)
+				else if(Util_hid_is_pressed(key, vid_menu_button[2]))
+				{
+					vid_menu_button_selected[2] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button_selected[2])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_INFO;
 					var_need_reflesh = true;
@@ -1546,12 +1648,22 @@ void Sapp0_main(void)
 			}
 			else if(vid_menu_mode == DEF_SAPP0_MENU_INFO)
 			{
-				if(key.p_touch && key.touch_x >= 0 && key.touch_x <= 99 && key.touch_y >= 180 && key.touch_y <= 187)
+				if(Util_hid_is_pressed(key, vid_menu_button[0]))
+				{
+					vid_menu_button_selected[0] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button_selected[0])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
-				else if(key.p_touch && key.touch_x >= 110 && key.touch_x <= 209 && key.touch_y >= 180 && key.touch_y <= 187)
+				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
+				{
+					vid_menu_button_selected[1] = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button_selected[1])
 				{
 					vid_menu_mode = DEF_SAPP0_MENU_SETTINGS_1;
 					var_need_reflesh = true;
@@ -1604,7 +1716,12 @@ void Sapp0_main(void)
 				
 				var_need_reflesh = true;
 			}
-			else if(key.p_touch && key.touch_x >= 165 && key.touch_x <= 309 && key.touch_y >= 195 && key.touch_y <= 204)
+			else if(Util_hid_is_pressed(key, vid_control_button))
+			{
+				vid_control_button_selected = true;
+				var_need_reflesh = true;
+			}
+			else if(Util_hid_is_released(key, vid_control_button) && vid_control_button_selected)
 			{
 				vid_show_controls = true;
 				var_need_reflesh = true;
@@ -1761,6 +1878,30 @@ void Sapp0_main(void)
 			}
 			else
 				vid_lr_count = 0;
+		}
+
+		if(!key.p_touch && !key.h_touch)
+		{
+			if(vid_select_audio_track_button_selected || vid_texture_filter_button_selected || vid_allow_skip_frames_button_selected
+			|| vid_allow_skip_key_frames_button_selected || vid_volume_button_selected || vid_seek_duration_button_selected
+			|| vid_use_hw_decoding_button_selected || vid_use_hw_color_conversion_button_selected || vid_use_multi_threaded_decoding_button_selected
+			|| vid_lower_resolution_button_selected || vid_menu_button_selected[0] || vid_menu_button_selected[1] || vid_menu_button_selected[2]
+			|| vid_control_button_selected || vid_ok_button_selected)
+				var_need_reflesh = true;
+
+			vid_select_audio_track_button_selected = vid_texture_filter_button_selected = vid_allow_skip_frames_button_selected
+			= vid_allow_skip_key_frames_button_selected = vid_volume_button_selected = vid_seek_duration_button_selected
+			= vid_use_hw_decoding_button_selected = vid_use_hw_color_conversion_button_selected = vid_use_multi_threaded_decoding_button_selected
+			= vid_lower_resolution_button_selected = vid_menu_button_selected[0] = vid_menu_button_selected[1] = vid_menu_button_selected[2] 
+			= vid_control_button_selected = vid_ok_button_selected = false;
+
+			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+			{
+				if(vid_audio_track_button_selected[i])
+					var_need_reflesh = true;
+
+				vid_audio_track_button_selected[i] = false;
+			}
 		}
 	}
 	

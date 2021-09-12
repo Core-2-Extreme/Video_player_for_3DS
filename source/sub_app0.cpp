@@ -21,7 +21,7 @@ bool vid_linear_filter = true;
 bool vid_show_controls = false;
 bool vid_allow_skip_frames = false;
 bool vid_allow_skip_key_frames = false;
-bool vid_do_not_skip_request = false;
+bool vid_key_frame = false;
 bool vid_full_screen_mode = false;
 bool vid_hw_decoding_mode = false;
 bool vid_hw_color_conversion_mode = false;
@@ -29,6 +29,7 @@ bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
 bool vid_image_enabled[8][2];
 bool vid_enabled_cores[4] = { false, false, false, false, };
+bool vid_key_frame_list[320];
 bool vid_select_audio_track_button_selected, vid_texture_filter_button_selected, vid_allow_skip_frames_button_selected,
 vid_allow_skip_key_frames_button_selected, vid_volume_button_selected, vid_seek_duration_button_selected, vid_use_hw_decoding_button_selected,
 vid_use_hw_color_conversion_button_selected, vid_use_multi_threaded_decoding_button_selected, vid_lower_resolution_button_selected,
@@ -529,11 +530,7 @@ void Sapp0_decode_thread(void* arg)
 				else if(type == "video")
 				{
 					vid_packet_index[0] = packet_index;
-					if(vid_allow_skip_key_frames)
-						vid_do_not_skip_request = false;
-					else
-						vid_do_not_skip_request = key_frame;
-					
+					vid_key_frame = key_frame;
 					vid_decode_video_request = true;
 				}
 			}
@@ -602,6 +599,7 @@ void Sapp0_decode_thread(void* arg)
 void Sapp0_decode_video_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP0_DECODE_VIDEO_THREAD_STR, "Thread started.");
+	bool key_frame = false;
 	int packet_index = 0;
 	int w = 0;
 	int h = 0;
@@ -627,7 +625,8 @@ void Sapp0_decode_video_thread(void* arg)
 				{
 					vid_decode_video_wait_request = true;
 					packet_index = vid_packet_index[0];
-					if(vid_allow_skip_frames && skip > vid_frametime && !vid_do_not_skip_request)
+					key_frame = vid_key_frame;
+					if(vid_allow_skip_frames && skip > vid_frametime && (!key_frame || vid_allow_skip_key_frames))
 					{
 						skip -= vid_frametime;
 						Util_decoder_skip_video_packet(packet_index, 0);
@@ -672,6 +671,7 @@ void Sapp0_decode_video_thread(void* arg)
 
 							vid_decode_video_wait_request = false;
 
+							vid_key_frame_list[319] = key_frame;
 							vid_time[0][319] = vid_video_time;
 
 							if(vid_frametime - vid_video_time > 0)
@@ -699,7 +699,10 @@ void Sapp0_decode_video_thread(void* arg)
 								vid_recent_time[i - 1] = vid_recent_time[i];
 
 							for(int i = 1; i < 320; i++)
+							{
+								vid_key_frame_list[i - 1] = vid_key_frame_list[i];
 								vid_time[0][i - 1] = vid_time[0][i];
+							}
 						}
 						else
 						{
@@ -1289,6 +1292,12 @@ void Sapp0_main(void)
 
 				Draw_line(0, 110, color, 320, 110, color, 2);
 				Draw_line(0, 110 - vid_frametime, 0xFFFFFF00, 320, 110 - vid_frametime, 0xFFFFFF00, 2);
+				for(int i = 0; i < 319; i++)
+				{
+					if(vid_key_frame_list[i])
+						Draw_line(i, 110, disabled_color, i, 50, disabled_color, 2);
+				}
+
 				if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0)
 				{
 					if(!vid_hw_decoding_mode && vid_thread_mode == DEF_DECODER_THREAD_TYPE_FRAME)

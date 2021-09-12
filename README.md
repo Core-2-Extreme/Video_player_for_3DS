@@ -75,7 +75,10 @@ windows-server-2003)
 ## Supported video codec
 * Motion jpeg
 * MPEG4 (MPEG4 part2)
-* H.264 (MPEG4 part10)
+* H.261 (mpeg1video)
+* H.262 (mpeg2video)
+* H.263 
+* H.264 (AVC, MPEG4 part10)
 * H.265 (HEVC)
 
 ## Supported audio codec

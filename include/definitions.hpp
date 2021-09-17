@@ -7,9 +7,9 @@
 #define DEF_CHECK_INTERNET_URL (std::string)"https://connectivitycheck.gstatic.com/generate_204"
 #define DEF_SEND_APP_INFO_URL (std::string)"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"
 #define DEF_CHECK_UPDATE_URL (std::string)"https://script.google.com/macros/s/AKfycbwTd3jzV0npUE9MNKmZIv3isazVR5D9_7A8rexsG1vr9SE7iavDBxgtzlph8dZipwu9/exec"
-#define DEF_HTTP_USER_AGENT (std::string)"video player for 3ds v1.3.1"
-#define DEF_CURRENT_APP_VER (std::string)"v1.3.1"
-#define DEF_CURRENT_APP_VER_INT 1073
+#define DEF_HTTP_USER_AGENT (std::string)"video player for 3ds v1.3.2"
+#define DEF_CURRENT_APP_VER (std::string)"v1.3.2"
+#define DEF_CURRENT_APP_VER_INT 1074
 #define DEF_ENABLE_SUB_APP0
 //#define DEF_ENABLE_SUB_APP1
 //#define DEF_ENABLE_SUB_APP2
@@ -20,12 +20,12 @@
 //#define DEF_ENABLE_SUB_APP7
 
 //video player
-#define DEF_SAPP0_NUM_OF_MSG 21
+#define DEF_SAPP0_NUM_OF_MSG 24
 #define DEF_SAPP0_ENABLE_ICON
 //#define DEF_SAPP0_ENABLE_NAME
 #define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
 #define DEF_SAPP0_NAME (std::string)"Video\nplayer"
-#define DEF_SAPP0_VER (std::string)"v1.3.1"
+#define DEF_SAPP0_VER (std::string)"v1.3.2"
 #define DEF_SAPP0_MAIN_STR (std::string)"Vid/Main"
 #define DEF_SAPP0_INIT_STR (std::string)"Vid/Init"
 #define DEF_SAPP0_EXIT_STR (std::string)"Vid/Exit"
@@ -47,6 +47,9 @@
 #define DEF_SAPP0_SEEKING_MSG 18
 #define DEF_SAPP0_SEEK_MSG 19
 #define DEF_SAPP0_VOLUME_MSG 20
+#define DEF_SAPP0_ASPECT_RATIO_MSG 21
+#define DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG 22
+#define DEF_SAPP0_REMEMBER_POS_MSG 23
 #define DEF_SAPP0_MENU_NONE -1
 #define DEF_SAPP0_MENU_SETTINGS_0 0
 #define DEF_SAPP0_MENU_SETTINGS_1 1

@@ -25,6 +25,9 @@ bool vid_key_frame = false;
 bool vid_full_screen_mode = false;
 bool vid_hw_decoding_mode = false;
 bool vid_hw_color_conversion_mode = false;
+bool vid_correct_aspect_ratio_mode = false;
+bool vid_disable_resize_move_mode = false;
+bool vid_remember_video_pos_mode = false;
 bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
 bool vid_image_enabled[8][2];
@@ -33,7 +36,8 @@ bool vid_key_frame_list[320];
 bool vid_select_audio_track_button_selected, vid_texture_filter_button_selected, vid_allow_skip_frames_button_selected,
 vid_allow_skip_key_frames_button_selected, vid_volume_button_selected, vid_seek_duration_button_selected, vid_use_hw_decoding_button_selected,
 vid_use_hw_color_conversion_button_selected, vid_use_multi_threaded_decoding_button_selected, vid_lower_resolution_button_selected,
-vid_menu_button_selected[3], vid_control_button_selected, vid_ok_button_selected, vid_audio_track_button_selected[DEF_DECODER_MAX_AUDIO_TRACKS];
+vid_menu_button_selected[3], vid_control_button_selected, vid_ok_button_selected, vid_audio_track_button_selected[DEF_DECODER_MAX_AUDIO_TRACKS],
+vid_correct_aspect_ratio_button_selected, vid_disable_resize_move_button_selected, vid_remember_video_pos_button_selected;
 double vid_time[2][320];
 double vid_copy_time[2] = { 0, 0, };
 double vid_audio_time = 0;
@@ -41,13 +45,12 @@ double vid_video_time = 0;
 double vid_convert_time = 0;
 double vid_frametime = 0;
 double vid_framerate = 0;
-double vid_duration = 0;
+double vid_duration = 0;//in ms
 double vid_zoom = 1;
 double vid_x = 0;
 double vid_y = 15;
-double vid_3d_x_offset = 0;
-double vid_current_pos = 0;
-double vid_seek_pos = 0;
+double vid_current_pos = 0;//in ms
+double vid_seek_pos = 0;//in ms
 double vid_min_time = 0;
 double vid_max_time = 0;
 double vid_total_time = 0;
@@ -89,7 +92,8 @@ C2D_Image vid_control[2];
 Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread;
 Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_skip_frames_button, vid_allow_skip_key_frames_button,
 vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
-vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS];
+vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
+vid_correct_aspect_ratio_button, vid_disable_resize_move_button, vid_remember_video_pos_button;
 
 void Sapp0_callback(std::string file, std::string dir)
 {
@@ -128,12 +132,18 @@ void Sapp0_decode_thread(void* arg)
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
 	double pos = 0;
+	double saved_pos = 0;
 	u8* audio = NULL;
+	u32 read_size = 0;
 	std::string format = "";
 	std::string type = "";
+	std::string cache_file_name = "";
+	std::string cache = "";
 	TickCounter counter;
 	Result_with_string result;
 	osTickCounterStart(&counter);
+	
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "saved_pos/", NULL, 0, false);//create directory
 
 	while (vid_thread_run)
 	{
@@ -145,7 +155,6 @@ void Sapp0_decode_thread(void* arg)
 			vid_selected_audio_track = 0;
 			vid_x = 0;
 			vid_y = 15;
-			vid_3d_x_offset = 0;
 			vid_frametime = 0;
 			vid_framerate = 0;
 			vid_current_pos = 0;
@@ -157,6 +166,8 @@ void Sapp0_decode_thread(void* arg)
 			vid_codec_height = 0;
 			vid_video_format = "n/a";
 			vid_audio_format = "n/a";
+			cache_file_name = "";
+			cache = vid_dir + vid_file;
 			vid_seek_request = false;
 			vid_seek_adjust_request = false;
 			vid_change_video_request = false;
@@ -196,6 +207,14 @@ void Sapp0_decode_thread(void* arg)
 			vid_copy_time[0] = 0;
 			vid_copy_time[1] = 0;
 			vid_convert_time = 0;
+			
+			for(int i = 0; i < (int)cache.length(); i++)
+			{
+				if(cache.substr(i, 1) == "/")
+					cache_file_name += "_";
+				else
+					cache_file_name += cache.substr(i, 1);
+			}
 
 			result = Util_decoder_open_file(vid_dir + vid_file, &num_of_audio_tracks, &num_of_video_tracks, 0);
 			Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "Util_decoder_open_file()..." + result.string + result.error_description, result.code);
@@ -225,6 +244,7 @@ void Sapp0_decode_thread(void* arg)
 
 					audio_track = vid_selected_audio_track;
 					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
+					vid_duration *= 1000;
 					Util_speaker_init(0, ch, sample_rate);
 				}
 			}
@@ -239,6 +259,7 @@ void Sapp0_decode_thread(void* arg)
 				if(vid_play_request)
 				{
 					Util_video_decoder_get_info(&vid_width, &vid_height, &vid_framerate, &vid_video_format, &vid_duration, &vid_thread_mode, 0, 0);
+					vid_duration *= 1000;
 					vid_frametime = (1000.0 / vid_framerate);
 					if(num_of_video_tracks == 2)
 						vid_frametime /= 2;
@@ -413,13 +434,21 @@ void Sapp0_decode_thread(void* arg)
 				var_need_reflesh = true;
 			}
 
+			if(vid_remember_video_pos_mode && vid_play_request)
+			{
+				result = Util_file_load_from_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), &read_size);
+				if(result.code == 0 && saved_pos > 0 && saved_pos < vid_duration)
+				{
+					Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "saved pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
+					vid_seek_pos = saved_pos;
+					vid_seek_request = true;
+				}
+			}
+
 			while(vid_play_request)
 			{
 				while(vid_decode_video_request && vid_play_request)
 					usleep(1000);
-
-				if(!vid_play_request)
-					break;
 
 				result = Util_decoder_read_packet(&type, &packet_index, &key_frame, 0);
 				if(result.code != 0)
@@ -432,6 +461,7 @@ void Sapp0_decode_thread(void* arg)
 					audio_track = vid_selected_audio_track;
 					Util_speaker_clear_buffer(0);
 					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
+					vid_duration *= 1000;
 					Util_speaker_init(0, ch, sample_rate);
 				}
 
@@ -472,7 +502,18 @@ void Sapp0_decode_thread(void* arg)
 				}
 
 				if(!vid_play_request || vid_change_video_request || result.code != 0)
+				{
+					if((!vid_play_request || vid_change_video_request) && vid_remember_video_pos_mode)
+					{
+						saved_pos = vid_current_pos;
+						Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "last pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
+						Util_file_save_to_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), true);
+					}
+					else if(result.code != 0 && vid_remember_video_pos_mode)//if playback end due to read packet error(EOF), remove saved time
+						Util_file_delete_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/");
+
 					break;
+				}
 
 				if(type == "audio" && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
 				{
@@ -863,6 +904,11 @@ void Sapp0_resume(void)
 	vid_thread_suspend = false;
 	vid_main_run = true;
 	var_need_reflesh = true;
+
+	//user may change screen mode from settings
+	if(!var_high_resolution_mode)
+		vid_correct_aspect_ratio_mode = false;
+
 	Menu_suspend();
 }
 
@@ -884,7 +930,7 @@ void Sapp0_init(void)
 	bool new_3ds = false;
 	u8* cache = NULL;
 	u32 read_size = 0;
-	std::string out_data[9];
+	std::string out_data[12];
 	Result_with_string result;
 	
 	APT_CheckNew3DS(&new_3ds);
@@ -940,7 +986,6 @@ void Sapp0_init(void)
 	vid_cd_count = 0;
 	vid_x = 0;
 	vid_y = 15;
-	vid_3d_x_offset = 0;
 	vid_frametime = 0;
 	vid_framerate = 0;
 	vid_current_pos = 0;
@@ -993,14 +1038,25 @@ void Sapp0_init(void)
 	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_SAPP0_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 
-	result = Util_parse_file((char*)cache, 9, out_data);
+	result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2
 	Util_log_save(DEF_SAPP0_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 	if(result.code != 0)
 	{
-		result = Util_parse_file((char*)cache, 7, out_data);//previous version's settings file
+		result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
+		Util_log_save(DEF_SAPP0_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+		out_data[9] = "0";
+		out_data[10] = "0";
+		out_data[11] = "1";
+	}
+	if(result.code != 0)
+	{
+		result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
 		Util_log_save(DEF_SAPP0_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 		out_data[7] = "100";
 		out_data[8] = "10";
+		out_data[9] = "0";
+		out_data[10] = "0";
+		out_data[11] = "1";
 	}
 
 	if(result.code == 0)
@@ -1014,6 +1070,9 @@ void Sapp0_init(void)
 		vid_lower_resolution = atoi((char*)out_data[6].c_str());
 		vid_volume = atoi((char*)out_data[7].c_str());
 		vid_seek_duration = atoi((char*)out_data[8].c_str());
+		vid_correct_aspect_ratio_mode = (out_data[9] == "1");
+		vid_disable_resize_move_mode = (out_data[10] == "1");
+		vid_remember_video_pos_mode = (out_data[11] == "1");
 	}
 
 	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL)
@@ -1057,6 +1116,9 @@ void Sapp0_init(void)
 	vid_menu_button[2].c2d = var_square_image[0];
 	vid_control_button.c2d = var_square_image[0];
 	vid_ok_button.c2d = var_square_image[0];
+	vid_correct_aspect_ratio_button.c2d = var_square_image[0];
+	vid_disable_resize_move_button.c2d = var_square_image[0];
+	vid_remember_video_pos_button.c2d = var_square_image[0];
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_button[i].c2d = var_square_image[0];
@@ -1084,7 +1146,8 @@ void Sapp0_exit(void)
 	+ std::to_string(vid_allow_skip_key_frames) + "</2><3>" + std::to_string(vid_use_hw_decoding_request) + "</3><4>"
 	+ std::to_string(vid_use_hw_color_conversion_request) + "</4><5>" + std::to_string(vid_use_multi_threaded_decoding_request) + "</5><6>"
 	+ std::to_string(vid_lower_resolution) + "</6><7>"	+ std::to_string(vid_volume) + "</7><8>"
-	+ std::to_string(vid_seek_duration) + "</8>";
+	+ std::to_string(vid_seek_duration) + "</8><9>" + std::to_string(vid_correct_aspect_ratio_mode) + "</9><10>"
+	+ std::to_string(vid_disable_resize_move_mode) + "</10><11>" + std::to_string(vid_remember_video_pos_mode) + "</11>";
 	Util_file_save_to_file("vid_settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
 
 	Util_log_save(DEF_SAPP0_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_thread, DEF_THREAD_WAIT_TIME));
@@ -1147,13 +1210,18 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x, vid_y, vid_tex_width[image_num * 4] * vid_zoom, vid_tex_height[image_num * 4] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x, vid_y, vid_tex_width[image_num * 4] * vid_zoom,
+				vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), vid_y, vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), vid_y, 
+					vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x, (vid_y + vid_tex_width[image_num * 4] * vid_zoom), vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x, (vid_y + vid_tex_width[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom),
+					vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), (vid_y + vid_tex_height[image_num * 4] * vid_zoom), vid_tex_width[image_num * 4 + 3] * vid_zoom, vid_tex_height[image_num * 4 + 3] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom),
+					(vid_y + vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom), vid_tex_width[image_num * 4 + 3] * vid_zoom,
+					vid_tex_height[image_num * 4 + 3] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 			}
 			else
 				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1182,14 +1250,18 @@ void Sapp0_main(void)
 
 				if(vid_play_request)
 				{
-					//video
-					Draw_texture(vid_image[image_num_3d * 4][1].c2d, vid_x + vid_3d_x_offset, vid_y, vid_tex_width[image_num_3d * 4] * vid_zoom, vid_tex_height[image_num_3d * 4] * vid_zoom);
+					Draw_texture(vid_image[image_num_3d * 4][1].c2d, vid_x, vid_y, vid_tex_width[image_num_3d * 4] * vid_zoom,
+					vid_tex_height[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 					if(vid_codec_width > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 1][1].c2d, (vid_x  + vid_3d_x_offset + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_y, vid_tex_width[image_num_3d * 4 + 1] * vid_zoom, vid_tex_height[image_num_3d * 4 + 1] * vid_zoom);
+						Draw_texture(vid_image[image_num_3d * 4 + 1][1].c2d, (vid_x + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_y, 
+						vid_tex_width[image_num_3d * 4 + 1] * vid_zoom, vid_tex_height[image_num_3d * 4 + 1] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 					if(vid_codec_height > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 2][1].c2d, vid_x + vid_3d_x_offset, (vid_y + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_tex_width[image_num_3d * 4 + 2] * vid_zoom, vid_tex_height[image_num_3d * 4 + 2] * vid_zoom);
+						Draw_texture(vid_image[image_num_3d * 4 + 2][1].c2d, vid_x, (vid_y + vid_tex_width[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom),
+						vid_tex_width[image_num_3d * 4 + 2] * vid_zoom, vid_tex_height[image_num_3d * 4 + 2] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 3][1].c2d, (vid_x + vid_3d_x_offset + vid_tex_width[image_num_3d * 4] * vid_zoom), (vid_y + vid_tex_height[image_num_3d * 4] * vid_zoom), vid_tex_width[image_num_3d * 4 + 3] * vid_zoom, vid_tex_height[image_num_3d * 4 + 3] * vid_zoom);
+						Draw_texture(vid_image[image_num_3d * 4 + 3][1].c2d, (vid_x + vid_tex_width[image_num_3d * 4] * vid_zoom),
+						(vid_y + vid_tex_height[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom), vid_tex_width[image_num_3d * 4 + 3] * vid_zoom,
+						vid_tex_height[image_num_3d * 4 + 3] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1216,13 +1288,18 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[image_num * 4] * vid_zoom, vid_tex_height[image_num * 4] * vid_zoom);
+				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[image_num * 4] * vid_zoom,
+				vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, vid_y - 240, vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, vid_y - 240, 
+					vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x - 40, (vid_y + vid_tex_width[image_num * 4] * vid_zoom) - 240, vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x - 40, (vid_y + vid_tex_width[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom) - 240,
+					vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, (vid_y + vid_tex_height[image_num * 4] * vid_zoom) - 240, vid_tex_width[image_num * 4 + 3] * vid_zoom, vid_tex_height[image_num * 4 + 3] * vid_zoom);
+					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40,
+					(vid_y + vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom) - 240, vid_tex_width[image_num * 4 + 3] * vid_zoom,
+					vid_tex_height[image_num * 4 + 3] * (vid_correct_aspect_ratio_mode ? 2 : 1) * vid_zoom);
 			}
 
 			if(vid_menu_mode != DEF_SAPP0_MENU_NONE)
@@ -1253,6 +1330,18 @@ void Sapp0_main(void)
 				//seek duration
 				Draw_texture(&vid_seek_duration_button, vid_seek_duration_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 100, 145, 10);
 				Draw(vid_msg[DEF_SAPP0_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 167.5, 100, 0.4, 0.4, color);
+
+				//correct aspect ratio
+				Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 145, 10);
+				Draw(vid_msg[DEF_SAPP0_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, var_high_resolution_mode ? color : disabled_color);
+
+				//disable resize and move video
+				Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
+				Draw(vid_msg[DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
+
+				//remember video pos
+				Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 140, 145, 10);
+				Draw(vid_msg[DEF_SAPP0_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.4, 0.4, color);
 
 				Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 0, 180, 100, 8);
 				Draw_texture(&vid_menu_button[1], vid_menu_button_selected[1] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
@@ -1329,10 +1418,10 @@ void Sapp0_main(void)
 			Draw(vid_msg[DEF_SAPP0_CONTROLS_MSG], 167.5, 195, 0.4, 0.4, color);
 
 			//time bar
-			Draw(Util_convert_seconds_to_time(vid_current_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration), 10, 192.5, 0.5, 0.5, color);
+			Draw(Util_convert_seconds_to_time(vid_current_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 192.5, 0.5, 0.5, color);
 			Draw_texture(var_square_image[0], DEF_DRAW_GREEN, 5, 210, 310, 10);
 			if(vid_duration != 0)
-				Draw_texture(var_square_image[0], 0xFF800080, 5, 210, 310 * ((vid_current_pos / 1000) / vid_duration), 10);
+				Draw_texture(var_square_image[0], 0xFF800080, 5, 210, 310 * ((vid_current_pos / 1000) / (vid_duration / 1000)), 10);
 
 			if(vid_show_controls)
 			{
@@ -1411,8 +1500,8 @@ void Sapp0_main(void)
 			}
 			else if(key.p_d_right)
 			{
-				if(vid_current_pos + (vid_seek_duration * 1000) > vid_duration * 1000)
-					vid_seek_pos = vid_duration * 1000;
+				if(vid_current_pos + (vid_seek_duration * 1000) > vid_duration)
+					vid_seek_pos = vid_duration;
 				else
 					vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
 
@@ -1566,6 +1655,36 @@ void Sapp0_main(void)
 					if(vid_seek_duration == 0)
 						vid_seek_duration = 1;
 					vid_pause_request = false;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button) && var_high_resolution_mode)
+				{
+					vid_correct_aspect_ratio_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_correct_aspect_ratio_button) && var_high_resolution_mode && vid_correct_aspect_ratio_button_selected)
+				{
+					vid_correct_aspect_ratio_mode = !vid_correct_aspect_ratio_mode;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, vid_disable_resize_move_button))
+				{
+					vid_disable_resize_move_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_disable_resize_move_button) && vid_disable_resize_move_button_selected)
+				{
+					vid_disable_resize_move_mode = !vid_disable_resize_move_mode;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, vid_remember_video_pos_button))
+				{
+					vid_remember_video_pos_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_remember_video_pos_button) && vid_remember_video_pos_button_selected)
+				{
+					vid_remember_video_pos_mode = !vid_remember_video_pos_mode;
 					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
@@ -1737,13 +1856,13 @@ void Sapp0_main(void)
 			}
 			else if(key.p_touch && key.touch_x >= 5 && key.touch_x <= 314 && key.touch_y >= 210 && key.touch_y <= 219)
 			{
-				vid_seek_pos = (vid_duration * 1000) * (((double)key.touch_x - 5) / 310);
+				vid_seek_pos = vid_duration * (((double)key.touch_x - 5) / 310);
 				vid_seek_request = true;
 				var_need_reflesh = true;
 			}
 			
-			if(key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
-			|| key.p_d_down || key.p_d_up || key.p_d_right || key.p_d_left || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left)
+			if((key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
+			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && !vid_disable_resize_move_mode)
 			{
 				if(key.p_c_down || key.p_d_down)
 					vid_y -= 1 * var_scroll_speed * key.count;
@@ -1799,37 +1918,6 @@ void Sapp0_main(void)
 						vid_x += 5 * var_scroll_speed * key.count;
 				}
 
-				if(key.p_d_right)
-				{
-					if(vid_current_pos + (vid_seek_duration * 1000) > vid_duration * 1000)
-						vid_seek_pos = vid_duration * 1000;
-					else
-						vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
-
-					vid_seek_request = true;
-					var_need_reflesh = true;
-				}
-				if(key.p_d_left)
-				{
-					if(vid_current_pos - (vid_seek_duration * 1000) < 0)
-						vid_seek_pos = 0;
-					else
-						vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
-					
-					vid_seek_request = true;
-					var_need_reflesh = true;
-				}
-
-				/*if(key.p_d_right)
-					vid_3d_x_offset -= 1 * var_scroll_speed * key.count;
-				else if(key.h_d_right)
-					vid_3d_x_offset -= 2.5 * var_scroll_speed * key.count;
-
-				if(key.p_d_left)
-					vid_3d_x_offset += 1 * var_scroll_speed * key.count;
-				else if(key.h_d_left)
-					vid_3d_x_offset += 2.5 * var_scroll_speed * key.count;*/
-
 				if(vid_x > 400)
 					vid_x = 400;
 				else if(vid_x < -vid_codec_width * vid_zoom)
@@ -1840,18 +1928,13 @@ void Sapp0_main(void)
 				else if(vid_y < -vid_codec_height * vid_zoom)
 					vid_y = -vid_codec_height * vid_zoom;
 
-				if(vid_3d_x_offset > 400)
-					vid_3d_x_offset = 400;
-				else if(vid_3d_x_offset < -400)
-					vid_3d_x_offset = -400;
-
 				vid_cd_count++;
 				var_need_reflesh = true;
 			}
 			else
 				vid_cd_count = 0;
 
-			if(key.p_l || key.p_r || key.h_l || key.h_r)
+			if((key.p_l || key.p_r || key.h_l || key.h_r) && !vid_disable_resize_move_mode)
 			{
 				if(key.p_l)
 					vid_zoom -= 0.005 * var_scroll_speed * key.count;
@@ -1889,20 +1972,43 @@ void Sapp0_main(void)
 				vid_lr_count = 0;
 		}
 
+		if(key.p_d_right)
+		{
+			if(vid_current_pos + (vid_seek_duration * 1000) > vid_duration)
+				vid_seek_pos = vid_duration;
+			else
+				vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
+
+			vid_seek_request = true;
+			var_need_reflesh = true;
+		}
+		if(key.p_d_left)
+		{
+			if(vid_current_pos - (vid_seek_duration * 1000) < 0)
+				vid_seek_pos = 0;
+			else
+				vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
+			
+			vid_seek_request = true;
+			var_need_reflesh = true;
+		}
+
 		if(!key.p_touch && !key.h_touch)
 		{
 			if(vid_select_audio_track_button_selected || vid_texture_filter_button_selected || vid_allow_skip_frames_button_selected
 			|| vid_allow_skip_key_frames_button_selected || vid_volume_button_selected || vid_seek_duration_button_selected
 			|| vid_use_hw_decoding_button_selected || vid_use_hw_color_conversion_button_selected || vid_use_multi_threaded_decoding_button_selected
 			|| vid_lower_resolution_button_selected || vid_menu_button_selected[0] || vid_menu_button_selected[1] || vid_menu_button_selected[2]
-			|| vid_control_button_selected || vid_ok_button_selected)
+			|| vid_control_button_selected || vid_ok_button_selected || vid_correct_aspect_ratio_button_selected 
+			|| vid_disable_resize_move_button_selected || vid_remember_video_pos_button_selected)
 				var_need_reflesh = true;
 
 			vid_select_audio_track_button_selected = vid_texture_filter_button_selected = vid_allow_skip_frames_button_selected
 			= vid_allow_skip_key_frames_button_selected = vid_volume_button_selected = vid_seek_duration_button_selected
 			= vid_use_hw_decoding_button_selected = vid_use_hw_color_conversion_button_selected = vid_use_multi_threaded_decoding_button_selected
 			= vid_lower_resolution_button_selected = vid_menu_button_selected[0] = vid_menu_button_selected[1] = vid_menu_button_selected[2] 
-			= vid_control_button_selected = vid_ok_button_selected = false;
+			= vid_control_button_selected = vid_ok_button_selected = vid_correct_aspect_ratio_button_selected 
+			= vid_disable_resize_move_button_selected = vid_remember_video_pos_button_selected = false;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 			{

@@ -132,6 +132,10 @@ void Sem_init(void)
 	u32 read_size = 0;
 	std::string data[11];
 	Result_with_string result;
+	
+	//create directory
+	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
 
 	if(CFGU_SecureInfoGetRegion(&region) == 0)
 	{
@@ -1428,8 +1432,6 @@ void Sem_record_thread(void* arg)
 	Result_with_string result;
 	TickCounter counter;
 	APT_CheckNew3DS(&new_3ds);
-
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);//create directory
 	osTickCounterStart(&counter);
 
 	while (sem_thread_run)

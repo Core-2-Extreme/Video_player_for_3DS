@@ -171,7 +171,7 @@ void Sem_init(void)
 		var_high_resolution_mode = (data[9] == "1");
 		var_3d_mode = (data[10] == "1");
 
-		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh")
+		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn")
 			var_lang = "en";
 		if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
 			var_lcd_brightness = 100;
@@ -492,7 +492,7 @@ void Sem_main(void)
 
 			//Chinese
 			Draw_texture(&sem_chinese_button, sem_chinese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 240, 20);
-			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh") ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -902,7 +902,7 @@ void Sem_main(void)
 				}
 				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button_selected)
 				{
-					var_lang = "zh";
+					var_lang = "zh-cn";
 					sem_reload_msg_request = true;
 					var_need_reflesh = true;
 				}

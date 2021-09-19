@@ -1,6 +1,12 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.3.2
+Added aspect ratio 10:3 mode (for 800x240 videos) \
+Added disable resize and move video mode \
+Added remember video pos mode (resume from that pos next time) \
+Other minor changes
+
 ### v1.3.1
 Volume adjustment has been added (from 0% to 999%) \
 Direction pad seeking has been added (from 1 second to 99 seconds) \

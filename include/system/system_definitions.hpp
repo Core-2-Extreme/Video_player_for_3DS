@@ -17,7 +17,7 @@
 #define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 60
+#define DEF_SEM_NUM_OF_MSG 61
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -108,6 +108,7 @@
 #define DEF_SEM_800PX_MSG 56
 #define DEF_SEM_3D_MSG 57
 #define DEF_SEM_400PX_MSG 58
+#define DEF_SEM_CHINESE_MSG 60
 
 //draw
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS 128

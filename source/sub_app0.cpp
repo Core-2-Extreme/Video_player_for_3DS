@@ -267,11 +267,11 @@ void Sapp0_decode_thread(void* arg)
 					vid_codec_width = vid_width;
 					vid_codec_height = vid_height;
 					//fit to screen size
-					while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 240) && vid_zoom > 0.05)
+					while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1)) > 240) && vid_zoom > 0.05)
 						vid_zoom -= 0.001;
 
 					vid_x = (400 - (vid_width * vid_zoom)) / 2;
-					vid_y = (240 - (vid_height * vid_zoom)) / 2;
+					vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1))) / 2;
 
 					if(vid_codec_width % 16 != 0)
 						vid_codec_width += 16 - vid_codec_width % 16;
@@ -1476,11 +1476,11 @@ void Sapp0_main(void)
 			{
 				//fit to screen size
 				vid_zoom = 1;
-				while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 225) && vid_zoom > 0.05)
+				while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1)) > 225) && vid_zoom > 0.05)
 					vid_zoom -= 0.001;
 
 				vid_x = (400 - (vid_width * vid_zoom)) / 2;
-				vid_y = (225 - (vid_height * vid_zoom)) / 2;
+				vid_y = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1))) / 2;
 				vid_y += 15;
 				vid_turn_off_bottom_screen_count = 0;
 				vid_full_screen_mode = false;
@@ -1804,11 +1804,11 @@ void Sapp0_main(void)
 			{
 				//fit to screen size
 				vid_zoom = 1;
-				while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom) > 240) && vid_zoom > 0.05)
+				while(((vid_width * vid_zoom) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1)) > 240) && vid_zoom > 0.05)
 					vid_zoom -= 0.001;
 
 				vid_x = (400 - (vid_width * vid_zoom)) / 2;
-				vid_y = (240 - (vid_height * vid_zoom)) / 2;
+				vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? 2 : 1))) / 2;
 				vid_turn_off_bottom_screen_count = 300;
 				vid_full_screen_mode = true;
 				var_top_lcd_brightness = var_lcd_brightness;

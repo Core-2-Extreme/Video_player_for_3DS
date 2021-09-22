@@ -1,0 +1,11 @@
+<0>Vuoi uscire?</0>
+<1>A chiudi</1>
+<2>B annulla</2>
+<3>☢Nuova versione disponibile!☢</3>
+<4>Come aggiornare : 
+Impostazioni
+->Aggiornamenti
+->Cerca aggiornamenti
+->Vai nel selettore versioni
+->Seleziona .3dsx o .cia
+->Scarica e installa</4>

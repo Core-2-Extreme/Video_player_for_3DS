@@ -61,3 +61,4 @@ disattivare la 'modalità 800px'
 <58>Nothing</58>
 <59>Magyar</59>
 <60>简体中文</60>
+<61>Italiano</61>

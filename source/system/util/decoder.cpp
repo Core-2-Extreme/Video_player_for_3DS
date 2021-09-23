@@ -294,8 +294,14 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int video_index, int session)
+void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int* sar_width, int* sar_height, int video_index, int session)
 {
+	//Util_log_save("debug", std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.num) + ":" + std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.den));
+	AVRational sar = av_guess_sample_aspect_ratio(util_decoder_format_context[session], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]], NULL);
+	//Util_log_save("debug", std::to_string(sar.num) + ":" + std::to_string(sar.den));
+	*sar_width = sar.num;
+	*sar_height = sar.den;
+
 	*width = util_video_decoder_context[session][video_index]->width;
 	*height = util_video_decoder_context[session][video_index]->height;
 	*thread_type = util_video_decoder_context[session][video_index]->thread_type;

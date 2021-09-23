@@ -51,15 +51,16 @@ bool sem_change_brightness_request = false;
 bool sem_dl_file_request = false;
 bool sem_scroll_mode = false;
 bool sem_back_button_selected, sem_scroll_bar_selected, sem_menu_button_selected[9], sem_check_update_button_selected,
-sem_english_button_selected, sem_japanese_button_selected, sem_hungarian_button_selected, sem_chinese_button_selected, sem_night_mode_on_button_selected, sem_night_mode_off_button_selected,
-sem_flash_mode_button_selected, sem_screen_brightness_slider_selected, sem_screen_brightness_bar_selected, sem_screen_off_time_slider_selected,
-sem_screen_off_time_bar_selected, sem_800px_mode_button_selected, sem_3d_mode_button_selected, sem_400px_mode_button_selected,
-sem_scroll_speed_slider_selected, sem_scroll_speed_bar_selected, sem_system_font_button_selected[4], sem_load_all_ex_font_button_selected,
-sem_unload_all_ex_font_button_selected, sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_selected,
-sem_wifi_off_button_selected, sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected,
-sem_debug_mode_off_button_selected, sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected,
-sem_record_top_lcd_button_selected, sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected,
-sem_3dsx_button_selected, sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected = false;
+sem_english_button_selected, sem_japanese_button_selected, sem_hungarian_button_selected, sem_chinese_button_selected, sem_italian_button_selected,
+sem_night_mode_on_button_selected, sem_night_mode_off_button_selected, sem_flash_mode_button_selected, sem_screen_brightness_slider_selected,
+sem_screen_brightness_bar_selected, sem_screen_off_time_slider_selected, sem_screen_off_time_bar_selected, sem_800px_mode_button_selected,
+sem_3d_mode_button_selected, sem_400px_mode_button_selected, sem_scroll_speed_slider_selected, sem_scroll_speed_bar_selected,
+sem_system_font_button_selected[4], sem_load_all_ex_font_button_selected, sem_unload_all_ex_font_button_selected,
+sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_selected, sem_wifi_off_button_selected,
+sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected, sem_debug_mode_off_button_selected,
+sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected, sem_record_top_lcd_button_selected,
+sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected, sem_3dsx_button_selected,
+sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected = false;
 u8* sem_yuv420p = NULL;
 u32 sem_dled_size = 0;
 int sem_rec_width = 400;
@@ -79,9 +80,10 @@ std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
 Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread;
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_check_update_button, sem_english_button, sem_japanese_button,
-sem_hungarian_button, sem_chinese_button, sem_night_mode_on_button, sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar,
-sem_screen_off_time_slider, sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button,
-sem_scroll_speed_slider, sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
+sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_night_mode_on_button, sem_night_mode_off_button,
+sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
+sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
+sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
 sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button,
 sem_deny_send_info_button, sem_debug_mode_on_button, sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,
 sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_select_edtion_button, sem_close_updater_button,
@@ -171,7 +173,7 @@ void Sem_init(void)
 		var_high_resolution_mode = (data[9] == "1");
 		var_3d_mode = (data[10] == "1");
 
-		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn")
+		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it")
 			var_lang = "en";
 		if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
 			var_lcd_brightness = 100;
@@ -224,6 +226,7 @@ void Sem_draw_init(void)
 	sem_japanese_button.c2d = var_square_image[0];
 	sem_hungarian_button.c2d = var_square_image[0];
 	sem_chinese_button.c2d = var_square_image[0];
+	sem_italian_button.c2d = var_square_image[0];
 	sem_night_mode_on_button.c2d = var_square_image[0];
 	sem_night_mode_off_button.c2d = var_square_image[0];
 	sem_flash_mode_button.c2d = var_square_image[0];
@@ -488,11 +491,15 @@ void Sem_main(void)
 
 			//Hungarian
 			Draw_texture(&sem_hungarian_button, sem_hungarian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 75, 240, 20);
-			Draw(sem_msg[59], 10, 75, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color);
+			Draw(sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color);
 
 			//Chinese
 			Draw_texture(&sem_chinese_button, sem_chinese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 240, 20);
 			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color);
+
+			//Italian
+			Draw_texture(&sem_italian_button, sem_italian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 125, 240, 20);
+			Draw(sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125, 0.75, 0.75, (var_lang == "it") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -903,6 +910,17 @@ void Sem_main(void)
 				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button_selected)
 				{
 					var_lang = "zh-cn";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_italian_button))
+				{
+					sem_italian_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button_selected)
+				{
+					var_lang = "it";
 					sem_reload_msg_request = true;
 					var_need_reflesh = true;
 				}
@@ -1318,7 +1336,8 @@ void Sem_main(void)
 
 			if(sem_back_button_selected || sem_scroll_bar_selected || sem_check_update_button_selected || sem_close_updater_button_selected 
 			|| sem_select_edtion_button_selected || sem_3dsx_button_selected || sem_cia_button_selected || sem_back_to_patch_note_button_selected
-			|| sem_dl_install_button_selected || sem_close_app_button_selected || sem_english_button_selected || sem_japanese_button_selected || sem_hungarian_button_selected || sem_chinese_button_selected
+			|| sem_dl_install_button_selected || sem_close_app_button_selected || sem_english_button_selected || sem_japanese_button_selected
+			|| sem_hungarian_button_selected || sem_chinese_button_selected || sem_italian_button_selected
 			|| sem_night_mode_on_button_selected || sem_night_mode_off_button_selected || sem_flash_mode_button_selected || sem_screen_brightness_bar_selected
 			|| sem_screen_off_time_bar_selected || sem_800px_mode_button_selected || sem_3d_mode_button_selected || sem_400px_mode_button_selected
 			|| sem_scroll_speed_bar_selected || sem_wifi_on_button_selected || sem_wifi_off_button_selected || sem_allow_send_info_button_selected
@@ -1329,7 +1348,8 @@ void Sem_main(void)
 
 			sem_back_button_selected = sem_scroll_bar_selected = sem_check_update_button_selected = sem_close_updater_button_selected
 			= sem_select_edtion_button_selected = sem_3dsx_button_selected = sem_cia_button_selected = sem_back_to_patch_note_button_selected
-			= sem_dl_install_button_selected = sem_close_app_button_selected = sem_english_button_selected = sem_japanese_button_selected = sem_hungarian_button_selected = sem_chinese_button_selected
+			= sem_dl_install_button_selected = sem_close_app_button_selected = sem_english_button_selected = sem_japanese_button_selected
+			= sem_hungarian_button_selected = sem_chinese_button_selected = sem_italian_button_selected
 			= sem_night_mode_on_button_selected = sem_night_mode_off_button_selected = sem_flash_mode_button_selected = sem_screen_brightness_bar_selected
 			= sem_screen_off_time_bar_selected = sem_800px_mode_button_selected = sem_3d_mode_button_selected = sem_400px_mode_button_selected
 			= sem_scroll_speed_bar_selected = sem_wifi_on_button_selected = sem_wifi_off_button_selected = sem_allow_send_info_button_selected

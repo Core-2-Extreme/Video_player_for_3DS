@@ -20,5 +20,6 @@
 <19>Durata : </19>
 <20>Volume : </20>
 <21>Usa aspect ratio 10:3 : </21>
-<22>Disabilita zoom/spostamento video : </22>
+<22>Disabilita zoom/
+spostamento video : </22>
 <23>Ricorda posizione video : </23>

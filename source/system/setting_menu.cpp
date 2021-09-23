@@ -346,6 +346,8 @@ void Sem_main(void)
 				Draw_texture(&sem_back_button, sem_back_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
 				if (var_lang == "hu")
 					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.475, 0.475, color);
+				else if (var_lang == "it")
+					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.45, 0.45, color);
 				else
 					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.6, 0.6, color);
 			}
@@ -711,15 +713,24 @@ void Sem_main(void)
 			
 			//Record both screen
 			Draw_texture(&sem_record_both_lcd_button, sem_record_both_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
 
 			//Record top screen
 			Draw_texture(&sem_record_top_lcd_button, sem_record_top_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
 
 			//Record bottom screen
 			Draw_texture(&sem_record_bottom_lcd_button, sem_record_bottom_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 95, 240, 20);
-			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.6, 0.6, cache_color[0]);
+			if(var_lang == "it")
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0]);
+			else
+				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.6, 0.6, cache_color[0]);
 
 			if(var_high_resolution_mode)
 				Draw(sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);

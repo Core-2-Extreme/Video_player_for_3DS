@@ -1317,7 +1317,10 @@ void Sapp0_main(void)
 
 				//allow skip frames
 				Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 145, 10);
-				Draw(vid_msg[DEF_SAPP0_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, color);
+				if(var_lang == "it")
+					Draw(vid_msg[DEF_SAPP0_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.375, 0.375, color);
+				else
+					Draw(vid_msg[DEF_SAPP0_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, color);
 
 				//allow skip key frames
 				Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 80, 145, 10);
@@ -1337,7 +1340,10 @@ void Sapp0_main(void)
 
 				//disable resize and move video
 				Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
-				Draw(vid_msg[DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
+				if(var_lang == "zh-cn" || var_lang == "it")
+					Draw(vid_msg[DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.4, 0.4, color);
+				else
+					Draw(vid_msg[DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
 
 				//remember video pos
 				Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 140, 145, 10);
@@ -1364,7 +1370,10 @@ void Sapp0_main(void)
 
 				//lower resolution
 				Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
-				Draw(vid_msg[DEF_SAPP0_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
+				if(var_lang == "it")
+					Draw(vid_msg[DEF_SAPP0_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.375, 0.375, vid_play_request ? disabled_color : color);
+				else
+					Draw(vid_msg[DEF_SAPP0_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 				Draw_texture(&vid_menu_button[0], vid_menu_button_selected[0] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 				Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 110, 180, 100, 8);

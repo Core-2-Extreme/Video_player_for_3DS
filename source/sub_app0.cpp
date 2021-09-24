@@ -816,7 +816,7 @@ void Sapp0_convert_thread(void* arg)
 					if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
 						result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height);
 					else if(!vid_hw_decoding_mode)
-						result = Util_converter_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height);
+						result = Util_converter_yuv420p_to_bgr565_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
 					osTickCounterUpdate(&counter[0]);
 					vid_convert_time = osTickCounterRead(&counter[0]);
 

@@ -1,6 +1,8 @@
 #include "system/headers.hpp"
 
 extern "C" void memcpy_asm(u8*, u8*, int);
+extern "C" void yuv420p_to_bgr565_asm(u8* yuv420p, u8* bgr565, int width, int height);
+extern "C" void yuv420p_to_bgr888_asm(u8* yuv420p, u8* bgr888, int width, int height);
 
 extern "C" {
 #include "libswscale/swscale.h"
@@ -54,6 +56,48 @@ Result_with_string Util_converter_yuv422_to_bgr565(u8* yuv422, u8** bgr565, int 
 	return result;
 }
 
+Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, int width, int height)
+{
+	int src_line_size[4] = { 0, 0, 0, 0, };
+	int dst_line_size[4] = { 0, 0, 0, 0, };
+	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
+	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
+	Result_with_string result;
+	SwsContext* sws_context = NULL;
+	
+	sws_context = sws_getContext(width, height, AV_PIX_FMT_YUYV422,
+	width, height, AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
+	if(sws_context == NULL)
+	{
+		result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
+		result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
+		return result;
+	}
+
+	*yuv420p = (u8*)malloc(width * height * 1.5);
+	if(*yuv420p == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+
+	src_data[0] = yuv422;
+	src_line_size[0] = width * 2;
+	dst_data[0] = *yuv420p;
+	dst_data[1] = *yuv420p + (width * height);
+	dst_data[2] = *yuv420p + (width * height) + (width * height / 4);
+	dst_line_size[0] = width;
+	dst_line_size[1] = width / 2;
+	dst_line_size[2] = width / 2;
+	
+	sws_scale(sws_context, src_data, src_line_size, 0, 
+	height, dst_data, dst_line_size);
+
+	sws_freeContext(sws_context);
+	return result;
+}
+
 Result_with_string Util_converter_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height)
 {
     int index = 0;
@@ -75,20 +119,86 @@ Result_with_string Util_converter_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, in
 	{
 		for (int x = 0; x < width; x++)
 		{
-				//YYYYYYYYUUVV
-				Y[0] = ybase[x + y * width];
-				U = ubase[y / 2 * width / 2 + (x / 2)];
-				V = vbase[y / 2 * width / 2 + (x / 2)];
-				b[0] = YUV2B(Y[0], U);
-				g[0] = YUV2G(Y[0], U, V);
-				r[0] = YUV2R(Y[0], V);
-				b[0] = b[0] >> 3;
-				g[0] = g[0] >> 2;
-				r[0] = r[0] >> 3;
-				*(*bgr565 + index++) = (g[0] & 0b00000111) << 5 | b[0];
-				*(*bgr565 + index++) = (g[0] & 0b00111000) >> 3 | (r[0] & 0b00011111) << 3;
+			//YYYYYYYYUUVV
+			Y[0] = ybase[x + y * width];
+			U = ubase[y / 2 * width / 2 + (x / 2)];
+			V = vbase[y / 2 * width / 2 + (x / 2)];
+			b[0] = YUV2B(Y[0], U);
+			g[0] = YUV2G(Y[0], U, V);
+			r[0] = YUV2R(Y[0], V);
+			b[0] = b[0] >> 3;
+			g[0] = g[0] >> 2;
+			r[0] = r[0] >> 3;
+			*(*bgr565 + index++) = (g[0] & 0b00000111) << 5 | b[0];
+			*(*bgr565 + index++) = (g[0] & 0b00111000) >> 3 | (r[0] & 0b00011111) << 3;
 		}
 	}
+	return result;
+}
+
+Result_with_string Util_converter_yuv420p_to_bgr565_asm(u8* yuv420p, u8** bgr565, int width, int height)
+{
+	Result_with_string result;
+
+	*bgr565 = (u8*)malloc(width * height * 2);
+	if(*bgr565 == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+
+	yuv420p_to_bgr565_asm(yuv420p, *bgr565, width, height);
+	return result;
+}
+
+Result_with_string Util_converter_yuv420p_to_bgr888(u8* yuv420p, u8** bgr888, int width, int height)
+{
+    int index = 0;
+    u8* ybase = yuv420p;
+    u8* ubase = yuv420p + width * height;
+    u8* vbase = yuv420p + width * height + width * height / 4;
+	Result_with_string result;
+
+	*bgr888 = (u8*)malloc(width * height * 3);
+	if(*bgr888 == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+	
+	u8 Y[4], U, V;
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			//YYYYYYYYUUVV
+			Y[0] = *ybase++;
+			U = ubase[y / 2 * width / 2 + (x / 2)];
+			V = vbase[y / 2 * width / 2 + (x / 2)];
+			
+			*(*bgr888 + index++) = YUV2B(Y[0], U);
+			*(*bgr888 + index++) = YUV2G(Y[0], U, V);
+			*(*bgr888 + index++) = YUV2R(Y[0], V);
+		}
+	}
+	return result;
+}
+
+Result_with_string Util_converter_yuv420p_to_bgr888_asm(u8* yuv420p, u8** bgr888, int width, int height)
+{
+	Result_with_string result;
+
+	*bgr888 = (u8*)malloc(width * height * 3);
+	if(*bgr888 == NULL)
+	{
+		result.code = DEF_ERR_OUT_OF_MEMORY;
+		result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+		return result;
+	}
+
+	yuv420p_to_bgr888_asm(yuv420p, *bgr888, width, height);
 	return result;
 }
 

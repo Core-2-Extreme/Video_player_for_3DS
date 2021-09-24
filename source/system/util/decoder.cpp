@@ -299,8 +299,16 @@ void Util_video_decoder_get_info(int* width, int* height, double* framerate, std
 	//Util_log_save("debug", std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.num) + ":" + std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.den));
 	AVRational sar = av_guess_sample_aspect_ratio(util_decoder_format_context[session], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]], NULL);
 	//Util_log_save("debug", std::to_string(sar.num) + ":" + std::to_string(sar.den));
-	*sar_width = sar.num;
-	*sar_height = sar.den;
+	if(sar.num == 0 && sar.den == 1)
+	{
+		*sar_width = 1;
+		*sar_height = 1;
+	}
+	else
+	{
+		*sar_width = sar.num;
+		*sar_height = sar.den;
+	}
 
 	*width = util_video_decoder_context[session][video_index]->width;
 	*height = util_video_decoder_context[session][video_index]->height;

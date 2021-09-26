@@ -40,14 +40,14 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	int width = 0;
 	int height = 0;
 	Result_with_string result;
+	width = util_video_decoder_context[session][0]->width;
+	height = util_video_decoder_context[session][0]->height;
 
-	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 2, NULL);
+	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 9, NULL);
 	if(result.code != 0)
 		result.string = "mvdstdInit() failed. ";
 	else
 	{
-		width = util_video_decoder_context[session][0]->width;
-		height = util_video_decoder_context[session][0]->height;
 		if(width % 16 != 0)
 			width += 16 - width % 16;
 		if(height % 16 != 0)

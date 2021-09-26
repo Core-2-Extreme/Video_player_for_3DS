@@ -44,6 +44,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	height = util_video_decoder_context[session][0]->height;
 
 	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 9, NULL);
+	//result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, (MVDSTD_InputFormat)0x00180001, MVD_OUTPUT_BGR565, width * height * 9, NULL);
 	if(result.code != 0)
 		result.string = "mvdstdInit() failed. ";
 	else
@@ -662,6 +663,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	{
 		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
 		util_decoder_mvd_config.physaddr_outdata0 = osConvertVirtToPhys(util_video_decoder_mvd_raw_data);
+		//util_decoder_mvd_config.output_type = (MVDSTD_OutputFormat)0x00040000;
 
 		//set extra data
 		offset = 0;
@@ -708,6 +710,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	}
 
 	result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
+	//Util_log_save("debug", "mvdstdProcessVideoFrame", result.code);
 
 	if(util_video_decoder_mvd_first)
 	{

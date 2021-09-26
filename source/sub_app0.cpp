@@ -829,8 +829,7 @@ void Sapp0_convert_thread(void* arg)
 						//Util_file_save_to_file("unknown.bin", DEF_MAIN_DIR + "debug/", video, vid_codec_width * vid_codec_height * 2, true);
 
 						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-							result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
-							//result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+							result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
 						else
 							result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
 						if(result.code != 0)

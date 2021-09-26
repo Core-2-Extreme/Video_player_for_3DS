@@ -30,7 +30,7 @@ bool vid_disable_resize_move_mode = false;
 bool vid_remember_video_pos_mode = false;
 bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
-bool vid_image_enabled[8][2];
+bool vid_image_enabled[4][DEF_SAPP0_BUFFERS][2];
 bool vid_enabled_cores[4] = { false, false, false, false, };
 bool vid_key_frame_list[320];
 bool vid_select_audio_track_button_selected, vid_texture_filter_button_selected, vid_allow_skip_frames_button_selected,
@@ -73,8 +73,8 @@ int vid_width = 0;
 int vid_height = 0;
 int vid_codec_width = 0;
 int vid_codec_height = 0;
-int vid_tex_width[8] = { 0, 0, 0, 0, 0, 0, 0, 0, };
-int vid_tex_height[8] = { 0, 0, 0, 0, 0, 0, 0, 0, };
+int vid_tex_width[4] = { 0, 0, 0, 0, };
+int vid_tex_height[4] = { 0, 0, 0, 0, };
 int vid_lr_count = 0;
 int vid_cd_count = 0;
 int vid_image_num = 0;
@@ -88,7 +88,7 @@ std::string vid_video_format = "n/a";
 std::string vid_audio_format = "n/a";
 std::string vid_audio_track_lang[DEF_DECODER_MAX_AUDIO_TRACKS];
 std::string vid_msg[DEF_SAPP0_NUM_OF_MSG];
-Image_data vid_image[8][2];
+Image_data vid_image[4][DEF_SAPP0_BUFFERS][2];
 C2D_Image vid_banner[2];
 C2D_Image vid_control[2];
 Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread;
@@ -194,7 +194,7 @@ void Sapp0_decode_thread(void* arg)
 			for(int i = 0; i < 90; i++)
 				vid_recent_time[i] = 0;
 			
-			for(int i = 0; i < 8; i++)
+			for(int i = 0; i < 4; i++)
 			{
 				vid_tex_width[i] = 0;
 				vid_tex_height[i] = 0;
@@ -313,61 +313,56 @@ void Sapp0_decode_thread(void* arg)
 				{
 					for(int k = 0; k < num_of_video_tracks; k++)
 					{
-						result = Draw_c2d_image_init(&vid_image[0][k], 1024, 1024, GPU_RGB565);
-						if(result.code != 0)
-							break;
-						else
-							vid_image_enabled[0][k] = true;
-
-						result = Draw_c2d_image_init(&vid_image[4][k], 1024, 1024, GPU_RGB565);
-						if(result.code != 0)
-							break;
-						else
-							vid_image_enabled[4][k] = true;
-
-						if(vid_codec_width > 1024)
+						for(int s = 0; s < DEF_SAPP0_BUFFERS; s++)
 						{
-							result = Draw_c2d_image_init(&vid_image[1][k], 1024, 1024, GPU_RGB565);
+							result = Draw_c2d_image_init(&vid_image[0][s][k], 1024, 1024, GPU_RGB565);
 							if(result.code != 0)
+							{
+								k = num_of_video_tracks;
+								s = DEF_SAPP0_BUFFERS;
 								break;
+							}
 							else
-								vid_image_enabled[1][k] = true;
+								vid_image_enabled[0][s][k] = true;
 
-							result = Draw_c2d_image_init(&vid_image[5][k], 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								break;
-							else
-								vid_image_enabled[5][k] = true;
-						}
+							if(vid_codec_width > 1024)
+							{
+								result = Draw_c2d_image_init(&vid_image[1][s][k], 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+								{
+									k = num_of_video_tracks;
+									s = DEF_SAPP0_BUFFERS;
+									break;
+								}
+								else
+									vid_image_enabled[1][s][k] = true;
+							}
 
-						if(vid_codec_height > 1024)
-						{
-							result = Draw_c2d_image_init(&vid_image[2][k], 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								break;
-							else
-								vid_image_enabled[2][k] = true;
+							if(vid_codec_height > 1024)
+							{
+								result = Draw_c2d_image_init(&vid_image[2][s][k], 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+								{
+									k = num_of_video_tracks;
+									s = DEF_SAPP0_BUFFERS;
+									break;
+								}
+								else
+									vid_image_enabled[2][s][k] = true;
+							}
 
-							result = Draw_c2d_image_init(&vid_image[6][k], 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								break;
-							else
-								vid_image_enabled[6][k] = true;
-						}
-
-						if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						{
-							result = Draw_c2d_image_init(&vid_image[3][k], 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								break;
-							else
-								vid_image_enabled[3][k] = true;
-
-							result = Draw_c2d_image_init(&vid_image[7][k], 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								break;
-							else
-								vid_image_enabled[7][k] = true;
+							if(vid_codec_width > 1024 && vid_codec_height > 1024)
+							{
+								result = Draw_c2d_image_init(&vid_image[3][s][k], 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+								{
+									k = num_of_video_tracks;
+									s = DEF_SAPP0_BUFFERS;
+									break;
+								}
+								else
+									vid_image_enabled[3][s][k] = true;
+							}
 						}
 					}
 
@@ -381,10 +376,13 @@ void Sapp0_decode_thread(void* arg)
 					{
 						for(int k = 0; k < 2; k++)
 						{
-							for(int i = 0; i < 8; i++)
+							for(int i = 0; i < 4; i++)
 							{
-								if(vid_image_enabled[i][k])
-									Draw_c2d_image_set_filter(&vid_image[i][k], vid_linear_filter);
+								for(int s = 0; s < DEF_SAPP0_BUFFERS; s++)
+								{
+									if(vid_image_enabled[i][s][k])
+										Draw_c2d_image_set_filter(&vid_image[i][s][k], vid_linear_filter);
+								}
 							}
 						}
 
@@ -393,38 +391,35 @@ void Sapp0_decode_thread(void* arg)
 						else
 							APT_SetAppCpuTimeLimit(80);
 
-						for(int i = 0; i < 2; i++)
+						if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						{
-							if(vid_codec_width > 1024 && vid_codec_height > 1024)
-							{
-								vid_tex_width[i * 4] = 1024;
-								vid_tex_width[i * 4 + 1] = vid_codec_width - 1024;
-								vid_tex_width[i * 4 + 2] = 1024;
-								vid_tex_width[i * 4 + 3] = vid_codec_width - 1024;
-								vid_tex_height[i * 4] = 1024;
-								vid_tex_height[i * 4 + 1] = 1024;
-								vid_tex_height[i * 4 + 2] = vid_codec_height - 1024;
-								vid_tex_height[i * 4 + 3] = vid_codec_height - 1024;
-							}
-							else if(vid_codec_width > 1024)
-							{
-								vid_tex_width[i * 4] = 1024;
-								vid_tex_width[i * 4 + 1] = vid_codec_width - 1024;
-								vid_tex_height[i * 4] = vid_codec_height;
-								vid_tex_height[i * 4 + 1] = vid_codec_height;
-							}
-							else if(vid_codec_height > 1024)
-							{
-								vid_tex_width[i * 4] = vid_codec_width;
-								vid_tex_width[i * 4 + 1] = vid_codec_width;
-								vid_tex_height[i * 4] = 1024;
-								vid_tex_height[i * 4 + 1] = vid_codec_height - 1024;
-							}
-							else
-							{
-								vid_tex_width[i * 4] = vid_codec_width;
-								vid_tex_height[i * 4] = vid_codec_height;
-							}
+							vid_tex_width[0] = 1024;
+							vid_tex_width[1] = vid_codec_width - 1024;
+							vid_tex_width[2] = 1024;
+							vid_tex_width[3] = vid_codec_width - 1024;
+							vid_tex_height[0] = 1024;
+							vid_tex_height[1] = 1024;
+							vid_tex_height[2] = vid_codec_height - 1024;
+							vid_tex_height[3] = vid_codec_height - 1024;
+						}
+						else if(vid_codec_width > 1024)
+						{
+							vid_tex_width[0] = 1024;
+							vid_tex_width[1] = vid_codec_width - 1024;
+							vid_tex_height[0] = vid_codec_height;
+							vid_tex_height[1] = vid_codec_height;
+						}
+						else if(vid_codec_height > 1024)
+						{
+							vid_tex_width[0] = vid_codec_width;
+							vid_tex_width[1] = vid_codec_width;
+							vid_tex_height[0] = 1024;
+							vid_tex_height[1] = vid_codec_height - 1024;
+						}
+						else
+						{
+							vid_tex_width[0] = vid_codec_width;
+							vid_tex_height[0] = vid_codec_height;
 						}
 					}
 				}
@@ -614,12 +609,15 @@ void Sapp0_decode_thread(void* arg)
 			
 			for(int k = 0; k < 2; k++)
 			{
-				for(int i = 0; i < 8; i++)
+				for(int i = 0; i < 4; i++)
 				{
-					if(vid_image_enabled[i][k])
+					for(int s = 0; s < DEF_SAPP0_BUFFERS; s++)
 					{
-						Draw_c2d_image_free(vid_image[i][k]);
-						vid_image_enabled[i][k] = false;
+						if(vid_image_enabled[i][s][k])
+						{
+							Draw_c2d_image_free(vid_image[i][s][k]);
+							vid_image_enabled[i][s][k] = false;
+						}
 					}
 				}
 			}
@@ -814,7 +812,7 @@ void Sapp0_convert_thread(void* arg)
 				{
 					osTickCounterUpdate(&counter[0]);
 					if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-						result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height);
+						result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height, true);
 					else if(!vid_hw_decoding_mode)
 						result = Util_converter_yuv420p_to_bgr565_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
 					osTickCounterUpdate(&counter[0]);
@@ -828,47 +826,53 @@ void Sapp0_convert_thread(void* arg)
 						else if(packet_index == 1)
 							image_num = vid_image_num_3d;
 
-						result = Draw_set_texture_data(&vid_image[image_num * 4][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+						//Util_file_save_to_file("unknown.bin", DEF_MAIN_DIR + "debug/", video, vid_codec_width * vid_codec_height * 2, true);
+
+						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
+							result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+							//result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+						else
+							result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
 						if(result.code != 0)
 							Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 
 						if(vid_codec_width > 1024)
 						{
-							result = Draw_set_texture_data(&vid_image[image_num * 4 + 1][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, GPU_RGB565);
+							result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, GPU_RGB565);
 							if(result.code != 0)
 								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 						}
 						if(vid_codec_height > 1024)
 						{
-							result = Draw_set_texture_data(&vid_image[image_num * 4 + 2][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, GPU_RGB565);
+							result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, GPU_RGB565);
 							if(result.code != 0)
 								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 						}
 						if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						{
-							result = Draw_set_texture_data(&vid_image[image_num * 4 + 3][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, GPU_RGB565);
+							result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, GPU_RGB565);
 							if(result.code != 0)
 								Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 						}
 
+						osTickCounterUpdate(&counter[1]);
+						vid_copy_time[1] = osTickCounterRead(&counter[1]);
+
 						if(packet_index == 0)
 						{
-							if(image_num == 0)
-								vid_image_num = 1;
+							if(image_num + 1 < DEF_SAPP0_BUFFERS)
+								vid_image_num++;
 							else
 								vid_image_num = 0;
 						}
 						else if(packet_index == 1)
 						{
-							if(image_num == 0)
-								vid_image_num_3d = 1;
+							if(image_num + 1 < DEF_SAPP0_BUFFERS)
+								vid_image_num_3d++;
 							else
 								vid_image_num_3d = 0;
 						}
 
-						osTickCounterUpdate(&counter[1]);
-						vid_copy_time[1] = osTickCounterRead(&counter[1]);
-						
 						if(packet_index == 0)
 							var_need_reflesh = true;
 					}
@@ -1022,7 +1026,7 @@ void Sapp0_init(void)
 	for(int i = 0; i < 90; i++)
 		vid_recent_time[i] = 0;
 
-	for(int i = 0; i < 8; i++)
+	for(int i = 0; i < 4; i++)
 	{
 		vid_tex_width[i] = 0;
 		vid_tex_height[i] = 0;
@@ -1036,8 +1040,11 @@ void Sapp0_init(void)
 
 	for(int k = 0; k < 2; k++)
 	{
-		for(int i = 0; i < 8; i++)
-			vid_image_enabled[i][k] = false;
+		for(int i = 0; i < 4; i++)
+		{
+			for(int s = 0; s < DEF_SAPP0_BUFFERS; s++)
+				vid_image_enabled[i][s][k] = false;
+		}
 	}
 
 	cache = (u8*)malloc(0x1000);
@@ -1189,11 +1196,16 @@ void Sapp0_main(void)
 		disabled_color = DEF_DRAW_WEAK_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
-	if(vid_image_num == 0)
-		image_num = 1;
 
-	if(vid_image_num_3d == 0)
-		image_num_3d = 1;
+	if(vid_image_num - 1 >= 0)
+		image_num = vid_image_num - 1;
+	else
+		image_num = DEF_SAPP0_BUFFERS - 1;
+
+	if(vid_image_num_3d - 1 >= 0)
+		image_num_3d = vid_image_num_3d - 1;
+	else
+		image_num_3d = DEF_SAPP0_BUFFERS - 1;
 
 	if(vid_turn_off_bottom_screen_count > 0)
 	{
@@ -1216,18 +1228,18 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x, vid_y, vid_tex_width[image_num * 4] * vid_zoom,
-				vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+				Draw_texture(vid_image[0][image_num][0].c2d, vid_x, vid_y, vid_tex_width[0] * vid_zoom,
+				vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom), vid_y, 
-					vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom), vid_y, 
+					vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x, (vid_y + vid_tex_width[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
-					vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[2][image_num][0].c2d, vid_x, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
+					vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom),
-					(vid_y + vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[image_num * 4 + 3] * vid_zoom,
-					vid_tex_height[image_num * 4 + 3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom),
+					(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[3] * vid_zoom,
+					vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 			}
 			else
 				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1256,18 +1268,18 @@ void Sapp0_main(void)
 
 				if(vid_play_request)
 				{
-					Draw_texture(vid_image[image_num_3d * 4][1].c2d, vid_x, vid_y, vid_tex_width[image_num_3d * 4] * vid_zoom,
-					vid_tex_height[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[0][image_num_3d][1].c2d, vid_x, vid_y, vid_tex_width[0] * vid_zoom,
+					vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 					if(vid_codec_width > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 1][1].c2d, (vid_x + vid_tex_width[image_num_3d * 4] * vid_zoom), vid_y, 
-						vid_tex_width[image_num_3d * 4 + 1] * vid_zoom, vid_tex_height[image_num_3d * 4 + 1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[1][image_num_3d][1].c2d, (vid_x + vid_tex_width[0] * vid_zoom), vid_y, 
+						vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 					if(vid_codec_height > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 2][1].c2d, vid_x, (vid_y + vid_tex_width[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
-						vid_tex_width[image_num_3d * 4 + 2] * vid_zoom, vid_tex_height[image_num_3d * 4 + 2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_x, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
+						vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						Draw_texture(vid_image[image_num_3d * 4 + 3][1].c2d, (vid_x + vid_tex_width[image_num_3d * 4] * vid_zoom),
-						(vid_y + vid_tex_height[image_num_3d * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[image_num_3d * 4 + 3] * vid_zoom,
-						vid_tex_height[image_num_3d * 4 + 3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_x + vid_tex_width[0] * vid_zoom),
+						(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[3] * vid_zoom,
+						vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1294,18 +1306,18 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[image_num * 4][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[image_num * 4] * vid_zoom,
-				vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+				Draw_texture(vid_image[0][image_num][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[0] * vid_zoom,
+				vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[image_num * 4 + 1][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40, vid_y - 240, 
-					vid_tex_width[image_num * 4 + 1] * vid_zoom, vid_tex_height[image_num * 4 + 1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40, vid_y - 240, 
+					vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 2][0].c2d, vid_x - 40, (vid_y + vid_tex_width[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240,
-					vid_tex_width[image_num * 4 + 2] * vid_zoom, vid_tex_height[image_num * 4 + 2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[2][image_num][0].c2d, vid_x - 40, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240,
+					vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[image_num * 4 + 3][0].c2d, (vid_x + vid_tex_width[image_num * 4] * vid_zoom) - 40,
-					(vid_y + vid_tex_height[image_num * 4] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240, vid_tex_width[image_num * 4 + 3] * vid_zoom,
-					vid_tex_height[image_num * 4 + 3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40,
+					(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240, vid_tex_width[3] * vid_zoom,
+					vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
 			}
 
 			if(vid_menu_mode != DEF_SAPP0_MENU_NONE)
@@ -1612,10 +1624,13 @@ void Sapp0_main(void)
 					vid_linear_filter = !vid_linear_filter;
 					for(int k = 0; k < 2; k++)
 					{
-						for(int i = 0; i < 8; i++)
+						for(int i = 0; i < 4; i++)
 						{
-							if(vid_image_enabled[i][k])
-								Draw_c2d_image_set_filter(&vid_image[i][k], vid_linear_filter);
+							for(int s = 0; s < DEF_SAPP0_BUFFERS; s++)
+							{
+								if(vid_image_enabled[i][s][k])
+									Draw_c2d_image_set_filter(&vid_image[i][s][k], vid_linear_filter);
+							}
 						}
 					}
 					var_need_reflesh = true;

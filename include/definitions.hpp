@@ -55,6 +55,8 @@
 #define DEF_SAPP0_MENU_SETTINGS_1 1
 #define DEF_SAPP0_MENU_INFO 2
 
+#define DEF_SAPP0_BUFFERS 3
+
 //sample app 1
 #define DEF_SAPP1_NUM_OF_MSG 1
 //#define DEF_SAPP1_ENABLE_ICON

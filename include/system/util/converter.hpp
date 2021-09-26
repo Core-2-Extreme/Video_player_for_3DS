@@ -20,6 +20,6 @@ Result_with_string Util_converter_bgr888_to_yuv420p(u8* bgr888, u8** yuv420p, in
 
 Result_with_string Util_converter_y2r_init(void);
 
-Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height);
+Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height, bool texture_format);
 
 void Util_converter_y2r_exit(void);

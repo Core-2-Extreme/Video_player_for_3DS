@@ -306,7 +306,7 @@ Result_with_string Util_converter_y2r_init(void)
 	return result;
 }
 
-Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height)
+Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, int width, int height, bool texture_format)
 {
 	bool finished = false;
 	Y2RU_ConversionParams y2r_parameters;
@@ -323,7 +323,10 @@ Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565
 	y2r_parameters.input_format = INPUT_YUV420_INDIV_8;
 	y2r_parameters.output_format = OUTPUT_RGB_16_565;
 	y2r_parameters.rotation = ROTATION_NONE;
-	y2r_parameters.block_alignment = BLOCK_LINE;
+	if(texture_format)
+		y2r_parameters.block_alignment = BLOCK_8_BY_8;
+	else
+		y2r_parameters.block_alignment = BLOCK_LINE;
 	y2r_parameters.input_line_width = width;
 	y2r_parameters.input_lines = height;
 	y2r_parameters.standard_coefficient = COEFFICIENT_ITU_R_BT_709_SCALING;

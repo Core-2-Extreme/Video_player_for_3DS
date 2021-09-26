@@ -40,6 +40,51 @@ int Draw_convert_to_pos(int height, int width, int img_height, int img_width, in
 	return pos * pixel_size;
 }
 
+Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
+{
+	int pixel_size = 0;
+	int tex_offset = 0;
+	int buffer_offset = 0;
+	Result_with_string result;
+
+	if(color_format == GPU_RGB8)
+		pixel_size = 3;
+	else if(color_format == GPU_RGB565)
+		pixel_size = 2;
+	else
+	{
+		result.code = DEF_ERR_INVALID_ARG;
+		result.string = DEF_ERR_INVALID_ARG_STR;
+		return result;
+	}
+	
+	if(pic_width > 1024 || pic_height > 1024)
+	{
+		result.code = DEF_ERR_INVALID_ARG;
+		result.string = DEF_ERR_INVALID_ARG_STR;
+		return result;
+	}
+
+	image->subtex->width = (u16)pic_width;
+	image->subtex->height = (u16)pic_height;
+	image->subtex->left = 0.0;
+	image->subtex->top = 1.0;
+	image->subtex->right = pic_width / (float)tex_size_x;
+	image->subtex->bottom = 1.0 - pic_height / (float)tex_size_y;
+	image->c2d.subtex = image->subtex;
+
+	for(int i = 0; i < pic_height / 8; i++)
+	{
+		memcpy((void*)((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
+		tex_offset += tex_size_x * pixel_size * 8;
+		buffer_offset += pic_width * pixel_size * 8;
+	}
+
+	C3D_TexFlush(image->c2d.tex);
+
+	return result;
+}
+
 Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int tex_size_x, int tex_size_y, GPU_TEXCOLOR color_format)
 {
 	return Draw_set_texture_data(image, buf, pic_width, pic_height, 0, 0, tex_size_x, tex_size_y, color_format);

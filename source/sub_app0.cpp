@@ -276,11 +276,12 @@ void Sapp0_decode_thread(void* arg)
 					vid_codec_width = vid_width;
 					vid_codec_height = vid_height;
 					//fit to screen size
-					while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.05)
-						vid_zoom -= 0.001;
+					while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.00000000001)
+						vid_zoom -= 0.0000000001;
 
 					vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
 					vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
+					Util_log_save(DEF_SAPP0_DECODE_THREAD_STR, "width : " + std::to_string((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) + " height : " + std::to_string(vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) + " x : " + std::to_string(vid_x)+ " y : " + std::to_string(vid_y));
 
 					if(vid_codec_width % 16 != 0)
 						vid_codec_width += 16 - vid_codec_width % 16;
@@ -1182,6 +1183,8 @@ void Sapp0_main(void)
 	int back_color = DEF_DRAW_WHITE;
 	int image_num = 0;
 	int image_num_3d = 0;
+	double image_width[4] = { 0, 0, 0, 0, };
+	double image_height[4] = { 0, 0, 0, 0, };
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	std::string swkbd_input = "";
@@ -1214,6 +1217,12 @@ void Sapp0_main(void)
 		if(var_bottom_lcd_brightness > 10)
 			var_bottom_lcd_brightness--;
 	}
+
+	for(int i = 0; i < 4; i++)
+	{
+		image_width[i] = vid_tex_width[i] * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1) * vid_zoom;
+		image_height[i] = vid_tex_height[i] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom;
+	}
 	
 	if(var_need_reflesh || !var_eco_mode)
 	{
@@ -1227,18 +1236,13 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[0][image_num][0].c2d, vid_x, vid_y, vid_tex_width[0] * vid_zoom,
-				vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+				Draw_texture(vid_image[0][image_num][0].c2d, vid_x, vid_y, image_width[0], image_height[0]);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom), vid_y, 
-					vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + image_width[0]), vid_y, image_width[1], image_height[1]);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[2][image_num][0].c2d, vid_x, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
-					vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[2][image_num][0].c2d, vid_x, (vid_y + image_height[0]), image_width[2], image_height[2]);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom),
-					(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[3] * vid_zoom,
-					vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + image_width[0]), (vid_y + image_height[0]), image_width[3], image_height[3]);
 			}
 			else
 				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1267,18 +1271,14 @@ void Sapp0_main(void)
 
 				if(vid_play_request)
 				{
-					Draw_texture(vid_image[0][image_num_3d][1].c2d, vid_x, vid_y, vid_tex_width[0] * vid_zoom,
-					vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					//3d video (right eye)
+					Draw_texture(vid_image[0][image_num_3d][1].c2d, vid_x, vid_y, image_width[0], image_height[0]);
 					if(vid_codec_width > 1024)
-						Draw_texture(vid_image[1][image_num_3d][1].c2d, (vid_x + vid_tex_width[0] * vid_zoom), vid_y, 
-						vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[1][image_num_3d][1].c2d, (vid_x + image_width[0]), vid_y, image_width[1], image_height[1]);
 					if(vid_codec_height > 1024)
-						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_x, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom),
-						vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_x, (vid_y + image_height[0]), image_width[2], image_height[2]);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_x + vid_tex_width[0] * vid_zoom),
-						(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom), vid_tex_width[3] * vid_zoom,
-						vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_x + image_width[0]), (vid_y + image_height[0]), image_width[3], image_height[3]);
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -1305,18 +1305,13 @@ void Sapp0_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[0][image_num][0].c2d, vid_x - 40, vid_y - 240, vid_tex_width[0] * vid_zoom,
-				vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+				Draw_texture(vid_image[0][image_num][0].c2d, vid_x - 40, vid_y - 240, image_width[0], image_height[0]);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40, vid_y - 240, 
-					vid_tex_width[1] * vid_zoom, vid_tex_height[1] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + image_width[0] - 40), vid_y - 240, image_width[1], image_height[1]);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[2][image_num][0].c2d, vid_x - 40, (vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240,
-					vid_tex_width[2] * vid_zoom, vid_tex_height[2] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[2][image_num][0].c2d, vid_x - 40, (vid_y + image_height[0] - 240), image_width[2], image_height[2]);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + vid_tex_width[0] * vid_zoom) - 40,
-					(vid_y + vid_tex_height[0] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom) - 240, vid_tex_width[3] * vid_zoom,
-					vid_tex_height[3] * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1) * vid_zoom);
+					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + image_width[0] - 40), (vid_y + image_height[0] - 240), image_width[3], image_height[3]);
 			}
 
 			if(vid_menu_mode != DEF_SAPP0_MENU_NONE)
@@ -1353,7 +1348,7 @@ void Sapp0_main(void)
 
 				//correct aspect ratio
 				Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 145, 10);
-				Draw(vid_msg[DEF_SAPP0_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, var_high_resolution_mode ? color : disabled_color);
+				Draw(vid_msg[DEF_SAPP0_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, color);
 
 				//disable resize and move video
 				Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
@@ -1502,8 +1497,8 @@ void Sapp0_main(void)
 			{
 				//fit to screen size
 				vid_zoom = 1;
-				while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 225) && vid_zoom > 0.05)
-					vid_zoom -= 0.001;
+				while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.00000000001)
+					vid_zoom -= 0.0000000001;
 
 				vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
 				vid_y = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
@@ -1686,14 +1681,21 @@ void Sapp0_main(void)
 					vid_pause_request = false;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button) && var_high_resolution_mode)
+				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button))
 				{
 					vid_correct_aspect_ratio_button_selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, vid_correct_aspect_ratio_button) && var_high_resolution_mode && vid_correct_aspect_ratio_button_selected)
+				else if(Util_hid_is_released(key, vid_correct_aspect_ratio_button) && vid_correct_aspect_ratio_button_selected)
 				{
 					vid_correct_aspect_ratio_mode = !vid_correct_aspect_ratio_mode;
+					//fit to screen size
+					vid_zoom = 1;
+					while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.00000000001)
+						vid_zoom -= 0.0000000001;
+
+					vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
+					vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
 					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, vid_disable_resize_move_button))
@@ -1833,8 +1835,8 @@ void Sapp0_main(void)
 			{
 				//fit to screen size
 				vid_zoom = 1;
-				while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.05)
-					vid_zoom -= 0.001;
+				while(((vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1)) > 400 || (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) > 240) && vid_zoom > 0.000005)
+					vid_zoom -= 0.00001;
 
 				vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
 				vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;

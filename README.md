@@ -1,6 +1,13 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.3.3
+'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)) \
+Color conversion speed has been improved \
+Simplified Chinese(简体中文) translation has been added (by LITTOMA) \
+Italian(italiano) translation has been added (by dixy52-beep) \
+*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2
+
 ### v1.3.2
 Added aspect ratio 10:3 mode (for 800x240 videos) \
 Added disable resize and move video mode \
@@ -54,18 +61,62 @@ Zoom in/out video ✅ \
 Move video ✅ \
 File explorer ✅
 
-#### *0 New 3DS or New 2DS only
-#### *1 New 3DS or 3DS only, software decoder only, in order to see 3D video as 3D
-#### you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
+⚠️ *0 New 3DS and New 2DS only \
+⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
+you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 
 ## Performance
 
-Software decoding
-* 256x144(144p)@30fps(H.264) on OLD 3DS
-* 640x360(360p)@24fps(H.264) on NEW 3DS
+⚠️ Decoding speed depends on encoder option, video type, video scene, etc... \
+⚠️ This table shows average fps, so you may hear stutter audio if you use this framerate. \
+(Lower video resolution or framerate in that case) \
+Software decoding in this table uses only one thread not multi-threaded decoding.
 
-Hardware decoding
-* 854x480(480p)@40~50fps(H.264) on NEW 3DS
+#### MPEG1video
+MPEG1video test file was encoded following command : \
+ffmpeg -i {input_file_name} -acodec copy -vcodec mpeg1video -s {width}x{height} -r 30 -q:v 15 {output_file_name}
+
+|        MPEG1video        | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
+| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
+| OLD3DS Software decoding |     69.0fps    |     39.9fps    |     24.0fps    | 27.4fps |     16.7fps    |
+| NEW3DS Software decoding |    532.0fps    |    267.2fps    |    119.8fps    |158.0fps |     69.4fps    |
+
+#### MPEG2video
+MPEG2video test file was encoded following command : \
+ffmpeg -i {input_file_name} -acodec copy -vcodec mpeg2video -s {width}x{height} -r 30 -q:v 15 {output_file_name}
+
+|        MPEG2video        | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
+| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
+| OLD3DS Software decoding |     67.1fps    |     37.6fps    |     22.3fps    | 26.3fps |     15.4fps    |
+| NEW3DS Software decoding |    518.8fps    |    254.2fps    |    113.9fps    |145.7fps |     65.9fps    |
+
+#### H263+
+H263+ test file was encoded following command : \
+ffmpeg -i {input_file_name} -acodec copy -vcodec h263p -s {width}x{height} -r 30 -q:v 15 {output_file_name}
+
+|          H.263+          | 256x144 (144p) | 424x240 (240p) | 640x360 (360p) | 800x240 | 856x480 (480p) |
+| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
+| OLD3DS Software decoding |     62.8fps    |     35.6fps    |     21.1fps    | 24.6fps |      8.7fps    |
+| NEW3DS Software decoding |    527.9fps    |    257.8fps    |    113.1fps    |144.2fps |     33.9fps    |
+
+#### H264
+H264 test file was encoded following command : \
+ffmpeg -i {input_file_name} -acodec copy -vcodec libx264 -s {width}x{height} -r 30 -preset fast -profile:v baseline  {output_file_name}
+
+|          H.264           | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
+| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
+| OLD3DS Software decoding |     30.7fps    |     15.9fps    |      8.8fps    | 10.2fps |      5.4fps    |
+| NEW3DS Software decoding |    226.7fps    |     95.1fps    |     43.4fps    | 53.2fps |     25.1fps    |
+| NEW3DS Hardware decoding |    560.6fps    |    338.7fps    |    206.0fps    |235.3fps |    114.7fps    |
+
+#### H265
+H265 test file was encoded following command : \
+ffmpeg -i {input_file_name} -acodec copy -vcodec libx265 -s {width}x{height} -r 30 -preset fast -profile:v main  {output_file_name}
+
+|          H.265           | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
+| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
+| OLD3DS Software decoding |     22.4fps    |     11.3fps    |      6.2fps    |  7.2fps |      3.9fps    |
+| NEW3DS Software decoding |    136.8fps    |     55.7fps    |     26.4fps    | 30.9fps |     15.3fps    |
 
 Known issues : 
 * ~~Video won't play in some resolution~~ (fixed in v1.2.0)
@@ -77,13 +128,16 @@ windows-server-2003)
 * English
 * Japanese/日本語
 * Hungarian/magyar (translated by vargaviktor)
+* Simplified Chinese/简体中文 (translated by LITTOMA)
+* Italian/italiano (translated by dixy52-beep)
 
 ## Supported video codec
 * Motion jpeg
 * MPEG4 (MPEG4 part2)
-* H.261 (mpeg1video)
-* H.262 (mpeg2video)
-* H.263 
+* MPEG1video
+* MPEG2video
+* H.263
+* H.263+
 * H.264 (AVC, MPEG4 part10)
 * H.265 (HEVC)
 
@@ -108,7 +162,8 @@ windows-server-2003)
 
 ## Credits
 * Core 2 Extreme
-* dixy52-beep (icon, banner, in app texture)
+* dixy52-beep (icon, banner, in app texture, italian translation)
 * windows-server-2003 (bug fix)
 * vargaviktor (hungarian translation)
 * HIDE810 (bug fix)
+* LITTOMA (simplified chinese translation)

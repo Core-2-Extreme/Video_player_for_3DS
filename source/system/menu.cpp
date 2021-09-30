@@ -105,7 +105,7 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "aptInit()...", aptInit());
 	Util_log_save(DEF_MENU_INIT_STR, "mcuHwcInit()...", mcuHwcInit());
 	Util_log_save(DEF_MENU_INIT_STR, "ptmuInit()...", ptmuInit());
-	Util_log_save(DEF_MENU_INIT_STR, "httpcInit()...", httpcInit(0x500000));
+	Util_log_save(DEF_MENU_INIT_STR, "httpcInit()...", httpcInit(DEF_HTTP_POST_BUFFER_SIZE));
 	Util_log_save(DEF_MENU_INIT_STR, "romfsInit()...", romfsInit());
 	Util_log_save(DEF_MENU_INIT_STR, "cfguInit()...", cfguInit());
 	Util_log_save(DEF_MENU_INIT_STR, "amInit()...", amInit());

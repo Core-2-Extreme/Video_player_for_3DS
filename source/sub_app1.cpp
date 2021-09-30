@@ -101,9 +101,9 @@ void Sapp1_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp1_load_msg(void)
+Result_with_string Sapp1_load_msg(std::string lang)
 {
-	return Util_load_msg("sapp1_" + var_lang + ".txt", sapp1_msg, DEF_SAPP1_NUM_OF_MSG);
+	return Util_load_msg("sapp1_" + lang + ".txt", sapp1_msg, DEF_SAPP1_NUM_OF_MSG);
 }
 
 void Sapp1_init(void)

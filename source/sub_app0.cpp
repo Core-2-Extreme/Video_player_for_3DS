@@ -929,9 +929,9 @@ void Sapp0_suspend(void)
 	Menu_resume();
 }
 
-Result_with_string Sapp0_load_msg(void)
+Result_with_string Sapp0_load_msg(std::string lang)
 {
-	return Util_load_msg("sapp0_" + var_lang + ".txt", vid_msg, DEF_SAPP0_NUM_OF_MSG);
+	return Util_load_msg("sapp0_" + lang + ".txt", vid_msg, DEF_SAPP0_NUM_OF_MSG);
 }
 
 void Sapp0_init(void)

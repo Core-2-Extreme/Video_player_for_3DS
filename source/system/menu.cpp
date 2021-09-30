@@ -78,9 +78,9 @@ void Menu_suspend(void)
 	menu_main_run = false;
 }
 
-Result_with_string Menu_load_msg(void)
+Result_with_string Menu_load_msg(std::string lang)
 {
-	return Util_load_msg("menu_" + var_lang + ".txt", menu_msg, DEF_MENU_NUM_OF_MSG);
+	return Util_load_msg("menu_" + lang + ".txt", menu_msg, DEF_MENU_NUM_OF_MSG);
 }
 
 void Menu_check_core_thread(void* arg)

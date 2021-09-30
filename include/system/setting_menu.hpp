@@ -8,7 +8,7 @@ void Sem_resume(void);
 
 void Sem_suspend(void);
 
-Result_with_string Sem_load_msg(void);
+Result_with_string Sem_load_msg(std::string lang);
 
 void Sem_init(void);
 

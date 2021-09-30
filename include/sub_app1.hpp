@@ -9,7 +9,7 @@ void Sapp1_resume(void);
 
 void Sapp1_suspend(void);
 
-Result_with_string Sapp1_load_msg(void);
+Result_with_string Sapp1_load_msg(std::string lang);
 
 void Sapp1_init(void);
 

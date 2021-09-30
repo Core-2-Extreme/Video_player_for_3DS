@@ -119,9 +119,9 @@ void Sem_suspend(void)
 	sem_main_run = false;
 }
 
-Result_with_string Sem_load_msg(void)
+Result_with_string Sem_load_msg(std::string lang)
 {
-	return Util_load_msg("sem_" + var_lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
+	return Util_load_msg("sem_" + lang + ".txt", sem_msg, DEF_SEM_NUM_OF_MSG);
 }
 
 void Sem_init(void)
@@ -1660,50 +1660,100 @@ void Sem_worker_thread(void* arg)
 	{
 		if (sem_reload_msg_request)
 		{
-			result = Sem_load_msg();
+			result = Sem_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sem_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sem_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sem_load_msg()..." + result.string + result.error_description, result.code);
+			}
 
-			result = Menu_load_msg();
+			result = Menu_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Menu_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			
 			#ifdef DEF_ENABLE_SUB_APP0
-			result = Sapp0_load_msg();
+			result = Sapp0_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp0_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP1
-			result = Sapp1_load_msg();
+			result = Sapp1_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp1_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp1_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp1_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP2
-			result = Sapp2_load_msg();
+			result = Sapp2_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp2_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp2_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp2_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP3
-			result = Sapp3_load_msg();
+			result = Sapp3_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp3_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp3_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP4
-			result = Sapp4_load_msg();
+			result = Sapp4_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp4_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp4_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP5
-			result = Sapp5_load_msg();
+			result = Sapp5_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp5_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp5_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp5_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP6
-			result = Sapp6_load_msg();
+			result = Sapp6_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp6_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp6_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp6_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			#ifdef DEF_ENABLE_SUB_APP7
-			result = Sapp7_load_msg();
+			result = Sapp7_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp7_load_msg()..." + result.string + result.error_description, result.code);
+			if (result.code != 0)
+			{
+				result = Sapp7_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp7_load_msg()..." + result.string + result.error_description, result.code);
+			}
 			#endif
 
 			sem_reload_msg_request = false;

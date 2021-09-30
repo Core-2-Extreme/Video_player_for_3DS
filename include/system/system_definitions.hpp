@@ -112,9 +112,6 @@
 #define DEF_SEM_CHINESE_MSG 60
 #define DEF_SEM_ITALIAN_MSG 61
 
-//draw
-#define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS 128
-
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00
@@ -133,17 +130,11 @@
 #define DEF_DRAW_NO_COLOR 0x0
 
 //decoder 
-#define DEF_DECODER_MAX_AUDIO_TRACKS 8
-#define DEF_DECODER_MAX_VIDEO_TRACKS 2
-#define DEF_DECODER_MAX_SESSIONS 2
 #define DEF_DECODER_THREAD_TYPE_NONE 0
 #define DEF_DECODER_THREAD_TYPE_FRAME 1
 #define DEF_DECODER_THREAD_TYPE_SLICE 2
 #define DEF_DECODER_THREAD_TYPE_AUTO 3
 #define STB_IMAGE_IMPLEMENTATION
-
-//encoder
-#define DEF_ENCODER_MAX_SESSIONS 2
 
 //error num
 #define DEF_ERR_SUMMARY 0
@@ -171,7 +162,6 @@
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
 
 //explorer
-#define DEF_EXPL_MAX_FILES 256
 #define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
 #define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
 #define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
@@ -191,18 +181,7 @@
 #define DEF_HID_SCAN_THREAD_STR (std::string)"Hid/Scan thread"
 
 //log
-#define DEF_LOG_BUFFER_LINES 512
 #define DEF_LOG_DISPLAYED_LINES 23
-#define DEF_LOG_COLOR 0xFFBBBB00
-
-//muxer
-#define DEF_MUXER_MAX_SESSIONS 2
-
-//speaker
-#define DEF_SPEAKER_MAX_BUFFERS 64
-
-//swkbd
-#define DEF_SWKBD_MAX_DIC_WORDS 128
 
 //thread
 #define DEF_STACKSIZE (64 * 1024)

@@ -24,14 +24,21 @@ int util_video_decoder_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDE
 int util_video_decoder_ready_buffer_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_packet_size = 0;
+int util_decoder_available_cache_packet[DEF_DECODER_MAX_SESSIONS];
+int util_decoder_cache_packet_ready_index[DEF_DECODER_MAX_SESSIONS];
+int util_decoder_cache_packet_current_index[DEF_DECODER_MAX_SESSIONS];
 u8* util_video_decoder_mvd_raw_data = NULL;
 u8* util_video_decoder_mvd_packet = NULL;
+AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS];
 AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 AVFrame* util_video_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS * 3];
 AVCodecContext* util_video_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 MVDSTD_Config util_decoder_mvd_config;
+Handle util_decoder_counter_mutex[DEF_DECODER_MAX_SESSIONS];
+Handle util_decoder_read_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS];
+Handle util_decoder_parse_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS];
 
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { NULL, NULL, };
 
@@ -94,6 +101,12 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 		goto fail;
 	}
 
+	svcCreateMutex(&util_decoder_counter_mutex[session], false);
+	svcCreateMutex(&util_decoder_read_cache_packet_mutex[session], false);
+	svcCreateMutex(&util_decoder_parse_cache_packet_mutex[session], false);
+	util_decoder_cache_packet_ready_index[session] = 0;
+	util_decoder_cache_packet_current_index[session] = 0;
+	util_decoder_available_cache_packet[session] = 0;
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		util_audio_decoder_stream_num[session][i] = -1;
 
@@ -319,16 +332,98 @@ void Util_video_decoder_get_info(int* width, int* height, double* framerate, std
 	*duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 }
 
-Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index, bool* key_frame, int session)
+void Util_decoder_clear_cache_packet(int session)
+{
+	svcWaitSynchronization(util_decoder_read_cache_packet_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_decoder_parse_cache_packet_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_decoder_counter_mutex[session], U64_MAX);
+	
+	for(int i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
+		av_packet_free(&util_decoder_cache_packet[session][i]);
+
+	util_decoder_available_cache_packet[session] = 0;
+	util_decoder_cache_packet_current_index[session] = 0;
+	util_decoder_cache_packet_ready_index[session] = 0;
+
+	svcReleaseMutex(util_decoder_read_cache_packet_mutex[session]);
+	svcReleaseMutex(util_decoder_parse_cache_packet_mutex[session]);
+	svcReleaseMutex(util_decoder_counter_mutex[session]);
+}
+
+int Util_decoder_get_available_packet_num(int session)
+{
+	return util_decoder_available_cache_packet[session];
+}
+
+Result_with_string Util_decoder_read_packet(int session)
 {
 	Result_with_string result;
 	int ffmpeg_result = 0;
-	AVPacket* cache_packet = NULL;
+
+	svcWaitSynchronization(util_decoder_read_cache_packet_mutex[session], U64_MAX);
+	if(util_decoder_available_cache_packet[session] + 1 >= DEF_DECODER_MAX_CACHE_PACKETS)
+	{
+		svcReleaseMutex(util_decoder_read_cache_packet_mutex[session]);
+		result.code = DEF_ERR_OTHER;
+		result.string = DEF_ERR_OTHER_STR;
+		result.error_description = "[Error] Queue is full";
+		return result;
+	}
+
+	util_decoder_cache_packet[session][util_decoder_cache_packet_ready_index[session]] = av_packet_alloc();
+	if(!util_decoder_cache_packet[session][util_decoder_cache_packet_ready_index[session]])
+	{
+		result.error_description = "av_packet_alloc() failed";
+		goto fail;
+	}
+
+	ffmpeg_result = av_read_frame(util_decoder_format_context[session], util_decoder_cache_packet[session][util_decoder_cache_packet_ready_index[session]]);
+	if(ffmpeg_result != 0)
+	{
+		result.error_description = "av_read_frame() failed";
+		goto fail;
+	}
+
+	if(util_decoder_cache_packet_ready_index[session] + 1 < DEF_DECODER_MAX_CACHE_PACKETS)
+		util_decoder_cache_packet_ready_index[session]++;
+	else
+		util_decoder_cache_packet_ready_index[session] = 0;
+	svcReleaseMutex(util_decoder_read_cache_packet_mutex[session]);
+
+	svcWaitSynchronization(util_decoder_counter_mutex[session], U64_MAX);
+	util_decoder_available_cache_packet[session]++;
+	svcReleaseMutex(util_decoder_counter_mutex[session]);
+
+	return result;
+
+	fail:
+
+	av_packet_free(&util_decoder_cache_packet[session][util_decoder_cache_packet_ready_index[session]]);
+	svcReleaseMutex(util_decoder_read_cache_packet_mutex[session]);
+	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
+	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
+	return result;
+}
+
+Result_with_string Util_decoder_parse_packet(std::string* type, int* packet_index, bool* key_frame, int session)
+{
+	Result_with_string result;
+	int ffmpeg_result = 0;
 	*key_frame = false;
 	*packet_index = -1;
 	*type = "unknown";
 
-	cache_packet = av_packet_alloc();
+	svcWaitSynchronization(util_decoder_parse_cache_packet_mutex[session], U64_MAX);
+	if(util_decoder_available_cache_packet[session] <= 0)
+	{
+		svcReleaseMutex(util_decoder_parse_cache_packet_mutex[session]);
+		result.code = DEF_ERR_OTHER;
+		result.string = DEF_ERR_OTHER_STR;
+		result.error_description = "[Error] No packet available";
+		return result;
+	}
+
+	/*cache_packet = av_packet_alloc();
 	if(!cache_packet)
 	{
 		result.error_description = "av_packet_alloc() failed";
@@ -340,11 +435,11 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 	{
 		result.error_description = "av_read_frame() failed";
 		goto fail;
-	}
+	}*/
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)	
 	{
-		if(cache_packet->stream_index == util_audio_decoder_stream_num[session][i])//audio packet
+		if(util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->stream_index == util_audio_decoder_stream_num[session][i])//audio packet
 		{
 			util_audio_decoder_cache_packet[session][i] = av_packet_alloc();
 			if(!util_audio_decoder_cache_packet[session][i])
@@ -355,7 +450,7 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 			}
 
 			av_packet_unref(util_audio_decoder_cache_packet[session][i]);
-			ffmpeg_result = av_packet_ref(util_audio_decoder_cache_packet[session][i], cache_packet);
+			ffmpeg_result = av_packet_ref(util_audio_decoder_cache_packet[session][i], util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]);
 			if(ffmpeg_result != 0)
 			{
 				result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
@@ -372,7 +467,7 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 	{
 		for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 		{
-			if(cache_packet->stream_index == util_video_decoder_stream_num[session][i])//video packet
+			if(util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->stream_index == util_video_decoder_stream_num[session][i])//video packet
 			{
 				util_video_decoder_cache_packet[session][i] = av_packet_alloc();
 				if(!util_video_decoder_cache_packet[session][i])
@@ -383,7 +478,7 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 				}
 
 				av_packet_unref(util_video_decoder_cache_packet[session][i]);
-				ffmpeg_result = av_packet_ref(util_video_decoder_cache_packet[session][i], cache_packet);
+				ffmpeg_result = av_packet_ref(util_video_decoder_cache_packet[session][i], util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]);
 				if(ffmpeg_result != 0)
 				{
 					result.error_description = "av_packet_ref() failed" + std::to_string(ffmpeg_result);
@@ -392,19 +487,28 @@ Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index
 				}
 				*packet_index = i;
 				*type = "video";
-				*key_frame = util_video_decoder_cache_packet[session][i]->flags;
+				*key_frame = util_video_decoder_cache_packet[session][i]->flags & AV_PKT_FLAG_KEY;
 				
 				break;
 			}
 		}
 	}
 
-	av_packet_free(&cache_packet);
+	av_packet_free(&util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]);
+	if(util_decoder_cache_packet_current_index[session] + 1 < DEF_DECODER_MAX_CACHE_PACKETS)
+		util_decoder_cache_packet_current_index[session]++;
+	else
+		util_decoder_cache_packet_current_index[session] = 0;
+	svcReleaseMutex(util_decoder_parse_cache_packet_mutex[session]);
+	
+	svcWaitSynchronization(util_decoder_counter_mutex[session], U64_MAX);
+	util_decoder_available_cache_packet[session]--;
+	svcReleaseMutex(util_decoder_counter_mutex[session]);
 	return result;
 
 	fail:
 
-	av_packet_free(&cache_packet);
+	svcReleaseMutex(util_decoder_parse_cache_packet_mutex[session]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -759,7 +863,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 		util_video_decoder_lock[session][buffer_num] = false;//unlock
 		return result;
 	}
-
+	
 	memcpy_asm(*raw_data, util_video_decoder_raw_data[session][buffer_num]->data[0], cpy_size[0]);
 	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_data[session][buffer_num]->data[1], cpy_size[1]);
 	memcpy_asm(*raw_data + (width * height) + (width * height / 4), util_video_decoder_raw_data[session][buffer_num]->data[2], cpy_size[1]);
@@ -775,7 +879,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 
 	cpy_size = (width * height * 2);
 	cpy_size -= cpy_size % 32;
-	*raw_data = (u8*)malloc(width * height * 2);
+	*raw_data = (u8*)linearAlloc(width * height * 2);
 	if(*raw_data == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -793,7 +897,9 @@ Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session)
 	int ffmpeg_result;
 	Result_with_string result;
 
+	svcWaitSynchronization(util_decoder_read_cache_packet_mutex[session], U64_MAX);
 	ffmpeg_result = avformat_seek_file(util_decoder_format_context[session], -1, INT64_MIN, seek_pos, INT64_MAX, flag);//AVSEEK_FLAG_FRAME 8 AVSEEK_FLAG_ANY 4  AVSEEK_FLAG_BACKWORD 1
+	svcReleaseMutex(util_decoder_read_cache_packet_mutex[session]);
 	if(ffmpeg_result < 0)
 	{
 		result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -806,7 +912,12 @@ Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session)
 
 void Util_decoder_close_file(int session)
 {
+	for(int i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
+		av_packet_free(&util_decoder_cache_packet[session][i]);
 	avformat_close_input(&util_decoder_format_context[session]);
+	svcCloseHandle(util_decoder_counter_mutex[session]);
+	svcCloseHandle(util_decoder_read_cache_packet_mutex[session]);
+	svcCloseHandle(util_decoder_parse_cache_packet_mutex[session]);
 }
 
 void Util_audio_decoder_exit(int session)

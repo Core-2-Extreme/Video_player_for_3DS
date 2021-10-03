@@ -19,6 +19,7 @@
 //#define DEF_ENABLE_SUB_APP6
 //#define DEF_ENABLE_SUB_APP7
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS 128
+#define DEF_DECODER_MAX_CACHE_PACKETS 256
 #define DEF_DECODER_MAX_AUDIO_TRACKS 8
 #define DEF_DECODER_MAX_VIDEO_TRACKS 2
 #define DEF_DECODER_MAX_SESSIONS 2
@@ -44,6 +45,7 @@
 #define DEF_SAPP0_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
 #define DEF_SAPP0_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
 #define DEF_SAPP0_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
+#define DEF_SAPP0_READ_PACKET_THREAD_STR (std::string)"Vid/Read packet thread"
 #define DEF_SAPP0_TEX_FILTER_MSG 0
 #define DEF_SAPP0_CONTROLS_MSG 1
 #define DEF_SAPP0_SKIP_FRAME_MSG 2

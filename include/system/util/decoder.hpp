@@ -12,7 +12,13 @@ void Util_audio_decoder_get_info(int* bitrate, int* sample_rate, int* ch, std::s
 
 void Util_video_decoder_get_info(int* width, int* height, double* framerate, std::string* format_name, double* duration, int* thread_type, int* sar_width, int* sar_height, int video_index, int session);
 
-Result_with_string Util_decoder_read_packet(std::string* type, int* packet_index, bool* key_frame, int session);
+void Util_decoder_clear_cache_packet(int session);
+
+int Util_decoder_get_available_packet_num(int session);
+
+Result_with_string Util_decoder_read_packet(int session);
+
+Result_with_string Util_decoder_parse_packet(std::string* type, int* packet_index, bool* key_frame, int session);
 
 Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session);
 

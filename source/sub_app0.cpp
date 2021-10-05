@@ -922,11 +922,7 @@ void Sapp0_convert_thread(void* arg)
 				}
 
 				free(yuv_video);
-				if(vid_hw_decoding_mode)
-					linearFree(video);
-				else
-					free(video);
-
+				free(video);
 				yuv_video = NULL;
 				video = NULL;
 
@@ -1217,7 +1213,7 @@ void Sapp0_init(void)
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_button[i].c2d = var_square_image[0];
-
+	
 	Sapp0_resume();
 	vid_already_init = true;
 	Util_log_save(DEF_SAPP0_INIT_STR, "Initialized.");

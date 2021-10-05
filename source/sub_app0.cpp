@@ -1292,9 +1292,9 @@ void Sapp0_main(void)
 	if(vid_turn_off_bottom_screen_count > 0)
 	{
 		vid_turn_off_bottom_screen_count--;
-		if(vid_turn_off_bottom_screen_count == 0)
+		if(vid_turn_off_bottom_screen_count == 0 && var_model != CFG_MODEL_2DS)
 			var_turn_on_bottom_lcd = false;
-		if(var_bottom_lcd_brightness > 10)
+		if(var_bottom_lcd_brightness > 10 && var_model != CFG_MODEL_2DS)
 			var_bottom_lcd_brightness--;
 	}
 

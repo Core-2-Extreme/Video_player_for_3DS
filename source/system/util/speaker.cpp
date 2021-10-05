@@ -48,9 +48,9 @@ Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer
 		return result;
 	}
 
-	linearFree((void*)util_ndsp_buffer[play_ch][free_queue].data_vaddr);
+	Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][free_queue].data_vaddr);
 	util_ndsp_buffer[play_ch][free_queue].data_vaddr = NULL;
-	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (u8*)linearAlloc(size * music_ch);
+	util_ndsp_buffer[play_ch][free_queue].data_vaddr = (u8*)Util_safe_linear_alloc(size * music_ch);
 	if(util_ndsp_buffer[play_ch][free_queue].data_vaddr == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
@@ -97,7 +97,7 @@ void Util_speaker_exit(int play_ch)
 	ndspChnSetPaused(play_ch, false);
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
-		linearFree((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
+		Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 	}
 }

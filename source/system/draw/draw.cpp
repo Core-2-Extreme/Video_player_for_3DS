@@ -14,6 +14,8 @@ std::string util_draw_japanese_kanji[3000];
 std::string util_draw_simple_chinese[6300];
 TickCounter util_draw_frame_time_stopwatch;
 
+extern "C" void memcpy_asm(u8*, u8*, int);
+
 double Draw_query_frametime(void)
 {
 	return util_draw_frametime[9];
@@ -75,7 +77,7 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 
 	for(int i = 0; i < pic_height / 8; i++)
 	{
-		memcpy((void*)((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
+		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
 		tex_offset += tex_size_x * pixel_size * 8;
 		buffer_offset += pic_width * pixel_size * 8;
 	}
@@ -205,12 +207,12 @@ Result_with_string Draw_c2d_image_init(Image_data* image, int tex_size_x, int te
 {
 	Result_with_string result;
 
-	image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture*));
-	image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex*));
+	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture*));
+	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex*));
 	if(image->subtex == NULL || image->c2d.tex == NULL)
 	{
-		linearFree(image->subtex);
-		linearFree(image->c2d.tex);
+		Util_safe_linear_free(image->subtex);
+		Util_safe_linear_free(image->c2d.tex);
 		image->subtex = NULL;
 		image->c2d.tex = NULL;
 		result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
@@ -235,9 +237,9 @@ Result_with_string Draw_c2d_image_init(Image_data* image, int tex_size_x, int te
 
 void Draw_c2d_image_free(Image_data image)
 {
-	linearFree(image.c2d.tex->data);
-	linearFree(image.c2d.tex);
-	linearFree(image.subtex);
+	Util_safe_linear_free(image.c2d.tex->data);
+	Util_safe_linear_free(image.c2d.tex);
+	Util_safe_linear_free(image.subtex);
 	image.c2d.tex->data = NULL;
 	image.c2d.tex = NULL;
 	image.c2d.subtex = NULL;

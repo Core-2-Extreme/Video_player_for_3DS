@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+Handle util_safe_linear_memory_mutex = -1;
+
 Result_with_string Util_parse_file(std::string source_data, int num_of_items, std::string out_data[])
 {
 	Result_with_string result;
@@ -130,4 +132,32 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 
 	free(fs_buffer);
 	return result;
+}
+
+void Util_init(void)
+{
+	svcCreateMutex(&util_safe_linear_memory_mutex, false);
+}
+
+void Util_exit(void)
+{
+	svcCloseHandle(util_safe_linear_memory_mutex);
+}
+
+void* Util_safe_linear_alloc(int size)
+{
+	void* pointer = NULL;
+
+	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+	pointer = linearAlloc(size);
+	svcReleaseMutex(util_safe_linear_memory_mutex);
+
+	return pointer;
+}
+
+void Util_safe_linear_free(void* pointer)
+{
+	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+	linearFree(pointer);
+	svcReleaseMutex(util_safe_linear_memory_mutex);
 }

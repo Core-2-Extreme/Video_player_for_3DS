@@ -1313,6 +1313,9 @@ void Sapp0_main(void)
 		{
 			Draw_screen_ready(0, vid_full_screen_mode ? DEF_DRAW_BLACK : back_color);
 
+			if(!vid_full_screen_mode)
+				Draw_top_ui();
+
 			if(vid_play_request)
 			{
 				//video
@@ -1341,9 +1344,6 @@ void Sapp0_main(void)
 
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
-
-			if(!vid_full_screen_mode)
-				Draw_top_ui();
 
 			if(var_3d_mode)
 			{

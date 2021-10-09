@@ -62,3 +62,5 @@ turn off the '800px mode'
 <59>Magyar</59>
 <60>简体中文</60>
 <61>Italiano</61>
+<62>Use fake model (restart to apply
+some function may not work)</62>

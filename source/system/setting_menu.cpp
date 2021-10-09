@@ -60,7 +60,9 @@ sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_sel
 sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected, sem_debug_mode_off_button_selected,
 sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected, sem_record_top_lcd_button_selected,
 sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected, sem_3dsx_button_selected,
-sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected = false;
+sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected,
+sem_use_fake_model_button_selected;
+u8 sem_fake_model_num = 255;
 u8* sem_yuv420p = NULL;
 u32 sem_dled_size = 0;
 int sem_rec_width = 400;
@@ -86,8 +88,9 @@ sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mo
 sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
 sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button,
 sem_deny_send_info_button, sem_debug_mode_on_button, sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,
-sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_select_edtion_button, sem_close_updater_button,
-sem_3dsx_button, sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, sem_close_app_button;
+sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_select_edtion_button,
+sem_close_updater_button, sem_3dsx_button, sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, 
+sem_close_app_button, sem_use_fake_model_button;
 
 void Sem_encode_thread(void* arg);
 void Sem_record_thread(void* arg);
@@ -128,31 +131,13 @@ void Sem_init(void)
 {
 	Util_log_save(DEF_SEM_INIT_STR, "Initializing...");
 	bool wifi_state = true;
-	u8 region;
-	u8 model;
 	u8* cache = (u8*)malloc(0x1000);
 	u32 read_size = 0;
 	std::string data[11];
 	Result_with_string result;
-	
-	//create directory
-	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
 
-	if(CFGU_SecureInfoGetRegion(&region) == 0)
-	{
-		if(region == CFG_REGION_CHN)
-			var_system_region = 1;
-		else if(region == CFG_REGION_KOR)
-			var_system_region = 2;
-		else if(region == CFG_REGION_TWN)
-			var_system_region = 3;
-		else
-			var_system_region = 0;
-	}
-
-	if(CFGU_GetSystemModel(&model) == 0)
-		var_model = model;
+	if(var_fake_model)
+		sem_fake_model_num = var_model;
 
 	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_SEM_INIT_STR , "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
@@ -259,6 +244,7 @@ void Sem_draw_init(void)
 	sem_dl_install_button.c2d = var_square_image[0];
 	sem_back_to_patch_note_button.c2d = var_square_image[0];
 	sem_close_app_button.c2d = var_square_image[0];
+	sem_use_fake_model_button.c2d = var_square_image[0];
 
 	for(int i = 0; i < 9; i++)
 		sem_menu_button[i].c2d = var_square_image[0];
@@ -286,6 +272,10 @@ void Sem_exit(void)
 
 	log_num = Util_log_save(DEF_SEM_EXIT_STR, "Util_file_save_to_file()...");
 	result = Util_file_save_to_file("settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
+	Util_log_add(log_num, result.string, result.code);
+
+	log_num = Util_log_save(DEF_SEM_EXIT_STR, "Util_file_save_to_file()...");
+	result = Util_file_save_to_file("fake_model.txt", DEF_MAIN_DIR, &sem_fake_model_num, 1, true);
 	Util_log_add(log_num, result.string, result.code);
 
 	Util_log_save(DEF_SEM_EXIT_STR, "threadJoin()...", threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME));
@@ -692,6 +682,14 @@ void Sem_main(void)
 			//OFF
 			Draw_texture(&sem_debug_mode_off_button, sem_debug_mode_off_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
 			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.75, 0.75, var_debug_mode ? color : DEF_DRAW_RED);
+
+			//Fake model
+			Draw(sem_msg[DEF_SEM_FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
+			Draw_texture(&sem_use_fake_model_button, sem_use_fake_model_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 130, 190, 20);
+			if(sem_fake_model_num <= 5)
+				Draw(sem_msg[DEF_SEM_ON_MSG] + " (" + var_model_name[sem_fake_model_num] + ")", 10, 130, 0.75, 0.75, color);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 10, 130, 0.75, 0.75, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 		{
@@ -1248,6 +1246,20 @@ void Sem_main(void)
 					var_debug_mode = false;
 					var_need_reflesh = true;
 				}
+				else if (Util_hid_is_pressed(key, sem_use_fake_model_button))
+				{
+					sem_use_fake_model_button_selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button_selected)
+				{
+					if((u8)(sem_fake_model_num + 1) > 5)
+						sem_fake_model_num = 255;
+					else
+						sem_fake_model_num++;
+					
+					var_need_reflesh = true;
+				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
 			{
@@ -1354,7 +1366,8 @@ void Sem_main(void)
 			|| sem_scroll_speed_bar_selected || sem_wifi_on_button_selected || sem_wifi_off_button_selected || sem_allow_send_info_button_selected
 			|| sem_deny_send_info_button_selected || sem_debug_mode_on_button_selected || sem_debug_mode_off_button_selected || sem_eco_mode_on_button_selected
 			|| sem_eco_mode_off_button_selected || sem_record_both_lcd_button_selected || sem_record_top_lcd_button_selected 
-			|| sem_record_bottom_lcd_button_selected || sem_load_all_ex_font_button_selected || sem_unload_all_ex_font_button_selected)
+			|| sem_record_bottom_lcd_button_selected || sem_load_all_ex_font_button_selected || sem_unload_all_ex_font_button_selected
+			|| sem_use_fake_model_button_selected)
 				var_need_reflesh = true;
 
 			sem_back_button_selected = sem_scroll_bar_selected = sem_check_update_button_selected = sem_close_updater_button_selected
@@ -1366,7 +1379,8 @@ void Sem_main(void)
 			= sem_scroll_speed_bar_selected = sem_wifi_on_button_selected = sem_wifi_off_button_selected = sem_allow_send_info_button_selected
 			= sem_deny_send_info_button_selected = sem_debug_mode_on_button_selected = sem_debug_mode_off_button_selected = sem_eco_mode_on_button_selected
 			= sem_eco_mode_off_button_selected = sem_record_both_lcd_button_selected = sem_record_top_lcd_button_selected
-			= sem_record_bottom_lcd_button_selected = sem_load_all_ex_font_button_selected = sem_unload_all_ex_font_button_selected = false;
+			= sem_record_bottom_lcd_button_selected = sem_load_all_ex_font_button_selected = sem_unload_all_ex_font_button_selected 
+			= sem_use_fake_model_button_selected = false;
 
 			for (int i = 0; i < 9; i++)
 			{

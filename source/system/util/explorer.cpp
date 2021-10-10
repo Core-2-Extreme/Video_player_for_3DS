@@ -5,6 +5,7 @@ void (*util_expl_cancel_callback)(void);
 bool util_expl_thread_run = false;
 bool util_expl_read_dir_request = false;
 bool util_expl_show_flag = false;
+bool util_expl_scroll_mode = false;
 int util_expl_num_of_file = 0;
 int util_expl_size[DEF_EXPL_MAX_FILES];
 double util_expl_y_offset = 0.0;
@@ -13,6 +14,7 @@ std::string util_expl_current_patch = "/";
 std::string util_expl_files[DEF_EXPL_MAX_FILES];
 std::string util_expl_type[DEF_EXPL_MAX_FILES];
 Thread util_expl_read_dir_thread;
+Image_data util_expl_file_button[16];
 
 void Util_expl_read_dir_thread(void* arg);
 
@@ -84,6 +86,9 @@ void Util_expl_init(void)
 	util_expl_thread_run = true;
 	util_expl_read_dir_thread = threadCreate(Util_expl_read_dir_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 	
+	for(int i = 0; i < 16; i++)
+		util_expl_file_button[i].c2d = var_square_image[0];
+
 	Util_log_save(DEF_EXPL_INIT_STR, "Initialized.");
 }
 
@@ -107,12 +112,9 @@ void Util_expl_draw(void)
 	Draw(util_expl_current_patch, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 	for (int i = 0; i < 16; i++)
 	{
-		if (i == (int)util_expl_selected_file_num)
-			color = DEF_DRAW_RED;
-		else
-			color = DEF_DRAW_BLACK;
-
-		Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + std::to_string(util_expl_size[i + (int)util_expl_y_offset] / 1024.0 / 1024.0).substr(0, 4) + "MB) (" + util_expl_type[i + (int)util_expl_y_offset] + ")", 12.5, 20.0 + (i * 10.0), 0.4, 0.4, color);
+		Draw_texture(&util_expl_file_button[i], util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA, 10, 20 + (i * 10), 290, 10);
+		Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + std::to_string(util_expl_size[i + (int)util_expl_y_offset] / 1024.0 / 1024.0).substr(0, 4)
+		+ "MB) (" + util_expl_type[i + (int)util_expl_y_offset] + ")" , 12.5, 19 + (i * 10), 0.4, 0.4, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
 	}
 }
 
@@ -128,44 +130,75 @@ void Util_expl_main(Hid_info key)
 	}
 	else if (!util_expl_read_dir_request)
 	{
-		for (int i = 0; i < 16; i++)
+		if(util_expl_scroll_mode)
 		{
-			if (key.p_a || (key.p_touch && key.touch_x >= 10 && key.touch_x <= 299 && key.touch_y >= 20 + (i * 10) && key.touch_y <= 30 + (i * 10)))
+			if (key.touch_y_move > 0)
 			{
-				if (key.p_a || i == (int)util_expl_selected_file_num)
-				{
-					if (((int)util_expl_y_offset + (int)util_expl_selected_file_num) == 0 && !(Util_expl_query_current_patch() == "/"))
-					{
-						util_expl_current_patch = util_expl_current_patch.substr(0, util_expl_current_patch.length() - 1);
-						cut_pos = util_expl_current_patch.find_last_of("/");
-						if (!(cut_pos == std::string::npos))
-							util_expl_current_patch = util_expl_current_patch.substr(0, cut_pos + 1);
+				if ((util_expl_y_offset + (key.touch_y_move * var_scroll_speed / 8)) < util_expl_num_of_file - 15)
+					util_expl_y_offset += (key.touch_y_move * var_scroll_speed / 8);
 
-						util_expl_y_offset = 0.0;
-						util_expl_selected_file_num = 0.0;
-						util_expl_read_dir_request = true;
-					}
-					else if (util_expl_type[(int)util_expl_y_offset + (int)util_expl_selected_file_num] == "dir")
+				var_need_reflesh = true;
+			}
+			else if (key.touch_y_move < 0)
+			{
+				if ((util_expl_y_offset + (key.touch_y_move * var_scroll_speed / 8)) > -1.0)
+					util_expl_y_offset += (key.touch_y_move * var_scroll_speed / 8);
+
+				var_need_reflesh = true;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < 16; i++)
+			{
+				if(Util_hid_is_pressed(key, util_expl_file_button[i]) && util_expl_num_of_file > (i + (int)util_expl_y_offset))
+				{
+					util_expl_file_button[i].selected = true;
+					var_need_reflesh = true;
+				}
+				else if (key.p_a || (Util_hid_is_released(key, util_expl_file_button[i]) && util_expl_file_button[i].selected))
+				{
+					if (key.p_a || i == (int)util_expl_selected_file_num)
 					{
-						util_expl_current_patch = util_expl_current_patch + util_expl_files[(int)util_expl_selected_file_num + (int)util_expl_y_offset] + "/";
-						util_expl_y_offset = 0.0;
-						util_expl_selected_file_num = 0.0;
-						util_expl_read_dir_request = true;
+						if (((int)util_expl_y_offset + (int)util_expl_selected_file_num) == 0 && !(Util_expl_query_current_patch() == "/"))
+						{
+							util_expl_current_patch = util_expl_current_patch.substr(0, util_expl_current_patch.length() - 1);
+							cut_pos = util_expl_current_patch.find_last_of("/");
+							if (!(cut_pos == std::string::npos))
+								util_expl_current_patch = util_expl_current_patch.substr(0, cut_pos + 1);
+
+							util_expl_y_offset = 0.0;
+							util_expl_selected_file_num = 0.0;
+							util_expl_read_dir_request = true;
+						}
+						else if (util_expl_type[(int)util_expl_y_offset + (int)util_expl_selected_file_num] == "dir")
+						{
+							util_expl_current_patch = util_expl_current_patch + util_expl_files[(int)util_expl_selected_file_num + (int)util_expl_y_offset] + "/";
+							util_expl_y_offset = 0.0;
+							util_expl_selected_file_num = 0.0;
+							util_expl_read_dir_request = true;
+						}
+						else
+						{
+							util_expl_callback(Util_expl_query_file_name((int)util_expl_selected_file_num + (int)util_expl_y_offset), util_expl_current_patch);
+							util_expl_show_flag = false;
+							var_need_reflesh = true;
+						}
+
+						break;
 					}
 					else
 					{
-						util_expl_callback(Util_expl_query_file_name((int)util_expl_selected_file_num + (int)util_expl_y_offset), util_expl_current_patch);
-						util_expl_show_flag = false;
+						if (util_expl_num_of_file > (i + (int)util_expl_y_offset))
+							util_expl_selected_file_num = i;
+						
 						var_need_reflesh = true;
 					}
-
-					break;
 				}
-				else
+				else if(!Util_hid_is_held(key, util_expl_file_button[i]) &&  util_expl_file_button[i].selected)
 				{
-					if (util_expl_num_of_file > (i + (int)util_expl_y_offset))
-						util_expl_selected_file_num = i;
-					
+					util_expl_file_button[i].selected = false;
+					util_expl_scroll_mode = true;
 					var_need_reflesh = true;
 				}
 			}
@@ -221,6 +254,19 @@ void Util_expl_main(Hid_info key)
 			}
 			var_need_reflesh = true;
 		}
+
+		if(!key.p_touch && !key.h_touch)
+		{
+			for(int i = 0; i < 16; i++)
+			{
+				if(util_expl_file_button[i].selected)
+					var_need_reflesh = true;
+				
+				util_expl_file_button[i].selected = false;
+			}
+			util_expl_scroll_mode = false;
+		}
+
 		if (util_expl_selected_file_num <= -1)
 			util_expl_selected_file_num = 0;
 		else if (util_expl_selected_file_num >= 16)

@@ -39,9 +39,6 @@ bool menu_main_run = true;
 bool menu_must_exit = false;
 bool menu_check_exit_request = false;
 bool menu_update_available = false;
-bool menu_sapp_button_selected[8] = { false, false, false, false, false, false, false, false, };
-bool menu_sapp_close_button_selected[8] = { false, false, false, false, false, false, false, false, };
-bool menu_sem_button_selected = false;
 int menu_icon_texture_num[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, };
 std::string menu_msg[DEF_MENU_NUM_OF_MSG];
 Thread menu_worker_thread, menu_send_app_info_thread, menu_check_connectivity_thread, menu_update_thread;
@@ -167,6 +164,7 @@ void Menu_init(void)
 	Util_hid_init();
 	Util_expl_init();
 	Exfont_init();
+	Util_err_init();
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
 
@@ -323,6 +321,7 @@ void Menu_exit(void)
 	Util_hid_exit();
 	Util_expl_exit();
 	Exfont_exit();
+	Util_err_exit();
 
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME));
@@ -395,7 +394,7 @@ void Menu_main(void)
 			Draw_screen_ready(1, back_color);
 
 			#ifdef DEF_ENABLE_SUB_APP0
-			Draw_texture(&menu_sapp_button[0], menu_sapp_button_selected[0] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP0_ENABLE_ICON
 			Draw_texture(menu_icon_image[0], 0.0, 0.0, 60.0, 60.0);
@@ -406,12 +405,12 @@ void Menu_main(void)
 
 			if(Sapp0_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button_selected[0] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
 				Draw("X", 47.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1
-			Draw_texture(&menu_sapp_button[1], menu_sapp_button_selected[1] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[1], menu_sapp_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP1_ENABLE_ICON
 			Draw_texture(menu_icon_image[1], 80.0, 0.0, 60.0, 60.0);
@@ -422,12 +421,12 @@ void Menu_main(void)
 
 			if(Sapp1_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[1], menu_sapp_close_button_selected[1] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[1], menu_sapp_close_button[1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
 				Draw("X", 127.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP2
-			Draw_texture(&menu_sapp_button[2], menu_sapp_button_selected[2] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[2], menu_sapp_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP2_ENABLE_ICON
 			Draw_texture(menu_icon_image[2], 160.0, 0.0, 60.0, 60.0);
@@ -438,12 +437,12 @@ void Menu_main(void)
 
 			if(Sapp2_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[2], menu_sapp_close_button_selected[2] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[2], menu_sapp_close_button[2].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
 				Draw("X", 207.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP3
-			Draw_texture(&menu_sapp_button[3], menu_sapp_button_selected[3] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[3], menu_sapp_button[3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP3_ENABLE_ICON
 			Draw_texture(menu_icon_image[3], 240.0, 0.0, 60.0, 60.0);
@@ -454,12 +453,12 @@ void Menu_main(void)
 
 			if(Sapp3_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[3], menu_sapp_close_button_selected[3] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[3], menu_sapp_close_button[3].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
 				Draw("X", 287.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP4
-			Draw_texture(&menu_sapp_button[4], menu_sapp_button_selected[4] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[4], menu_sapp_button[4].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP4_ENABLE_ICON
 			Draw_texture(menu_icon_image[4], 0.0, 80.0, 60.0, 60.0);
@@ -470,12 +469,12 @@ void Menu_main(void)
 
 			if(Sapp4_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[4], menu_sapp_close_button_selected[4] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[4], menu_sapp_close_button[4].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
 				Draw("X", 47.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP5
-			Draw_texture(&menu_sapp_button[5], menu_sapp_button_selected[5] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[5], menu_sapp_button[5].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP5_ENABLE_ICON
 			Draw_texture(menu_icon_image[5], 80.0, 80.0, 60.0, 60.0);
@@ -486,12 +485,12 @@ void Menu_main(void)
 
 			if(Sapp5_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[5], menu_sapp_close_button_selected[5] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[5], menu_sapp_close_button[5].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
 				Draw("X", 127.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP6
-			Draw_texture(&menu_sapp_button[6], menu_sapp_button_selected[6] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[6], menu_sapp_button[6].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP6_ENABLE_ICON
 			Draw_texture(menu_icon_image[6], 160.0, 80.0, 60.0, 60.0);
@@ -502,12 +501,12 @@ void Menu_main(void)
 
 			if(Sapp6_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[6], menu_sapp_close_button_selected[6] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[6], menu_sapp_close_button[6].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
 				Draw("X", 207.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP7
-			Draw_texture(&menu_sapp_button[7], menu_sapp_button_selected[7] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[7], menu_sapp_button[7].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
 
 			#ifdef DEF_SAPP7_ENABLE_ICON
 			Draw_texture(menu_icon_image[7], 240.0, 80.0, 60.0, 60.0);
@@ -518,12 +517,12 @@ void Menu_main(void)
 
 			if(Sapp7_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[7], menu_sapp_close_button_selected[7] ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
+				Draw_texture(&menu_sapp_close_button[7], menu_sapp_close_button[7].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
 				Draw("X", 287.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 
-			Draw_texture(&menu_sem_button, menu_sem_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
+			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
 
 			#ifdef DEF_SEM_ENABLE_ICON
 			Draw_texture(menu_icon_image[8 + var_night_mode], 260.0, 170.0, 60.0, 60.0);
@@ -561,7 +560,12 @@ void Menu_main(void)
 			}
 			else
 			{
-				if (key.p_start || (key.p_touch && key.touch_x >= 0 && key.touch_x <= 320 && key.touch_y >= 220 && key.touch_y <= 240))
+				if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+				{
+					Draw_get_bot_ui_button()->selected = true;
+					var_need_reflesh = true;
+				}
+				else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 				{
 					menu_check_exit_request = true;
 					var_need_reflesh = true;
@@ -571,17 +575,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP0
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag())
 				{
-					menu_sapp_close_button_selected[0] = true;
+					menu_sapp_close_button[0].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag() && menu_sapp_close_button_selected[0])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag() && menu_sapp_close_button[0].selected)
 					Sapp0_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
 				{
-					menu_sapp_button_selected[0] = true;
+					menu_sapp_button[0].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button_selected[0])
+				else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
 				{
 					if (!Sapp0_query_init_flag())
 						Sapp0_init();
@@ -592,17 +596,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP1
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag())
 				{
-					menu_sapp_close_button_selected[1] = true;
+					menu_sapp_close_button[1].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button_selected[1])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button[1].selected)
 					Sapp1_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
 				{
-					menu_sapp_button_selected[1] = true;
+					menu_sapp_button[1].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button_selected[1])
+				else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button[1].selected)
 				{
 					if (!Sapp1_query_init_flag())
 						Sapp1_init();
@@ -613,17 +617,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP2
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag())
 				{
-					menu_sapp_close_button_selected[2] = true;
+					menu_sapp_close_button[2].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button_selected[2])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button[2].selected)
 					Sapp2_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
 				{
-					menu_sapp_button_selected[2] = true;
+					menu_sapp_button[2].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button_selected[2])
+				else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button[2].selected)
 				{
 					if (!Sapp2_query_init_flag())
 						Sapp2_init();
@@ -634,17 +638,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP3
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag())
 				{
-					menu_sapp_close_button_selected[3] = true;
+					menu_sapp_close_button[3].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button_selected[3])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button[3].selected)
 					Sapp3_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
 				{
-					menu_sapp_button_selected[3] = true;
+					menu_sapp_button[3].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button_selected[3])
+				else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button[3].selected)
 				{
 					if (!Sapp3_query_init_flag())
 						Sapp3_init();
@@ -655,17 +659,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP4
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag())
 				{
-					menu_sapp_close_button_selected[4] = true;
+					menu_sapp_close_button[4].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button_selected[4])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button[4].selected)
 					Sapp4_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
 				{
-					menu_sapp_button_selected[4] = true;
+					menu_sapp_button[4].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button_selected[4])
+				else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button[4].selected)
 				{
 					if (!Sapp4_query_init_flag())
 						Sapp4_init();
@@ -676,17 +680,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP5
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag())
 				{
-					menu_sapp_close_button_selected[5] = true;
+					menu_sapp_close_button[5].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button_selected[5])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button[5].selected)
 					Sapp5_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
 				{
-					menu_sapp_button_selected[5] = true;
+					menu_sapp_button[5].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button_selected[5])
+				else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button[5].selected)
 				{
 					if (!Sapp5_query_init_flag())
 						Sapp5_init();
@@ -697,17 +701,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP6
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag())
 				{
-					menu_sapp_close_button_selected[6] = true;
+					menu_sapp_close_button[6].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button_selected[6])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button[6].selected)
 					Sapp6_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
 				{
-					menu_sapp_button_selected[6] = true;
+					menu_sapp_button[6].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button_selected[6])
+				else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button[6].selected)
 				{
 					if (!Sapp6_query_init_flag())
 						Sapp6_init();
@@ -718,17 +722,17 @@ void Menu_main(void)
 				#ifdef DEF_ENABLE_SUB_APP7
 				else if (Util_hid_is_pressed(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag())
 				{
-					menu_sapp_close_button_selected[7] = true;
+					menu_sapp_close_button[7].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button_selected[7])
+				else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button[7].selected)
 					Sapp7_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
 				{
-					menu_sapp_button_selected[7] = true;
+					menu_sapp_button[7].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button_selected[7])
+				else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button[7].selected)
 				{
 					if (!Sapp7_query_init_flag())
 						Sapp7_init();
@@ -738,10 +742,10 @@ void Menu_main(void)
 				#endif
 				else if (Util_hid_is_pressed(key, menu_sem_button))
 				{
-					menu_sem_button_selected = true;
+					menu_sem_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button_selected)
+				else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
 				{
 					if (!Sem_query_init_flag())
 						Sem_init();
@@ -752,18 +756,19 @@ void Menu_main(void)
 
 			if(!key.p_touch && !key.h_touch)
 			{
-				if(menu_sem_button_selected)
+				if(menu_sem_button.selected || Draw_get_bot_ui_button()->selected)
 					var_need_reflesh = true;
 
 				for(int i = 0; i < 8; i++)
 				{
-					if(menu_sapp_button_selected[i] || menu_sapp_close_button_selected[i])
+					if(menu_sapp_button[i].selected || menu_sapp_close_button[i].selected)
 						var_need_reflesh = true;
 
-					menu_sapp_button_selected[i] = false;
-					menu_sapp_close_button_selected[i] = false;
+					menu_sapp_button[i].selected = false;
+					menu_sapp_close_button[i].selected = false;
 				}
-				menu_sem_button_selected = false;
+				menu_sem_button.selected = false;
+				Draw_get_bot_ui_button()->selected = false;
 			}
 		}
 

@@ -26,6 +26,8 @@ void Draw_top_ui(void);
 
 void Draw_bot_ui(void);
 
+Image_data* Draw_get_bot_ui_button(void);
+
 void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size);
 
 void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size, float y_size);

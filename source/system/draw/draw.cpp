@@ -13,6 +13,7 @@ C2D_Image util_draw_eco_image[2];
 std::string util_draw_japanese_kanji[3000];
 std::string util_draw_simple_chinese[6300];
 TickCounter util_draw_frame_time_stopwatch;
+Image_data util_draw_bot_ui;
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
@@ -487,8 +488,13 @@ void Draw_top_ui(void)
 
 void Draw_bot_ui(void)
 {
-	Draw_texture(var_square_image[0], DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
+	Draw_texture(&util_draw_bot_ui, DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
 	Draw("▽", 155.0, 220.0, 0.75, 0.75, DEF_DRAW_WHITE);
+}
+
+Image_data* Draw_get_bot_ui_button(void)
+{
+	return &util_draw_bot_ui;
 }
 
 void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size)
@@ -651,6 +657,7 @@ Result_with_string Draw_init(bool wide, bool _3d)
 
 	result = Draw_load_kanji_samples();
 
+	util_draw_bot_ui.c2d = var_square_image[0];
 	return result;
 }
 

@@ -50,18 +50,6 @@ bool sem_select_ver_request = false;
 bool sem_change_brightness_request = false;
 bool sem_dl_file_request = false;
 bool sem_scroll_mode = false;
-bool sem_back_button_selected, sem_scroll_bar_selected, sem_menu_button_selected[9], sem_check_update_button_selected,
-sem_english_button_selected, sem_japanese_button_selected, sem_hungarian_button_selected, sem_chinese_button_selected, sem_italian_button_selected,
-sem_night_mode_on_button_selected, sem_night_mode_off_button_selected, sem_flash_mode_button_selected, sem_screen_brightness_slider_selected,
-sem_screen_brightness_bar_selected, sem_screen_off_time_slider_selected, sem_screen_off_time_bar_selected, sem_800px_mode_button_selected,
-sem_3d_mode_button_selected, sem_400px_mode_button_selected, sem_scroll_speed_slider_selected, sem_scroll_speed_bar_selected,
-sem_system_font_button_selected[4], sem_load_all_ex_font_button_selected, sem_unload_all_ex_font_button_selected,
-sem_ex_font_button_selected[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button_selected, sem_wifi_off_button_selected,
-sem_allow_send_info_button_selected, sem_deny_send_info_button_selected, sem_debug_mode_on_button_selected, sem_debug_mode_off_button_selected,
-sem_eco_mode_on_button_selected, sem_eco_mode_off_button_selected, sem_record_both_lcd_button_selected, sem_record_top_lcd_button_selected,
-sem_record_bottom_lcd_button_selected, sem_select_edtion_button_selected, sem_close_updater_button_selected, sem_3dsx_button_selected,
-sem_cia_button_selected, sem_dl_install_button_selected, sem_back_to_patch_note_button_selected, sem_close_app_button_selected,
-sem_use_fake_model_button_selected;
 u8 sem_fake_model_num = 255;
 u8* sem_yuv420p = NULL;
 u32 sem_dled_size = 0;
@@ -333,7 +321,7 @@ void Sem_main(void)
 			if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 			{
 				//Back
-				Draw_texture(&sem_back_button, sem_back_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
+				Draw_texture(&sem_back_button, sem_back_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
 				if (var_lang == "hu")
 					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.475, 0.475, color);
 				else if (var_lang == "it")
@@ -347,58 +335,58 @@ void Sem_main(void)
 		{
 			Draw_texture(var_square_image[0], color, 312.5, 0.0, 7.5, 15.0);
 			Draw_texture(var_square_image[0], color, 312.5, 215.0, 7.5, 10.0);
-			Draw_texture(&sem_scroll_bar, sem_scroll_bar_selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_max)), 7.5, 5.0);
+			Draw_texture(&sem_scroll_bar, sem_scroll_bar.selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_max)), 7.5, 5.0);
 		}
 
 		if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
 		{
 			//Update
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_UPDATE], sem_menu_button_selected[DEF_SEM_MENU_UPDATE] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_UPDATE], sem_menu_button[DEF_SEM_MENU_UPDATE].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 240, 20);
 			Draw(sem_msg[DEF_SEM_UPDATE_MSG], 0, 0, 0.75, 0.75, color);
 
 			//Lang
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LANGAGES], sem_menu_button_selected[DEF_SEM_MENU_LANGAGES] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 25, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LANGAGES], sem_menu_button[DEF_SEM_MENU_LANGAGES].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 25, 240, 20);
 			Draw(sem_msg[DEF_SEM_LANGAGES_MSG], 0, 25, 0.75, 0.75, color);
 
 			//LCD
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LCD], sem_menu_button_selected[DEF_SEM_MENU_LCD] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 50, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_LCD], sem_menu_button[DEF_SEM_MENU_LCD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 50, 240, 20);
 			Draw(sem_msg[DEF_SEM_LCD_MSG], 0, 50, 0.75, 0.75, color);
 
 			//Control
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_CONTROL], sem_menu_button_selected[DEF_SEM_MENU_CONTROL] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 75, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_CONTROL], sem_menu_button[DEF_SEM_MENU_CONTROL].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 75, 240, 20);
 			Draw(sem_msg[DEF_SEM_CONTROL_MSG], 0, 75, 0.75, 0.75, color);
 
 			//Font
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_FONT], sem_menu_button_selected[DEF_SEM_MENU_FONT] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 100, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_FONT], sem_menu_button[DEF_SEM_MENU_FONT].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 100, 240, 20);
 			Draw(sem_msg[DEF_SEM_FONT_MSG], 0, 100, 0.75, 0.75, color);
 
 			//Wireless
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_WIFI], sem_menu_button_selected[DEF_SEM_MENU_WIFI] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 125, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_WIFI], sem_menu_button[DEF_SEM_MENU_WIFI].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 125, 240, 20);
 			Draw(sem_msg[DEF_SEM_WIFI_MSG], 0, 125, 0.75, 0.75, color);
 
 			//Advanced
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_ADVANCED], sem_menu_button_selected[DEF_SEM_MENU_ADVANCED] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 150, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_ADVANCED], sem_menu_button[DEF_SEM_MENU_ADVANCED].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 150, 240, 20);
 			Draw(sem_msg[DEF_SEM_ADVANCED_MSG], 0, 150, 0.75, 0.75, color);
 
 			//Battery
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_BATTERY], sem_menu_button_selected[DEF_SEM_MENU_BATTERY] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 175, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_BATTERY], sem_menu_button[DEF_SEM_MENU_BATTERY].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 175, 240, 20);
 			Draw(sem_msg[DEF_SEM_BATTERY_MSG], 0, 175, 0.75, 0.75, color);
 
 			//Screen recording
-			Draw_texture(&sem_menu_button[DEF_SEM_MENU_RECORDING], sem_menu_button_selected[DEF_SEM_MENU_RECORDING] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 200, 240, 20);
+			Draw_texture(&sem_menu_button[DEF_SEM_MENU_RECORDING], sem_menu_button[DEF_SEM_MENU_RECORDING].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 200, 240, 20);
 			Draw(sem_msg[DEF_SEM_RECORDING_MSG], 0, 200, 0.75, 0.75, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
 		{
 			//Check for updates
-			Draw_texture(&sem_check_update_button, sem_check_update_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
+			Draw_texture(&sem_check_update_button, sem_check_update_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
 			Draw(sem_msg[DEF_SEM_CHECK_UPDATE_MSG], 10, 25, 0.75, 0.75, color);
 
 			if (sem_show_patch_note_request)
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 15, 15, 290, 200);
-				Draw_texture(&sem_select_edtion_button, sem_select_edtion_button_selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 15, 200, 145, 15);
-				Draw_texture(&sem_close_updater_button, sem_close_updater_button_selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
+				Draw_texture(&sem_select_edtion_button, sem_select_edtion_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 15, 200, 145, 15);
+				Draw_texture(&sem_close_updater_button, sem_close_updater_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
 
 				if(sem_update_progress == 0)//checking...
 					Draw(sem_msg[DEF_SEM_CHECKING_UPDATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
@@ -415,10 +403,10 @@ void Sem_main(void)
 			else if (sem_select_ver_request)
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 15, 15, 290, 200);
-				Draw_texture(&sem_back_to_patch_note_button, sem_back_to_patch_note_button_selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 15, 200, 145, 15);
-				Draw_texture(&sem_dl_install_button, sem_dl_install_button_selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 200, 145, 15);
-				Draw_texture(&sem_3dsx_button, sem_3dsx_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 15, 100, 25);
-				Draw_texture(&sem_cia_button, sem_cia_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 45, 100, 25);
+				Draw_texture(&sem_back_to_patch_note_button, sem_back_to_patch_note_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 15, 200, 145, 15);
+				Draw_texture(&sem_dl_install_button, sem_dl_install_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 200, 145, 15);
+				Draw_texture(&sem_3dsx_button, sem_3dsx_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 15, 100, 25);
+				Draw_texture(&sem_cia_button, sem_cia_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 45, 100, 25);
 
 				//3dsx
 				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
@@ -459,7 +447,7 @@ void Sem_main(void)
 					//success
 					Draw(sem_msg[DEF_SEM_SUCCESS_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 					Draw(sem_msg[DEF_SEM_RESTART_MSG], 17.5, 180, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw_texture(&sem_close_app_button, sem_close_app_button_selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 250, 180, 55.0, 20.0);
+					Draw_texture(&sem_close_app_button, sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 250, 180, 55.0, 20.0);
 					Draw(sem_msg[DEF_SEM_CLOSE_APP_MSG], 250, 180, 0.375, 0.375, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == -2)
@@ -474,23 +462,23 @@ void Sem_main(void)
 			//Languages
 
 			//English
-			Draw_texture(&sem_english_button, sem_english_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
+			Draw_texture(&sem_english_button, sem_english_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
 			Draw(sem_msg[DEF_SEM_ENGLISH_MSG], 10, 25, 0.75, 0.75, (var_lang == "en") ? DEF_DRAW_RED : color);
 
 			//Japanese
-			Draw_texture(&sem_japanese_button, sem_japanese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 50, 240, 20);
+			Draw_texture(&sem_japanese_button, sem_japanese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 50, 240, 20);
 			Draw(sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color);
 
 			//Hungarian
-			Draw_texture(&sem_hungarian_button, sem_hungarian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 75, 240, 20);
+			Draw_texture(&sem_hungarian_button, sem_hungarian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 75, 240, 20);
 			Draw(sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color);
 
 			//Chinese
-			Draw_texture(&sem_chinese_button, sem_chinese_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 240, 20);
+			Draw_texture(&sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 240, 20);
 			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color);
 
 			//Italian
-			Draw_texture(&sem_italian_button, sem_italian_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 125, 240, 20);
+			Draw_texture(&sem_italian_button, sem_italian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 125, 240, 20);
 			Draw(sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125, 0.75, 0.75, (var_lang == "it") ? DEF_DRAW_RED : color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
@@ -527,37 +515,37 @@ void Sem_main(void)
 			//Night mode
 			Draw(sem_msg[DEF_SEM_NIGHT_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
-			Draw_texture(&sem_night_mode_on_button, sem_night_mode_on_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
+			Draw_texture(&sem_night_mode_on_button, sem_night_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
 			//OFF
-			Draw_texture(&sem_night_mode_off_button, sem_night_mode_off_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
+			Draw_texture(&sem_night_mode_off_button, sem_night_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
 			//Flash
-			Draw_texture(&sem_flash_mode_button, sem_flash_mode_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 210, 40, 50, 20);
+			Draw_texture(&sem_flash_mode_button, sem_flash_mode_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 210, 40, 50, 20);
 			Draw(sem_msg[DEF_SEM_FLASH_MSG], 210, 40, 0.65, 0.65, var_flash_mode ? DEF_DRAW_RED : color);
 
 			//Screen brightness
 			Draw(sem_msg[DEF_SEM_BRIGHTNESS_MSG] + std::to_string(var_lcd_brightness), 0, 65, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_brightness_slider, DEF_DRAW_WEAK_RED, 10, 87.5, 300, 5);
-			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar_selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_lcd_brightness - 10) * 2, 80, 4, 20);
+			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_lcd_brightness - 10) * 2, 80, 4, 20);
 
 			//Time to turn off LCDs
 			Draw(sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG] + std::to_string(var_time_to_turn_off_lcd) + sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG], 0, 105, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_off_time_slider, DEF_DRAW_WEAK_RED, 10, 127.5, 300, 5);
-			Draw_texture(&sem_screen_off_time_bar, sem_screen_off_time_bar_selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_time_to_turn_off_lcd), 120, 4, 20);
+			Draw_texture(&sem_screen_off_time_bar, sem_screen_off_time_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_time_to_turn_off_lcd), 120, 4, 20);
 
 			//Screen mode
 			Draw(sem_msg[DEF_SEM_LCD_MODE_MSG], 0, 145, 0.5, 0.5, color);
 			//800px
-			Draw_texture(&sem_800px_mode_button, sem_800px_mode_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 160, 90, 20);
+			Draw_texture(&sem_800px_mode_button, sem_800px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 160, 90, 20);
 			Draw(sem_msg[DEF_SEM_800PX_MSG], 10, 160, 0.65, 0.65, var_high_resolution_mode ? DEF_DRAW_RED : cache_color[0]);
 			//3D
-			Draw_texture(&sem_3d_mode_button, sem_3d_mode_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 160, 90, 20);
+			Draw_texture(&sem_3d_mode_button, sem_3d_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 160, 90, 20);
 			Draw(sem_msg[DEF_SEM_3D_MSG], 110, 160, 0.65, 0.65, var_3d_mode ? DEF_DRAW_RED : cache_color[1]);
 			//Nothing
-			Draw_texture(&sem_400px_mode_button, sem_400px_mode_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 210, 160, 90, 20);
+			Draw_texture(&sem_400px_mode_button, sem_400px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 210, 160, 90, 20);
 			Draw(sem_msg[DEF_SEM_400PX_MSG], 210, 160, 0.65, 0.65, (var_high_resolution_mode || var_3d_mode) ? cache_color[2] : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
@@ -566,7 +554,7 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_SCROLL_SPEED_MSG] + std::to_string(var_scroll_speed), 0, 25, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_scroll_speed_slider, DEF_DRAW_WEAK_RED, 10, 47.5, 300, 5);
-			Draw_texture(&sem_scroll_speed_bar, sem_scroll_speed_bar_selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_scroll_speed * 300), 40, 4, 20);
+			Draw_texture(&sem_scroll_speed_bar, sem_scroll_speed_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_scroll_speed * 300), 40, 4, 20);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 		{
@@ -589,19 +577,19 @@ void Sem_main(void)
 				}
 
 				//JPN
-				Draw_texture(&sem_system_font_button[0], sem_system_font_button_selected[0] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 30 + sem_y_offset, 200, 20);
+				Draw_texture(&sem_system_font_button[0], sem_system_font_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 30 + sem_y_offset, 200, 20);
 				Draw(sem_msg[DEF_SEM_JAPANESE_FONT_MSG], 10, 30 + sem_y_offset, 0.75, 0.75, cache_color[0]);
 
 				//CHN
-				Draw_texture(&sem_system_font_button[1], sem_system_font_button_selected[1] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 50 + sem_y_offset, 200, 20);
+				Draw_texture(&sem_system_font_button[1], sem_system_font_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 50 + sem_y_offset, 200, 20);
 				Draw(sem_msg[DEF_SEM_CHINESE_FONT_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, cache_color[1]);
 
 				//KOR
-				Draw_texture(&sem_system_font_button[2], sem_system_font_button_selected[2] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 70 + sem_y_offset, 200, 20);
+				Draw_texture(&sem_system_font_button[2], sem_system_font_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 70 + sem_y_offset, 200, 20);
 				Draw(sem_msg[DEF_SEM_KOREAN_FONT_MSG], 10, 70 + sem_y_offset, 0.75, 0.75, cache_color[2]);
 
 				//TWN
-				Draw_texture(&sem_system_font_button[3], sem_system_font_button_selected[3] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 90 + sem_y_offset, 200, 20);
+				Draw_texture(&sem_system_font_button[3], sem_system_font_button[3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 90 + sem_y_offset, 200, 20);
 				Draw(sem_msg[DEF_SEM_TAIWANESE_FONT_MSG], 10, 90 + sem_y_offset, 0.75, 0.75, cache_color[3]);
 			}
 
@@ -614,11 +602,11 @@ void Sem_main(void)
 					cache_color[0] = DEF_DRAW_WEAK_BLACK;
 
 				//Load all
-				Draw_texture(&sem_load_all_ex_font_button, sem_load_all_ex_font_button_selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 10, 130 + sem_y_offset, 100, 20);
+				Draw_texture(&sem_load_all_ex_font_button, sem_load_all_ex_font_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 10, 130 + sem_y_offset, 100, 20);
 				Draw(sem_msg[DEF_SEM_LOAD_ALL_FONT_MSG], 10, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
 
 				//Unload all
-				Draw_texture(&sem_unload_all_ex_font_button, sem_unload_all_ex_font_button_selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 110, 130 + sem_y_offset, 100, 20);
+				Draw_texture(&sem_unload_all_ex_font_button, sem_unload_all_ex_font_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 110, 130 + sem_y_offset, 100, 20);
 				Draw(sem_msg[DEF_SEM_UNLOAD_ALL_FONT_MSG], 110, 130 + sem_y_offset, 0.65, 0.65, cache_color[0]);
 			}
 
@@ -643,7 +631,7 @@ void Sem_main(void)
 
 				if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 				{
-					Draw_texture(&sem_ex_font_button[i], sem_ex_font_button_selected[i] ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, draw_x, draw_y + sem_y_offset, 200, 20);
+					Draw_texture(&sem_ex_font_button[i], sem_ex_font_button[i].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, draw_x, draw_y + sem_y_offset, 200, 20);
 					Draw(Exfont_query_external_font_name(i), draw_x, draw_y + sem_y_offset, 0.45, 0.45, cache_color[i]);
 				}
 				draw_y += 20.0;
@@ -654,10 +642,10 @@ void Sem_main(void)
 			//Wifi
 			Draw(sem_msg[DEF_SEM_WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
-			Draw_texture(&sem_wifi_on_button, sem_wifi_on_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
+			Draw_texture(&sem_wifi_on_button, sem_wifi_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.75, 0.75, var_wifi_enabled ? DEF_DRAW_RED : color);
 			//OFF
-			Draw_texture(&sem_wifi_off_button, sem_wifi_off_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
+			Draw_texture(&sem_wifi_off_button, sem_wifi_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.75, 0.75, var_wifi_enabled ? color : DEF_DRAW_RED);
 
 			//Connected SSID
@@ -668,24 +656,24 @@ void Sem_main(void)
 			//Allow send app info
 			Draw(sem_msg[DEF_SEM_SEND_INFO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//Allow
-			Draw_texture(&sem_allow_send_info_button, sem_allow_send_info_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
+			Draw_texture(&sem_allow_send_info_button, sem_allow_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_ALLOW_MSG], 10, 40, 0.75, 0.75, var_allow_send_app_info ? DEF_DRAW_RED : color);
 			//Deny
-			Draw_texture(&sem_deny_send_info_button, sem_deny_send_info_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
+			Draw_texture(&sem_deny_send_info_button, sem_deny_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_DENY_MSG], 110, 40, 0.75, 0.75, var_allow_send_app_info ? color : DEF_DRAW_RED);
 
 			//Debug mode
 			Draw(sem_msg[DEF_SEM_DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
 			//ON
-			Draw_texture(&sem_debug_mode_on_button, sem_debug_mode_on_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 90, 20);
+			Draw_texture(&sem_debug_mode_on_button, sem_debug_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 90, 20);
 			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.75, 0.75, var_debug_mode ? DEF_DRAW_RED : color);
 			//OFF
-			Draw_texture(&sem_debug_mode_off_button, sem_debug_mode_off_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
+			Draw_texture(&sem_debug_mode_off_button, sem_debug_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
 			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.75, 0.75, var_debug_mode ? color : DEF_DRAW_RED);
 
 			//Fake model
 			Draw(sem_msg[DEF_SEM_FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
-			Draw_texture(&sem_use_fake_model_button, sem_use_fake_model_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 130, 190, 20);
+			Draw_texture(&sem_use_fake_model_button, sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 130, 190, 20);
 			if(sem_fake_model_num <= 5)
 				Draw(sem_msg[DEF_SEM_ON_MSG] + " (" + var_model_name[sem_fake_model_num] + ")", 10, 130, 0.75, 0.75, color);
 			else
@@ -696,10 +684,10 @@ void Sem_main(void)
 			//Eco mode
 			Draw(sem_msg[DEF_SEM_ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
-			Draw_texture(&sem_eco_mode_on_button, sem_eco_mode_on_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
+			Draw_texture(&sem_eco_mode_on_button, sem_eco_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.75, 0.75, var_eco_mode ? DEF_DRAW_RED : color);
 			//OFF
-			Draw_texture(&sem_eco_mode_off_button, sem_eco_mode_off_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
+			Draw_texture(&sem_eco_mode_off_button, sem_eco_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
 			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.75, 0.75, var_eco_mode ? color : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
@@ -710,21 +698,21 @@ void Sem_main(void)
 				cache_color[0] = DEF_DRAW_WEAK_BLACK;
 			
 			//Record both screen
-			Draw_texture(&sem_record_both_lcd_button, sem_record_both_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
+			Draw_texture(&sem_record_both_lcd_button, sem_record_both_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 25, 240, 20);
 			if(var_lang == "it")
 				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.475, 0.475, cache_color[0]);
 			else
 				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.6, 0.6, cache_color[0]);
 
 			//Record top screen
-			Draw_texture(&sem_record_top_lcd_button, sem_record_top_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 240, 20);
+			Draw_texture(&sem_record_top_lcd_button, sem_record_top_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 240, 20);
 			if(var_lang == "it")
 				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.475, 0.475, cache_color[0]);
 			else
 				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.6, 0.6, cache_color[0]);
 
 			//Record bottom screen
-			Draw_texture(&sem_record_bottom_lcd_button, sem_record_bottom_lcd_button_selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 95, 240, 20);
+			Draw_texture(&sem_record_bottom_lcd_button, sem_record_bottom_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 95, 240, 20);
 			if(var_lang == "it")
 				Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0]);
 			else
@@ -748,7 +736,12 @@ void Sem_main(void)
 		Util_err_main(key);
 	else
 	{
-		if (key.p_start || (key.p_touch && key.touch_x >= 0 && key.touch_x <= 320 && key.touch_y >= 220 && key.touch_y <= 240))
+		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		{
+			Draw_get_bot_ui_button()->selected = true;
+			var_need_reflesh = true;
+		}
+		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sem_suspend();
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
 		{
@@ -756,10 +749,10 @@ void Sem_main(void)
 			{
 				if(Util_hid_is_pressed(key, sem_menu_button[menu_button_list[i]]))
 				{
-					sem_menu_button_selected[menu_button_list[i]] = true;
+					sem_menu_button[menu_button_list[i]].selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_menu_button[menu_button_list[i]]) && sem_menu_button_selected[menu_button_list[i]])
+				else if(Util_hid_is_released(key, sem_menu_button[menu_button_list[i]]) && sem_menu_button[menu_button_list[i]].selected)
 				{
 					sem_y_offset = 0.0;
 					sem_selected_menu_mode = menu_button_list[i];
@@ -774,10 +767,10 @@ void Sem_main(void)
 		{
 			if (Util_hid_is_pressed(key, sem_back_button) && !sem_show_patch_note_request && !sem_select_ver_request)
 			{
-				sem_back_button_selected = true;
+				sem_back_button.selected = true;
 				var_need_reflesh = true;
 			}
-			else if (Util_hid_is_released(key, sem_back_button) && sem_back_button_selected && !sem_show_patch_note_request && !sem_select_ver_request)
+			else if (Util_hid_is_released(key, sem_back_button) && sem_back_button.selected && !sem_show_patch_note_request && !sem_select_ver_request)
 			{
 				sem_y_offset = 0.0;
 				sem_y_max = 0.0;
@@ -790,20 +783,20 @@ void Sem_main(void)
 				{
 					if (Util_hid_is_pressed(key, sem_close_updater_button))
 					{
-						sem_close_updater_button_selected = true;
+						sem_close_updater_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if (key.p_b || (Util_hid_is_released(key, sem_close_updater_button) && sem_close_updater_button_selected))
+					else if (key.p_b || (Util_hid_is_released(key, sem_close_updater_button) && sem_close_updater_button.selected))
 					{
 						sem_show_patch_note_request = false;
 						var_need_reflesh = true;
 					}
 					else if (Util_hid_is_pressed(key, sem_select_edtion_button))
 					{
-						sem_select_edtion_button_selected = true;
+						sem_select_edtion_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if (key.p_a || (Util_hid_is_released(key, sem_select_edtion_button) && sem_select_edtion_button_selected))
+					else if (key.p_a || (Util_hid_is_released(key, sem_select_edtion_button) && sem_select_edtion_button.selected))
 					{
 						sem_show_patch_note_request = false;
 						sem_select_ver_request = true;
@@ -814,30 +807,30 @@ void Sem_main(void)
 				{
 					if (Util_hid_is_pressed(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1")
 					{
-						sem_3dsx_button_selected = true;
+						sem_3dsx_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button_selected)
+					else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button.selected)
 					{
 						sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
 						var_need_reflesh = true;
 					}
 					else if (Util_hid_is_pressed(key, sem_cia_button) && sem_newest_ver_data[2] == "1")
 					{
-						sem_cia_button_selected = true;
+						sem_cia_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button_selected)
+					else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button.selected)
 					{
 						sem_selected_edition_num = DEF_SEM_EDTION_CIA;
 						var_need_reflesh = true;
 					}
 					else if (Util_hid_is_pressed(key, sem_back_to_patch_note_button))
 					{
-						sem_back_to_patch_note_button_selected = true;
+						sem_back_to_patch_note_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if (key.p_b || (Util_hid_is_released(key, sem_back_to_patch_note_button) && sem_back_to_patch_note_button_selected))
+					else if (key.p_b || (Util_hid_is_released(key, sem_back_to_patch_note_button) && sem_back_to_patch_note_button.selected))
 					{
 						sem_show_patch_note_request = true;
 						sem_select_ver_request = false;
@@ -845,30 +838,30 @@ void Sem_main(void)
 					}
 					else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
 					{
-						sem_dl_install_button_selected = true;
+						sem_dl_install_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button_selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
+					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
 					{
 						sem_dl_file_request = true;
 						var_need_reflesh = true;
 					}
 					else if(Util_hid_is_pressed(key, sem_close_app_button) && sem_update_progress == 4)
 					{
-						sem_close_app_button_selected = true;
+						sem_close_app_button.selected = true;
 						var_need_reflesh = true;
 					}
-					else if(Util_hid_is_released(key, sem_close_app_button) && sem_update_progress == 4 && sem_close_app_button_selected)
+					else if(Util_hid_is_released(key, sem_close_app_button) && sem_update_progress == 4 && sem_close_app_button.selected)
 						Menu_set_must_exit_flag(true);
 				}
 				else
 				{
 					if(Util_hid_is_pressed(key, sem_check_update_button))
 					{
-						sem_check_update_button_selected = true;
+						sem_check_update_button.selected = true;
 						var_need_reflesh = true;
 					}
-					if(Util_hid_is_released(key, sem_check_update_button) && sem_check_update_button_selected)
+					if(Util_hid_is_released(key, sem_check_update_button) && sem_check_update_button.selected)
 					{
 						sem_check_update_request = true;
 						sem_show_patch_note_request = true;
@@ -880,10 +873,10 @@ void Sem_main(void)
 			{
 				if(Util_hid_is_pressed(key, sem_english_button))
 				{
-					sem_english_button_selected = true;
+					sem_english_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_english_button) && sem_english_button_selected)
+				else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
 				{
 					var_lang = "en";
 					sem_reload_msg_request = true;
@@ -891,10 +884,10 @@ void Sem_main(void)
 				}
 				else if(Util_hid_is_pressed(key, sem_japanese_button))
 				{
-					sem_japanese_button_selected = true;
+					sem_japanese_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button_selected)
+				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
 				{
 					var_lang = "jp";
 					sem_reload_msg_request = true;
@@ -902,10 +895,10 @@ void Sem_main(void)
 				}
 				else if(Util_hid_is_pressed(key, sem_hungarian_button))
 				{
-					sem_hungarian_button_selected = true;
+					sem_hungarian_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button_selected)
+				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
 				{
 					var_lang = "hu";
 					sem_reload_msg_request = true;
@@ -913,10 +906,10 @@ void Sem_main(void)
 				}
 				else if(Util_hid_is_pressed(key, sem_chinese_button))
 				{
-					sem_chinese_button_selected = true;
+					sem_chinese_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button_selected)
+				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
 				{
 					var_lang = "zh-cn";
 					sem_reload_msg_request = true;
@@ -924,10 +917,10 @@ void Sem_main(void)
 				}
 				else if(Util_hid_is_pressed(key, sem_italian_button))
 				{
-					sem_italian_button_selected = true;
+					sem_italian_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button_selected)
+				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
 				{
 					var_lang = "it";
 					sem_reload_msg_request = true;
@@ -938,30 +931,30 @@ void Sem_main(void)
 			{
 				if(Util_hid_is_pressed(key, sem_night_mode_on_button))
 				{
-					sem_night_mode_on_button_selected = true;
+					sem_night_mode_on_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_night_mode_on_button) && sem_night_mode_on_button_selected)
+				else if(Util_hid_is_released(key, sem_night_mode_on_button) && sem_night_mode_on_button.selected)
 				{
 					var_night_mode = true;
 					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_night_mode_off_button))
 				{
-					sem_night_mode_off_button_selected = true;
+					sem_night_mode_off_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_night_mode_off_button) && sem_night_mode_off_button_selected)
+				else if(Util_hid_is_released(key, sem_night_mode_off_button) && sem_night_mode_off_button.selected)
 				{
 					var_night_mode = false;
 					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_flash_mode_button))
 				{
-					sem_flash_mode_button_selected = true;
+					sem_flash_mode_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, sem_flash_mode_button) && sem_flash_mode_button_selected)
+				else if(Util_hid_is_released(key, sem_flash_mode_button) && sem_flash_mode_button.selected)
 				{
 					var_flash_mode = !var_flash_mode;
 					var_need_reflesh = true;
@@ -972,10 +965,10 @@ void Sem_main(void)
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
-					sem_screen_brightness_bar_selected = true;
+					sem_screen_brightness_bar.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar_selected)
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar.selected)
 				{
 					var_lcd_brightness = (key.touch_x / 2) + 10;
 					var_top_lcd_brightness = var_lcd_brightness;
@@ -986,20 +979,20 @@ void Sem_main(void)
 				else if(Util_hid_is_pressed(key, sem_screen_off_time_bar) || Util_hid_is_pressed(key, sem_screen_off_time_slider))
 				{
 					var_time_to_turn_off_lcd = key.touch_x;
-					sem_screen_off_time_bar_selected = true;
+					sem_screen_off_time_bar.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_off_time_bar_selected)
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_off_time_bar.selected)
 				{
 					var_time_to_turn_off_lcd = key.touch_x;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS)
 				{
-					sem_800px_mode_button_selected = true;
+					sem_800px_mode_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button_selected)
+				else if (Util_hid_is_released(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button.selected)
 				{
 					var_high_resolution_mode = true;
 					var_3d_mode = false;
@@ -1008,10 +1001,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
 				{
-					sem_3d_mode_button_selected = true;
+					sem_3d_mode_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button_selected)
+				else if (Util_hid_is_released(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button.selected)
 				{
 					var_high_resolution_mode = false;
 					var_3d_mode = true;
@@ -1020,10 +1013,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_400px_mode_button) && !sem_record_request)
 				{
-					sem_400px_mode_button_selected = true;
+					sem_400px_mode_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_400px_mode_button) && !sem_record_request && sem_400px_mode_button_selected)
+				else if (Util_hid_is_released(key, sem_400px_mode_button) && !sem_record_request && sem_400px_mode_button.selected)
 				{
 					var_high_resolution_mode = false;
 					var_3d_mode = false;
@@ -1033,7 +1026,7 @@ void Sem_main(void)
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)//Scroll speed
 			{
-				if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_scroll_speed_bar_selected)
+				if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_scroll_speed_bar.selected)
 				{
 					var_scroll_speed = (double)key.touch_x / 300;
 					var_need_reflesh = true;
@@ -1041,7 +1034,7 @@ void Sem_main(void)
 				else if (Util_hid_is_pressed(key, sem_scroll_speed_slider) || Util_hid_is_pressed(key, sem_scroll_speed_bar))
 				{
 					var_scroll_speed = (double)key.touch_x / 300;
-					sem_scroll_speed_bar_selected = true;
+					sem_scroll_speed_bar.selected = true;
 					var_need_reflesh = true;
 				}
 			}
@@ -1049,10 +1042,10 @@ void Sem_main(void)
 			{
 				if (Util_hid_is_pressed(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
 				{
-					sem_load_all_ex_font_button_selected = true;
+					sem_load_all_ex_font_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_load_all_ex_font_button_selected)
+				else if (Util_hid_is_released(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_load_all_ex_font_button.selected)
 				{
 					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						Exfont_set_external_font_request_state(i ,true);
@@ -1062,10 +1055,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
 				{
-					sem_unload_all_ex_font_button_selected = true;
+					sem_unload_all_ex_font_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_unload_all_ex_font_button_selected)
+				else if (Util_hid_is_released(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_unload_all_ex_font_button.selected)
 				{
 					for (int i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						Exfont_set_external_font_request_state(i ,false);
@@ -1079,11 +1072,11 @@ void Sem_main(void)
 					{
 						if (Util_hid_is_pressed(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font())
 						{
-							sem_system_font_button_selected[i] = true;
+							sem_system_font_button[i].selected = true;
 							var_need_reflesh = true;
 							break;
 						}
-						else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button_selected[i])
+						else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button[i].selected)
 						{
 							if(i != var_system_region)
 							{
@@ -1108,11 +1101,11 @@ void Sem_main(void)
 					{
 						if (Util_hid_is_pressed(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
 						{
-							sem_ex_font_button_selected[i] = true;
+							sem_ex_font_button[i].selected = true;
 							var_need_reflesh = true;
 							break;
 						}
-						else if (Util_hid_is_released(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_ex_font_button_selected[i])
+						else if (Util_hid_is_released(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_ex_font_button[i].selected)
 						{
 							if (Exfont_is_loaded_external_font(i))
 							{
@@ -1135,18 +1128,18 @@ void Sem_main(void)
 				}
 
 				sem_scroll_mode = true;
-				if(sem_load_all_ex_font_button_selected || sem_unload_all_ex_font_button_selected)
+				if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || Draw_get_bot_ui_button()->selected)
 					sem_scroll_mode = false;
 
 				for (int i = 0; i < 4; i++)
 				{
-					if(sem_system_font_button_selected[i])
+					if(sem_system_font_button[i].selected)
 						sem_scroll_mode = false;
 				}
 
 				for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				{
-					if(sem_ex_font_button_selected[i])
+					if(sem_ex_font_button[i].selected)
 						sem_scroll_mode = false;
 				}
 
@@ -1159,14 +1152,14 @@ void Sem_main(void)
 						var_need_reflesh = true;
 					}
 
-					if (key.h_touch && sem_scroll_bar_selected)
+					if (key.h_touch && sem_scroll_bar.selected)
 					{
 						sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
 						var_need_reflesh = true;
 					}
 
 					if (Util_hid_is_pressed(key, sem_scroll_bar))
-						sem_scroll_bar_selected = true;
+						sem_scroll_bar.selected = true;
 
 					if(sem_touch_y_move_left * var_scroll_speed != 0)
 					{
@@ -1179,10 +1172,10 @@ void Sem_main(void)
 			{
 				if (Util_hid_is_pressed(key, sem_wifi_on_button))
 				{
-					sem_wifi_on_button_selected = true;
+					sem_wifi_on_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button_selected)
+				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
 				{
 					result = Util_cset_set_wifi_state(true);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
@@ -1192,10 +1185,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_wifi_off_button))
 				{
-					sem_wifi_off_button_selected = true;
+					sem_wifi_off_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button_selected)
+				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
 				{
 					result = Util_cset_set_wifi_state(false);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
@@ -1208,50 +1201,50 @@ void Sem_main(void)
 			{
 				if (Util_hid_is_pressed(key, sem_allow_send_info_button))
 				{
-					sem_allow_send_info_button_selected = true;
+					sem_allow_send_info_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_allow_send_info_button) && sem_allow_send_info_button_selected)
+				else if (Util_hid_is_released(key, sem_allow_send_info_button) && sem_allow_send_info_button.selected)
 				{
 					var_allow_send_app_info = true;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_deny_send_info_button))
 				{
-					sem_deny_send_info_button_selected = true;
+					sem_deny_send_info_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_deny_send_info_button) && sem_deny_send_info_button_selected)
+				else if (Util_hid_is_released(key, sem_deny_send_info_button) && sem_deny_send_info_button.selected)
 				{
 					var_allow_send_app_info = false;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_debug_mode_on_button))
 				{
-					sem_debug_mode_on_button_selected = true;
+					sem_debug_mode_on_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button_selected)
+				else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button.selected)
 				{
 					var_debug_mode = true;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_debug_mode_off_button))
 				{
-					sem_debug_mode_off_button_selected = true;
+					sem_debug_mode_off_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button_selected)
+				else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button.selected)
 				{
 					var_debug_mode = false;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_use_fake_model_button))
 				{
-					sem_use_fake_model_button_selected = true;
+					sem_use_fake_model_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button_selected)
+				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button.selected)
 				{
 					if((u8)(sem_fake_model_num + 1) > 5)
 						sem_fake_model_num = 255;
@@ -1265,20 +1258,20 @@ void Sem_main(void)
 			{
 				if (Util_hid_is_pressed(key, sem_eco_mode_on_button))
 				{
-					sem_eco_mode_on_button_selected = true;
+					sem_eco_mode_on_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_eco_mode_on_button) && sem_eco_mode_on_button_selected)
+				else if (Util_hid_is_released(key, sem_eco_mode_on_button) && sem_eco_mode_on_button.selected)
 				{
 					var_eco_mode = true;
 					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_eco_mode_off_button))
 				{
-					sem_eco_mode_off_button_selected = true;
+					sem_eco_mode_off_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_eco_mode_off_button) && sem_eco_mode_off_button_selected)
+				else if (Util_hid_is_released(key, sem_eco_mode_off_button) && sem_eco_mode_off_button.selected)
 				{
 					var_eco_mode = false;
 					var_need_reflesh = true;
@@ -1288,10 +1281,10 @@ void Sem_main(void)
 			{
 				if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && !var_high_resolution_mode)
 				{
-					sem_record_both_lcd_button_selected = true;
+					sem_record_both_lcd_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button_selected)
+				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1304,10 +1297,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && !var_high_resolution_mode)
 				{
-					sem_record_top_lcd_button_selected = true;
+					sem_record_top_lcd_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button_selected)
+				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1320,10 +1313,10 @@ void Sem_main(void)
 				}
 				else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode)
 				{
-					sem_record_bottom_lcd_button_selected = true;
+					sem_record_bottom_lcd_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button_selected)
+				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1357,53 +1350,53 @@ void Sem_main(void)
 		{
 			sem_scroll_mode = false;
 
-			if(sem_back_button_selected || sem_scroll_bar_selected || sem_check_update_button_selected || sem_close_updater_button_selected 
-			|| sem_select_edtion_button_selected || sem_3dsx_button_selected || sem_cia_button_selected || sem_back_to_patch_note_button_selected
-			|| sem_dl_install_button_selected || sem_close_app_button_selected || sem_english_button_selected || sem_japanese_button_selected
-			|| sem_hungarian_button_selected || sem_chinese_button_selected || sem_italian_button_selected
-			|| sem_night_mode_on_button_selected || sem_night_mode_off_button_selected || sem_flash_mode_button_selected || sem_screen_brightness_bar_selected
-			|| sem_screen_off_time_bar_selected || sem_800px_mode_button_selected || sem_3d_mode_button_selected || sem_400px_mode_button_selected
-			|| sem_scroll_speed_bar_selected || sem_wifi_on_button_selected || sem_wifi_off_button_selected || sem_allow_send_info_button_selected
-			|| sem_deny_send_info_button_selected || sem_debug_mode_on_button_selected || sem_debug_mode_off_button_selected || sem_eco_mode_on_button_selected
-			|| sem_eco_mode_off_button_selected || sem_record_both_lcd_button_selected || sem_record_top_lcd_button_selected 
-			|| sem_record_bottom_lcd_button_selected || sem_load_all_ex_font_button_selected || sem_unload_all_ex_font_button_selected
-			|| sem_use_fake_model_button_selected)
+			if(sem_back_button.selected || sem_scroll_bar.selected || sem_check_update_button.selected || sem_close_updater_button.selected 
+			|| sem_select_edtion_button.selected || sem_3dsx_button.selected || sem_cia_button.selected || sem_back_to_patch_note_button.selected
+			|| sem_dl_install_button.selected || sem_close_app_button.selected || sem_english_button.selected || sem_japanese_button.selected
+			|| sem_hungarian_button.selected || sem_chinese_button.selected || sem_italian_button.selected
+			|| sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected || sem_screen_brightness_bar.selected
+			|| sem_screen_off_time_bar.selected || sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
+			|| sem_scroll_speed_bar.selected || sem_wifi_on_button.selected || sem_wifi_off_button.selected || sem_allow_send_info_button.selected
+			|| sem_deny_send_info_button.selected || sem_debug_mode_on_button.selected || sem_debug_mode_off_button.selected || sem_eco_mode_on_button.selected
+			|| sem_eco_mode_off_button.selected || sem_record_both_lcd_button.selected || sem_record_top_lcd_button.selected 
+			|| sem_record_bottom_lcd_button.selected || sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected
+			|| sem_use_fake_model_button.selected || Draw_get_bot_ui_button()->selected)
 				var_need_reflesh = true;
 
-			sem_back_button_selected = sem_scroll_bar_selected = sem_check_update_button_selected = sem_close_updater_button_selected
-			= sem_select_edtion_button_selected = sem_3dsx_button_selected = sem_cia_button_selected = sem_back_to_patch_note_button_selected
-			= sem_dl_install_button_selected = sem_close_app_button_selected = sem_english_button_selected = sem_japanese_button_selected
-			= sem_hungarian_button_selected = sem_chinese_button_selected = sem_italian_button_selected
-			= sem_night_mode_on_button_selected = sem_night_mode_off_button_selected = sem_flash_mode_button_selected = sem_screen_brightness_bar_selected
-			= sem_screen_off_time_bar_selected = sem_800px_mode_button_selected = sem_3d_mode_button_selected = sem_400px_mode_button_selected
-			= sem_scroll_speed_bar_selected = sem_wifi_on_button_selected = sem_wifi_off_button_selected = sem_allow_send_info_button_selected
-			= sem_deny_send_info_button_selected = sem_debug_mode_on_button_selected = sem_debug_mode_off_button_selected = sem_eco_mode_on_button_selected
-			= sem_eco_mode_off_button_selected = sem_record_both_lcd_button_selected = sem_record_top_lcd_button_selected
-			= sem_record_bottom_lcd_button_selected = sem_load_all_ex_font_button_selected = sem_unload_all_ex_font_button_selected 
-			= sem_use_fake_model_button_selected = false;
+			sem_back_button.selected = sem_scroll_bar.selected = sem_check_update_button.selected = sem_close_updater_button.selected
+			= sem_select_edtion_button.selected = sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
+			= sem_dl_install_button.selected = sem_close_app_button.selected = sem_english_button.selected = sem_japanese_button.selected
+			= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected
+			= sem_night_mode_on_button.selected = sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected
+			= sem_screen_off_time_bar.selected = sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
+			= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
+			= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
+			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
+			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
+			= sem_use_fake_model_button.selected = Draw_get_bot_ui_button()->selected = false;
 
 			for (int i = 0; i < 9; i++)
 			{
-				if(sem_menu_button_selected[i])
+				if(sem_menu_button[i].selected)
 					var_need_reflesh = true;
 
-				sem_menu_button_selected[i] = false;
+				sem_menu_button[i].selected = false;
 			}
 
 			for (int i = 0; i < 4; i++)
 			{
-				if(sem_system_font_button_selected[i])
+				if(sem_system_font_button[i].selected)
 					var_need_reflesh = true;
 				
-				sem_system_font_button_selected[i] = false;
+				sem_system_font_button[i].selected = false;
 			}
 
 			for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 			{
-				if(sem_ex_font_button_selected[i])
+				if(sem_ex_font_button[i].selected)
 					var_need_reflesh = true;
 				
-				sem_ex_font_button_selected[i] = false;
+				sem_ex_font_button[i].selected = false;
 			}
 
 			sem_touch_x_move_left -= (sem_touch_x_move_left * 0.025);

@@ -39,8 +39,6 @@ MVDSTD_Config util_decoder_mvd_config;
 Handle util_decoder_counter_mutex[DEF_DECODER_MAX_SESSIONS];
 Handle util_decoder_read_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS];
 Handle util_decoder_parse_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS];
-//u32* test_buf = NULL;
-//gxCmdQueue_s* test_queue;
 
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS] = { NULL, NULL, };
 
@@ -52,7 +50,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	width = util_video_decoder_context[session][0]->width;
 	height = util_video_decoder_context[session][0]->height;
 
-	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 9, NULL);
+	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 2, NULL);
 	//result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, (MVDSTD_InputFormat)0x00180001, MVD_OUTPUT_BGR565, width * height * 9, NULL);
 	if(result.code != 0)
 		result.string = "mvdstdInit() failed. ";
@@ -103,8 +101,6 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 		goto fail;
 	}
 
-	//test_buf = (u32*)malloc(0x100000);
-	//test_queue = (gxCmdQueue_s*)malloc(sizeof(gxCmdQueue_s));
 	svcCreateMutex(&util_decoder_counter_mutex[session], false);
 	svcCreateMutex(&util_decoder_read_cache_packet_mutex[session], false);
 	svcCreateMutex(&util_decoder_parse_cache_packet_mutex[session], false);
@@ -782,6 +778,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
 		offset += *(util_video_decoder_context[session][0]->extradata + 7);
 
+		//mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, var_debug_int[0], NULL);
 		mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 
 		offset = 0;
@@ -792,6 +789,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		memcpy(util_video_decoder_mvd_packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
 		offset += *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7));
 
+		//mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, var_debug_int[0], NULL);
 		mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 	}
 
@@ -817,12 +815,14 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		source_offset += size;
 	}
 
+	//result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, var_debug_int[0], NULL);
 	result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 	//Util_log_save("debug", "mvdstdProcessVideoFrame", result.code);
 
 	if(util_video_decoder_mvd_first)
 	{
 		//Do I need to send same nal data at first frame?
+		//result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, var_debug_int[0], NULL);
 		result.code = mvdstdProcessVideoFrame(util_video_decoder_mvd_packet, offset, 0, NULL);
 		util_video_decoder_mvd_first = false;
 	}
@@ -852,6 +852,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 {
 	int cpy_size[2] = { 0, 0, };
 	int buffer_num = util_video_decoder_ready_buffer_num[session][packet_index];
+	//u32 command[8];
 	Result_with_string result;
 	util_video_decoder_lock[session][buffer_num] = true;//lock
 
@@ -873,6 +874,39 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 	Util_log_save("debug", "GX_TextureCopy()...", GX_TextureCopy((u32*)util_video_decoder_raw_data[session][buffer_num]->data[2], cpy_size[1], (u32*)(*raw_data + (width * height) + (width * height / 4)), cpy_size[1], cpy_size[1], 8));
 	gspWaitForPPF();*/
 
+	/*command[0] = 0x01000100 | 0x04; //CommandID
+	command[1] = (u32)((u8*)util_video_decoder_raw_data[session][buffer_num]->data[0]);
+	command[2] = (u32)((u8*)*raw_data);
+	command[3] = cpy_size[0];
+	command[4] = 0;
+	command[5] = 0;
+	command[6] = 8;
+	command[7] = 0x0;
+	gspSubmitGxCommand((const u32*)command);
+	gspWaitForPPF();
+
+	command[0] = 0x01000100 | 0x04; //CommandID
+	command[1] = (u32)((u8*)util_video_decoder_raw_data[session][buffer_num]->data[1]);
+	command[2] = (u32)((u8*)*raw_data + (width * height));
+	command[3] = cpy_size[1];
+	command[4] = 0;
+	command[5] = 0;
+	command[6] = 8;
+	command[7] = 0x0;
+	gspSubmitGxCommand((const u32*)command);
+	gspWaitForPPF();
+
+	command[0] = 0x01000100 | 0x04; //CommandID
+	command[1] = (u32)((u8*)util_video_decoder_raw_data[session][buffer_num]->data[2]);
+	command[2] = (u32)((u8*)*raw_data + (width * height) + (width * height / 4));
+	command[3] = cpy_size[1];
+	command[4] = 0;
+	command[5] = 0;
+	command[6] = 8;
+	command[7] = 0x0;
+	gspSubmitGxCommand((const u32*)command);
+	gspWaitForPPF();*/
+
 	memcpy_asm(*raw_data, util_video_decoder_raw_data[session][buffer_num]->data[0], cpy_size[0]);
 	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_data[session][buffer_num]->data[1], cpy_size[1]);
 	memcpy_asm(*raw_data + (width * height) + (width * height / 4), util_video_decoder_raw_data[session][buffer_num]->data[2], cpy_size[1]);
@@ -884,6 +918,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, int height, int session)
 {
 	int cpy_size = 0;
+	//u32 command[0x8];
 	Result_with_string result;
 
 	cpy_size = (width * height * 2);
@@ -895,31 +930,38 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 		return result;
 	}
 
-	//Util_log_save("debug", "GX_TextureCopy()...", GX_TextureCopy((u32*)util_video_decoder_mvd_raw_data, cpy_size, (u32*)*raw_data, cpy_size, cpy_size, 8));
 	//int log = Util_log_save("", "");
-	/*u32* c3d_buffer = NULL;
-	u32 c3d_buffer_size = 0;
-	u32 c3d_buffer_offset = 0;
-	u32 command[0x8];
-	command[0] = 0x01000100 | 0x04; //CommandID
-	command[1] = (u32)(&util_video_decoder_mvd_raw_data);
-	command[2] = (u32)(raw_data);
-	command[3] = cpy_size;
-	command[4] = cpy_size;
-	command[5] = cpy_size;
-	command[6] = var_debug_int[0];
-	command[7] = 0x0;*/
 
-	/*GX_BindQueue(test_queue);
-	GPUCMD_GetBuffer(&c3d_buffer, &c3d_buffer_size, &c3d_buffer_offset);
-	GPUCMD_SetBuffer(test_buf, 0x100000, 0);
+	/*
 	GX_TextureCopy((u32*)util_video_decoder_mvd_raw_data, cpy_size, (u32*)*raw_data, cpy_size, cpy_size, var_debug_int[0]);
-	gspWaitForEvent(GSPGPU_EVENT_PPF, true);
-	gxCmdQueueAdd(test_queue, (gxCmdEntry_s*)command);
-	gxCmdQueueRun(test_queue);
-	gxCmdQueueWait(test_queue, U64_MAX);
-	GPUCMD_SetBuffer(c3d_buffer, c3d_buffer_size, c3d_buffer_offset);
 	Util_log_add(log, "");*/
+
+	/*command[0] = 0x01000100 | 0x04; //CommandID
+	command[1] = (u32)((u8*)util_video_decoder_mvd_raw_data);
+	command[2] = (u32)((u8*)*raw_data);
+	command[3] = cpy_size;
+	command[4] = 0;
+	command[5] = 0;
+	command[6] = 8;
+	command[7] = 0x0;
+	gspSubmitGxCommand((const u32*)command);
+	gspWaitForPPF();
+	GSPGPU_FlushDataCache((u32*)*raw_data, cpy_size);*/
+	//GX_ProcessCommandList(command, 8, 0);
+	//GX_BindQueue(&test_queue);
+	//GX_TextureCopy((u32*)util_video_decoder_mvd_raw_data, 0, (u32*)*raw_data, 0, cpy_size, 8);
+	//Util_log_save("debug", "GX_TextureCopy()...", GX_TextureCopy((u32*)util_video_decoder_mvd_raw_data, 0, (u32*)*raw_data, 0, cpy_size, 8));
+	//C3D_ProcessQueue();
+	//gxCmdQueueAdd(&test_queue, (gxCmdEntry_s*)command);
+	/*gxCmdQueueRun(&test_queue);
+	gxCmdQueueWait(&test_queue, U64_MAX);
+	gxCmdQueueStop(&test_queue);
+	gxCmdQueueClear(&test_queue);
+	usleep(100000);
+	
+	C3D_RestoreGxQueue();
+	free(test_queue.entries);
+	test_queue.entries = NULL;*/
 	memcpy_asm(*raw_data, util_video_decoder_mvd_raw_data, cpy_size);
 	
 	return result;
@@ -951,10 +993,6 @@ void Util_decoder_close_file(int session)
 	svcCloseHandle(util_decoder_counter_mutex[session]);
 	svcCloseHandle(util_decoder_read_cache_packet_mutex[session]);
 	svcCloseHandle(util_decoder_parse_cache_packet_mutex[session]);
-	/*free(test_buf);
-	free(test_queue);
-	test_buf = NULL;
-	test_queue = NULL;*/
 }
 
 void Util_audio_decoder_exit(int session)

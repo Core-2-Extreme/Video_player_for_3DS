@@ -1,5 +1,9 @@
 #pragma once
 
+void Util_err_init(void);
+
+void Util_err_exit(void);
+
 bool Util_err_query_error_show_flag(void);
 
 void Util_err_set_error_message(std::string summary, std::string description, std::string place);

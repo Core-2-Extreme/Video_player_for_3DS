@@ -917,11 +917,8 @@ void Sapp0_convert_thread(void* arg)
 						Util_log_save(DEF_SAPP0_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 				}
 
-				Util_safe_linear_free(yuv_video);
-				if(vid_hw_decoding_mode || vid_hw_color_conversion_mode)
-					Util_safe_linear_free(video);
-				else
-					free(video);
+				free(yuv_video);
+				free(video);
 				yuv_video = NULL;
 				video = NULL;
 

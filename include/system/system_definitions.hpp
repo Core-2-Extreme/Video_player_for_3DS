@@ -162,6 +162,11 @@
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
 
+//error
+#define DEF_ERR_INIT_STR (std::string)"Err/Init"
+#define DEF_ERR_EXIT_STR (std::string)"Err/Exit"
+#define DEF_ERR_SAVE_THREAD_STR (std::string)"Err/Save thread"
+
 //explorer
 #define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
 #define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"

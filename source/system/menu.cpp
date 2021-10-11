@@ -3,7 +3,7 @@
 #include "system/setting_menu.hpp"
 
 #ifdef DEF_ENABLE_SUB_APP0
-#include "sub_app0.hpp"
+#include "video_player.hpp"
 #endif
 
 #ifdef DEF_ENABLE_SUB_APP1
@@ -206,9 +206,9 @@ void Menu_init(void)
 	if (var_allow_send_app_info)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
 
-	#ifdef DEF_SAPP0_ENABLE_ICON
+	#ifdef DEF_VID_ENABLE_ICON
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
-	result = Draw_load_texture(DEF_SAPP0_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1);
+	result = Draw_load_texture(DEF_VID_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1);
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
 	#endif
 
@@ -281,8 +281,8 @@ void Menu_exit(void)
 	menu_thread_run = false;
 
 	#ifdef DEF_ENABLE_SUB_APP0
-	if (Sapp0_query_init_flag())
-		Sapp0_exit();
+	if (Vid_query_init_flag())
+		Vid_exit();
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP1
 	if (Sapp1_query_init_flag())
@@ -396,14 +396,14 @@ void Menu_main(void)
 			#ifdef DEF_ENABLE_SUB_APP0
 			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
 
-			#ifdef DEF_SAPP0_ENABLE_ICON
+			#ifdef DEF_VID_ENABLE_ICON
 			Draw_texture(menu_icon_image[0], 0.0, 0.0, 60.0, 60.0);
 			#endif
-			#ifdef DEF_SAPP0_ENABLE_NAME
-			Draw(DEF_SAPP0_NAME, 10.0, 25.0, 0.4, 0.4, color);
+			#ifdef DEF_VID_ENABLE_NAME
+			Draw(DEF_VID_NAME, 10.0, 25.0, 0.4, 0.4, color);
 			#endif
 
-			if(Sapp0_query_init_flag())
+			if(Vid_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
 				Draw("X", 47.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
@@ -573,13 +573,13 @@ void Menu_main(void)
 				else if (key.p_select)
 					Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
 				#ifdef DEF_ENABLE_SUB_APP0
-				else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag())
+				else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Vid_query_init_flag())
 				{
 					menu_sapp_close_button[0].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Sapp0_query_init_flag() && menu_sapp_close_button[0].selected)
-					Sapp0_exit();
+				else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Vid_query_init_flag() && menu_sapp_close_button[0].selected)
+					Vid_exit();
 				else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
 				{
 					menu_sapp_button[0].selected = true;
@@ -587,10 +587,10 @@ void Menu_main(void)
 				}
 				else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
 				{
-					if (!Sapp0_query_init_flag())
-						Sapp0_init();
+					if (!Vid_query_init_flag())
+						Vid_init();
 					else
-						Sapp0_resume();
+						Vid_resume();
 				}
 				#endif
 				#ifdef DEF_ENABLE_SUB_APP1
@@ -776,8 +776,8 @@ void Menu_main(void)
 			Util_log_main(key);
 	}
 	#ifdef DEF_ENABLE_SUB_APP0
-	else if (Sapp0_query_running_flag())
-		Sapp0_main();
+	else if (Vid_query_running_flag())
+		Vid_main();
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP1
 	else if (Sapp1_query_running_flag())

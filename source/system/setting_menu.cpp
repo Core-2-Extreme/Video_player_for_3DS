@@ -3,7 +3,7 @@
 #include "system/setting_menu.hpp"
 #include "system/menu.hpp"
 #ifdef DEF_ENABLE_SUB_APP0
-#include "sub_app0.hpp"
+#include "video_player.hpp"
 #endif
 
 #ifdef DEF_ENABLE_SUB_APP1
@@ -1684,12 +1684,12 @@ void Sem_worker_thread(void* arg)
 			}
 			
 			#ifdef DEF_ENABLE_SUB_APP0
-			result = Sapp0_load_msg(var_lang);
-			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+			result = Vid_load_msg(var_lang);
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
 			if (result.code != 0)
 			{
-				result = Sapp0_load_msg("en");
-				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Sapp0_load_msg()..." + result.string + result.error_description, result.code);
+				result = Vid_load_msg("en");
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
 			}
 			#endif
 

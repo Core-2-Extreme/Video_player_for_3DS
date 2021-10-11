@@ -33,43 +33,43 @@
 #define DEF_SWKBD_MAX_DIC_WORDS 128
 
 //video player
-#define DEF_SAPP0_NUM_OF_MSG 24
-#define DEF_SAPP0_ENABLE_ICON
-//#define DEF_SAPP0_ENABLE_NAME
-#define DEF_SAPP0_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
-#define DEF_SAPP0_NAME (std::string)"Video\nplayer"
-#define DEF_SAPP0_VER (std::string)"v1.3.3"
-#define DEF_SAPP0_MAIN_STR (std::string)"Vid/Main"
-#define DEF_SAPP0_INIT_STR (std::string)"Vid/Init"
-#define DEF_SAPP0_EXIT_STR (std::string)"Vid/Exit"
-#define DEF_SAPP0_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
-#define DEF_SAPP0_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
-#define DEF_SAPP0_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
-#define DEF_SAPP0_READ_PACKET_THREAD_STR (std::string)"Vid/Read packet thread"
-#define DEF_SAPP0_TEX_FILTER_MSG 0
-#define DEF_SAPP0_CONTROLS_MSG 1
-#define DEF_SAPP0_SKIP_FRAME_MSG 2
-#define DEF_SAPP0_CONTROL_DESCRIPTION_MSG 3
-#define DEF_SAPP0_AUDIO_TRACK_DESCRIPTION_MSG 10
-#define DEF_SAPP0_AUDIO_TRACK_MSG 11
-#define DEF_SAPP0_FULL_SCREEN_MSG 12
-#define DEF_SAPP0_HW_DECODER_MSG 13
-#define DEF_SAPP0_HW_CONVERTER_MSG 14
-#define DEF_SAPP0_MULTI_THREAD_MSG 15
-#define DEF_SAPP0_SKIP_KEY_FRAME_MSG 16
-#define DEF_SAPP0_LOWER_RESOLUTION_MSG 17
-#define DEF_SAPP0_SEEKING_MSG 18
-#define DEF_SAPP0_SEEK_MSG 19
-#define DEF_SAPP0_VOLUME_MSG 20
-#define DEF_SAPP0_ASPECT_RATIO_MSG 21
-#define DEF_SAPP0_DISABLE_RESIZE_MOVE_MSG 22
-#define DEF_SAPP0_REMEMBER_POS_MSG 23
-#define DEF_SAPP0_MENU_NONE -1
-#define DEF_SAPP0_MENU_SETTINGS_0 0
-#define DEF_SAPP0_MENU_SETTINGS_1 1
-#define DEF_SAPP0_MENU_INFO 2
+#define DEF_VID_NUM_OF_MSG 24
+#define DEF_VID_ENABLE_ICON
+//#define DEF_VID_ENABLE_NAME
+#define DEF_VID_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
+#define DEF_VID_NAME (std::string)"Video\nplayer"
+#define DEF_VID_VER (std::string)"v1.3.3"
+#define DEF_VID_MAIN_STR (std::string)"Vid/Main"
+#define DEF_VID_INIT_STR (std::string)"Vid/Init"
+#define DEF_VID_EXIT_STR (std::string)"Vid/Exit"
+#define DEF_VID_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
+#define DEF_VID_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
+#define DEF_VID_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
+#define DEF_VID_READ_PACKET_THREAD_STR (std::string)"Vid/Read packet thread"
+#define DEF_VID_TEX_FILTER_MSG 0
+#define DEF_VID_CONTROLS_MSG 1
+#define DEF_VID_SKIP_FRAME_MSG 2
+#define DEF_VID_CONTROL_DESCRIPTION_MSG 3
+#define DEF_VID_AUDIO_TRACK_DESCRIPTION_MSG 10
+#define DEF_VID_AUDIO_TRACK_MSG 11
+#define DEF_VID_FULL_SCREEN_MSG 12
+#define DEF_VID_HW_DECODER_MSG 13
+#define DEF_VID_HW_CONVERTER_MSG 14
+#define DEF_VID_MULTI_THREAD_MSG 15
+#define DEF_VID_SKIP_KEY_FRAME_MSG 16
+#define DEF_VID_LOWER_RESOLUTION_MSG 17
+#define DEF_VID_SEEKING_MSG 18
+#define DEF_VID_SEEK_MSG 19
+#define DEF_VID_VOLUME_MSG 20
+#define DEF_VID_ASPECT_RATIO_MSG 21
+#define DEF_VID_DISABLE_RESIZE_MOVE_MSG 22
+#define DEF_VID_REMEMBER_POS_MSG 23
+#define DEF_VID_MENU_NONE -1
+#define DEF_VID_MENU_SETTINGS_0 0
+#define DEF_VID_MENU_SETTINGS_1 1
+#define DEF_VID_MENU_INFO 2
 
-#define DEF_SAPP0_BUFFERS 3
+#define DEF_VID_BUFFERS 3
 
 //sample app 1
 #define DEF_SAPP1_NUM_OF_MSG 1

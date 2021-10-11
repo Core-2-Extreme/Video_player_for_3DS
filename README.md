@@ -123,6 +123,9 @@ Known issues :
 * ~~Video will not be decoded correctly at first~~ (fixed in v1.1.1)
 * ~~It does not work in .cia~~ (fixed in v1.2.0 by 
 windows-server-2003)
+* If video contain B-frames, hardware decoder won't play it smoothly. \
+Workaround : encode your video without using B-frames.
+`ffmpeg -i {input_file_name} -acodec copy -vcodec h264 -crf 20 -s {width}x{height} -x264-params bframes=0 {output_file_name}`
 
 ## Supported languages
 * English

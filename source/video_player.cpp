@@ -55,6 +55,7 @@ double vid_total_time = 0;
 double vid_recent_time[90];
 double vid_recent_total_time = 0;
 int vid_packet_buffer[320];
+int vid_raw_buffer[320];
 int vid_sar_width = 1;
 int vid_sar_height = 1;
 int vid_seek_duration = 5;
@@ -206,6 +207,7 @@ void Vid_decode_thread(void* arg)
 				vid_time[0][i] = 0;
 				vid_time[1][i] = 0;
 				vid_packet_buffer[i] = 0;
+				vid_raw_buffer[i] = 0;
 				vid_key_frame_list[i] = false;
 			}
 
@@ -475,7 +477,7 @@ void Vid_decode_thread(void* arg)
 				while(true)
 				{
 					result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, 0);
-					if(result.code == 0 || !vid_play_request || vid_change_video_request || (result.code != 0 && vid_eof))
+					if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof))
 						break;
 					else
 					{
@@ -523,6 +525,15 @@ void Vid_decode_thread(void* arg)
 					Util_decoder_clear_cache_packet(0);
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
 					Util_speaker_clear_buffer(0);
+
+					if(vid_hw_decoding_mode)
+						Util_mvd_video_decoder_clear_raw_image(0);
+					else
+					{
+						for(int i = 0; i < num_of_video_tracks; i++)
+							Util_video_decoder_clear_raw_image(0, i);
+					}
+					
 					if(result.code == 0)
 					{
 						vid_eof = false;
@@ -585,7 +596,7 @@ void Vid_decode_thread(void* arg)
 							while(true)
 							{
 								result = Util_speaker_add_buffer(0, ch, audio, audio_size);
-								if(result.code == 0 || !vid_play_request || vid_seek_request || vid_change_video_request)
+								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_seek_request || vid_change_video_request)
 									break;
 								
 								usleep(2000);
@@ -611,13 +622,12 @@ void Vid_decode_thread(void* arg)
 			}
 			
 			vid_read_packet_request = false;
-			vid_decode_video_request = false;
-			vid_convert_request = false;
-			while(vid_convert_wait_request || vid_decode_video_wait_request || vid_read_packet_wait_request)
+			while(vid_read_packet_wait_request)
 				usleep(10000);
 
 			vid_decode_video_request = false;
-			vid_convert_request = false;
+			while(vid_decode_video_wait_request)
+				usleep(10000);
 
 			if(num_of_audio_tracks > 0)
 			{
@@ -627,11 +637,16 @@ void Vid_decode_thread(void* arg)
 				
 				Util_speaker_exit(0);
 			}
+
+			vid_convert_request = false;
+			while(vid_convert_wait_request)
+				usleep(100000);
+			
 			if(num_of_video_tracks > 0)
 			{
 				Util_video_decoder_exit(0);
 				if(vid_hw_decoding_mode)
-					Util_mvd_video_decoder_exit();
+					Util_mvd_video_decoder_exit(0);
 			}
 
 			Util_decoder_close_file(0);
@@ -682,7 +697,7 @@ void Vid_decode_video_thread(void* arg)
 	int packet_index = 0;
 	int w = 0;
 	int h = 0;
-	int skip = 0;
+	double skip = 0;
 	double pos = 0;
 	TickCounter counter;
 	Result_with_string result;
@@ -719,12 +734,25 @@ void Vid_decode_video_thread(void* arg)
 
 						if(result.code == 0)
 						{
-							osTickCounterUpdate(&counter);
-							if(vid_hw_decoding_mode)
-								result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
-							else
-								result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
-							osTickCounterUpdate(&counter);
+							while(true)
+							{
+								osTickCounterUpdate(&counter);
+
+								if(vid_hw_decoding_mode)
+									result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
+								else
+									result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
+
+								osTickCounterUpdate(&counter);
+								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request)
+									break;
+								else
+								{
+									//Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, result.error_description, result.code);
+									usleep((vid_frametime / 4) * 1000);
+								}
+							}
+
 							vid_video_time = osTickCounterRead(&counter);
 
 							if(!std::isnan(pos) && !std::isinf(pos))
@@ -732,13 +760,15 @@ void Vid_decode_video_thread(void* arg)
 
 							if(result.code == 0)
 							{
-								if(!vid_seek_adjust_request)
+								if(!vid_convert_request)
+									vid_convert_request = true;
+								/*if(!vid_seek_adjust_request)
 								{
 									vid_packet_index[1] = packet_index;
 									vid_convert_request = true;
 								}
 								else
-									var_need_reflesh = true;
+									var_need_reflesh = true;*/
 							}
 							else
 							{
@@ -755,8 +785,8 @@ void Vid_decode_video_thread(void* arg)
 
 							if(vid_frametime - vid_video_time > 0)
 							{
-								if(!vid_seek_adjust_request)
-									usleep((vid_frametime - vid_video_time) * 1000);
+								/*if(!vid_seek_adjust_request)
+									usleep((vid_frametime - vid_video_time) * 1000);*/
 							}
 							else if(vid_allow_skip_frames)
 								skip -= vid_frametime - vid_video_time;
@@ -812,124 +842,184 @@ void Vid_convert_thread(void* arg)
 	u8* video = NULL;
 	int packet_index = 0;
 	int image_num = 0;
+	double skip = 0;
 
-	TickCounter counter[4];
+	TickCounter counter[5];
 	Result_with_string result;
 
 	osTickCounterStart(&counter[0]);
 	osTickCounterStart(&counter[1]);
 	osTickCounterStart(&counter[2]);
 	osTickCounterStart(&counter[3]);
+	osTickCounterStart(&counter[4]);
 
 	while (vid_thread_run)
-	{	
-		while(vid_play_request)
+	{
+		if(vid_play_request)
 		{
-			if(vid_convert_request)
+			skip = 0;
+			vid_convert_wait_request = true;
+			while(vid_convert_request)
 			{
-				vid_convert_wait_request = true;
-				packet_index = vid_packet_index[1];
+				while(vid_pause_request)
+					usleep(10000);
+
 				osTickCounterUpdate(&counter[3]);
-				osTickCounterUpdate(&counter[2]);
+				packet_index = vid_packet_index[1];
+
+				//Util_log_save(DEF_VID_CONVERT_THREAD_STR, "buffer : " + std::to_string(Util_video_decoder_get_available_raw_image_num(0, 0)));
 				if(vid_hw_decoding_mode)
-					result = Util_mvd_video_decoder_get_image(&video, vid_codec_width, vid_codec_height, 0);
+					vid_raw_buffer[319] = Util_mvd_video_decoder_get_available_raw_image_num(0);
 				else
-					result = Util_video_decoder_get_image(&yuv_video, vid_codec_width, vid_codec_height, packet_index, 0);
-				osTickCounterUpdate(&counter[2]);
-				vid_copy_time[0] = osTickCounterRead(&counter[2]);
+					vid_raw_buffer[319] = Util_video_decoder_get_available_raw_image_num(0, 0);
 
-				vid_convert_request = false;
-				if(result.code == 0)
-				{
-					osTickCounterUpdate(&counter[0]);
-					if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-						result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height, true);
-					else if(!vid_hw_decoding_mode)
-						result = Util_converter_yuv420p_to_bgr565_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
-					osTickCounterUpdate(&counter[0]);
-					vid_convert_time = osTickCounterRead(&counter[0]);
-
-					if(result.code == 0)
-					{
-						osTickCounterUpdate(&counter[1]);
-						if(packet_index == 0)
-							image_num = vid_image_num;
-						else if(packet_index == 1)
-							image_num = vid_image_num_3d;
-
-						//Util_file_save_to_file("unknown.bin", DEF_MAIN_DIR + "debug/", video, vid_codec_width * vid_codec_height * 2, true);
-
-						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-							result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
-						else
-							result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
-						if(result.code != 0)
-							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-
-						if(vid_codec_width > 1024)
-						{
-							result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-						}
-						if(vid_codec_height > 1024)
-						{
-							result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-						}
-						if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						{
-							result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, GPU_RGB565);
-							if(result.code != 0)
-								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
-						}
-
-						osTickCounterUpdate(&counter[1]);
-						vid_copy_time[1] = osTickCounterRead(&counter[1]);
-
-						if(packet_index == 0)
-						{
-							if(image_num + 1 < DEF_VID_BUFFERS)
-								vid_image_num++;
-							else
-								vid_image_num = 0;
-						}
-						else if(packet_index == 1)
-						{
-							if(image_num + 1 < DEF_VID_BUFFERS)
-								vid_image_num_3d++;
-							else
-								vid_image_num_3d = 0;
-						}
-
-						if(packet_index == 0)
-							var_need_reflesh = true;
-					}
-					else
-						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_converter_yuv420p_to_bgr565()..." + result.string + result.error_description, result.code);
-				}
-				else
+				for(int i = 1; i < 320; i++)
+					vid_raw_buffer[i - 1] = vid_raw_buffer[i];
+				
+				if(skip > vid_frametime || vid_seek_adjust_request)
 				{
 					if(vid_hw_decoding_mode)
-						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_mvd_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+						Util_mvd_video_decoder_skip_image(0);
 					else
-						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+						Util_video_decoder_skip_image(0, 0);
+
+					osTickCounterUpdate(&counter[3]);
+					skip -= vid_frametime - osTickCounterRead(&counter[3]);
+
+					if(vid_seek_adjust_request)
+					{
+						var_need_reflesh = true;
+						skip = 0;
+					}
 				}
+				else
+				{
+					while(true)
+					{
+						osTickCounterUpdate(&counter[2]);
+						if(vid_hw_decoding_mode)
+							result = Util_mvd_video_decoder_get_image(&video, vid_codec_width, vid_codec_height, 0);
+						else
+							result = Util_video_decoder_get_image(&yuv_video, vid_codec_width, vid_codec_height, packet_index, 0);
+						osTickCounterUpdate(&counter[2]);
 
-				free(yuv_video);
-				free(video);
-				yuv_video = NULL;
-				video = NULL;
+						if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof))
+							break;
+						else
+						{
+							if(vid_hw_decoding_mode)
+								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_mvd_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+							else
+								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 
-				vid_convert_wait_request = false;
-				osTickCounterUpdate(&counter[3]);
-				vid_time[1][319] = osTickCounterRead(&counter[3]);
-				for(int i = 1; i < 320; i++)
-					vid_time[1][i - 1] = vid_time[1][i];
+							usleep(1000);
+						}
+					}
+					
+					vid_copy_time[0] = osTickCounterRead(&counter[2]);
+
+					//vid_convert_request = false;
+					if(result.code == 0)
+					{
+						osTickCounterUpdate(&counter[0]);
+						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
+							result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height, true);
+						else if(!vid_hw_decoding_mode)
+							result = Util_converter_yuv420p_to_bgr565_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
+						osTickCounterUpdate(&counter[0]);
+						vid_convert_time = osTickCounterRead(&counter[0]);
+
+						if(result.code == 0)
+						{
+							osTickCounterUpdate(&counter[1]);
+							if(packet_index == 0)
+								image_num = vid_image_num;
+							else if(packet_index == 1)
+								image_num = vid_image_num_3d;
+
+							//Util_file_save_to_file("unknown.bin", DEF_MAIN_DIR + "debug/", video, vid_codec_width * vid_codec_height * 2, true);
+
+							if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
+								result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+							else
+								result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+							if(result.code != 0)
+								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+
+							if(vid_codec_width > 1024)
+							{
+								result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+							}
+							if(vid_codec_height > 1024)
+							{
+								result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+							}
+							if(vid_codec_width > 1024 && vid_codec_height > 1024)
+							{
+								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, GPU_RGB565);
+								if(result.code != 0)
+									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+							}
+
+							osTickCounterUpdate(&counter[1]);
+							vid_copy_time[1] = osTickCounterRead(&counter[1]);
+
+							if(packet_index == 0)
+							{
+								if(image_num + 1 < DEF_VID_BUFFERS)
+									vid_image_num++;
+								else
+									vid_image_num = 0;
+							}
+							else if(packet_index == 1)
+							{
+								if(image_num + 1 < DEF_VID_BUFFERS)
+									vid_image_num_3d++;
+								else
+									vid_image_num_3d = 0;
+							}
+
+							if(packet_index == 0)
+								var_need_reflesh = true;
+						}
+						else
+							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_converter_yuv420p_to_bgr565()..." + result.string + result.error_description, result.code);
+					}
+					else
+					{
+						if(vid_hw_decoding_mode)
+							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_mvd_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+						else
+							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+					}
+
+					free(yuv_video);
+					free(video);
+					yuv_video = NULL;
+					video = NULL;
+
+					for(int i = 1; i < 320; i++)
+						vid_time[1][i - 1] = vid_time[1][i];
+
+					osTickCounterUpdate(&counter[3]);
+					vid_time[1][319] = osTickCounterRead(&counter[3]);
+
+					if(vid_frametime - vid_time[1][319] > 0)
+					{
+						osTickCounterUpdate(&counter[4]);
+						usleep((vid_frametime - vid_time[1][319]) * 1000);
+						osTickCounterUpdate(&counter[4]);
+						skip -= (vid_frametime - vid_time[1][319]) - osTickCounterRead(&counter[4]);
+					}
+					else
+						skip -= vid_frametime - vid_time[1][319];
+				}
 			}
-			else
-				usleep(1000);
+			vid_convert_wait_request = false;
 		}
 		
 		usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
@@ -1109,6 +1199,7 @@ void Vid_init(void)
 		vid_time[0][i] = 0;
 		vid_time[1][i] = 0;
 		vid_packet_buffer[i] = 0;
+		vid_raw_buffer[i] = 0;
 		vid_key_frame_list[i] = false;
 	}
 
@@ -1475,13 +1566,14 @@ void Vid_main(void)
 					//decoding detail
 					for(int i = 0; i < 319; i++)
 					{
-						Draw_line(i, 110 - vid_packet_buffer[i] / 4, 0xFFFF00FF, i + 1, 110 - vid_packet_buffer[i + 1] / 4, 0xFFFF00FF, 1);//Packet buffer
 						Draw_line(i, 110 - vid_time[1][i], DEF_DRAW_BLUE, i + 1, 110 - vid_time[1][i + 1], DEF_DRAW_BLUE, 1);//Thread 1
 						Draw_line(i, 110 - vid_time[0][i], DEF_DRAW_RED, i + 1, 110 - vid_time[0][i + 1], DEF_DRAW_RED, 1);//Thread 0
+						Draw_line(i, 110 - vid_packet_buffer[i] / 4, 0xFFFF00FF, i + 1, 110 - vid_packet_buffer[i + 1] / 4, 0xFFFF00FF, 1);//Packet buffer
+						Draw_line(i, 110 - vid_raw_buffer[i], 0xFF2060FF, i + 1, 110 - vid_raw_buffer[i + 1], 0xFF2060FF, 1);//Raw image buffer
 					}
+					Draw_line(0, 110, color, 320, 110, color, 1);
+					Draw_line(0, 110 - vid_frametime, 0xFFFFFF00, 320, 110 - vid_frametime, 0xFFFFFF00, 1);
 
-					Draw_line(0, 110, color, 320, 110, color, 2);
-					Draw_line(0, 110 - vid_frametime, 0xFFFFFF00, 320, 110 - vid_frametime, 0xFFFFFF00, 2);
 					for(int i = 0; i < 319; i++)
 					{
 						if(vid_key_frame_list[i])
@@ -1508,7 +1600,8 @@ void Vid_main(void)
 					Draw((std::string)"Hw decoding : " + (vid_hw_decoding_mode ? "yes" : "no"), 0, 160, 0.4, 0.4, color);
 					Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 160, 160, 0.4, 0.4, color);
 					Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_thread_mode], 0, 170, 0.4, 0.4, color);
-					Draw("Packet buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 160, 170, 0.4, 0.4, 0xFFFF00FF);
+					Draw("Packet buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 110, 170, 0.4, 0.4, 0xFFFF00FF);
+					Draw("Raw buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 230, 170, 0.4, 0.4, 0xFF2060FF);
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 					Draw_texture(&vid_menu_button[1], vid_menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);

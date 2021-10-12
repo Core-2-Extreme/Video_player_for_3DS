@@ -34,9 +34,21 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, double* cu
 
 Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double* current_pos, int session);
 
+void Util_video_decoder_clear_raw_image(int session, int packet_index);
+
+void Util_mvd_video_decoder_clear_raw_image(int session);
+
+int Util_video_decoder_get_available_raw_image_num(int session, int packet_index);
+
+int Util_mvd_video_decoder_get_available_raw_image_num(int session);
+
 Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int height, int packet_index, int session);
 
 Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, int height, int session);
+
+void Util_video_decoder_skip_image(int packet_index, int session);
+
+void Util_mvd_video_decoder_skip_image(int session);
 
 Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session);
 
@@ -46,6 +58,6 @@ void Util_audio_decoder_exit(int session);
 
 void Util_video_decoder_exit(int session);
 
-void Util_mvd_video_decoder_exit(void);
+void Util_mvd_video_decoder_exit(int session);
 
 Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_data, int* width, int* height);

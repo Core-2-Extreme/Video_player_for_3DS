@@ -43,8 +43,9 @@ Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer
 
 	if(free_queue == -1)
 	{
-		result.code = DEF_ERR_OTHER;
-		result.string = "[Error] Queues are full ";
+		result.code = DEF_ERR_TRY_AGAIN;
+		result.string = DEF_ERR_TRY_AGAIN_STR;
+		result.error_description = "[Error] Queues are full ";
 		return result;
 	}
 

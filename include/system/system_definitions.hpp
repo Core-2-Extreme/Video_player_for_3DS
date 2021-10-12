@@ -152,6 +152,7 @@
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS 0xFFFFFFFA
 #define DEF_ERR_INVALID_ARG 0xFFFFFFF9
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS 0xFFFFFFF8
+#define DEF_ERR_TRY_AGAIN 0xFFFFFFF7
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -160,7 +161,8 @@
 #define DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] stb image returned NOT success. "
 #define DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] ffmpeg returned NOT success. "
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
-#define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR "[Error] jsmn returned NOT success. "
+#define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] jsmn returned NOT success. "
+#define DEF_ERR_TRY_AGAIN_STR (std::string)"[Error] Try again later. "
 
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"

@@ -620,7 +620,7 @@ Result_with_string Draw_init(bool wide, bool _3d)
 		gfxSet3D(_3d);
 
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+	C2D_Init(C2D_DEFAULT_MAX_OBJECTS * 1.5);
 	C2D_Prepare();
 	util_draw_screen[0] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	util_draw_screen[1] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);

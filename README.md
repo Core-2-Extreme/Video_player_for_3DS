@@ -153,7 +153,7 @@ Workaround : encode your video without using B-frames. \
 * ogg (Vorbis)
 * pcm audio
 
-## Contorols
+## Controls
 * A : Play/Pause
 * B : Stop
 * Y : Debug

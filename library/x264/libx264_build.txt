@@ -1,1 +1,2 @@
- ./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --disable-avs --enable-static
+//https://github.com/mirror/x264
+ ./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/libctru --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --bit-depth=8 --chroma-format=420 --disable-avs --enable-static --disable-cli

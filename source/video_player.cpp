@@ -605,7 +605,7 @@ void Vid_decode_thread(void* arg)
 						else
 							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
 
-						free(audio);
+						Util_safe_linear_free(audio);
 						audio = NULL;
 					}
 					else
@@ -861,7 +861,7 @@ void Vid_convert_thread(void* arg)
 			vid_convert_wait_request = true;
 			while(vid_convert_request)
 			{
-				while(vid_pause_request)
+				while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
 					usleep(10000);
 
 				osTickCounterUpdate(&counter[3]);
@@ -997,8 +997,8 @@ void Vid_convert_thread(void* arg)
 							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 					}
 
-					free(yuv_video);
-					free(video);
+					Util_safe_linear_free(yuv_video);
+					Util_safe_linear_free(video);
 					yuv_video = NULL;
 					video = NULL;
 
@@ -1212,7 +1212,7 @@ void Vid_init(void)
 		}
 	}
 
-	cache = (u8*)malloc(0x1000);
+	cache = (u8*)Util_safe_linear_alloc(0x1000);
 	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_VID_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 
@@ -1268,7 +1268,7 @@ void Vid_init(void)
 	if(vid_seek_duration > 99 || vid_seek_duration < 1)
 		vid_seek_duration = 10;
 
-	free(cache);
+	Util_safe_linear_free(cache);
 	cache = NULL;
 
 	vid_banner_texture_num = Draw_get_free_sheet_num();

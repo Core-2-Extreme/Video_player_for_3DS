@@ -50,7 +50,12 @@
  * avcodec_default_get_buffer2 or avcodec_default_get_encode_buffer.
  */
 #define AV_CODEC_CAP_DR1                 (1 <<  1)
+#if FF_API_FLAG_TRUNCATED
+/**
+ * @deprecated Use parsers to always send proper frames.
+ */
 #define AV_CODEC_CAP_TRUNCATED           (1 <<  3)
+#endif
 /**
  * Encoder or decoder requires flushing with NULL input at the end in order to
  * give the complete and correct output.
@@ -214,12 +219,12 @@ typedef struct AVCodec {
      * see AV_CODEC_CAP_*
      */
     int capabilities;
+    uint8_t max_lowres;                     ///< maximum value for lowres supported by the decoder
     const AVRational *supported_framerates; ///< array of supported framerates, or NULL if any, array is terminated by {0,0}
     const enum AVPixelFormat *pix_fmts;     ///< array of supported pixel formats, or NULL if unknown, array is terminated by -1
     const int *supported_samplerates;       ///< array of supported audio samplerates, or NULL if unknown, array is terminated by 0
     const enum AVSampleFormat *sample_fmts; ///< array of supported sample formats, or NULL if unknown, array is terminated by -1
     const uint64_t *channel_layouts;         ///< array of support channel layouts, or NULL if unknown. array is terminated by 0
-    uint8_t max_lowres;                     ///< maximum value for lowres supported by the decoder
     const AVClass *priv_class;              ///< AVClass for the private context
     const AVProfile *profiles;              ///< array of recognized profiles, or NULL if unknown, array is terminated by {FF_PROFILE_UNKNOWN}
 
@@ -242,6 +247,12 @@ typedef struct AVCodec {
      * New public fields should be added right above.
      *****************************************************************
      */
+    /**
+     * Internal codec capabilities.
+     * See FF_CODEC_CAP_* in internal.h
+     */
+    int caps_internal;
+
     int priv_data_size;
     /**
      * @name Frame-level threading support functions
@@ -323,11 +334,6 @@ typedef struct AVCodec {
      * Will be called when seeking
      */
     void (*flush)(struct AVCodecContext *);
-    /**
-     * Internal codec capabilities.
-     * See FF_CODEC_CAP_* in internal.h
-     */
-    int caps_internal;
 
     /**
      * Decoding only, a comma-separated list of bitstream filters to apply to

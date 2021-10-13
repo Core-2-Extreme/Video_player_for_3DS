@@ -1,7 +1,8 @@
- ./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/libctru --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D _POSIX_THREADS" --extra-ldflags="-mfloat-abi=hard" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,bmp,gif,h263,h264,hevc,jpeg,jpeg2000,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp" --enable-demuxer="aac,ac3,avi,gif,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,wav" --enable-encoder="aac,ac3,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-gpl  --enable-pthreads
+//https://github.com/FFmpeg/FFmpeg.git
+ ./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/libctru --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D _POSIX_THREADS" --extra-ldflags="-mfloat-abi=hard" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,bmp,gif,h261,h262,h263,h264,hevc,jpeg,jpeg2000,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp" --enable-demuxer="aac,ac3,avi,gif,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,wav" --enable-encoder="aac,ac3,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-gpl --enable-pthreads
 
 /*
-replace configure line 6322~6347
+replace configure line 6324~6349
 from :
     if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
         if check_lib pthreads pthread.h pthread_join   -pthread &&
@@ -28,5 +29,18 @@ to :
     pthread_mutex_lock(&w->mutex);
     w->done = 1;
     pthread_cond_signal(&w->cond);
+
+
+replace libavutil/mem.c line 95
+from :
+    void *av_malloc(size_t size)
+to :
+    void * __attribute__((weak)) av_malloc(size_t size)
+
+replace libavutil/mem.c line 245
+from : 
+    void av_free(void *ptr)
+to :
+    void __attribute__((weak)) av_free(void *ptr)
 
 */

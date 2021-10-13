@@ -817,7 +817,7 @@ void Menu_get_system_info(void)
 {
 	u8 battery_level = -1;
 	u8 battery_voltage = -1;
-	char* ssid = (char*)malloc(512);
+	char* ssid = (char*)Util_safe_linear_alloc(512);
 	Result_with_string result;
 
 	PTMU_GetBatteryChargeState(&var_battery_charge);//battery charge
@@ -852,7 +852,7 @@ void Menu_get_system_info(void)
 	else
 		var_connected_ssid = "";
 
-	free(ssid);
+	Util_safe_linear_free(ssid);
 	ssid = NULL;
 
 	var_wifi_signal = osGetWifiStrength();
@@ -920,7 +920,7 @@ void Menu_send_app_info_thread(void* arg)
 	u32 downloaded_size = 0;
 	char system_ver_char[0x50] = " ";
 	std::string new3ds;
-	dl_data = (u8*)malloc(0x10000);
+	dl_data = (u8*)Util_safe_linear_alloc(0x10000);
 
 	osGetSystemVersionDataString(&os_ver, &os_ver, system_ver_char, 0x50);
 	std::string system_ver = system_ver_char;
@@ -930,7 +930,7 @@ void Menu_send_app_info_thread(void* arg)
 
 	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
 	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (char*)send_data.c_str(), send_data.length(), dl_data, 0x10000, &downloaded_size, &status_code, true, 5);
-	free(dl_data);
+	Util_safe_linear_free(dl_data);
 	dl_data = NULL;
 
 	Util_log_save(DEF_MENU_SEND_APP_INFO_STR, "Thread exit.");
@@ -944,7 +944,7 @@ void Menu_check_connectivity_thread(void* arg)
 	u32 status_code = 0;
 	u32 dl_size = 0;
 	int count = 100;
-	http_buffer = (u8*)malloc(0x1000);
+	http_buffer = (u8*)Util_safe_linear_alloc(0x1000);
 
 	while (menu_thread_run)
 	{
@@ -963,6 +963,8 @@ void Menu_check_connectivity_thread(void* arg)
 
 		count++;
 	}
+
+	Util_safe_linear_free(http_buffer);
 	Util_log_save(DEF_MENU_CHECK_INTERNET_STR, "Thread exit.");
 	threadExit(0);
 }
@@ -1046,7 +1048,7 @@ void Menu_update_thread(void* arg)
 	size_t pos[2] = { 0, 0, };
 	std::string data = "";
 	Result_with_string result;
-	http_buffer = (u8*)malloc(0x1000);
+	http_buffer = (u8*)Util_safe_linear_alloc(0x1000);
 
 	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, http_buffer, 0x1000, &dl_size, &status_code, true, 3);
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_httpc_dl_data()..." + result.string + result.error_description, result.code);
@@ -1062,6 +1064,8 @@ void Menu_update_thread(void* arg)
 				menu_update_available = true;
 		}
 	}
+
+	Util_safe_linear_free(http_buffer);
 
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");
 	threadExit(0);

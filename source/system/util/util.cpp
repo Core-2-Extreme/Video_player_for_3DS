@@ -108,7 +108,7 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	u8* fs_buffer = NULL;
 	u32 read_size = 0;
 	Result_with_string result;
-	fs_buffer = (u8*)malloc(0x2000);
+	fs_buffer = (u8*)Util_safe_linear_alloc(0x2000);
 	if(fs_buffer == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -119,18 +119,18 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	result = Util_file_load_from_rom(file_name, "romfs:/gfx/msg/", fs_buffer, 0x2000, &read_size);
 	if (result.code != 0)
 	{
-		free(fs_buffer);
+		Util_safe_linear_free(fs_buffer);
 		return result;
 	}
 
 	result = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
 	if (result.code != 0)
 	{
-		free(fs_buffer);
+		Util_safe_linear_free(fs_buffer);
 		return result;
 	}
 
-	free(fs_buffer);
+	Util_safe_linear_free(fs_buffer);
 	return result;
 }
 
@@ -160,4 +160,14 @@ void Util_safe_linear_free(void* pointer)
 	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
 	linearFree(pointer);
 	svcReleaseMutex(util_safe_linear_memory_mutex);
+}
+
+void* av_malloc(size_t size)
+{
+	return Util_safe_linear_alloc(size);
+}
+
+void av_free(void *ptr)
+{
+	Util_safe_linear_free(ptr);
 }

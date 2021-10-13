@@ -622,7 +622,7 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 		{
 			*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session][packet_index]->sample_rate) * util_audio_decoder_raw_data[session][packet_index]->nb_samples);//calc pos
 
-			*raw_data = (u8*)malloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
+			*raw_data = (u8*)Util_safe_linear_alloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
 			*size = swr_convert(util_audio_decoder_swr_context[session][packet_index], raw_data, util_audio_decoder_raw_data[session][packet_index]->nb_samples, (const uint8_t**)util_audio_decoder_raw_data[session][packet_index]->data, util_audio_decoder_raw_data[session][packet_index]->nb_samples);
 			*size *= 2;
 		}
@@ -976,7 +976,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 
 	cpy_size[0] = (width * height);
 	cpy_size[1] = cpy_size[0] / 4;
-	*raw_data = (u8*)malloc(width * height * 1.5);
+	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(*raw_data == NULL)
 	{
 		svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
@@ -1062,7 +1062,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 	}
 
 	cpy_size = (width * height * 2);
-	*raw_data = (u8*)malloc(width * height * 2);
+	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(*raw_data == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;

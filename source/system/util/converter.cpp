@@ -36,7 +36,7 @@ Result_with_string Util_converter_yuv422_to_bgr565(u8* yuv422, u8** bgr565, int 
 		return result;
 	}
 
-	*bgr565 = (u8*)malloc(width * height * 2);
+	*bgr565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(*bgr565 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -74,7 +74,7 @@ Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, in
 		return result;
 	}
 
-	*yuv420p = (u8*)malloc(width * height * 1.5);
+	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(*yuv420p == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -106,7 +106,7 @@ Result_with_string Util_converter_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565, in
     u8* vbase = yuv420p + width * height + width * height / 4;
 	Result_with_string result;
 
-	*bgr565 = (u8*)malloc(width * height * 2);
+	*bgr565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(*bgr565 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -140,7 +140,7 @@ Result_with_string Util_converter_yuv420p_to_bgr565_asm(u8* yuv420p, u8** bgr565
 {
 	Result_with_string result;
 
-	*bgr565 = (u8*)malloc(width * height * 2);
+	*bgr565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(*bgr565 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -160,7 +160,7 @@ Result_with_string Util_converter_yuv420p_to_bgr888(u8* yuv420p, u8** bgr888, in
     u8* vbase = yuv420p + width * height + width * height / 4;
 	Result_with_string result;
 
-	*bgr888 = (u8*)malloc(width * height * 3);
+	*bgr888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(*bgr888 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -190,7 +190,7 @@ Result_with_string Util_converter_yuv420p_to_bgr888_asm(u8* yuv420p, u8** bgr888
 {
 	Result_with_string result;
 
-	*bgr888 = (u8*)malloc(width * height * 3);
+	*bgr888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(*bgr888 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -227,7 +227,7 @@ Result_with_string Util_converter_bgr888_rotate_90_degree(u8* bgr888, u8** rotat
 	int offset;
 	int rotated_offset = 0;
 
-	*rotated_bgr888 = (u8*)malloc(width * height * 3);
+	*rotated_bgr888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(*rotated_bgr888 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -270,7 +270,7 @@ Result_with_string Util_converter_bgr888_to_yuv420p(u8* bgr888, u8** yuv420p, in
 		return result;
 	}
 
-	*yuv420p = (u8*)malloc(width * height * 1.5);
+	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(*yuv420p == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -312,7 +312,7 @@ Result_with_string Util_converter_y2r_yuv420p_to_bgr565(u8* yuv420p, u8** bgr565
 	Y2RU_ConversionParams y2r_parameters;
 	Result_with_string result;
 
-	*bgr565 = (u8*)malloc(width * height * 2);
+	*bgr565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(*bgr565 == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;

@@ -588,7 +588,7 @@ void Draw_debug_info(void)
 Result_with_string Draw_load_kanji_samples(void)
 {
 	int characters = 0;
-	u8* fs_buffer = (u8*)malloc(0x8000);
+	u8* fs_buffer = (u8*)Util_safe_linear_alloc(0x8000);
 	u32 read_size = 0;
 	Result_with_string result;
 
@@ -602,7 +602,7 @@ Result_with_string Draw_load_kanji_samples(void)
 	if(result.code == 0)
 		Exfont_text_parse((char*)fs_buffer, util_draw_simple_chinese, 6300, &characters);
 
-	free(fs_buffer);
+	Util_safe_linear_free(fs_buffer);
 	return result;
 }
 

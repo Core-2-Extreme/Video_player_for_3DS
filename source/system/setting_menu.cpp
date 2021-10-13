@@ -119,7 +119,7 @@ void Sem_init(void)
 {
 	Util_log_save(DEF_SEM_INIT_STR, "Initializing...");
 	bool wifi_state = true;
-	u8* cache = (u8*)malloc(0x1000);
+	u8* cache = (u8*)Util_safe_linear_alloc(0x1000);
 	u32 read_size = 0;
 	std::string data[11];
 	Result_with_string result;
@@ -182,7 +182,7 @@ void Sem_init(void)
 	if(result.code == 0 || result.code == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
 	
-	free(cache);
+	Util_safe_linear_free(cache);
 	cache = NULL;
 
 	Sem_resume();
@@ -1429,7 +1429,7 @@ void Sem_encode_thread(void* arg)
 			{
 				sem_wait_request = true;
 				sem_encode_request = false;
-				yuv420p = (u8*)malloc(sem_rec_width * sem_rec_height * 1.5);
+				yuv420p = (u8*)Util_safe_linear_alloc(sem_rec_width * sem_rec_height * 1.5);
 				if(yuv420p == NULL)
 					sem_stop_record_request = true;
 				else
@@ -1446,7 +1446,7 @@ void Sem_encode_thread(void* arg)
 					}
 				}
 
-				free(yuv420p);
+				Util_safe_linear_free(yuv420p);
 				yuv420p = NULL;
 				sem_wait_request = false;
 			}
@@ -1537,7 +1537,7 @@ void Sem_record_thread(void* arg)
 			if(result.code != 0)
 				sem_record_request = false;
 			
-			sem_yuv420p = (u8*)malloc(rec_width * rec_height * 1.5);
+			sem_yuv420p = (u8*)Util_safe_linear_alloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;
 
@@ -1566,12 +1566,12 @@ void Sem_record_thread(void* arg)
 						break;
 					}
 
-					both_bgr = (u8*)malloc(rec_width * rec_height * 3);
+					both_bgr = (u8*)Util_safe_linear_alloc(rec_width * rec_height * 3);
 					if(both_bgr == NULL)
 						break;
 
 					memcpy(both_bgr, top_bgr, 400 * 240 * 3);
-					free(top_bgr);
+					Util_safe_linear_free(top_bgr);
 					top_bgr = NULL;
 
 					offset = 400 * 240 * 3;
@@ -1587,7 +1587,7 @@ void Sem_record_thread(void* arg)
 						memset(both_bgr + offset, 0x0, 40 * 3);
 						offset += 40 * 3;
 					}
-					free(bot_bgr);
+					Util_safe_linear_free(bot_bgr);
 					bot_bgr = NULL;
 				}
 				else if(mode == DEF_SEM_RECORD_TOP)
@@ -1612,7 +1612,7 @@ void Sem_record_thread(void* arg)
 				}
 				
 				result = Util_converter_bgr888_to_yuv420p(both_bgr, &yuv420p, rec_width, rec_height);
-				free(both_bgr);
+				Util_safe_linear_free(both_bgr);
 				both_bgr = NULL;
 				if(result.code != 0)
 				{
@@ -1620,7 +1620,7 @@ void Sem_record_thread(void* arg)
 					break;
 				}
 				memcpy(sem_yuv420p, yuv420p, rec_width * rec_height * 1.5);
-				free(yuv420p);
+				Util_safe_linear_free(yuv420p);
 				yuv420p = NULL;
 
 				sem_encode_request = true;
@@ -1635,11 +1635,11 @@ void Sem_record_thread(void* arg)
 
 			Util_encoder_close_output_file(0);
 			Util_video_encoder_exit(0);
-			free(both_bgr);
-			free(bot_bgr);
-			free(top_bgr);
-			free(yuv420p);
-			free(sem_yuv420p);
+			Util_safe_linear_free(both_bgr);
+			Util_safe_linear_free(bot_bgr);
+			Util_safe_linear_free(top_bgr);
+			Util_safe_linear_free(yuv420p);
+			Util_safe_linear_free(sem_yuv420p);
 			both_bgr = NULL;
 			bot_bgr = NULL;
 			top_bgr = NULL;
@@ -1826,7 +1826,7 @@ void Sem_update_thread(void* arg)
 			offset = 0;
 			sem_installed_size = 0;
 			sem_total_cia_size = 0;
-			buffer = (u8*)malloc(0x20000);
+			buffer = (u8*)Util_safe_linear_alloc(0x20000);
 			if (buffer == NULL)
 			{
 				Util_err_set_error_message(DEF_ERR_OUT_OF_MEMORY_STR, "", DEF_SEM_UPDATE_THREAD_STR, DEF_ERR_OUT_OF_MEMORY);
@@ -1944,7 +1944,7 @@ void Sem_update_thread(void* arg)
 				}
 			}
 
-			free(buffer);
+			Util_safe_linear_free(buffer);
 			buffer = NULL;
 			if(sem_check_update_request)
 				sem_check_update_request = false;

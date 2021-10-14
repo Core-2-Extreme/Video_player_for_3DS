@@ -2,6 +2,8 @@
 
 Handle util_safe_linear_memory_mutex = -1;
 
+extern "C" void memcpy_asm(u8*, u8*, int);
+
 Result_with_string Util_parse_file(std::string source_data, int num_of_items, std::string out_data[])
 {
 	Result_with_string result;
@@ -144,7 +146,7 @@ void Util_exit(void)
 	svcCloseHandle(util_safe_linear_memory_mutex);
 }
 
-void* Util_safe_linear_alloc(int size)
+void* __attribute__((optimize("O0"))) Util_safe_linear_alloc(size_t size)
 {
 	void* pointer = NULL;
 
@@ -155,16 +157,60 @@ void* Util_safe_linear_alloc(int size)
 	return pointer;
 }
 
-void Util_safe_linear_free(void* pointer)
+void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, size_t size)
+{
+	void* new_ptr = NULL;
+	u32 pointer_size = 0;
+
+	if(size == 0)
+	{
+		Util_safe_linear_free(pointer);
+		return pointer;
+	}
+	if(!pointer)
+		return Util_safe_linear_alloc(size);
+
+	new_ptr = Util_safe_linear_alloc(size);
+	if(new_ptr)
+	{
+		svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+		pointer_size = linearGetSize(pointer);
+		svcReleaseMutex(util_safe_linear_memory_mutex);
+		
+		if(size > pointer_size)
+			memcpy_asm((u8*)new_ptr, (u8*)pointer, pointer_size);
+		else
+			memcpy_asm((u8*)new_ptr, (u8*)pointer, size);
+
+		Util_safe_linear_free(pointer);
+	}
+	return new_ptr;
+}
+
+void __attribute__((optimize("O0"))) Util_safe_linear_free(void* pointer)
 {
 	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
 	linearFree(pointer);
 	svcReleaseMutex(util_safe_linear_memory_mutex);
 }
 
+u32 __attribute__((optimize("O0"))) Util_get_free_space(void)
+{
+	u32 space = 0;
+	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
+	space = linearSpaceFree();
+	svcReleaseMutex(util_safe_linear_memory_mutex);
+	return space;
+}
+
 void* av_malloc(size_t size)
 {
 	return Util_safe_linear_alloc(size);
+}
+
+void* av_realloc(void *ptr, size_t size)
+{
+	return Util_safe_linear_realloc(ptr, size);
 }
 
 void av_free(void *ptr)

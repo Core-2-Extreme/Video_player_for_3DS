@@ -883,7 +883,7 @@ void Menu_get_system_info(void)
 	{
 		//check free RAM
 		var_free_ram = Menu_check_free_ram();
-		var_free_linear_ram = linearSpaceFree();
+		var_free_linear_ram = Util_get_free_space();
 	}
 
 	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);

@@ -632,7 +632,7 @@ void Vid_decode_thread(void* arg)
 			if(num_of_audio_tracks > 0)
 			{
 				Util_audio_decoder_exit(0);
-				while(Util_speaker_is_playing(0) && vid_play_request)
+				while(Util_speaker_is_playing(0) && vid_play_request && !vid_change_video_request)
 					usleep(10000);
 				
 				Util_speaker_exit(0);
@@ -736,14 +736,47 @@ void Vid_decode_video_thread(void* arg)
 						{
 							while(true)
 							{
-								osTickCounterUpdate(&counter);
-
 								if(vid_hw_decoding_mode)
-									result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
+								{
+									if((u32)(vid_codec_width * vid_codec_height * 2 * 6) < Util_get_free_space())
+									{
+										osTickCounterUpdate(&counter);
+										result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
+										osTickCounterUpdate(&counter);
+									}
+									else if(Util_mvd_video_decoder_get_available_raw_image_num(0) < 1)
+									{
+										result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+										result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+										vid_play_request = false;
+									}
+									else
+									{
+										result.code = DEF_ERR_TRY_AGAIN;
+										result.string = DEF_ERR_TRY_AGAIN_STR;
+									}
+								}
 								else
-									result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
+								{
+									if((u32)(vid_codec_width * vid_codec_height * 1.5 * 6) < Util_get_free_space())
+									{
+										osTickCounterUpdate(&counter);
+										result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
+										osTickCounterUpdate(&counter);
+									}
+									else if(Util_video_decoder_get_available_raw_image_num(0, 0) < 1)
+									{
+										result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+										result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+										vid_play_request = false;
+									}
+									else
+									{
+										result.code = DEF_ERR_TRY_AGAIN;
+										result.string = DEF_ERR_TRY_AGAIN_STR;
+									}
+								}
 
-								osTickCounterUpdate(&counter);
 								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request)
 									break;
 								else
@@ -912,7 +945,7 @@ void Vid_convert_thread(void* arg)
 							else
 								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 
-							usleep(1000);
+							usleep((vid_frametime / 4) * 1000);
 						}
 					}
 					
@@ -1100,7 +1133,7 @@ void Vid_init(void)
 	u32 read_size = 0;
 	std::string out_data[12];
 	Result_with_string result;
-	
+
 	vid_thread_run = true;
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
 	{

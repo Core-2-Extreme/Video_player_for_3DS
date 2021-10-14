@@ -37,6 +37,12 @@ from :
 to :
     void * __attribute__((weak)) av_malloc(size_t size)
 
+replace libavutil/mem.c line 152
+from :
+    void * av_realloc(void *ptr, size_t size)
+to :
+    void * __attribute__((weak)) av_realloc(void *ptr, size_t size)
+
 replace libavutil/mem.c line 245
 from : 
     void av_free(void *ptr)

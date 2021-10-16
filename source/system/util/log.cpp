@@ -8,16 +8,23 @@ double util_log_uptime_ms = 0.0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES];
 std::string util_log_logs[DEF_LOG_BUFFER_LINES];
 TickCounter util_log_uptime_stopwatch;
+Handle util_log_mutex = 0;
 
 void Util_log_init(void)
 {
 	osTickCounterStart(&util_log_uptime_stopwatch);
 	util_log_uptime_ms = 0;
+	svcCreateMutex(&util_log_mutex, false);
 	for(int i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
 		util_log_spend_time[i] = 0;
 		util_log_logs[i] = "";
 	}
+}
+
+void Util_log_exit(void)
+{
+	svcCloseHandle(util_log_mutex);
 }
 
 bool Util_log_query_log_show_flag(void)
@@ -42,15 +49,16 @@ int Util_log_save(std::string type, std::string text, int result)
 	char app_log_cache[2048];
 	memset(app_log_cache, 0x0, 2048);
 
+	svcWaitSynchronization(util_log_mutex, U64_MAX);
 	osTickCounterUpdate(&util_log_uptime_stopwatch);
 	util_log_uptime_ms += osTickCounterRead(&util_log_uptime_stopwatch);
-	util_log_spend_time[util_log_current_index] = util_log_uptime_ms;
 
 	if (result == 1234567890)
 		sprintf(app_log_cache, "[%.5f][%s] %s", util_log_uptime_ms / 1000, type.c_str(), text.c_str());
 	else
 		sprintf(app_log_cache, "[%.5f][%s] %s 0x%x", util_log_uptime_ms / 1000, type.c_str(), text.c_str(), result);
 
+	util_log_spend_time[util_log_current_index] = util_log_uptime_ms;
 	util_log_logs[util_log_current_index] = app_log_cache;
 	util_log_current_index++;
 	return_log_num = util_log_current_index;
@@ -61,7 +69,9 @@ int Util_log_save(std::string type, std::string text, int result)
 		util_log_y = 0;
 	else
 		util_log_y = util_log_current_index - DEF_LOG_DISPLAYED_LINES;
-	
+
+	svcReleaseMutex(util_log_mutex);
+
 	if(util_log_show_flag)
 		var_need_reflesh = true;
 

@@ -2,6 +2,8 @@
 
 void Util_log_init(void);
 
+void Util_log_exit(void);
+
 bool Util_log_query_log_show_flag(void);
 
 void Util_log_set_log_show_flag(bool flag);

@@ -581,8 +581,8 @@ void Draw_debug_info(void)
 	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0, 150, 0.4, 0.4, color);
 	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0, 160, 0.4, 0.4, color);
 	Draw("Frametime: " + std::to_string(util_draw_frametime[9]).substr(0, 6) + "ms", 0, 170, 0.4, 0.4, color);
-	Draw("RAM: " + std::to_string(var_free_ram / 1000.0).substr(0, 5) + " MB", 0, 180, 0.4, 0.4, color);
-	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1000.0 / 1000.0).substr(0, 5) +" MB", 0, 190, 0.4, 0.4, color);
+	Draw("RAM: " + std::to_string(var_free_ram / 1024.0).substr(0, 5) + " MB", 0, 180, 0.4, 0.4, color);
+	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1024.0 / 1024.0).substr(0, 5) +" MB", 0, 190, 0.4, 0.4, color);
 }
 
 Result_with_string Draw_load_kanji_samples(void)

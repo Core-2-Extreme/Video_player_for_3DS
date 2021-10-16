@@ -331,6 +331,7 @@ void Menu_exit(void)
 	threadFree(menu_check_connectivity_thread);
 	threadFree(menu_send_app_info_thread);
 	threadFree(menu_update_thread);
+	Util_log_exit();
 
 	Util_exit();
 	fsExit();

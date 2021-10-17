@@ -140,6 +140,8 @@ void Vid_decode_thread(void* arg)
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
+	int max_buffer = 0;
+	int free_ram = 0;
 	double pos = 0;
 	double saved_pos = 0;
 	u8* audio = NULL;
@@ -158,6 +160,8 @@ void Vid_decode_thread(void* arg)
 	{
 		if(vid_play_request || vid_change_video_request)
 		{
+			max_buffer = 0;
+			free_ram = 0;
 			packet_index = 0;
 			wait_count = 0;
 			vid_num_of_video_tracks = 0;
@@ -447,13 +451,6 @@ void Vid_decode_thread(void* arg)
 				vid_turn_off_bottom_screen_count = 300;
 			}
 
-			if(result.code != 0)
-			{
-				Util_err_set_error_message(result.string, result.error_description, DEF_VID_DECODE_THREAD_STR, result.code);
-				Util_err_set_error_show_flag(true);
-				var_need_reflesh = true;
-			}
-
 			if(vid_remember_video_pos_mode && vid_play_request)
 			{
 				result = Util_file_load_from_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), &read_size);
@@ -466,7 +463,51 @@ void Vid_decode_thread(void* arg)
 			}
 
 			if(vid_play_request)
+			{
+				if(vid_num_of_video_tracks > 0)
+				{
+					if(vid_hw_decoding_mode)
+					{
+						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 7MB
+						free_ram = Util_check_free_linear_space();
+						free_ram -= (1024 * 1024 * 7);
+						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 2);
+						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
+							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
+						if(max_buffer < 3)
+						{
+							result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+							result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+							vid_play_request = false;
+						}
+						else
+							Util_mvd_video_decoder_set_raw_image_buffer_size(max_buffer, 0);
+					}
+					else
+					{
+						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 7MB + (raw_image_size * 8)
+						free_ram = Util_check_free_ram();
+						free_ram -= ((1024 * 1024 * 7) + (vid_codec_width * vid_codec_height * 1.5 * 8));
+						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
+						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
+							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
+						if(max_buffer < 3)
+						{
+							result.code = DEF_ERR_OUT_OF_MEMORY;
+							result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+							vid_play_request = false;
+						}
+						else
+						{
+							for(int i = 0; i < vid_num_of_video_tracks; i++)
+								Util_video_decoder_set_raw_image_buffer_size(max_buffer, 0, i);
+						}
+					}
+					Util_log_save(DEF_VID_DECODE_THREAD_STR, "max raw buffer(per track) : " + std::to_string(max_buffer));
+				}
+
 				vid_read_packet_request = true;
+			}
 
 			while(vid_play_request)
 			{
@@ -477,6 +518,13 @@ void Vid_decode_thread(void* arg)
 			if(vid_num_of_video_tracks > 0)
 				Util_speaker_pause(0);
 			
+			if(result.code != 0)
+			{
+				Util_err_set_error_message(result.string, result.error_description, DEF_VID_DECODE_THREAD_STR, result.code);
+				Util_err_set_error_show_flag(true);
+				var_need_reflesh = true;
+			}
+
 			while(vid_play_request)
 			{
 				while(vid_decode_video_request && vid_play_request && !vid_change_video_request)
@@ -498,6 +546,15 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 
+				if(num_of_video_tracks < 1 && vid_pause_request)
+				{
+					Util_speaker_pause(0);
+					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
+						usleep(5000);
+					
+					Util_speaker_resume(0);
+				}
+
 				var_afk_time = 0;
 
 				if(!vid_select_audio_track_request && audio_track != vid_selected_audio_track)
@@ -507,15 +564,6 @@ void Vid_decode_thread(void* arg)
 					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
 					vid_duration *= 1000;
 					Util_speaker_init(0, ch, sample_rate);
-				}
-
-				if(vid_pause_request)
-				{
-					Util_speaker_pause(0);
-					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
-						usleep(20000);
-					
-					Util_speaker_resume(0);
 				}
 
 				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == "video"))
@@ -618,7 +666,7 @@ void Vid_decode_thread(void* arg)
 						else
 							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
 
-						Util_safe_linear_free(audio);
+						free(audio);
 						audio = NULL;
 					}
 					else
@@ -651,6 +699,20 @@ void Vid_decode_thread(void* arg)
 					usleep(10000);
 				
 				Util_speaker_exit(0);
+			}
+
+			if(num_of_video_tracks > 0)
+			{
+				if(vid_hw_decoding_mode)
+				{
+					while(Util_mvd_video_decoder_get_available_raw_image_num(0) && vid_play_request && !vid_change_video_request)
+						usleep(10000);
+				}
+				else
+				{
+					while(Util_video_decoder_get_available_raw_image_num(0, 0) && vid_play_request && !vid_change_video_request)
+						usleep(10000);
+				}
 			}
 
 			vid_convert_request = false;
@@ -709,8 +771,6 @@ void Vid_decode_video_thread(void* arg)
 {
 	Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, "Thread started.");
 	bool key_frame = false;
-	bool first = false;
-	u32 min_ram = 0;
 	int packet_index = 0;
 	int w = 0;
 	int h = 0;
@@ -729,30 +789,12 @@ void Vid_decode_video_thread(void* arg)
 			h = 0;
 			skip = 0;
 			pos = 0;
-			first = true;
 										
 			while(vid_play_request)
 			{
 				if(vid_decode_video_request)
 				{
 					vid_decode_video_wait_request = true;
-
-					if(first)
-					{
-						if(vid_hw_decoding_mode)
-							min_ram = (vid_codec_width * vid_codec_height * 2 * 8);
-						else if(vid_thread_mode != 0)
-							min_ram = (vid_codec_width * vid_codec_height * 1.5 * (8 + vid_num_of_threads));
-						else
-							min_ram = (vid_codec_width * vid_codec_height * 1.5 * 8);
-
-						if(min_ram < 1024 * 1024 * 6)//to prevent malloc failure in decoder, not add buffer if available ram is less than (at least) 6MB
-							min_ram = 1024 * 1024 * 6;
-
-						Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, "min ram : " + std::to_string(min_ram / 1024) + "KB");
-						first = false;
-					}
-
 					packet_index = vid_packet_index;
 					key_frame = vid_key_frame;
 					if(vid_allow_skip_frames && skip > vid_frametime && (!key_frame || vid_allow_skip_key_frames))
@@ -771,53 +813,19 @@ void Vid_decode_video_thread(void* arg)
 						{
 							while(true)
 							{
+								osTickCounterUpdate(&counter);
 								if(vid_hw_decoding_mode)
-								{
-									if(min_ram < Util_get_free_space())
-									{
-										osTickCounterUpdate(&counter);
-										result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
-										osTickCounterUpdate(&counter);
-									}
-									else if(Util_mvd_video_decoder_get_available_raw_image_num(0) < 1)
-									{
-										result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
-										result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
-										vid_play_request = false;
-									}
-									else
-									{
-										result.code = DEF_ERR_TRY_AGAIN;
-										result.string = DEF_ERR_TRY_AGAIN_STR;
-									}
-								}
+									result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
 								else
-								{
-									if(min_ram < Util_get_free_space())
-									{
-										osTickCounterUpdate(&counter);
-										result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
-										osTickCounterUpdate(&counter);
-									}
-									else if(Util_video_decoder_get_available_raw_image_num(0, packet_index) < 1)
-									{
-										result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
-										result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
-										vid_play_request = false;
-									}
-									else
-									{
-										result.code = DEF_ERR_TRY_AGAIN;
-										result.string = DEF_ERR_TRY_AGAIN_STR;
-									}
-								}
+									result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
+								osTickCounterUpdate(&counter);
 
 								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request)
 									break;
 								else
 								{
 									//Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, result.error_description, result.code);
-									usleep((vid_frametime / 4) * 1000);
+									usleep(1000);
 								}
 							}
 
@@ -932,9 +940,14 @@ void Vid_convert_thread(void* arg)
 			vid_convert_wait_request = true;
 			while(vid_convert_request)
 			{
-				while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
-					usleep(10000);
-
+				if(vid_pause_request)
+				{
+					Util_speaker_pause(0);
+					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
+						usleep(5000);
+					
+					Util_speaker_resume(0);
+				}
 				osTickCounterUpdate(&counter[3]);
 
 				if(first)//start audio playback when first frame is ready
@@ -1077,8 +1090,8 @@ void Vid_convert_thread(void* arg)
 							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 					}
 
-					Util_safe_linear_free(yuv_video);
-					Util_safe_linear_free(video);
+					free(yuv_video);
+					free(video);
 					yuv_video = NULL;
 					video = NULL;
 
@@ -1297,7 +1310,7 @@ void Vid_init(void)
 		}
 	}
 
-	cache = (u8*)Util_safe_linear_alloc(0x1000);
+	cache = (u8*)malloc(0x1000);
 	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
 	Util_log_save(DEF_VID_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 
@@ -1353,7 +1366,7 @@ void Vid_init(void)
 	if(vid_seek_duration > 99 || vid_seek_duration < 1)
 		vid_seek_duration = 10;
 
-	Util_safe_linear_free(cache);
+	free(cache);
 	cache = NULL;
 
 	vid_banner_texture_num = Draw_get_free_sheet_num();

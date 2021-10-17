@@ -477,7 +477,7 @@ void Vid_decode_thread(void* arg)
 			Util_speaker_pause(0);
 			while(vid_play_request)
 			{
-				while(vid_decode_video_request && vid_play_request)
+				while(vid_decode_video_request && vid_play_request && !vid_change_video_request)
 					usleep(2000);
 
 				vid_packet_buffer[319] = Util_decoder_get_available_packet_num(0);
@@ -501,7 +501,7 @@ void Vid_decode_thread(void* arg)
 				if(!vid_select_audio_track_request && audio_track != vid_selected_audio_track)
 				{
 					audio_track = vid_selected_audio_track;
-					Util_speaker_clear_buffer(0);
+					Util_speaker_exit(0);
 					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
 					vid_duration *= 1000;
 					Util_speaker_init(0, ch, sample_rate);
@@ -1168,7 +1168,7 @@ void Vid_suspend(void)
 
 Result_with_string Vid_load_msg(std::string lang)
 {
-	return Util_load_msg("sapp0_" + lang + ".txt", vid_msg, DEF_VID_NUM_OF_MSG);
+	return Util_load_msg("vid_" + lang + ".txt", vid_msg, DEF_VID_NUM_OF_MSG);
 }
 
 void Vid_init(void)
@@ -1588,6 +1588,8 @@ void Vid_main(void)
 					Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 145, 10);
 					if(var_lang == "it")
 						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.375, 0.375, color);
+					else if(var_lang == "es")
+						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.35, 0.35, color);
 					else
 						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, color);
 
@@ -1605,18 +1607,26 @@ void Vid_main(void)
 
 					//correct aspect ratio
 					Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 145, 10);
-					Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, color);
+					if(var_lang == "es")
+						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.35, 0.35, color);
+					else
+						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, color);
 
 					//disable resize and move video
 					Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
 					if(var_lang == "zh-cn" || var_lang == "it")
 						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.4, 0.4, color);
+					else if (var_lang == "es")
+						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.325, 0.325, color);
 					else
 						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
 
 					//remember video pos
 					Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 140, 145, 10);
-					Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.4, 0.4, color);
+					if (var_lang == "es")
+						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.35, 0.35, color);
+					else
+						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.4, 0.4, color);
 
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 0, 180, 100, 8);
 					Draw_texture(&vid_menu_button[1], vid_menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
@@ -1626,20 +1636,30 @@ void Vid_main(void)
 				{
 					//use hw decoding
 					Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 300, 10);
-					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
-					(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
+					if (var_lang == "es")
+						Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.375, 0.375,
+						(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
+					else
+						Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
+						(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
 
 					//use hw color conversion
 					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 300, 10);
-					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					if (var_lang == "es")
+						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.35, 0.35, vid_play_request ? disabled_color : color);
+					else
+						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					//use multi-threaded decoding (in software decoding)
 					Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 300, 10);
-					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					if (var_lang == "es")
+						Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.375, 0.375, vid_play_request ? disabled_color : color);
+					else
+						Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					//lower resolution
 					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
-					if(var_lang == "it")
+					if(var_lang == "it" || var_lang == "es")
 						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.375, 0.375, vid_play_request ? disabled_color : color);
 					else
 						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);

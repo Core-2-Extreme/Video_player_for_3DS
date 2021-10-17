@@ -64,3 +64,4 @@ disattivare la 'modalità 800px'
 <61>Italiano</61>
 <62>Use fake model (restart to apply
 some function may not work)</62>
+<63>Español</63>

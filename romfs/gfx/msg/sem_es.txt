@@ -1,0 +1,67 @@
+﻿<0>Actualizaciones</0>
+<1>Idiomas</1>
+<2>LCD</2>
+<3>Controles</3>
+<4>Fuente</4>
+<5>Conexión inalámbrica</5>
+<6>Configuración avanzada</6>
+<7>Batería</7>
+<8>Buscar actualizaciones</8>
+<9>English</9>
+<10>日本語</10>
+<11>Modo noche</11>
+<12>ENCENDIDO</12>
+<13>APAGADO</13>
+<14>Flash</14>
+<15>Brillo de la pantalla : </15>
+<16>Tiempo de apagar LCDs : </16>
+<17>s</17>
+<18>Velocidad de desplazamiento : </18>
+<19>JPN</19>
+<20>CHN</20>
+<21>KOR</21>
+<22>TWN</22>
+<23>Cargar todo</23>
+<24>Descargar todo</24>
+<25>Permitir el envío de datos de uso</25>
+<26>PERMITIR</26>
+<27>DENEGAR</27>
+<28>Modo debug</28>
+<29>Modo eco</29>
+<30>Atrás</30>
+<31>Buscando...</31>
+<32>Búsqueda fallida.</32>
+<33>Actualizado.</33>
+<34>Nueva versión disponible.</34>
+<35>Atrás (B)</35>
+<36>Ir a selección de versión (A)</36>
+<37>.3dsx</37>
+<38>.cia</38>
+<39>El archivo se guardará en </39>
+<40>Descargando...</40>
+<41>Instalando...</41>
+<42>Éxito</42>
+<43>Error</43>
+<44>Por favor, reinicia la aplicación para actualizar.</44>
+<45>Descargar e instalar (X)</45>
+<46>Cerrar aplicación</46>
+<47>Wifi</47>
+<48>Conectado a : </48>
+<49>Grabación de pantalla</49>
+<50>Iniciar grabación (Ambas pantallas)</50>
+<51>Iniciar grabación (Pantalla superior)</51>
+<52>Iniciar grabación (Pantalla inferior)</52>
+<53>Detener grabación</53>
+<54>Modo de pantalla(Pantalla superior)</54>
+<55>Para grabar la pantalla, debes
+desactivar el 'modo 800px'
+(Configuración->LCD->Modo de pantalla).</55>
+<56>800px</56>
+<57>3D</57>
+<58>Nothing</58>
+<59>Magyar</59>
+<60>简体中文</60>
+<61>Italiano</61>
+<62>Utilizar modelo falso (Reiniciar para aplicar
+algunas funciones no estarán disponibles)</62>
+<63>Español</63>

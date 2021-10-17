@@ -1,0 +1,11 @@
+<0>Deseas salir?</0>
+<1>A salir</1>
+<2>B atrás</2>
+<3>☢¡Nueva versión disponible!☢</3>
+<4>Cómo actualizar :
+Configuración
+->Actualización
+->Buscar actualizaciones
+->Ir a selección de versión
+->Selecciona .3dsx o .cia
+->Descargar e instalar</4>

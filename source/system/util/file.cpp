@@ -312,7 +312,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* num_of_detected
 	Handle handle;
 	FS_Archive archive;
 	Result_with_string result;
-	cache = (char*)Util_safe_linear_alloc(1024);
+	cache = (char*)malloc(1024);
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
@@ -366,6 +366,6 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* num_of_detected
 
 	FSDIR_Close(handle);
 	FSUSER_CloseArchive(archive);
-	Util_safe_linear_free(cache);
+	free(cache);
 	return result;
 }

@@ -49,7 +49,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		return result;
 	}
 	
-	moved_url = (char*)Util_safe_linear_alloc(0x1000);
+	moved_url = (char*)malloc(0x1000);
 	if (moved_url == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -184,7 +184,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		else
 			redirected++;
 	}
-	Util_safe_linear_free(moved_url);
+	free(moved_url);
 	moved_url = NULL;
 
 	return result;
@@ -238,7 +238,7 @@ u32* downloaded_data_size, u32* status_code, bool follow_redirect, int max_redir
 		return result;
 	}
 	
-	moved_url = (char*)Util_safe_linear_alloc(0x1000);
+	moved_url = (char*)malloc(0x1000);
 	if (moved_url == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -382,7 +382,7 @@ u32* downloaded_data_size, u32* status_code, bool follow_redirect, int max_redir
 		else
 			redirected++;
 	}
-	Util_safe_linear_free(moved_url);
+	free(moved_url);
 	moved_url = NULL;
 
 	return result;

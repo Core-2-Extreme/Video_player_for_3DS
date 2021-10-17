@@ -746,7 +746,7 @@ void Exfont_init(void)
     u8* fs_buffer = NULL;
     u32 read_size = 0;
     Result_with_string result;
-    fs_buffer = (u8*)Util_safe_linear_alloc(0x8000);
+    fs_buffer = (u8*)malloc(0x8000);
 
     memset((void*)fs_buffer, 0x0, 0x8000);
     result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", fs_buffer, 0x2000, &read_size);
@@ -784,7 +784,7 @@ void Exfont_init(void)
         util_exfont_texture_num[i] = 0;
     }
 
-    Util_safe_linear_free(fs_buffer);
+    free(fs_buffer);
 	util_exfont_thread_run = true;
 	util_exfont_load_font_thread = threadCreate(Exfont_load_font_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 
@@ -929,7 +929,7 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
     int parse_string_length = 0;
     int i = 0;
     *out_element = 0;
-    char* sorce_string_char = (char*)Util_safe_linear_alloc(sorce_string.length() + 10);
+    char* sorce_string_char = (char*)malloc(sorce_string.length() + 10);
 
     memset(sorce_string_char, 0x0, sorce_string.length() + 10);
     strcpy(sorce_string_char, (char*)sorce_string.c_str());
@@ -950,7 +950,7 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
             i++;
     }
     part_string[std_num] = "\u0000";
-    Util_safe_linear_free(sorce_string_char);
+    free(sorce_string_char);
     *out_element = std_num;
 }
 

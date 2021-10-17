@@ -311,7 +311,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	Result_with_string result;
 
 	swr_in_cache[0] = raw_data;
-	swr_out_cache[0] = (u8*)Util_safe_linear_alloc(size * bytes_per_sample);
+	swr_out_cache[0] = (u8*)malloc(size * bytes_per_sample);
 	if(swr_out_cache[0] == NULL)
 		goto fail_;
 
@@ -353,7 +353,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 		if(one_frame_size > out_samples)
 			break;
 	}
-	Util_safe_linear_free(swr_out_cache[0]);
+	free(swr_out_cache[0]);
 	swr_out_cache[0] = NULL;
 
 	return result;
@@ -366,7 +366,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 
 	fail_:
 
-	Util_safe_linear_free(swr_out_cache[0]);
+	free(swr_out_cache[0]);
 	swr_out_cache[0] = NULL;
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;

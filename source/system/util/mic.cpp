@@ -103,7 +103,7 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
 	}
 
 	last_pos = micGetLastSampleOffset();
-	*raw_data = (u8*)Util_safe_linear_alloc(last_pos - util_mic_last_pos);
+	*raw_data = (u8*)malloc(last_pos - util_mic_last_pos);
 	if(*raw_data == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;

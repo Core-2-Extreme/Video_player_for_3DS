@@ -156,7 +156,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 		return result;
 	}
 
-	*raw_data = (u8*)Util_safe_linear_alloc(util_cam_width * util_cam_height * 2);
+	*raw_data = (u8*)malloc(util_cam_width * util_cam_height * 2);
 	if(*raw_data == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;

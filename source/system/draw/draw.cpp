@@ -581,14 +581,14 @@ void Draw_debug_info(void)
 	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0, 150, 0.4, 0.4, color);
 	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0, 160, 0.4, 0.4, color);
 	Draw("Frametime: " + std::to_string(util_draw_frametime[9]).substr(0, 6) + "ms", 0, 170, 0.4, 0.4, color);
-	Draw("RAM: " + std::to_string(var_free_ram / 1024.0).substr(0, 5) + " MB", 0, 180, 0.4, 0.4, color);
+	Draw("RAM: " + std::to_string(var_free_ram / 1024.0 / 1024.0).substr(0, 5) + " MB", 0, 180, 0.4, 0.4, color);
 	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1024.0 / 1024.0).substr(0, 5) +" MB", 0, 190, 0.4, 0.4, color);
 }
 
 Result_with_string Draw_load_kanji_samples(void)
 {
 	int characters = 0;
-	u8* fs_buffer = (u8*)Util_safe_linear_alloc(0x8000);
+	u8* fs_buffer = (u8*)malloc(0x8000);
 	u32 read_size = 0;
 	Result_with_string result;
 
@@ -602,7 +602,7 @@ Result_with_string Draw_load_kanji_samples(void)
 	if(result.code == 0)
 		Exfont_text_parse((char*)fs_buffer, util_draw_simple_chinese, 6300, &characters);
 
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	return result;
 }
 

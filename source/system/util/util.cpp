@@ -110,7 +110,7 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	u8* fs_buffer = NULL;
 	u32 read_size = 0;
 	Result_with_string result;
-	fs_buffer = (u8*)Util_safe_linear_alloc(0x2000);
+	fs_buffer = (u8*)malloc(0x2000);
 	if(fs_buffer == NULL)
 	{
 		result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -121,18 +121,18 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	result = Util_file_load_from_rom(file_name, "romfs:/gfx/msg/", fs_buffer, 0x2000, &read_size);
 	if (result.code != 0)
 	{
-		Util_safe_linear_free(fs_buffer);
+		free(fs_buffer);
 		return result;
 	}
 
 	result = Util_parse_file((char*)fs_buffer, num_of_msg, out_msg);
 	if (result.code != 0)
 	{
-		Util_safe_linear_free(fs_buffer);
+		free(fs_buffer);
 		return result;
 	}
 
-	Util_safe_linear_free(fs_buffer);
+	free(fs_buffer);
 	return result;
 }
 
@@ -146,7 +146,7 @@ void Util_exit(void)
 	svcCloseHandle(util_safe_linear_memory_mutex);
 }
 
-void* __attribute__((optimize("O0"))) Util_safe_linear_alloc(size_t size)
+void* Util_safe_linear_alloc(size_t size)
 {
 	void* pointer = NULL;
 
@@ -187,14 +187,14 @@ void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, si
 	return new_ptr;
 }
 
-void __attribute__((optimize("O0"))) Util_safe_linear_free(void* pointer)
+void Util_safe_linear_free(void* pointer)
 {
 	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
 	linearFree(pointer);
 	svcReleaseMutex(util_safe_linear_memory_mutex);
 }
 
-u32 __attribute__((optimize("O0"))) Util_get_free_space(void)
+u32 Util_check_free_linear_space(void)
 {
 	u32 space = 0;
 	svcWaitSynchronization(util_safe_linear_memory_mutex, U64_MAX);
@@ -203,9 +203,9 @@ u32 __attribute__((optimize("O0"))) Util_get_free_space(void)
 	return space;
 }
 
-void* av_malloc(size_t size)
+/*void* av_malloc(size_t size)
 {
-	return Util_safe_linear_alloc(size);
+	return malloc(size);
 }
 
 void* av_realloc(void *ptr, size_t size)
@@ -215,5 +215,26 @@ void* av_realloc(void *ptr, size_t size)
 
 void av_free(void *ptr)
 {
-	Util_safe_linear_free(ptr);
+	free(ptr);
+}*/
+
+u32 Util_check_free_ram(void)
+{
+	u8* malloc_check[2000];
+	u32 count;
+
+	for (int i = 0; i < 2000; i++)
+		malloc_check[i] = NULL;
+
+	for (count = 0; count < 2000; count++)
+	{
+		malloc_check[count] = (u8*)malloc(0x186A0);// 100KB
+		if (malloc_check[count] == NULL)
+			break;
+	}
+
+	for (u32 i = 0; i <= count; i++)
+		free(malloc_check[i]);
+
+	return count * 100 * 1024;//return free B
 }

@@ -17,7 +17,7 @@
 #define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 63
+#define DEF_SEM_NUM_OF_MSG 64
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -112,6 +112,7 @@
 #define DEF_SEM_CHINESE_MSG 60
 #define DEF_SEM_ITALIAN_MSG 61
 #define DEF_SEM_FAKE_MODEL_MSG 62
+#define DEF_SEM_SPANISH_MSG 63
 
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF

@@ -474,7 +474,9 @@ void Vid_decode_thread(void* arg)
 					break;
 			}
 
-			Util_speaker_pause(0);
+			if(vid_num_of_video_tracks > 0)
+				Util_speaker_pause(0);
+			
 			while(vid_play_request)
 			{
 				while(vid_decode_video_request && vid_play_request && !vid_change_video_request)

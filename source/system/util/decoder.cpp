@@ -1278,7 +1278,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 
 Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, int height, int session)
 {
-	bool all_black = true;
+	bool all_blue = true;
 	int cpy_size = 0;
 	int buffer_num = 0;
 	int available_raw_image = 0;
@@ -1348,14 +1348,14 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 			{
 				if(*(u16*)(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (((i * width) + (width / 2)) * 2)) != 0x0808)
 				{
-					all_black = false;
+					all_blue = false;
 					break;
 				}
 			}
 
-			Util_log_save("debug", (std::string)"maybe all #0x0808 : " + (all_black ? "true" : "false"));
+			Util_log_save("debug", (std::string)"maybe all #0x0808 : " + (all_blue ? "true" : "false"));
 
-			if(all_black && s + 1 < available_raw_image)
+			if(all_blue && s + 1 < available_raw_image)
 			{
 				Util_log_save("debug", "use next frame");
 				if(buffer_num + 1 < util_video_decoder_mvd_max_raw_image[session])
@@ -1363,7 +1363,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 				else
 					buffer_num = 0;
 			}
-			else if(all_black)
+			else if(all_blue)
 			{
 				Util_log_save("debug", "maybe all #0x0808 but there is no image left in queue");
 				break;

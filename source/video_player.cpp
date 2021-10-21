@@ -607,6 +607,8 @@ void Vid_decode_thread(void* arg)
 
 				if(!vid_play_request || vid_change_video_request || result.code != 0)
 				{
+					if(result.code != 0)
+						Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_parse_packet()..." + result.error_description, result.code);
 					if((!vid_play_request || vid_change_video_request) && vid_remember_video_pos_mode)
 					{
 						saved_pos = vid_current_pos;
@@ -1810,6 +1812,11 @@ void Vid_main(void)
 		Util_expl_main(key);
 	else
 	{
+		if(key.p_zr)
+		{
+			var_debug_bool[0] = !var_debug_bool[0];
+			Util_log_save("debug", (std::string)"detect all blue image : " + (var_debug_bool[0] ? "true" : "false"));
+		}
 		/*if(key.p_d_down)
 		{
 			var_debug_int[0]--;

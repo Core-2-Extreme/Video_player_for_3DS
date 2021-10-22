@@ -958,7 +958,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		goto fail;
 
 	//to detect all blue image if mvd service won't write anything to the buffer, fill the buffer by 0x8
-	memset(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0], 0x8, *width * *height * 2);
+	memset((util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (*width * (*height / 2))), 0x8, *width * 2);
 
 	if(util_video_decoder_packet[session][0]->size > util_video_decoder_mvd_packet_size)
 	{
@@ -1344,9 +1344,9 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 
 		for(int s = 0; s < available_raw_image; s++)
 		{
-			for(int i = 0; i < height; i++)//scan for 0x0808 color vertically
+			for(int i = 0; i + 4 < width; i+= 4)//scan for 0x0808 color horizontally
 			{
-				if(*(u16*)(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (((i * width) + (width / 2)) * 2)) != 0x0808)
+				if(*(u16*)(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (width * (height / 2)) + i) != 0x0808)
 				{
 					all_blue = false;
 					break;

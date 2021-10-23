@@ -1812,11 +1812,11 @@ void Vid_main(void)
 		Util_expl_main(key);
 	else
 	{
-		if(key.p_zr)
+		/*if(key.p_zr)
 		{
 			var_debug_bool[0] = !var_debug_bool[0];
 			Util_log_save("debug", (std::string)"detect all blue image : " + (var_debug_bool[0] ? "true" : "false"));
-		}
+		}*/
 		/*if(key.p_d_down)
 		{
 			var_debug_int[0]--;

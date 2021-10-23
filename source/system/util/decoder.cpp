@@ -20,6 +20,7 @@ const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MA
 SwrContext* util_audio_decoder_swr_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 
 bool util_video_decoder_mvd_first = false;
+bool util_video_decoder_mvd_workarounds = false;
 int util_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
@@ -30,10 +31,6 @@ int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDE
 int util_video_decoder_mvd_packet_size = 0;
 int util_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_max_raw_image[DEF_DECODER_MAX_SESSIONS];
-
-int util_video_decoder_previous_pts[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
-int util_video_decoder_increase_per_pts[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
-
 u8* util_video_decoder_mvd_packet = NULL;
 Handle util_video_decoder_raw_image_counter_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 Handle util_video_decoder_add_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
@@ -110,6 +107,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	util_video_decoder_mvd_raw_image_current_index[session] = 0;
 	util_video_decoder_mvd_raw_image_ready_index[session] = 0;
 	util_video_decoder_mvd_available_raw_image[session] = 0;
+	util_video_decoder_mvd_workarounds = false;
 
 	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 1.5, NULL);
 	//result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, (MVDSTD_InputFormat)0x00180001, MVD_OUTPUT_BGR565, width * height * 9, NULL);
@@ -132,6 +130,11 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 		}
 		else
 		{
+			if(util_video_decoder_context[session][0]->has_b_frames)
+				util_video_decoder_mvd_workarounds = true;
+			
+			Util_log_save("debug", util_video_decoder_context[session][0]->has_b_frames ? "has_b_frames" : "does_not_have_b_frames");
+			
 			util_video_decoder_mvd_max_raw_image[session] = DEF_DECODER_MAX_RAW_IMAGE;
 			svcCreateMutex(&util_video_decoder_mvd_raw_image_counter_mutex[session], false);
 			svcCreateMutex(&util_video_decoder_mvd_add_raw_image_mutex[session], false);
@@ -347,8 +350,6 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		}
 
 		util_video_decoder_max_raw_image[session][i] = DEF_DECODER_MAX_RAW_IMAGE;
-		util_video_decoder_previous_pts[session][i] = 0;
-		util_video_decoder_increase_per_pts[session][i] = 0;
 		svcCreateMutex(&util_video_decoder_raw_image_counter_mutex[session][i], false);
 		svcCreateMutex(&util_video_decoder_add_raw_image_mutex[session][i], false);
 		svcCreateMutex(&util_video_decoder_get_raw_image_mutex[session][i], false);
@@ -501,7 +502,7 @@ Result_with_string Util_decoder_parse_packet(std::string* type, int* packet_inde
 	}
 	//available_packet = util_decoder_available_cache_packet[session];
 
-	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)	
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 	{
 		if(util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->stream_index == util_audio_decoder_stream_num[session][i])//audio packet
 		{
@@ -616,13 +617,6 @@ Result_with_string Util_decoder_parse_packet(std::string* type, int* packet_inde
 			{
 				if(util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->stream_index == util_video_decoder_stream_num[session][i])//video packet
 				{
-
-					if(util_video_decoder_increase_per_pts[session][i] == 0)
-					{
-						util_video_decoder_increase_per_pts[session][i] = util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->duration;
-						util_video_decoder_previous_pts[session][i] = -util_video_decoder_increase_per_pts[session][i];
-					}
-
 					util_video_decoder_cache_packet[session][i] = av_packet_alloc();
 					if(!util_video_decoder_cache_packet[session][i])
 					{
@@ -957,8 +951,11 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	if(!util_video_decoder_mvd_raw_image[session][buffer_num]->data[0])
 		goto fail;
 
-	//to detect all blue image if mvd service won't write anything to the buffer, fill the buffer by 0x8
-	memset((util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (*width * (*height / 2))), 0x8, *width * 2);
+	if(util_video_decoder_mvd_workarounds)
+	{
+		//to detect all blue image if mvd service won't write anything to the buffer, fill the buffer by 0x8
+		memset((util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (*width * (*height / 2)) * 2), 0x8, *width * 2);
+	}
 
 	if(util_video_decoder_packet[session][0]->size > util_video_decoder_mvd_packet_size)
 	{
@@ -1042,7 +1039,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	if(result.code == MVD_STATUS_FRAMEREADY)
 	{
 		result.code = mvdstdRenderVideoFrame(&util_decoder_mvd_config, true);
-
+		
 		if(result.code == MVD_STATUS_OK)
 		{
 			//util_video_decoder_mvd_raw_image[session][buffer_num]->pts = util_video_decoder_packet[session][0]->pts;
@@ -1332,7 +1329,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 	test_queue.entries = NULL;*/
 	buffer_num = util_video_decoder_mvd_raw_image_ready_index[session];
 
-	if(var_debug_bool[0])
+	if(util_video_decoder_mvd_workarounds)
 	{
 		*raw_data = (u8*)malloc(width * height * 2);
 		if(*raw_data == NULL)
@@ -1346,18 +1343,18 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 		{
 			for(int i = 0; i + 4 < width; i+= 4)//scan for 0x0808 color horizontally
 			{
-				if(*(u16*)(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (width * (height / 2)) + i) != 0x0808)
+				if(*(u16*)(util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (width * (height / 2) * 2) + i) != 0x0808)
 				{
 					all_blue = false;
 					break;
 				}
 			}
 
-			Util_log_save("debug", (std::string)"maybe all #0x0808 : " + (all_blue ? "true" : "false"));
+			//Util_log_save("debug", (std::string)"maybe all #0x0808 : " + (all_blue ? "true" : "false"));
 
 			if(all_blue && s + 1 < available_raw_image)
 			{
-				Util_log_save("debug", "use next frame");
+				//Util_log_save("debug", "use next frame");
 				if(buffer_num + 1 < util_video_decoder_mvd_max_raw_image[session])
 					buffer_num++;
 				else
@@ -1365,7 +1362,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 			}
 			else if(all_blue)
 			{
-				Util_log_save("debug", "maybe all #0x0808 but there is no image left in queue");
+				//Util_log_save("debug", "maybe all #0x0808 but there is no image left in queue");
 				break;
 			}
 			else
@@ -1619,6 +1616,9 @@ void Util_mvd_video_decoder_exit(int session)
 	mvdstdExit();
 	Util_safe_linear_free(util_video_decoder_mvd_packet);
 	util_video_decoder_mvd_packet = NULL;
+	util_video_decoder_mvd_available_raw_image[session] = 0;
+	util_video_decoder_mvd_raw_image_ready_index[session] = 0;
+	util_video_decoder_mvd_raw_image_current_index[session] = 0;
 	for(int i = 0; i < util_video_decoder_mvd_max_raw_image[session]; i++)
 	{
 		if(util_video_decoder_mvd_raw_image[session][i])

@@ -177,7 +177,11 @@
 #define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
 
 //external font
-#define DEF_EXFONT_NUM_OF_FONT_NAME 50
+#define DEF_EXFONT_NUM_OF_FONT_NAME 52
+#define DEF_EXFONT_NUM_OF_ONE_BYTE_FONT 1
+#define DEF_EXFONT_NUM_OF_TWO_BYTES_FONT 12
+#define DEF_EXFONT_NUM_OF_THREE_BYTES_FONT 37
+#define DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT 2
 #define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"

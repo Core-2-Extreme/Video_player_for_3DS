@@ -28,6 +28,29 @@ double util_exfont_font_interval[10240] =
   13, 10, 12, 12, 12, 12, 12,  9, 13, 10, 10, 10, 10, 12, 11, 10,
   10, 10, 10, 10, 10, 10, 14,  9, 10, 10, 10, 10,  5,  5,  7,  6,
   10,  8, 10, 10, 10, 10, 10, 10, 10,  8,  8,  8,  8, 10,  9, 10,
+  //#0100~#017F (128) Latin Extended-A
+  12, 10, 12, 10, 13, 11, 12,  9, 12,  9, 12,  9, 12,  9, 11, 11,
+  13, 10, 10, 10, 10, 10, 10, 10, 11, 10, 10, 10, 12,  9, 12,  9,
+  12,  9, 12,  9, 10,  8, 14,  9,  8,  8,  7,  8,  7,  7,  6,  5,
+   4,  4, 11,  8, 10,  8, 11,  9,  9,  9,  5,  9,  4, 11,  7,  9,
+   6, 10,  6, 10,  8, 10,  8, 10,  8, 11, 11,  8, 12, 10, 12, 10,
+  12, 10, 16, 16, 11,  7, 11,  7, 11,  7, 11,  9, 11,  9, 11,  9,
+  11,  9, 10,  6, 10,  8, 10,  6, 10,  8, 10,  8, 10,  8, 10,  8,
+  10,  8, 10, 10, 16, 14, 12, 10, 12, 11, 10, 11, 10, 11, 10,  6, 
+  //#0180~#024F (208) Latin Extended-B
+  11, 13, 10,  9,  9,  9, 12, 13, 10, 13, 13, 11,  9, 10, 10, 12,
+  10, 11,  8, 13, 12, 13,  5,  7, 12,  9,  7, 10, 12, 12,  8, 12,
+  13, 10, 16, 12, 13,  9, 12, 11,  9, 10,  8,  6, 11,  6, 10, 13,
+  11, 12, 11, 13, 12, 11, 10, 10, 10, 10,  8, 10, 10, 10, 10,  9,
+   4,  6, 10,  4, 21, 19, 17, 16, 12,  8, 17, 14, 12, 12, 10,  7,
+   7, 12, 10, 10,  8, 10,  8, 10,  8, 10,  8, 10,  8, 10, 12, 10,
+  12, 10, 17, 14, 13, 10, 12,  9, 11,  9, 12, 10, 12, 10, 10, 10,
+   8, 21, 19, 17, 12,  9, 18, 11, 13, 11, 12, 10, 17, 14, 13, 10,
+  12, 10, 12, 10, 10, 10, 10, 10,  8,  8,  7,  6, 12, 10, 12, 10,
+  11,  8, 11,  7, 10,  8, 10,  8,  9,  8, 11,  8, 10,  8, 12, 11,
+  13, 12, 12,  9, 10,  8, 12,  8, 10,  8, 12, 10, 12, 10, 12, 10,
+  12, 10, 12, 12,  8, 12,  8,  7, 14, 14, 12, 12,  8, 12, 11,  9,
+   8, 10, 10, 11, 14, 12, 10,  8, 12,  9, 15, 13, 13, 10, 12, 12,
   //#0250~#02AF ( 96) IPA Extensions
   10,  9,  9,  9,  9,  9, 11, 11, 10, 10, 13,  8,  8, 12,  9,  7,
   11,  9, 10, 10, 10,  8,  8,  8,  6,  5,  6,  8,  8,  6, 10, 12,
@@ -613,61 +636,14 @@ std::string util_exfont_part_string[1024];
 std::string util_exfont_font_samples[10241];
 std::string util_exfont_font_right_to_left_samples[257];
 std::string util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME];
-std::string util_exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F\uFE00\uFE01\uFE02\uFE03\uFE04\uFE05\uFE06\uFE07\uFE08\uFE09\uFE0A\uFE0B\uFE0C\uFE0D\uFE0E\uFE0F";
-/*
-   0 ~   95  (128) Basic latin
-  96 ~  223   (96) Latin 1 supplement
- 224 ~  319   (96) Ipa extensions
- 320 ~  399   (80) Spacing modifier letters
- 400 ~  511  (112) Combining diacritical marks
- 512 ~  646  (135) Greek and coptic
- 647 ~  902  (256) Cyrillic
- 903 ~  950   (48) Cyrillic supplement
- 951 ~ 1041   (89) Armenian
-1042 ~ 1129   (88) Hebrew
-1130 ~ 1384  (255) Arabic
-1385 ~ 1512  (128) Devanagari
-1513 ~ 1591   (79) Gurmukhi
-1592 ~ 1663   (72) Tamil
-1664 ~ 1759   (96) Telugu
-1760 ~ 1847   (88) Kannada
-1848 ~ 1937   (90) Sinhala
-1938 ~ 2024   (87) Thai
-2025 ~ 2091   (67) Lao
-2092 ~ 2302  (211) Tibetan
-2303 ~ 2390   (88) Georgian
-2391 ~ 3031  (640) Unified canadian aboriginal syllabics
-3032 ~ 3158  (128) Phonetic extensions
-3159 ~ 3221   (63) Combining diacritical marks supplement
-3222 ~ 3454  (233) Greek extended
-3455 ~ 3525  (71) General punctuation
-3566 ~ 3607   (42) Superscripts and subscripts
-3608 ~ 3640   (33) Combining diacritical marks for symbols
-3641 ~ 3752  (112) Arrows
-3753 ~ 4008  (256) Mathematical operators
-4009 ~ 4264  (256) Miscellaneous technical
-4265 ~ 4275   (11) Optical character recognition
-4276 ~ 4403  (128) Box drawing
-4404 ~ 4435   (32) Block elements
-4436 ~ 4531   (96) Geometric shapes
-4532 ~ 4787  (256) Miscellaneous_symbols
-4788 ~ 4979  (192) Dingbats
-4980 ~ 5043   (64) Cjk symbol and punctuation
-5044 ~ 5136   (93) Hiragana
-5137 ~ 5232   (96) Katakana
-5327 ~ 6491 (1165) Yi syllables
-6492 ~ 6546   (55) Yi radicals
-6547 ~ 6578   (32) Cjk compatibility forms
-6579 ~ 6803  (225) Halfwidth and fullwidth forms
-6804 ~ 7571  (768) Miscellaneous symbols and pictographs
-*/
+std::string util_exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F";
 C2D_Image util_exfont_font_images[10240];
 
 int util_exfont_font_characters[DEF_EXFONT_NUM_OF_FONT_NAME] = {
- 128,  96,  96,  80, 112, 135, 256,  48,  89,  88,  255, 128, 79,  72,  96,  88,
-  90,  87,  67, 211,  88, 640, 128,  63, 233,  71,  42,  33, 112, 256, 256,  11,
- 160, 128,  32,  96, 256, 192, 128, 252,  64,  93,  96, 256, 1165, 55,  32, 225,
- 768,  80,
+ 128,  96, 128, 208,  96,  80, 112, 135, 256,  48,  89,  88,  255, 128, 79,  72, 
+  96,  88,  90,  87,  67, 211,  88, 640, 128,  63, 233,  71,  42,  33, 112, 256,
+ 256,  11, 160, 128,  32,  96, 256, 192, 128, 252,  64,  93,  96, 256, 1165, 55, 
+  32, 225, 768,  80,
 };
 int util_exfont_num_of_right_left_charcters = 0;
 int util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME];
@@ -966,14 +942,14 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
     int memcmp_result = 0;
     bool reverse = false;
     bool unknown = true;
-    std::string sample_one_byte[1] = { "\u0080", };
-    std::string samples_two_bytes[10] = { "\u0100", "\u02B0", "\u0300", "\u0370", "\u0400", "\u0500", "\u0530", "\u0590", "\u0600", "\u0700", };
-    std::string samples_three_bytes[37] = { "\u0980", "\u0A80", "\u0C00", "\u0C80", "\u0D00", "\u0E00", "\u0E80", "\u0F00",
+    std::string sample_one_byte[DEF_EXFONT_NUM_OF_ONE_BYTE_FONT] = { "\u0080", };
+    std::string samples_two_bytes[DEF_EXFONT_NUM_OF_TWO_BYTES_FONT] = { "\u0100", "\u0180", "\u0250", "\u02B0", "\u0300", "\u0370", "\u0400", "\u0500", "\u0530", "\u0590", "\u0600", "\u0700", };
+    std::string samples_three_bytes[DEF_EXFONT_NUM_OF_THREE_BYTES_FONT] = { "\u0980", "\u0A80", "\u0C00", "\u0C80", "\u0D00", "\u0E00", "\u0E80", "\u0F00",
                                             "\u1000", "\u1100", "\u1680", "\u1D80", "\u1E00", "\u2000", "\u2070", "\u20A0",
                                             "\u2100", "\u2200", "\u2300", "\u2400", "\u2460", "\u2500", "\u2580", "\u25A0",
                                             "\u2600", "\u2700", "\u27C0", "\u2980", "\u2C00", "\u3040", "\u30A0", "\u3100",
                                             "\u3400", "\uA490", "\uA4D0", "\uFE50", "\uFFF0", };
-    std::string samples_four_bytes[2] = { "\U0001F600", "\U0001F650", };
+    std::string samples_four_bytes[DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT] = { "\U0001F600", "\U0001F650", };
     *out_width = 0;
     *out_height = 0;
 
@@ -995,11 +971,11 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         else if (util_exfont_part_string[s].length() == 2)
         {
             char_size = 2;
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < DEF_EXFONT_NUM_OF_TWO_BYTES_FONT; i++)
             {
                 if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_two_bytes[i].c_str(), 0x2) < 0)
                 {
-                    block = i + 1;
+                    block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT;
                     break;
                 }
             }
@@ -1007,11 +983,11 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         else if (util_exfont_part_string[s].length() == 3)
         {
             char_size = 3;
-            for (int i = 0; i < 37; i++)
+            for (int i = 0; i < DEF_EXFONT_NUM_OF_THREE_BYTES_FONT; i++)
             {
                 if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_three_bytes[i].c_str(), 0x3) < 0)
                 {
-                    block = i + 11;
+                    block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT;
                     break;
                 }
             }
@@ -1019,17 +995,17 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         else if (util_exfont_part_string[s].length() == 4)
         {
             char_size = 4;
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT; i++)
             {
                 if (memcmp((void*)util_exfont_part_string[s].c_str(), (void*)samples_four_bytes[i].c_str(), 0x4) < 0)
                 {
-                    block = i + 48;
+                    block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT + DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
                     break;
                 }
             }
         }
 
-        if (block == 25 || block == 46)
+        if (block == 27)//General punctuation
         {
             if (!(util_exfont_ignore_chars.find(util_exfont_part_string[s]) == std::string::npos))
             {

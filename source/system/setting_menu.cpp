@@ -768,7 +768,7 @@ void Sem_main(void)
 					sem_y_offset = 0.0;
 					sem_selected_menu_mode = menu_button_list[i];
 					if (menu_button_list[i] == DEF_SEM_MENU_FONT)
-						sem_y_max = -950.0;
+						sem_y_max = -1000.0;
 
 					var_need_reflesh = true;
 				}

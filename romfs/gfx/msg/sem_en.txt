@@ -65,3 +65,4 @@ turn off the '800px mode'
 <62>Use fake model (restart to apply
 some function may not work)</62>
 <63>Español</63>
+<64>Română</64>

@@ -65,3 +65,4 @@ desactivar el 'modo 800px'
 <62>Utilizar modelo falso (Reiniciar para aplicar
 algunas funciones no estarán disponibles)</62>
 <63>Español</63>
+<64>Română</64>

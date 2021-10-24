@@ -1,0 +1,11 @@
+<0>Vrei să ieși din aplicație?</0>
+<1>A pt a închide</1>
+<2>B pt a te întoarce</2>
+<3>☢O versiune nouă este disponibilă!☢</3>
+<4>Cum să actualizezi : 
+Setări
+->Actualizează
+->Caută actualizări
+->Mergi la selectorul de ediții
+->selectează .3dsx sau .cia
+->Descarcă și instalează</4>

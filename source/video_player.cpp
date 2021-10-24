@@ -774,10 +774,7 @@ void Vid_decode_video_thread(void* arg)
 	Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, "Thread started.");
 	bool key_frame = false;
 	int packet_index = 0;
-	int w = 0;
-	int h = 0;
 	double skip = 0;
-	double pos = 0;
 	TickCounter counter;
 	Result_with_string result;
 
@@ -787,11 +784,7 @@ void Vid_decode_video_thread(void* arg)
 	{
 		if(vid_play_request)
 		{
-			w = 0;
-			h = 0;
 			skip = 0;
-			pos = 0;
-										
 			while(vid_play_request)
 			{
 				if(vid_decode_video_request)
@@ -817,9 +810,9 @@ void Vid_decode_video_thread(void* arg)
 							{
 								osTickCounterUpdate(&counter);
 								if(vid_hw_decoding_mode)
-									result = Util_mvd_video_decoder_decode(&w, &h, &pos, 0);
+									result = Util_mvd_video_decoder_decode(0);
 								else
-									result = Util_video_decoder_decode(&w, &h, &pos, packet_index, 0);
+									result = Util_video_decoder_decode(packet_index, 0);
 								osTickCounterUpdate(&counter);
 
 								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request)
@@ -832,9 +825,6 @@ void Vid_decode_video_thread(void* arg)
 							}
 
 							vid_video_time = osTickCounterRead(&counter);
-
-							if(!std::isnan(pos) && !std::isinf(pos))
-								vid_current_pos = pos;
 
 							if(result.code == 0)
 							{
@@ -922,7 +912,7 @@ void Vid_convert_thread(void* arg)
 	int packet_index = 0;
 	int image_num = 0;
 	double skip = 0;
-
+	double pos = 0;
 	TickCounter counter[5];
 	Result_with_string result;
 
@@ -938,6 +928,7 @@ void Vid_convert_thread(void* arg)
 		{
 			skip = 0;
 			packet_index = 0;
+			pos = 0;
 			first = true;
 			vid_convert_wait_request = true;
 			while(vid_convert_request)
@@ -972,9 +963,12 @@ void Vid_convert_thread(void* arg)
 				if(skip > vid_frametime || vid_seek_adjust_request)
 				{
 					if(vid_hw_decoding_mode)
-						Util_mvd_video_decoder_skip_image(0);
+						Util_mvd_video_decoder_skip_image(&pos, 0);
 					else
-						Util_video_decoder_skip_image(packet_index, 0);
+						Util_video_decoder_skip_image(&pos, packet_index, 0);
+
+					if(!std::isnan(pos) && !std::isinf(pos))
+						vid_current_pos = pos;
 
 					if(vid_seek_adjust_request)
 					{
@@ -990,9 +984,9 @@ void Vid_convert_thread(void* arg)
 					{
 						osTickCounterUpdate(&counter[2]);
 						if(vid_hw_decoding_mode)
-							result = Util_mvd_video_decoder_get_image(&video, vid_codec_width, vid_codec_height, 0);
+							result = Util_mvd_video_decoder_get_image(&video, &pos, vid_codec_width, vid_codec_height, 0);
 						else
-							result = Util_video_decoder_get_image(&yuv_video, vid_codec_width, vid_codec_height, packet_index, 0);
+							result = Util_video_decoder_get_image(&yuv_video, &pos, vid_codec_width, vid_codec_height, packet_index, 0);
 						osTickCounterUpdate(&counter[2]);
 
 						if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof))
@@ -1013,6 +1007,9 @@ void Vid_convert_thread(void* arg)
 					//vid_convert_request = false;
 					if(result.code == 0)
 					{
+						if(!std::isnan(pos) && !std::isinf(pos))
+							vid_current_pos = pos;
+
 						osTickCounterUpdate(&counter[0]);
 						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
 							result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height, true);

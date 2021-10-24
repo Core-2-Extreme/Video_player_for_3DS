@@ -31,6 +31,8 @@ int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDE
 int util_video_decoder_mvd_packet_size = 0;
 int util_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_mvd_max_raw_image[DEF_DECODER_MAX_SESSIONS];
+//int util_video_decoder_previous_pts[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+//int util_video_decoder_increase_per_pts[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 u8* util_video_decoder_mvd_packet = NULL;
 Handle util_video_decoder_raw_image_counter_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 Handle util_video_decoder_add_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
@@ -350,6 +352,8 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		}
 
 		util_video_decoder_max_raw_image[session][i] = DEF_DECODER_MAX_RAW_IMAGE;
+		//util_video_decoder_previous_pts[session][i] = 0;
+		//util_video_decoder_increase_per_pts[session][i] = 0;
 		svcCreateMutex(&util_video_decoder_raw_image_counter_mutex[session][i], false);
 		svcCreateMutex(&util_video_decoder_add_raw_image_mutex[session][i], false);
 		svcCreateMutex(&util_video_decoder_get_raw_image_mutex[session][i], false);
@@ -617,6 +621,13 @@ Result_with_string Util_decoder_parse_packet(std::string* type, int* packet_inde
 			{
 				if(util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->stream_index == util_video_decoder_stream_num[session][i])//video packet
 				{
+
+					/*if(util_video_decoder_increase_per_pts[session][i] == 0)
+					{
+						util_video_decoder_increase_per_pts[session][i] = util_decoder_cache_packet[session][util_decoder_cache_packet_current_index[session]]->duration;
+						util_video_decoder_previous_pts[session][i] = -util_video_decoder_increase_per_pts[session][i];
+					}*/
+
 					util_video_decoder_cache_packet[session][i] = av_packet_alloc();
 					if(!util_video_decoder_cache_packet[session][i])
 					{
@@ -802,13 +813,11 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 	return result;
 }
 
-Result_with_string Util_video_decoder_decode(int* width, int* height, double* current_pos, int packet_index, int session)
+Result_with_string Util_video_decoder_decode(int packet_index, int session)
 {
 	int ffmpeg_result = 0;
 	//int count = 0;
 	int buffer_num = 0;
-	double framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
-	double current_frame = (double)util_video_decoder_packet[session][packet_index]->dts / util_video_decoder_packet[session][packet_index]->duration;
 	Result_with_string result;
 
 	svcWaitSynchronization(util_video_decoder_add_raw_image_mutex[session][packet_index], U64_MAX);
@@ -822,16 +831,6 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, double* cu
 	}
 	
 	buffer_num = util_video_decoder_raw_image_current_index[session][packet_index];
-	*width = util_video_decoder_context[session][0]->width;
-	*height = util_video_decoder_context[session][0]->height;
-	if(*width % 16 != 0)
-		*width += 16 - *width % 16;
-	if(*height % 16 != 0)
-		*height += 16 - *height % 16;
-
-	*current_pos = 0;
-	if(framerate != 0.0)
-		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 	
 	util_video_decoder_raw_image[session][packet_index][buffer_num] = av_frame_alloc();
 	if(!util_video_decoder_raw_image[session][packet_index][buffer_num])
@@ -844,12 +843,7 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, double* cu
 	if(ffmpeg_result == 0)
 	{
 		ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
-		if(ffmpeg_result == 0)
-		{
-			*width = util_video_decoder_raw_image[session][packet_index][buffer_num]->width;
-			*height = util_video_decoder_raw_image[session][packet_index][buffer_num]->height;
-		}
-		else
+		if(ffmpeg_result != 0)
 		{
 			result.error_description = "avcodec_receive_frame() failed " + std::to_string(ffmpeg_result);
 			goto fail;
@@ -878,15 +872,6 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, double* cu
 	fail:
 
 	av_packet_free(&util_video_decoder_packet[session][packet_index]);
-	/*if(util_video_decoder_raw_image[session][packet_index][buffer_num])
-	{
-		for(int i = 0; i < 3; i++)
-		{
-			Util_safe_linear_free(util_video_decoder_raw_image[session][packet_index][buffer_num]->data[i]);
-			util_video_decoder_raw_image[session][packet_index][buffer_num]->data[i] = NULL;
-		}
-		av_freep(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
-	}*/
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
 	svcReleaseMutex(util_video_decoder_add_raw_image_mutex[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -894,14 +879,14 @@ Result_with_string Util_video_decoder_decode(int* width, int* height, double* cu
 	return result;
 }
 
-Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double* current_pos, int session)
+Result_with_string Util_mvd_video_decoder_decode(int session)
 {
 	int offset = 0;
 	int source_offset = 0;
 	int size = 0;
 	int buffer_num = 0;
-	double framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
-	double current_frame = (double)util_video_decoder_packet[session][0]->dts / util_video_decoder_packet[session][0]->duration;
+	int width = 0;
+	int height = 0;
 	Result_with_string result;
 
 	svcWaitSynchronization(util_video_decoder_mvd_add_raw_image_mutex[session], U64_MAX);
@@ -917,18 +902,13 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	//Util_log_save("debug", "dts : " + std::to_string((double)util_video_decoder_packet[session][0]->dts / util_video_decoder_packet[session][0]->duration) + " pts : " + std::to_string((double)util_video_decoder_packet[session][0]->pts / util_video_decoder_packet[session][0]->duration));
 	
 	buffer_num = util_video_decoder_mvd_raw_image_current_index[session];
-	*width = util_video_decoder_context[session][0]->width;
-	*height = util_video_decoder_context[session][0]->height;
-
-	if(*width % 16 != 0)
-		*width += 16 - *width % 16;
-	if(*height % 16 != 0)
-		*height += 16 - *height % 16;
-
-	*current_pos = 0;
-	if(framerate != 0.0)
-		*current_pos = current_frame * (1000 / framerate);//calc frame pos
-	
+	width = util_video_decoder_context[session][0]->width;
+	height = util_video_decoder_context[session][0]->height;
+	if(width % 16 != 0)
+		width += 16 - width % 16;
+	if(height % 16 != 0)
+		height += 16 - height % 16;
+		
 	util_video_decoder_mvd_raw_image[session][buffer_num] = av_frame_alloc();
 	if(!util_video_decoder_mvd_raw_image[session][buffer_num])
 	{
@@ -947,14 +927,14 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	if(!util_video_decoder_mvd_raw_image[session][buffer_num]->data[0])
 		goto fail;*/
 
-	util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] = (u8*)Util_safe_linear_alloc(*width * *height * 2);
+	util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!util_video_decoder_mvd_raw_image[session][buffer_num]->data[0])
 		goto fail;
 
 	if(util_video_decoder_mvd_workarounds)
 	{
 		//to detect all blue image if mvd service won't write anything to the buffer, fill the buffer by 0x8
-		memset((util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (*width * (*height / 2)) * 2), 0x8, *width * 2);
+		memset((util_video_decoder_mvd_raw_image[session][buffer_num]->data[0] + (width * (height / 2)) * 2), 0x8, width * 2);
 	}
 
 	if(util_video_decoder_packet[session][0]->size > util_video_decoder_mvd_packet_size)
@@ -969,7 +949,7 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 	
 	if(util_video_decoder_mvd_first)
 	{
-		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, *width, *height, *width, *height, NULL, NULL, NULL);
+		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, width, height, width, height, NULL, NULL, NULL);
 		//util_decoder_mvd_config.output_type = (MVDSTD_OutputFormat)0x00040000;
 
 		//set extra data
@@ -1042,6 +1022,8 @@ Result_with_string Util_mvd_video_decoder_decode(int* width, int* height, double
 		
 		if(result.code == MVD_STATUS_OK)
 		{
+			util_video_decoder_mvd_raw_image[session][buffer_num]->pts = util_video_decoder_packet[session][0]->pts;
+			util_video_decoder_mvd_raw_image[session][buffer_num]->pkt_duration = util_video_decoder_packet[session][0]->duration;
 			//util_video_decoder_mvd_raw_image[session][buffer_num]->pts = util_video_decoder_packet[session][0]->pts;
 			//Util_file_save_to_file("pts_" + std::to_string(util_video_decoder_packet[session][0]->pts / util_video_decoder_increase_per_pts[session][0]) + "_dts_" + std::to_string(util_video_decoder_packet[session][0]->dts / util_video_decoder_increase_per_pts[session][0]), DEF_MAIN_DIR + "debug/", 
 			//util_video_decoder_mvd_raw_image[session][buffer_num]->data[0], *width * *height * 2, true);
@@ -1124,13 +1106,7 @@ void Util_video_decoder_clear_raw_image(int session, int packet_index)
 	svcWaitSynchronization(util_video_decoder_raw_image_counter_mutex[session][packet_index], U64_MAX);
 	
 	for(int k = 0; k < util_video_decoder_max_raw_image[session][packet_index]; k++)
-	{
-		/*if(util_video_decoder_raw_image[session][packet_index][k])
-		{
-			av_freep(&util_video_decoder_raw_image[session][packet_index][k]);
-		}*/
 		av_frame_free(&util_video_decoder_raw_image[session][packet_index][k]);
-	}
 
 	util_video_decoder_available_raw_image[session][packet_index] = 0;
 	util_video_decoder_raw_image_ready_index[session][packet_index] = 0;
@@ -1177,10 +1153,12 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session)
 	return util_video_decoder_mvd_available_raw_image[session];
 }
 
-Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int height, int packet_index, int session)
+Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int packet_index, int session)
 {
 	int cpy_size[2] = { 0, 0, };
 	int buffer_num = 0;
+	double framerate = 0;
+	double current_frame = 0;
 	//u32 command[8];
 	Result_with_string result;
 	svcWaitSynchronization(util_video_decoder_get_raw_image_mutex[session][packet_index], U64_MAX);
@@ -1195,6 +1173,15 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 
 	cpy_size[0] = (width * height);
 	cpy_size[1] = cpy_size[0] / 4;
+	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
+	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
+	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration != 0)
+		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration;
+
+	*current_pos = 0;
+	if(framerate != 0.0)
+		*current_pos = current_frame * (1000 / framerate);//calc frame pos
+
 	*raw_data = (u8*)malloc(width * height * 1.5);
 	if(*raw_data == NULL)
 	{
@@ -1244,20 +1231,10 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 	gspSubmitGxCommand((const u32*)command);
 	gspWaitForPPF();*/
 
-	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
 	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0]);
 	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1]);
 	memcpy_asm(*raw_data + (width * height) + (width * height / 4), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], cpy_size[1]);
 
-	/*if(util_video_decoder_raw_image[session][packet_index][buffer_num])
-	{
-		for(int i = 0; i < 3; i++)
-		{
-			Util_safe_linear_free(util_video_decoder_raw_image[session][packet_index][buffer_num]->data[i]);
-			util_video_decoder_raw_image[session][packet_index][buffer_num]->data[i] = NULL;
-		}
-		av_freep(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
-	}*/
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
 
 	if(util_video_decoder_raw_image_ready_index[session][packet_index] + 1 < util_video_decoder_max_raw_image[session][packet_index])
@@ -1273,12 +1250,14 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, int width, int he
 	return result;
 }
 
-Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, int height, int session)
+Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int session)
 {
 	bool all_blue = true;
 	int cpy_size = 0;
 	int buffer_num = 0;
 	int available_raw_image = 0;
+	double framerate = 0;
+	double current_frame = 0;
 	//u32 command[0x8];
 	Result_with_string result;
 
@@ -1291,7 +1270,16 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 		result.error_description = "[Error] No raw image available ";
 		return result;
 	}
+
+	buffer_num = util_video_decoder_mvd_raw_image_ready_index[session];
 	available_raw_image = util_video_decoder_mvd_available_raw_image[session];
+	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
+	if(util_video_decoder_mvd_raw_image[session][buffer_num]->pkt_duration != 0)
+		current_frame = (double)util_video_decoder_mvd_raw_image[session][buffer_num]->pts / util_video_decoder_mvd_raw_image[session][buffer_num]->pkt_duration;
+
+	*current_pos = 0;
+	if(framerate != 0.0)
+		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
 	cpy_size = (width * height * 2);
 
@@ -1327,7 +1315,6 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 	C3D_RestoreGxQueue();
 	free(test_queue.entries);
 	test_queue.entries = NULL;*/
-	buffer_num = util_video_decoder_mvd_raw_image_ready_index[session];
 
 	if(util_video_decoder_mvd_workarounds)
 	{
@@ -1447,9 +1434,11 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, int width, in
 	return result;
 }
 
-void Util_video_decoder_skip_image(int packet_index, int session)
+void Util_video_decoder_skip_image(double* current_pos, int packet_index, int session)
 {
 	int buffer_num = 0;
+	double framerate = 0;
+	double current_frame = 0;
 	svcWaitSynchronization(util_video_decoder_get_raw_image_mutex[session][packet_index], U64_MAX);
 	if(util_video_decoder_available_raw_image[session][packet_index] <= 0)
 	{
@@ -1458,10 +1447,14 @@ void Util_video_decoder_skip_image(int packet_index, int session)
 	}
 
 	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
-	/*if(util_video_decoder_raw_image[session][packet_index][buffer_num])
-	{
-		av_freep(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
-	}*/
+	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
+	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration != 0)
+		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration;
+
+	*current_pos = 0;
+	if(framerate != 0.0)
+		*current_pos = current_frame * (1000 / framerate);//calc frame pos
+
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
 
 	if(util_video_decoder_raw_image_ready_index[session][packet_index] + 1 < util_video_decoder_max_raw_image[session][packet_index])
@@ -1475,9 +1468,11 @@ void Util_video_decoder_skip_image(int packet_index, int session)
 	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
 }
 
-void Util_mvd_video_decoder_skip_image(int session)
+void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 {
 	int buffer_num = 0;
+	double framerate = 0;
+	double current_frame = 0;
 	//int available_raw_image = 0;
 	//int cpy_size = util_video_decoder_context[session][0]->width * util_video_decoder_context[session][0]->height * 2;
 	svcWaitSynchronization(util_video_decoder_mvd_get_raw_image_mutex[session], U64_MAX);
@@ -1488,6 +1483,13 @@ void Util_mvd_video_decoder_skip_image(int session)
 	}
 	//available_raw_image = util_video_decoder_mvd_available_raw_image[session];
 	buffer_num = util_video_decoder_mvd_raw_image_ready_index[session];
+	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
+	if(util_video_decoder_mvd_raw_image[session][buffer_num]->pkt_duration != 0)
+		current_frame = (double)util_video_decoder_mvd_raw_image[session][buffer_num]->pts / util_video_decoder_mvd_raw_image[session][buffer_num]->pkt_duration;
+
+	*current_pos = 0;
+	if(framerate != 0.0)
+		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
 	/*if(var_debug_bool[0])
 	{
@@ -1569,6 +1571,9 @@ void Util_decoder_close_file(int session)
 	for(int i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
 		av_packet_free(&util_decoder_cache_packet[session][i]);
 
+	util_decoder_available_cache_packet[session] = 0;
+	util_decoder_cache_packet_current_index[session] = 0;
+	util_decoder_cache_packet_ready_index[session] = 0;
 	avformat_close_input(&util_decoder_format_context[session]);
 	svcCloseHandle(util_decoder_cache_packet_counter_mutex[session]);
 	svcCloseHandle(util_decoder_read_cache_packet_mutex[session]);
@@ -1601,13 +1606,7 @@ void Util_video_decoder_exit(int session)
 		util_video_decoder_raw_image_ready_index[session][i] = 0;
 		util_video_decoder_raw_image_current_index[session][i] = 0;
 		for(int k = 0; k < util_video_decoder_max_raw_image[session][i]; k++)
-		{
-			/*if(util_video_decoder_raw_image[session][i][k])
-			{
-				av_freep(&util_video_decoder_raw_image[session][i][k]);
-			}*/
 			av_frame_free(&util_video_decoder_raw_image[session][i][k]);
-		}
 	}
 }
 

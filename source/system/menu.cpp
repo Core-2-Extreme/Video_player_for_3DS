@@ -378,8 +378,16 @@ void Menu_main(void)
 			if(menu_check_exit_request)
 			{
 				Draw(menu_msg[DEF_MENU_EXIST_MSG], 90.0, 105.0, 0.5, 0.5, color);
-				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
-				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
+				if(var_lang == "ro")
+				{
+					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
+					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
+				}
+				else
+				{
+					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
+					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
+				}
 			}
 			else if(menu_update_available)
 			{

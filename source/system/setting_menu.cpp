@@ -325,7 +325,7 @@ void Sem_main(void)
 			{
 				//Back
 				Draw_texture(&sem_back_button, sem_back_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 0.0, draw_y + sem_y_offset, 40, 25);
-				if (var_lang == "hu")
+				if (var_lang == "hu" || var_lang == "ro")
 					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.475, 0.475, color);
 				else if (var_lang == "it")
 					Draw(sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset + 5.0, 0.45, 0.45, color);
@@ -400,7 +400,11 @@ void Sem_main(void)
 					Draw(sem_msg[sem_new_version_available ? DEF_SEM_UP_TO_DATE_MSG : DEF_SEM_NEW_VERSION_AVAILABLE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(sem_newest_ver_data[5], 17.5, 35, 0.45, 0.45, DEF_DRAW_BLACK);
 				}
-				Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+				if(var_lang == "ro")
+					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
+				else
+					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+
 				Draw(sem_msg[DEF_SEM_CLOSE_UPDATER_MSG], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
 			}
 			else if (sem_select_ver_request)

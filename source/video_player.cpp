@@ -1630,7 +1630,7 @@ void Vid_main(void)
 					Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
 					if(var_lang == "zh-cn" || var_lang == "it")
 						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.4, 0.4, color);
-					else if (var_lang == "es")
+					else if (var_lang == "es" || var_lang == "ro")
 						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.325, 0.325, color);
 					else
 						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
@@ -1659,7 +1659,7 @@ void Vid_main(void)
 
 					//use hw color conversion
 					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 300, 10);
-					if (var_lang == "es")
+					if (var_lang == "es" || var_lang == "ro")
 						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.35, 0.35, vid_play_request ? disabled_color : color);
 					else
 						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, vid_play_request ? disabled_color : color);
@@ -1675,6 +1675,8 @@ void Vid_main(void)
 					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
 					if(var_lang == "it" || var_lang == "es")
 						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.375, 0.375, vid_play_request ? disabled_color : color);
+					else if(var_lang == "ro")
+						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.35, 0.35, vid_play_request ? disabled_color : color);
 					else
 						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
@@ -1764,13 +1766,26 @@ void Vid_main(void)
 				if(vid_show_controls)
 				{
 					Draw_texture(vid_control[var_night_mode], 80, 20, 160, 160);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.45, 0.45, DEF_DRAW_BLACK);
+					if(var_lang == "ro")
+					{
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
+					}
+					else
+					{
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.45, 0.45, DEF_DRAW_BLACK);
+					}
 				}
 
 				if(vid_select_audio_track_request)

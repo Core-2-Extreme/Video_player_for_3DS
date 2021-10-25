@@ -10,7 +10,8 @@
 <9>Mărește/Micșorează</9>
 <10>Selectare audio</10>
 <11>Alege fișier audio</11>
-<12>Apasă Select sau atinge ecranul pentru a ieși din modul ecran mare</12>
+<12>Apasă Select sau atinge ecranul pentru a ieși din
+modul ecran mare</12>
 <13>Folosește decodor hardware (dacă este disponibil) : </13>
 <14>Folosește convertor culori hardware (dacă este disponibil) : </14>
 <15>Folosește codare multi-thread (dacă este disponibil) : </15>

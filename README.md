@@ -5,7 +5,7 @@
 Decoded image(raw) buffer has been added and it makes playback \
 much much much much better (especially on OLD3DS)
 Spanish(español) translation has been added (by Cookiee) \
-Romanian(Română) translation has been added (by Tescu48) \
+Romanian(Română) translation has been added (by Tescu48)
 
 ### v1.3.3
 'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)) \

@@ -1,6 +1,12 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.4.0
+Decoded image(raw) buffer has been added and it makes playback \
+much much much much better (especially on OLD3DS)
+Spanish(español) translation has been added (by Cookiee) \
+Romanian(Română) translation has been added (by Tescu48) \
+
 ### v1.3.3
 'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)) \
 Color conversion speed has been improved \
@@ -130,9 +136,11 @@ Workaround : encode your video without using B-frames. \
 ## Supported languages
 * English
 * Japanese/日本語
-* Hungarian/magyar (translated by vargaviktor)
+* Hungarian/Magyar (translated by vargaviktor)
 * Simplified Chinese/简体中文 (translated by LITTOMA)
-* Italian/italiano (translated by dixy52-beep)
+* Italian/Italiano (translated by dixy52-beep)
+* Spanish/Español (translated by Cookiee)
+* Romanian/Română (translated by Tescu48)
 
 ## Supported video codec
 * Motion jpeg
@@ -165,8 +173,10 @@ Workaround : encode your video without using B-frames. \
 
 ## Credits
 * Core 2 Extreme
-* dixy52-beep (icon, banner, in app texture, italian translation)
+* dixy52-beep (icon, banner, in app texture, Italian translation)
 * windows-server-2003 (bug fix)
-* vargaviktor (hungarian translation)
+* vargaviktor (Hungarian translation)
 * HIDE810 (bug fix)
-* LITTOMA (simplified chinese translation)
+* LITTOMA (Simplified chinese translation)
+* Cookiee (Spanish translation)
+* Tescu48 (Romanian translation)

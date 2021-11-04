@@ -160,6 +160,7 @@ void Vid_decode_thread(void* arg)
 	{
 		if(vid_play_request || vid_change_video_request)
 		{
+			aptSetSleepAllowed(false);
 			max_buffer = 0;
 			free_ram = 0;
 			packet_index = 0;
@@ -549,10 +550,12 @@ void Vid_decode_thread(void* arg)
 				if(num_of_video_tracks < 1 && vid_pause_request)
 				{
 					Util_speaker_pause(0);
+					aptSetSleepAllowed(true);
 					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
 						usleep(5000);
 					
 					Util_speaker_resume(0);
+					aptSetSleepAllowed(false);
 				}
 
 				var_afk_time = 0;
@@ -756,7 +759,10 @@ void Vid_decode_thread(void* arg)
 			vid_seek_adjust_request = false;
 			vid_seek_request = false;
 			if(!vid_change_video_request)
+			{
+				aptSetSleepAllowed(true);
 				vid_play_request = false;
+			}
 		}
 		else
 			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
@@ -936,10 +942,12 @@ void Vid_convert_thread(void* arg)
 				if(vid_pause_request)
 				{
 					Util_speaker_pause(0);
+					aptSetSleepAllowed(true);
 					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
 						usleep(5000);
 					
 					Util_speaker_resume(0);
+					aptSetSleepAllowed(false);
 				}
 				osTickCounterUpdate(&counter[3]);
 

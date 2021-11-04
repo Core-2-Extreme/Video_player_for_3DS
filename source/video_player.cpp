@@ -19,6 +19,7 @@ bool vid_seek_request = false;
 bool vid_seek_adjust_request = false;
 bool vid_read_packet_request = false;
 bool vid_read_packet_wait_request = false;
+bool vid_pause_for_home_menu_request = false;
 bool vid_linear_filter = true;
 bool vid_show_controls = false;
 bool vid_allow_skip_frames = false;
@@ -1244,6 +1245,7 @@ void Vid_init(void)
 	vid_use_hw_color_conversion_request = true;
 	vid_use_multi_threaded_decoding_request = true;
 	vid_read_packet_request = false;
+	vid_pause_for_home_menu_request = false;
 	vid_show_decode_graph_mode = true;
 	vid_show_color_conversion_graph_mode = true;
 	vid_show_packet_buffer_graph_mode = true;
@@ -1847,7 +1849,21 @@ void Vid_main(void)
 			var_debug_int[0]++;
 			Util_log_save("", std::to_string(var_debug_int[0]));
 		}*/
-		
+
+		if(vid_pause_for_home_menu_request)
+		{
+			vid_pause_request = false;
+			vid_pause_for_home_menu_request = false;
+		}
+
+		if(aptShouldJumpToHome())
+		{
+			vid_pause_request = true;
+			vid_pause_for_home_menu_request = true;
+			while(vid_num_of_audio_tracks > 0 && !Util_speaker_is_paused(0))
+				usleep(10000);
+		}
+
 		if(vid_full_screen_mode)
 		{
 			if(key.p_select || key.p_touch || aptShouldJumpToHome())

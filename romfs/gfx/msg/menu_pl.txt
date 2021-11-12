@@ -1,0 +1,11 @@
+<0>Czy chcesz wyjść z aplikacji?</0>
+<1>Przycisk "A" by zamknąć</1>
+<2>Przycisk "B" by wrócić</2>
+<3>☢Nowa wersja jest dostępna!☢</3>
+<4>Jak zaktualizować : 
+Opcje
+->Aktualizacja
+->Sprawdź Aktualizacje
+->Wejdź do ustawień zmian
+->Wybierz .3dsx lub .cia
+->Pobierz i Zainstaluj</4>

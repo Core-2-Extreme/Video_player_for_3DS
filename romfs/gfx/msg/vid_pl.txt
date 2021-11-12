@@ -1,0 +1,25 @@
+<0>Filtr Tekstury : </0>
+<1>Sterowanie</1>
+<2>Pomijanie klatek : </2>
+<3>Opcje</3>
+<4>Wybierz plik</4>
+<5>Odtwórz/Pauza</5>
+<6>Stop</6>
+<7>Przenieś film</7>
+<8>Przewiń</8>
+<9>Przybliż/Odbliż</9>
+<10>Wybór ścieżki dźwięku</10>
+<11>Wybierz ścieżke dźwięku</11>
+<12>Wćiśnij przycisk "SELECT" albo dotknij dotykowy ekran by 
+wyłączyć pełny ekran</12>
+<13>Dekoder Sprzętowy (jeśli dostępny) : </13>
+<14>Sprzętowa Konwersja kolorów (jeśli dostępna) : </14>
+<15>Dekoder Wielo-Wątkowy (jeśli dostępny) : </15>
+<16>Pomijanie kluczowych klatek : </16>
+<17>Niższa rozdzielczość (jeśli kodek ją wspiera) : </17>
+<18>Przewijanie...</18>
+<19>Długość przewijania : </19>
+<20>Głośność : </20>
+<21>Poprawna Rozdzielczość : </21>
+<22>Wyłącz zmiane wielkości ekranu : </22>
+<23>Zapamiętaj pozycje wideo : </23>

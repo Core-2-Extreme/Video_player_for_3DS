@@ -66,3 +66,4 @@ oprești 'modul 800px'
 anumite funcții care nu merg)</62>
 <63>Español</63>
 <64>Română</64>
+<65>Polski</65>

@@ -1,6 +1,7 @@
 #include "system/headers.hpp"
 
 bool util_hid_thread_run = false;
+bool util_hid_init = false;
 bool util_hid_key_A_pressed = false;
 bool util_hid_key_B_pressed = false;
 bool util_hid_key_X_pressed = false;
@@ -82,33 +83,66 @@ int util_hid_touch_pos_y = 0;
 int util_hid_pre_touch_pos_y = 0;
 int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
-int util_hid_count = 0;
+u64 util_hid_ts = 0;
 Thread util_hid_scan_thread;
 
-void Util_hid_init(void)
+void Util_hid_scan_hid_thread(void* arg);
+
+Result_with_string Util_hid_init(void)
 {
-	Util_log_save(DEF_HID_INIT_STR, "Initializing...");
+	Result_with_string result;
+	if(util_hid_init)
+		goto already_inited;
+
+	result.code = hidInit();
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] hidInit() failed. ";
+		goto nintendo_api_failed;
+	}
 
 	util_hid_thread_run = true;
 	util_hid_scan_thread = threadCreate(Util_hid_scan_hid_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+	if(!util_hid_scan_thread)
+	{
+		result.code = DEF_ERR_OTHER;
+		result.error_description = "[Error] threadCreate() failed. ";
+		goto nintendo_api_failed_0;
+	}
 
-	Util_log_save(DEF_HID_INIT_STR, "Initialized.");
+	util_hid_init = true;
+	return result;
+
+	already_inited:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+
+	nintendo_api_failed_0:
+	hidExit();
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
 }
 
 void Util_hid_exit(void)
 {
-	Util_log_save(DEF_HID_EXIT_STR, "Exiting...");
+	if(!util_hid_init)
+		return;
 
+	util_hid_init = false;
 	util_hid_thread_run = false;
 	threadJoin(util_hid_scan_thread, DEF_THREAD_WAIT_TIME);
 	threadFree(util_hid_scan_thread);
-
-	Util_log_save(DEF_HID_EXIT_STR, "Exited.");
+	hidExit();
 }
 
 bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
-{	
-	if(hid_state.p_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
+{
+	if(!util_hid_init)
+		return false;
+	else if(hid_state.p_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
 	&& hid_state.touch_y >= image.y && hid_state.touch_y <= (image.y + image.y_size - 1))
 		return true;
 	else
@@ -117,7 +151,9 @@ bool Util_hid_is_pressed(Hid_info hid_state, Image_data image)
 
 bool Util_hid_is_held(Hid_info hid_state, Image_data image)
 {
-	if(hid_state.h_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
+	if(!util_hid_init)
+		return false;
+	else if(hid_state.h_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
 	&& hid_state.touch_y >= image.y && hid_state.touch_y <= (image.y + image.y_size - 1))
 		return true;
 	else
@@ -126,15 +162,21 @@ bool Util_hid_is_held(Hid_info hid_state, Image_data image)
 
 bool Util_hid_is_released(Hid_info hid_state, Image_data image)
 {
-	if(hid_state.r_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
+	if(!util_hid_init)
+		return false;
+	else if(hid_state.r_touch && hid_state.touch_x >= image.x && hid_state.touch_x <= (image.x + image.x_size - 1)
 	&& hid_state.touch_y >= image.y && hid_state.touch_y <= (image.y + image.y_size - 1))
 		return true;
 	else
 		return false;
 }
 
-void Util_hid_query_key_state(Hid_info* out_key_state)
+Result_with_string Util_hid_query_key_state(Hid_info* out_key_state)
 {
+	Result_with_string result;
+	if(!util_hid_init)
+		goto not_inited;
+	
 	out_key_state->p_a = util_hid_key_A_pressed;
 	out_key_state->p_b = util_hid_key_B_pressed;
 	out_key_state->p_x = util_hid_key_X_pressed;
@@ -213,86 +255,14 @@ void Util_hid_query_key_state(Hid_info* out_key_state)
 	out_key_state->touch_x_move = util_hid_touch_pos_x_moved;
 	out_key_state->touch_y_move = util_hid_touch_pos_y_moved;
 	out_key_state->held_time = util_hid_held_time;
-	out_key_state->count = util_hid_count;
-}
+	out_key_state->ts = util_hid_ts;
 
-void Util_hid_key_flag_reset(void)
-{
-	util_hid_key_A_pressed = false;
-	util_hid_key_B_pressed = false;
-	util_hid_key_X_pressed = false;
-	util_hid_key_Y_pressed = false;
-	util_hid_key_C_UP_pressed = false;
-	util_hid_key_C_DOWN_pressed = false;
-	util_hid_key_C_RIGHT_pressed = false;
-	util_hid_key_C_LEFT_pressed = false;
-	util_hid_key_D_UP_pressed = false;
-	util_hid_key_D_DOWN_pressed = false;
-	util_hid_key_D_RIGHT_pressed = false;
-	util_hid_key_D_LEFT_pressed = false;
-	util_hid_key_L_pressed = false;
-	util_hid_key_R_pressed = false;
-	util_hid_key_ZL_pressed = false;
-	util_hid_key_ZR_pressed = false;
-	util_hid_key_START_pressed = false;
-	util_hid_key_SELECT_pressed = false;
-	util_hid_key_CS_UP_pressed = false;
-	util_hid_key_CS_DOWN_pressed = false;
-	util_hid_key_CS_RIGHT_pressed = false;
-	util_hid_key_CS_LEFT_pressed = false;
-	util_hid_key_touch_pressed = false;
-	util_hid_key_any_pressed = false;
-	util_hid_key_A_held = false;
-	util_hid_key_B_held = false;
-	util_hid_key_X_held = false;
-	util_hid_key_Y_held = false;
-	util_hid_key_C_UP_held = false;
-	util_hid_key_C_DOWN_held = false;
-	util_hid_key_C_RIGHT_held = false;
-	util_hid_key_C_LEFT_held = false;
-	util_hid_key_D_UP_held = false;
-	util_hid_key_D_DOWN_held = false;
-	util_hid_key_D_RIGHT_held = false;
-	util_hid_key_D_LEFT_held = false;
-	util_hid_key_L_held = false;
-	util_hid_key_R_held = false;
-	util_hid_key_ZL_held = false;
-	util_hid_key_ZR_held = false;
-	util_hid_key_START_held = false;
-	util_hid_key_SELECT_held = false;
-	util_hid_key_CS_UP_held = false;
-	util_hid_key_CS_DOWN_held = false;
-	util_hid_key_CS_RIGHT_held = false;
-	util_hid_key_CS_LEFT_held = false;
-	util_hid_key_touch_held = false;
-	util_hid_key_any_held = false;
-	util_hid_key_A_released = false;
-	util_hid_key_B_released = false;
-	util_hid_key_X_released = false;
-	util_hid_key_Y_released = false;
-	util_hid_key_C_UP_released = false;
-	util_hid_key_C_RIGHT_released = false;
-	util_hid_key_C_DOWN_released = false;
-	util_hid_key_C_LEFT_released = false;
-	util_hid_key_D_UP_released = false;
-	util_hid_key_D_RIGHT_released = false;
-	util_hid_key_D_DOWN_released = false;
-	util_hid_key_D_LEFT_released = false;
-	util_hid_key_L_released = false;
-	util_hid_key_R_released = false;
-	util_hid_key_ZL_released = false;
-	util_hid_key_ZR_released = false;
-	util_hid_key_START_released = false;
-	util_hid_key_SELECT_released = false;
-	util_hid_key_CS_UP_released = false;
-	util_hid_key_CS_DOWN_released = false;
-	util_hid_key_CS_RIGHT_released = false;
-	util_hid_key_CS_LEFT_released = false;
-	util_hid_key_touch_released = false;
-	util_hid_key_any_released = false;
-	util_hid_touch_pos_x = 0;
-	util_hid_touch_pos_y = 0;
-	util_hid_count = 0;
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
 }
 
 void Util_hid_scan_hid_thread(void* arg)
@@ -469,9 +439,8 @@ void Util_hid_scan_hid_thread(void* arg)
 			util_hid_held_time++;
 		else
 			util_hid_held_time = 0;
-
-		util_hid_count++;
-
+		
+		util_hid_ts = osGetTime();
 		gspWaitForVBlank();
 	}
 	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread exit");

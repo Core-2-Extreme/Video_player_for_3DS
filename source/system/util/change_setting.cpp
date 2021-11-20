@@ -2,7 +2,6 @@
 
 Result_with_string Util_cset_set_screen_brightness(bool top_screen, bool bottom_screen, int brightness)
 {
-	gspLcdInit();
 	Result_with_string result;
 	int screen = -1;
 
@@ -13,35 +12,71 @@ Result_with_string Util_cset_set_screen_brightness(bool top_screen, bool bottom_
 	else if (bottom_screen)
 		screen = GSPLCD_SCREEN_BOTTOM;
 	else
-		result.code = DEF_ERR_INVALID_ARG;
+		goto invalid_arg;
 
-	if(result.code != DEF_ERR_INVALID_ARG)
+	if(brightness < 0 || brightness > 200)
+		goto invalid_arg;
+
+	result.code = gspLcdInit();
+	if(result.code != 0)
 	{
-		result.code = GSPLCD_SetBrightnessRaw(screen, brightness);
-		if(result.code != 0)
-			result.string = "GSPLCD_SetBrightnessRaw() failed.";
+		result.error_description = "[Error] gspLcdInit() failed. ";
+		goto nintendo_api_failed_0;
+	}
+
+	result.code = GSPLCD_SetBrightnessRaw(screen, brightness);
+	if(result.code != 0)
+	{
+		result.error_description = "GSPLCD_SetBrightnessRaw() failed. ";
+		goto nintendo_api_failed;
 	}
 
 	gspLcdExit();
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	gspLcdExit();
+
+	nintendo_api_failed_0:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
 Result_with_string Util_cset_set_wifi_state(bool wifi_state)
 {
-	nwmExtInit();
 	Result_with_string result;
+	result.code = nwmExtInit();
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] nwmExtInit() failed. ";
+		goto nintendo_api_failed_0;
+	}
 
 	result.code = NWMEXT_ControlWirelessEnabled(wifi_state);
 	if(result.code != 0)
-		result.string = "NWMEXT_ControlWirelessEnabled() failed.";
+	{
+		result.error_description = "[Error] NWMEXT_ControlWirelessEnabled() failed. ";
+		goto nintendo_api_failed;
+	}
 
 	nwmExtExit();
+	return result;
+
+	nintendo_api_failed:
+	nwmExtExit();
+
+	nintendo_api_failed_0:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
 Result_with_string Util_cset_set_screen_state(bool top_screen, bool bottom_screen, bool state)
 {
-	gspLcdInit();
 	Result_with_string result;
 	int screen = -1;
 
@@ -52,24 +87,46 @@ Result_with_string Util_cset_set_screen_state(bool top_screen, bool bottom_scree
 	else if (bottom_screen)
 		screen = GSPLCD_SCREEN_BOTTOM;
 	else
-		result.code = DEF_ERR_INVALID_ARG;
+		goto invalid_arg;
 
-	if(result.code != DEF_ERR_INVALID_ARG)
+	result.code = gspLcdInit();
+	if(result.code != 0)
 	{
-		if (state)
+		result.error_description = "[Error] gspLcdInit() failed. ";
+		goto nintendo_api_failed_0;
+	}
+
+	if(state)
+	{
+		result.code = GSPLCD_PowerOnBacklight(screen);
+		if(result.code != 0)
 		{
-			result.code = GSPLCD_PowerOnBacklight(screen);
-			if(result.code != 0)
-				result.string = "GSPLCD_PowerOnBacklight() failed.";
+			result.error_description = "[Error] GSPLCD_PowerOnBacklight() failed. ";
+			goto nintendo_api_failed;
 		}
-		else
+	}
+	else
+	{
+		result.code = GSPLCD_PowerOffBacklight(screen);
+		if(result.code != 0)
 		{
-			result.code = GSPLCD_PowerOffBacklight(screen);
-			if(result.code != 0)
-				result.string = "GSPLCD_PowerOffBacklight() failed.";
+			result.error_description = "[Error] GSPLCD_PowerOffBacklight() failed. ";
+			goto nintendo_api_failed;
 		}
 	}
 
 	gspLcdExit();
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	gspLcdExit();
+
+	nintendo_api_failed_0:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }

@@ -9,6 +9,7 @@ bool util_exfont_load_external_font_request = false;
 bool util_exfont_unload_external_font_request = false;
 bool util_exfont_load_system_font_request = false;
 bool util_exfont_unload_system_font_request = false;
+bool util_exfont_init = false;
 int util_exfont_texture_num[DEF_EXFONT_NUM_OF_FONT_NAME];
 double util_exfont_font_interval[10240] =
 {
@@ -649,6 +650,9 @@ int util_exfont_num_of_right_left_charcters = 0;
 int util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME];
 Thread util_exfont_load_font_thread;
 
+Result_with_string Exfont_load_exfont(int exfont_num);
+void Exfont_unload_exfont(int exfont_num);
+
 void Exfont_load_font_thread(void* arg)
 {
     Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Thread started.");
@@ -715,36 +719,45 @@ void Exfont_load_font_thread(void* arg)
 	Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Thread exit.");
 }
 
-void Exfont_init(void)
+Result_with_string Exfont_init(void)
 {
-	Util_log_save(DEF_EXFONT_INIT_STR, "Initializing...");
     int characters = 0;
     u8* fs_buffer = NULL;
     u32 read_size = 0;
     Result_with_string result;
-    fs_buffer = (u8*)malloc(0x8000);
 
-    memset((void*)fs_buffer, 0x0, 0x8000);
-    result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", fs_buffer, 0x2000, &read_size);
-    Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
-    
+    if(util_exfont_init)
+        goto already_inited;
+
+    result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size);
+    if(result.code != 0)
+        goto api_failed;
+
     result = Util_parse_file((char*)fs_buffer, DEF_EXFONT_NUM_OF_FONT_NAME, util_exfont_font_name);
-    Util_log_save(DEF_EXFONT_INIT_STR, "Util_parse_file()..." + result.string + result.error_description, result.code);
+    if(result.code != 0)
+        goto api_failed;
 
-    memset((void*)fs_buffer, 0x0, 0x8000);
-    result = Util_file_load_from_rom("font_samples.txt", "romfs:/gfx/font/sample/", fs_buffer, 0x8000, &read_size);
-    Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
-    if (result.code == 0)
-        Exfont_text_parse((char*)fs_buffer, util_exfont_font_samples, 10240, &characters);
+    free(fs_buffer);
+    fs_buffer = NULL;
+
+    result = Util_file_load_from_rom("font_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
+    if(result.code != 0)
+        goto api_failed;
+
+    Exfont_text_parse((char*)fs_buffer, util_exfont_font_samples, 10240, &characters);
+    free(fs_buffer);
+    fs_buffer = NULL;
 
     for (int i = characters; i > -1; i--)
         util_exfont_font_samples[i + 1] = util_exfont_font_samples[i];
 
-    memset((void*)fs_buffer, 0x0, 0x8000);
-    result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", fs_buffer, 0x8000, &read_size);
-    Util_log_save(DEF_EXFONT_INIT_STR, "Util_file_load_from_rom()..." + result.string + result.error_description, result.code);
-    if (result.code == 0)
-        Exfont_text_parse((char*)fs_buffer, util_exfont_font_right_to_left_samples, 256, &characters);
+    result = Util_file_load_from_rom("font_right_to_left_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
+    if(result.code != 0)
+        goto api_failed;
+
+    Exfont_text_parse((char*)fs_buffer, util_exfont_font_right_to_left_samples, 256, &characters);
+    free(fs_buffer);
+    fs_buffer = NULL;
 
     util_exfont_num_of_right_left_charcters = characters;
 
@@ -760,27 +773,48 @@ void Exfont_init(void)
         util_exfont_texture_num[i] = 0;
     }
 
-    free(fs_buffer);
 	util_exfont_thread_run = true;
 	util_exfont_load_font_thread = threadCreate(Exfont_load_font_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
+    if(!util_exfont_load_font_thread)
+    {
+        result.error_description = "[Error] threadCreate() failed. ";
+        goto nintendo_api_failed;
+    }
 
-	Util_log_save(DEF_EXFONT_INIT_STR, "Initialized.");
+    util_exfont_init = true;
+    return result;
+    
+    already_inited:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+
+    api_failed:
+    free(fs_buffer);
+    fs_buffer = NULL;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
 }
 
 void Exfont_exit(void)
 {
-    Util_log_save(DEF_EXFONT_EXIT_STR, "Exiting...");
-
+    if(!util_exfont_init)
+        return;
+    
+    util_exfont_init = false;
     util_exfont_thread_run = false;
-	Util_log_save(DEF_EXFONT_EXIT_STR, "threadJoin()...", threadJoin(util_exfont_load_font_thread, 10000000000));
+	threadJoin(util_exfont_load_font_thread, 10000000000);
 	threadFree(util_exfont_load_font_thread);
-
-	Util_log_save(DEF_EXFONT_EXIT_STR, "Exited.");
 }
 
 std::string Exfont_query_external_font_name(int exfont_num)
 {
-    if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
+    if(!util_exfont_init)
+        return "";
+    else if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
         return util_exfont_font_name[exfont_num];
     else
         return "";
@@ -788,7 +822,9 @@ std::string Exfont_query_external_font_name(int exfont_num)
 
 bool Exfont_is_loaded_external_font(int exfont_num)
 {
-    if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
+    if(!util_exfont_init)
+        return false;
+    else if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
         return util_exfont_loaded_external_font[exfont_num];
     else
         return false;
@@ -796,17 +832,25 @@ bool Exfont_is_loaded_external_font(int exfont_num)
 
 bool Exfont_is_loading_external_font(void)
 {
+    if(!util_exfont_init)
+        return false;
+    
     return util_exfont_load_external_font_request;
 }
 
 bool Exfont_is_unloading_external_font(void)
 {
+    if(!util_exfont_init)
+        return false;
+    
     return util_exfont_unload_external_font_request;
 }
 
 bool Exfont_is_loaded_system_font(int system_font_num)
 {
-    if (system_font_num >= 0 && system_font_num < 4)
+    if(!util_exfont_init)
+        return false;
+    else if (system_font_num >= 0 && system_font_num < 4)
         return util_exfont_loaded_system_font[system_font_num];
     else
         return false;
@@ -814,43 +858,67 @@ bool Exfont_is_loaded_system_font(int system_font_num)
 
 bool Exfont_is_loading_system_font(void)
 {
+    if(!util_exfont_init)
+        return false;
+
     return util_exfont_load_system_font_request;
 }
 
 bool Exfont_is_unloading_system_font(void)
 {
+    if(!util_exfont_init)
+        return false;
+
     return util_exfont_unload_system_font_request;
 }
 
 void Exfont_set_external_font_request_state(int exfont_num, bool flag)
 {
+    if(!util_exfont_init)
+        return;
+
     if (exfont_num >= 0 && exfont_num < DEF_EXFONT_NUM_OF_FONT_NAME)
         util_exfont_request_external_font_state[exfont_num] = flag;
 }
 
 void Exfont_request_load_external_font(void)
 {
+    if(!util_exfont_init)
+        return;
+
     util_exfont_load_external_font_request = true;
 }
 
 void Exfont_request_unload_external_font(void)
 {
+    if(!util_exfont_init)
+        return;
+
     util_exfont_unload_external_font_request = true;
 }
 
 void Exfont_set_system_font_request_state(int system_font_num, bool flag)
 {
+    if(!util_exfont_init)
+        return;
+
     if (system_font_num >= 0 && system_font_num < 4)
         util_exfont_request_system_font_state[system_font_num] = flag;
 }
 
 void Exfont_request_load_system_font(void)
 {
+    if(!util_exfont_init)
+        return;
+
     util_exfont_load_system_font_request = true;
 }
 
 void Exfont_request_unload_system_font(void)
 {
+    if(!util_exfont_init)
+        return;
+
     util_exfont_unload_system_font_request = true;
 }
 
@@ -861,6 +929,12 @@ std::string Exfont_text_sort(std::string sorce_part_string[], int max_loop)
     std::string result_string = "";
     std::string right_to_left_sample[2] = { "\u05BD", "\u0700", };
 
+    if(!util_exfont_init)
+        return "";
+    
+    if(!sorce_part_string || max_loop <= 0)
+        return "";
+    
     for (int i = 0; i < max_loop; i++)
     {
         found = false;
@@ -900,12 +974,20 @@ std::string Exfont_text_sort(std::string sorce_part_string[], int max_loop)
 
 void Exfont_text_parse(std::string sorce_string, std::string part_string[], int max_loop, int* out_element)
 {
-    int sorce_string_length = sorce_string.length();
+    int sorce_string_length = 0;
     int std_num = 0;
     int parse_string_length = 0;
     int i = 0;
+    char* sorce_string_char = NULL;
+    
+    if(!part_string || max_loop <= 0 || !out_element)
+        return;
+    
     *out_element = 0;
-    char* sorce_string_char = (char*)malloc(sorce_string.length() + 10);
+    sorce_string_length = sorce_string.length();
+    sorce_string_char = (char*)malloc(sorce_string.length() + 10);
+    if(!sorce_string_char)
+        return;
 
     memset(sorce_string_char, 0x0, sorce_string.length() + 10);
     strcpy(sorce_string_char, (char*)sorce_string.c_str());
@@ -927,6 +1009,7 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
     }
     part_string[std_num] = "\u0000";
     free(sorce_string_char);
+    sorce_string_char = NULL;
     *out_element = std_num;
 }
 
@@ -950,9 +1033,15 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
                                             "\u2600", "\u2700", "\u27C0", "\u2980", "\u2C00", "\u3040", "\u30A0", "\u3100",
                                             "\u3400", "\uA490", "\uA4D0", "\uFE50", "\uFFF0", };
     std::string samples_four_bytes[DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT] = { "\U0001F600", "\U0001F650", };
+
+    if(!util_exfont_init)
+        return;
+
+    if(!out_width || !out_height)
+        return;
+
     *out_width = 0;
     *out_height = 0;
-
     Exfont_text_parse(in_string, util_exfont_part_string, 1023, &characters);
 
     for (int s = 0; s < characters; s++)
@@ -1082,11 +1171,13 @@ Result_with_string Exfont_load_exfont(int exfont_num)
         }
     }
     else
-    {
-        result.code = DEF_ERR_INVALID_ARG;
-        result.string = "Invalid exfont num";
-    }
+        goto invalid_arg;
 
+    return result;
+
+    invalid_arg:
+    result.code = DEF_ERR_INVALID_ARG;
+    result.string = DEF_ERR_INVALID_ARG_STR;
     return result;
 }
 

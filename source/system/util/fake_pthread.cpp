@@ -7,10 +7,12 @@ int util_fake_pthread_enabled_cores = 2;
 void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 {
     int num_of_core = 0;
+
+    if(!enabled_core[0] && !enabled_core[1] && !enabled_core[2] && !enabled_core[3])
+        return;
+
     for(int i = 0; i < 4; i++)
-    {
         util_fake_pthread_enabled_core_list[i] = -3;
-    }
 
     for(int i = 0; i < 4; i++)
     {

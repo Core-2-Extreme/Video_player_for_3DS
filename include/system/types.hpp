@@ -5,7 +5,29 @@ struct Result_with_string
 {
 	std::string string = "[Success] ";
 	std::string error_description = "";
-	uint code = 0;
+	uint code = DEF_SUCCESS;
+};
+
+struct Audio_info
+{
+	int bitrate = 0;
+	int sample_rate = 0;
+	int ch = 0;
+	std::string format_name = "";
+	double duration = 0;
+	std::string track_lang = "";
+};
+
+struct Video_info
+{
+	int width = 0;
+	int height = 0;
+	double framerate = 0;
+	std::string format_name = "";
+	double duration = 0;
+	int thread_type = DEF_DECODER_THREAD_TYPE_NONE;
+	int sar_width = 1;
+	int sar_height = 1;
 };
 
 struct Image_data
@@ -100,5 +122,5 @@ struct Hid_info
 	int touch_x_move = 0;
 	int touch_y_move = 0;
 	int held_time = 0;
-	int count = 0;
+	u64 ts = 0;
 };

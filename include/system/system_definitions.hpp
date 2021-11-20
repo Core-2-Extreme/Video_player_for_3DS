@@ -115,6 +115,11 @@
 #define DEF_SEM_SPANISH_MSG 63
 #define DEF_SEM_ROMANIAN_MSG 64
 
+
+//camera
+#define DEF_CAM_OUT_YUV422 0
+#define DEF_CAM_OUT_RGB565 1
+
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00
@@ -132,12 +137,35 @@
 #define DEF_DRAW_WEAK_YELLOW 0x5000C5FF
 #define DEF_DRAW_NO_COLOR 0x0
 
+#define DEF_DRAW_FORMAT_RGB888 0
+#define DEF_DRAW_FORMAT_RGB565 1
+
+#define DEF_DRAW_SCREEN_TOP_LEFT 0
+#define DEF_DRAW_SCREEN_BOTTOM 1
+#define DEF_DRAW_SCREEN_TOP_RIGHT 2
+
 //decoder 
 #define DEF_DECODER_THREAD_TYPE_NONE 0
 #define DEF_DECODER_THREAD_TYPE_FRAME 1
 #define DEF_DECODER_THREAD_TYPE_SLICE 2
 #define DEF_DECODER_THREAD_TYPE_AUTO 3
+#define DEF_DECODER_PACKET_TYPE_UNKNOWN 0
+#define DEF_DECODER_PACKET_TYPE_AUDIO 1
+#define DEF_DECODER_PACKET_TYPE_VIDEO 2
+#define DEF_DECODER_SEEK_FLAG_BACKWARD 1
+#define DEF_DECODER_SEEK_FLAG_BYTE 2
+#define DEF_DECODER_SEEK_FLAG_ANY 4
+#define DEF_DECODER_SEEK_FLAG_FRAME 8
 #define STB_IMAGE_IMPLEMENTATION
+
+//encoder
+#define DEF_ENCODER_AUDIO_CODEC_AAC 0
+#define DEF_ENCODER_AUDIO_CODEC_AC3 1
+#define DEF_ENCODER_AUDIO_CODEC_MP2 2
+#define DEF_ENCODER_VIDEO_CODEC_MJPEG 3
+#define DEF_ENCODER_VIDEO_CODEC_H264 4
+#define DEF_ENCODER_VIDEO_CODEC_MPEG4 5
+#define DEF_ENCODER_VIDEO_CODEC_MPEG2VIDEO 6
 
 //error num
 #define DEF_ERR_SUMMARY 0
@@ -146,6 +174,7 @@
 #define DEF_ERR_CODE 3
 
 //error code
+#define DEF_SUCCESS 0x0
 #define DEF_ERR_OTHER 0xFFFFFFFF
 #define DEF_ERR_OUT_OF_MEMORY 0xFFFFFFFE
 #define DEF_ERR_OUT_OF_LINEAR_MEMORY 0xFFFFFFFD
@@ -155,6 +184,8 @@
 #define DEF_ERR_INVALID_ARG 0xFFFFFFF9
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS 0xFFFFFFF8
 #define DEF_ERR_TRY_AGAIN 0xFFFFFFF7
+#define DEF_ERR_ALREADY_INITIALIZED 0xFFFFFFF6
+#define DEF_ERR_NOT_INITIALIZED 0xFFFFFFF5
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -165,6 +196,9 @@
 #define DEF_ERR_INVALID_ARG_STR (std::string)"[Error] Invalid arg. "
 #define DEF_ERR_JSMN_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] jsmn returned NOT success. "
 #define DEF_ERR_TRY_AGAIN_STR (std::string)"[Error] Try again later. "
+#define DEF_ERR_ALREADY_INITIALIZED_STR (std::string)"[Error] Already initialized. "
+#define DEF_ERR_NOT_INITIALIZED_STR (std::string)"[Error] Not initialized. "
+#define DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] Nintendo api returned NOT success. "
 
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"
@@ -175,6 +209,11 @@
 #define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
 #define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
 #define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
+#define DEF_EXPL_TYPE_UNKNOWN 0
+#define DEF_EXPL_TYPE_FILE 1
+#define DEF_EXPL_TYPE_DIR 2
+#define DEF_EXPL_TYPE_READ_ONLY 4
+#define DEF_EXPL_TYPE_HIDDEN 8
 
 //external font
 #define DEF_EXFONT_NUM_OF_FONT_NAME 52
@@ -186,6 +225,12 @@
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
 
+//file
+#define DEF_FILE_TYPE_FILE 1
+#define DEF_FILE_TYPE_DIR 2
+#define DEF_FILE_TYPE_READ_ONLY 4
+#define DEF_FILE_TYPE_HIDDEN 8
+
 //fake pthread
 #define _POSIX_THREADS
 
@@ -196,6 +241,12 @@
 
 //log
 #define DEF_LOG_DISPLAYED_LINES 23
+
+//swkbd
+#define DEF_SWKBD_BUTTON_LEFT 0
+#define DEF_SWKBD_BUTTON_MIDDLE 1
+#define DEF_SWKBD_BUTTON_RIGHT 2
+#define DEF_SWKBD_BUTTON_NONE 3
 
 //thread
 #define DEF_STACKSIZE (64 * 1024)

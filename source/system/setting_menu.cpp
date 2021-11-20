@@ -119,7 +119,7 @@ void Sem_init(void)
 {
 	Util_log_save(DEF_SEM_INIT_STR, "Initializing...");
 	bool wifi_state = true;
-	u8* cache = (u8*)malloc(0x1000);
+	u8* read_cache = NULL;
 	u32 read_size = 0;
 	std::string data[11];
 	Result_with_string result;
@@ -127,39 +127,43 @@ void Sem_init(void)
 	if(var_fake_model)
 		sem_fake_model_num = var_model;
 
-	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
+	result = Util_file_load_from_file("settings.txt", DEF_MAIN_DIR, &read_cache, 0x1000, &read_size);
 	Util_log_save(DEF_SEM_INIT_STR , "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
-
-	result = Util_parse_file((char*)cache, 11, data);
-	Util_log_save(DEF_SEM_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-	if(result.code == 0)
+	if (result.code == 0)
 	{
-		var_lang = data[0];
-		var_lcd_brightness = atoi(data[1].c_str());
-		var_time_to_turn_off_lcd = atoi(data[2].c_str());
-		var_scroll_speed = strtod(data[3].c_str(), NULL);
-		var_allow_send_app_info = (data[4] == "1");
-		var_num_of_app_start = atoi(data[5].c_str());
-		var_night_mode = (data[6] == "1");
-		var_eco_mode = (data[7] == "1");
-		wifi_state = (data[8] == "1");
-		var_high_resolution_mode = (data[9] == "1");
-		var_3d_mode = (data[10] == "1");
+		result = Util_parse_file((char*)read_cache, 11, data);
+		Util_log_save(DEF_SEM_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+		if(result.code == 0)
+		{
+			var_lang = data[0];
+			var_lcd_brightness = atoi(data[1].c_str());
+			var_time_to_turn_off_lcd = atoi(data[2].c_str());
+			var_scroll_speed = strtod(data[3].c_str(), NULL);
+			var_allow_send_app_info = (data[4] == "1");
+			var_num_of_app_start = atoi(data[5].c_str());
+			var_night_mode = (data[6] == "1");
+			var_eco_mode = (data[7] == "1");
+			wifi_state = (data[8] == "1");
+			var_high_resolution_mode = (data[9] == "1");
+			var_3d_mode = (data[10] == "1");
 
-		if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
-		&& var_lang != "es" && var_lang != "ro")
-			var_lang = "en";
-		if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
-			var_lcd_brightness = 100;
-		if(var_time_to_turn_off_lcd < 10 || var_time_to_turn_off_lcd > 310)
-			var_time_to_turn_off_lcd = 150;
-		if(var_scroll_speed < 0.033 || var_scroll_speed > 1.030)
-			var_scroll_speed = 0.5;
-		if(var_num_of_app_start < 0)
-			var_num_of_app_start = 0;
-		
-		var_top_lcd_brightness = var_lcd_brightness;
-		var_bottom_lcd_brightness = var_lcd_brightness;
+			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
+			&& var_lang != "es" && var_lang != "ro")
+				var_lang = "en";
+			if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
+				var_lcd_brightness = 100;
+			if(var_time_to_turn_off_lcd < 10 || var_time_to_turn_off_lcd > 310)
+				var_time_to_turn_off_lcd = 150;
+			if(var_scroll_speed < 0.033 || var_scroll_speed > 1.030)
+				var_scroll_speed = 0.5;
+			if(var_num_of_app_start < 0)
+				var_num_of_app_start = 0;
+			
+			var_top_lcd_brightness = var_lcd_brightness;
+			var_bottom_lcd_brightness = var_lcd_brightness;
+		}
+		free(read_cache);
+		read_cache = NULL;
 	}
 
 	if(var_model == CFG_MODEL_2DS)//OLD 2DS doesn't support high resolution mode
@@ -182,9 +186,6 @@ void Sem_init(void)
 	result = Util_cset_set_wifi_state(wifi_state);
 	if(result.code == 0 || result.code == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
-	
-	free(cache);
-	cache = NULL;
 
 	Sem_resume();
 	sem_already_init = true;
@@ -294,7 +295,6 @@ void Sem_main(void)
 	Result_with_string result;
 	Hid_info key;
 	Util_hid_query_key_state(&key);
-	Util_hid_key_flag_reset();
 
 	if (var_night_mode)
 	{
@@ -1571,7 +1571,7 @@ void Sem_record_thread(void* arg)
 				sem_record_request = false;
 
 			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_video_encoder_init()...");
-			result = Util_video_encoder_init(AV_CODEC_ID_MJPEG, rec_width, rec_height, rec_framerate, 0);
+			result = Util_video_encoder_init(AV_CODEC_ID_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 			if(result.code != 0)
 				sem_record_request = false;
@@ -1590,18 +1590,18 @@ void Sem_record_thread(void* arg)
 				if(mode == DEF_SEM_RECORD_BOTH)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result = Util_converter_bgr888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
+					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &top_bgr, width, height, &new_width, &new_height);
 					if(result.code != 0)
 					{
-						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_bgr888_rotate_90_degree()..." + result.string + result.error_description, result.code);
+						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_rgb888_rotate_90_degree()..." + result.string + result.error_description, result.code);
 						break;
 					}
 
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result = Util_converter_bgr888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
+					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &bot_bgr, width, height, &new_width, &new_height);
 					if(result.code != 0)
 					{
-						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_bgr888_rotate_90_degree()..." + result.string + result.error_description, result.code);
+						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_rgb888_rotate_90_degree()..." + result.string + result.error_description, result.code);
 						break;
 					}
 
@@ -1632,30 +1632,30 @@ void Sem_record_thread(void* arg)
 				else if(mode == DEF_SEM_RECORD_TOP)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
-					result = Util_converter_bgr888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
 					if(result.code != 0)
 					{
-						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_bgr888_rotate_90_degree()..." + result.string + result.error_description, result.code);
+						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_rgb888_rotate_90_degree()..." + result.string + result.error_description, result.code);
 						break;
 					}
 				}
 				else if(mode == DEF_SEM_RECORD_BOTTOM)
 				{
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
-					result = Util_converter_bgr888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
+					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
 					if(result.code != 0)
 					{
-						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_bgr888_rotate_90_degree()..." + result.string + result.error_description, result.code);
+						Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_rgb888_rotate_90_degree()..." + result.string + result.error_description, result.code);
 						break;
 					}
 				}
 				
-				result = Util_converter_bgr888_to_yuv420p(both_bgr, &yuv420p, rec_width, rec_height);
+				result = Util_converter_rgb888le_to_yuv420p(both_bgr, &yuv420p, rec_width, rec_height);
 				free(both_bgr);
 				both_bgr = NULL;
 				if(result.code != 0)
 				{
-					Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_bgr888_to_yuv420p()..." + result.string + result.error_description, result.code);
+					Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_converter_rgb888_to_yuv420p()..." + result.string + result.error_description, result.code);
 					break;
 				}
 				memcpy(sem_yuv420p, yuv420p, rec_width * rec_height * 1.5);
@@ -1673,7 +1673,6 @@ void Sem_record_thread(void* arg)
 				usleep(100000);
 
 			Util_encoder_close_output_file(0);
-			Util_video_encoder_exit(0);
 			free(both_bgr);
 			free(bot_bgr);
 			free(top_bgr);
@@ -1865,120 +1864,113 @@ void Sem_update_thread(void* arg)
 			offset = 0;
 			sem_installed_size = 0;
 			sem_total_cia_size = 0;
-			buffer = (u8*)malloc(0x20000);
-			if (buffer == NULL)
+
+			log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_httpc_dl_data()...");
+			if(sem_dl_file_request)
 			{
-				Util_err_set_error_message(DEF_ERR_OUT_OF_MEMORY_STR, "", DEF_SEM_UPDATE_THREAD_STR, DEF_ERR_OUT_OF_MEMORY);
+				dir_path = DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/";
+				file_name = DEF_UPDATE_FILE_PREFIX;
+				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+					file_name += ".3dsx";
+				else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
+					file_name += ".cia";
+
+				Util_file_delete_file(file_name, dir_path);//delete old file if exist
+			}
+
+			if(sem_dl_file_request)
+				result = Util_httpc_save_data(url, 0x20000, &sem_dled_size, &status_code, true, 5, dir_path, file_name);
+			else
+				result = Util_httpc_dl_data(url, &buffer, 0x20000, &sem_dled_size, &status_code, true, 5);
+
+			Util_log_add(log_num, result.string, result.code);
+
+			if (result.code != 0)
+			{
+				Util_err_set_error_message(result.string, result.error_description, DEF_SEM_UPDATE_THREAD_STR, result.code);
 				Util_err_set_error_show_flag(true);
-				Util_log_save(DEF_SEM_UPDATE_THREAD_STR, DEF_ERR_OUT_OF_MEMORY_STR, DEF_ERR_OUT_OF_MEMORY);
+				if (sem_check_update_request)
+					sem_update_progress = -1;
+				else if (sem_dl_file_request)
+					sem_update_progress = -2;
+				var_need_reflesh = true;
 			}
 			else
 			{
-				log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_httpc_dl_data()...");
-				if(sem_dl_file_request)
+				if (sem_check_update_request)
 				{
-					dir_path = DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/";
-					file_name = DEF_UPDATE_FILE_PREFIX;
-					if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
-						file_name += ".3dsx";
-					else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
-						file_name += ".cia";
+					parse_cache = (char*)buffer;
 
-					Util_file_delete_file(file_name, dir_path);//delete old file if exist
-				}
+					for (int i = 0; i < 6; i++)
+					{
+						parse_start_pos = parse_cache.find(parse_start[i]);
+						parse_end_pos = parse_cache.find(parse_end[i]);
 
-				if(sem_dl_file_request)
-					result = Util_httpc_dl_data(url, buffer, 0x20000, &sem_dled_size, &status_code, true, 5, dir_path, file_name);
-				else
-					result = Util_httpc_dl_data(url, buffer, 0x20000, &sem_dled_size, &status_code, true, 5);
+						parse_start_pos += parse_start[i].length();
+						parse_end_pos -= parse_start_pos;
+						if (parse_start_pos != std::string::npos && parse_end_pos != std::string::npos)
+							sem_newest_ver_data[i] = parse_cache.substr(parse_start_pos, parse_end_pos);
+						else
+						{
+							sem_update_progress = -1;
+							break;
+						}
+					}
 
-				Util_log_add(log_num, result.string, result.code);
+					if(sem_update_progress != -1)
+					{
+						if (DEF_CURRENT_APP_VER_INT < atoi(sem_newest_ver_data[0].c_str()))
+							sem_new_version_available = true;
+						else
+							sem_new_version_available = false;
+					}
 
-				if (result.code != 0)
-				{
-					Util_err_set_error_message(result.string, result.error_description, DEF_SEM_UPDATE_THREAD_STR, result.code);
-					Util_err_set_error_show_flag(true);
-					if (sem_check_update_request)
-						sem_update_progress = -1;
-					else if (sem_dl_file_request)
-						sem_update_progress = -2;
+					sem_update_progress = 1;
 					var_need_reflesh = true;
 				}
-				else
+				else if (sem_dl_file_request)
 				{
-					if (sem_check_update_request)
+					sem_update_progress = 3;
+					if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+						sem_update_progress = 4;
+
+					var_need_reflesh = true;
+					if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
 					{
-						parse_cache = (char*)buffer;
+						sem_total_cia_size = sem_dled_size;
+						log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "AM_StartCiaInstall()...");
+						result.code = AM_StartCiaInstall(MEDIATYPE_SD, &am_handle);
+						Util_log_add(log_num, "", result.code);
 
-						for (int i = 0; i < 6; i++)
+						while (true)
 						{
-							parse_start_pos = parse_cache.find(parse_start[i]);
-							parse_end_pos = parse_cache.find(parse_end[i]);
-
-							parse_start_pos += parse_start[i].length();
-							parse_end_pos -= parse_start_pos;
-							if (parse_start_pos != std::string::npos && parse_end_pos != std::string::npos)
-								sem_newest_ver_data[i] = parse_cache.substr(parse_start_pos, parse_end_pos);
-							else
-							{
-								sem_update_progress = -1;
+							free(buffer);
+							buffer = NULL;
+							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_file_load_from_file_with_range()...");
+							result = Util_file_load_from_file_with_range(file_name, dir_path, (u8**)buffer, 0x20000, offset, &read_size);
+							Util_log_add(log_num, result.string, result.code);
+							if(result.code != 0 || read_size <= 0)
 								break;
-							}
-						}
 
-						if(sem_update_progress != -1)
-						{
-							if (DEF_CURRENT_APP_VER_INT < atoi(sem_newest_ver_data[0].c_str()))
-								sem_new_version_available = true;
-							else
-								sem_new_version_available = false;
-						}
-
-						sem_update_progress = 1;
-						var_need_reflesh = true;
-					}
-					else if (sem_dl_file_request)
-					{
-						sem_update_progress = 3;
-						if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
-							sem_update_progress = 4;
-
-						var_need_reflesh = true;
-						if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
-						{
-							sem_total_cia_size = sem_dled_size;
-							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "AM_StartCiaInstall()...");
-							result.code = AM_StartCiaInstall(MEDIATYPE_SD, &am_handle);
+							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "FSFILE_Write()...");
+							result.code = FSFILE_Write(am_handle, &write_size, offset, (u8*)buffer, read_size, FS_WRITE_FLUSH);
 							Util_log_add(log_num, "", result.code);
+							if(result.code != 0)
+								break;
 
-							while (true)
-							{
-								log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_file_load_from_file_with_range()...");
-								result = Util_file_load_from_file_with_range(file_name, dir_path, (u8*)buffer, 0x20000, offset, &read_size);
-								Util_log_add(log_num, result.string, result.code);
-								if(result.code != 0 || read_size <= 0)
-									break;
-
-								log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "FSFILE_Write()...");
-								result.code = FSFILE_Write(am_handle, &write_size, offset, (u8*)buffer, read_size, FS_WRITE_FLUSH);
-								Util_log_add(log_num, "", result.code);
-								if(result.code != 0)
-									break;
-
-								offset += write_size;
-								sem_installed_size += write_size;
-								var_need_reflesh = true;
-							}
-
-							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "AM_FinishCiaInstall()...");
-							result.code = AM_FinishCiaInstall(am_handle);
-							Util_log_add(log_num, "", result.code);
-							if (result.code == 0)
-								sem_update_progress = 4;
-							else
-								sem_update_progress = -2;
+							offset += write_size;
+							sem_installed_size += write_size;
 							var_need_reflesh = true;
 						}
+
+						log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "AM_FinishCiaInstall()...");
+						result.code = AM_FinishCiaInstall(am_handle);
+						Util_log_add(log_num, "", result.code);
+						if (result.code == 0)
+							sem_update_progress = 4;
+						else
+							sem_update_progress = -2;
+						var_need_reflesh = true;
 					}
 				}
 			}

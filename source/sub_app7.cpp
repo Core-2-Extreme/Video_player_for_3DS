@@ -201,7 +201,6 @@ void Sapp7_main(void)
 	int back_color = DEF_DRAW_WHITE;
 	Hid_info key;
 	Util_hid_query_key_state(&key);
-	Util_hid_key_flag_reset();
 
 	if (var_night_mode)
 	{

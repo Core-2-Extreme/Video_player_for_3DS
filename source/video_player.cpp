@@ -134,25 +134,25 @@ void Vid_decode_thread(void* arg)
 	bool key_frame = false;
 	int wait_count = 0;
 	int audio_track = 0;
-	int bitrate = 0;
-	int sample_rate = 0;
-	int ch = 0;
 	int audio_size = 0;
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
 	int max_buffer = 0;
 	int free_ram = 0;
+	int type = DEF_DECODER_PACKET_TYPE_UNKNOWN;
 	double pos = 0;
 	double saved_pos = 0;
 	u8* audio = NULL;
+	u8* saved_data = NULL;
 	u32 read_size = 0;
 	std::string format = "";
-	std::string type = "";
 	std::string cache_file_name = "";
 	std::string cache = "";
 	TickCounter counter;
 	Result_with_string result;
+	Audio_info audio_info;
+	Video_info video_info;
 	osTickCounterStart(&counter);
 	
 	Util_file_save_to_file(".", DEF_MAIN_DIR + "saved_pos/", NULL, 0, false);//create directory
@@ -246,6 +246,9 @@ void Vid_decode_thread(void* arg)
 
 			if(num_of_audio_tracks > 0 && vid_play_request)
 			{
+				result = Util_speaker_init();
+				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_init()..." + result.string + result.error_description, result.code);
+
 				vid_num_of_audio_tracks = num_of_audio_tracks;
 				result = Util_audio_decoder_init(num_of_audio_tracks, 0);
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_init()..." + result.string + result.error_description, result.code);
@@ -255,8 +258,13 @@ void Vid_decode_thread(void* arg)
 				if(vid_play_request)
 				{
 					for(int i = 0; i < num_of_audio_tracks; i++)
-						Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, i, &vid_audio_track_lang[i], 0);
+					{
+						Util_audio_decoder_get_info(&audio_info, i, 0);
+						vid_audio_track_lang[i] = audio_info.track_lang;
+					}
 
+					vid_audio_format = audio_info.format_name;
+					vid_duration = audio_info.duration;
 					if(num_of_audio_tracks > 1)
 					{
 						vid_select_audio_track_request = true;
@@ -266,9 +274,9 @@ void Vid_decode_thread(void* arg)
 					}
 
 					audio_track = vid_selected_audio_track;
-					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
+					Util_audio_decoder_get_info(&audio_info, audio_track, 0);
 					vid_duration *= 1000;
-					Util_speaker_init(0, ch, sample_rate);
+					Util_speaker_set_audio_info(0, audio_info.ch, audio_info.sample_rate);
 				}
 			}
 			if(num_of_video_tracks && vid_play_request)
@@ -282,7 +290,15 @@ void Vid_decode_thread(void* arg)
 				
 				if(vid_play_request)
 				{
-					Util_video_decoder_get_info(&vid_width, &vid_height, &vid_framerate, &vid_video_format, &vid_duration, &vid_thread_mode, &vid_sar_width, &vid_sar_height, 0, 0);
+					Util_video_decoder_get_info(&video_info, 0, 0);
+					vid_width = video_info.width;
+					vid_height = video_info.height;;
+					vid_framerate = video_info.framerate;
+					vid_video_format = video_info.format_name;
+					vid_duration = video_info.duration;
+					vid_thread_mode = video_info.thread_type;
+					vid_sar_width = video_info.sar_width;
+					vid_sar_height = video_info.sar_height;
 					
 					//use sar 1:2 if 800x240 and no sar value is set
 					if(vid_width == 800 && vid_height == 240 && vid_sar_width == 1 && vid_sar_height == 1)
@@ -337,7 +353,7 @@ void Vid_decode_thread(void* arg)
 					{
 						for(int s = 0; s < DEF_VID_BUFFERS; s++)
 						{
-							result = Draw_c2d_image_init(&vid_image[0][s][k], 1024, 1024, GPU_RGB565);
+							result = Draw_texture_init(&vid_image[0][s][k], 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 							if(result.code != 0)
 							{
 								k = num_of_video_tracks;
@@ -349,7 +365,7 @@ void Vid_decode_thread(void* arg)
 
 							if(vid_codec_width > 1024)
 							{
-								result = Draw_c2d_image_init(&vid_image[1][s][k], 1024, 1024, GPU_RGB565);
+								result = Draw_texture_init(&vid_image[1][s][k], 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 								{
 									k = num_of_video_tracks;
@@ -362,7 +378,7 @@ void Vid_decode_thread(void* arg)
 
 							if(vid_codec_height > 1024)
 							{
-								result = Draw_c2d_image_init(&vid_image[2][s][k], 1024, 1024, GPU_RGB565);
+								result = Draw_texture_init(&vid_image[2][s][k], 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 								{
 									k = num_of_video_tracks;
@@ -375,7 +391,7 @@ void Vid_decode_thread(void* arg)
 
 							if(vid_codec_width > 1024 && vid_codec_height > 1024)
 							{
-								result = Draw_c2d_image_init(&vid_image[3][s][k], 1024, 1024, GPU_RGB565);
+								result = Draw_texture_init(&vid_image[3][s][k], 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 								{
 									k = num_of_video_tracks;
@@ -403,7 +419,7 @@ void Vid_decode_thread(void* arg)
 								for(int s = 0; s < DEF_VID_BUFFERS; s++)
 								{
 									if(vid_image_enabled[i][s][k])
-										Draw_c2d_image_set_filter(&vid_image[i][s][k], vid_linear_filter);
+										Draw_set_texture_filter(&vid_image[i][s][k], vid_linear_filter);
 								}
 							}
 						}
@@ -455,13 +471,20 @@ void Vid_decode_thread(void* arg)
 
 			if(vid_remember_video_pos_mode && vid_play_request)
 			{
-				result = Util_file_load_from_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), &read_size);
-				if(result.code == 0 && saved_pos > 0 && saved_pos < vid_duration)
+				result = Util_file_load_from_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", &saved_data, sizeof(double), &read_size);
+				if(result.code == 0)
 				{
-					Util_log_save(DEF_VID_DECODE_THREAD_STR, "saved pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
-					vid_seek_pos = saved_pos;
-					vid_seek_request = true;
+					saved_pos = *(double*)saved_data;
+					if(saved_pos > 0 && saved_pos < vid_duration)
+					{
+						Util_log_save(DEF_VID_DECODE_THREAD_STR, "saved pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
+						vid_seek_pos = saved_pos;
+						vid_seek_request = true;
+					}
 				}
+				result.code = 0;
+				free(saved_data);
+				saved_data = NULL;
 			}
 
 			if(vid_play_request)
@@ -502,7 +525,7 @@ void Vid_decode_thread(void* arg)
 						else
 						{
 							for(int i = 0; i < vid_num_of_video_tracks; i++)
-								Util_video_decoder_set_raw_image_buffer_size(max_buffer, 0, i);
+								Util_video_decoder_set_raw_image_buffer_size(max_buffer, i, 0);
 						}
 					}
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "max raw buffer(per track) : " + std::to_string(max_buffer));
@@ -564,13 +587,13 @@ void Vid_decode_thread(void* arg)
 				if(!vid_select_audio_track_request && audio_track != vid_selected_audio_track)
 				{
 					audio_track = vid_selected_audio_track;
-					Util_speaker_exit(0);
-					Util_audio_decoder_get_info(&bitrate, &sample_rate, &ch, &vid_audio_format, &vid_duration, audio_track, &vid_audio_track_lang[audio_track], 0);
-					vid_duration *= 1000;
-					Util_speaker_init(0, ch, sample_rate);
+					Util_speaker_clear_buffer(0);
+					Util_audio_decoder_get_info(&audio_info, audio_track, 0);
+					vid_duration = audio_info.duration * 1000;
+					Util_speaker_set_audio_info(0, audio_info.ch, audio_info.sample_rate);
 				}
 
-				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == "video"))
+				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO))
 				{
 					//Util_log_save("", std::to_string(vid_current_pos) + " " +std::to_string(vid_seek_pos) + " " + std::to_string(wait_count));
 					if(wait_count <= 0)
@@ -584,8 +607,7 @@ void Vid_decode_thread(void* arg)
 
 				if(vid_seek_request)
 				{
-					//µs
-					result = Util_decoder_seek(vid_seek_pos * 1000, 1, 0);
+					result = Util_decoder_seek(vid_seek_pos, DEF_DECODER_SEEK_FLAG_BACKWARD, 0);
 					Util_decoder_clear_cache_packet(0);
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
 					Util_speaker_clear_buffer(0);
@@ -595,7 +617,7 @@ void Vid_decode_thread(void* arg)
 					else
 					{
 						for(int i = 0; i < num_of_video_tracks; i++)
-							Util_video_decoder_clear_raw_image(0, i);
+							Util_video_decoder_clear_raw_image(i, 0);
 					}
 					
 					if(result.code == 0)
@@ -625,7 +647,7 @@ void Vid_decode_thread(void* arg)
 					break;
 				}
 
-				if(type == "audio" && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
+				if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -643,7 +665,7 @@ void Vid_decode_thread(void* arg)
 							vid_too_big = false;
 							if(vid_volume != 100)
 							{
-								for(int i = 0; i < audio_size * ch; i += 2)
+								for(int i = 0; i < audio_size; i += 2)
 								{
  									if(*(s16*)(audio + i) * ((double)vid_volume / 100) > INT16_MAX)
 									{
@@ -662,7 +684,7 @@ void Vid_decode_thread(void* arg)
 							//Util_log_save("debug", "Util_speaker_add_buffer");
 							while(true)
 							{
-								result = Util_speaker_add_buffer(0, ch, audio, audio_size);
+								result = Util_speaker_add_buffer(0, audio_info.ch, audio, audio_size);
 								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_seek_request || vid_change_video_request)
 									break;
 								
@@ -678,9 +700,9 @@ void Vid_decode_thread(void* arg)
 					else
 						Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_ready_audio_packet()..." + result.string + result.error_description, result.code);
 				}
-				else if(type == "audio")
+				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO)
 					Util_decoder_skip_audio_packet(packet_index, 0);
-				else if(type == "video" && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)))
+				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)))
 				{
 					vid_packet_index = packet_index;
 					vid_key_frame = key_frame;
@@ -700,11 +722,10 @@ void Vid_decode_thread(void* arg)
 
 			if(num_of_audio_tracks > 0)
 			{
-				Util_audio_decoder_exit(0);
 				while(Util_speaker_is_playing(0) && vid_play_request && !vid_change_video_request)
 					usleep(10000);
 				
-				Util_speaker_exit(0);
+				Util_speaker_exit();
 			}
 
 			if(num_of_video_tracks > 0)
@@ -724,13 +745,6 @@ void Vid_decode_thread(void* arg)
 			vid_convert_request = false;
 			while(vid_convert_wait_request)
 				usleep(100000);
-			
-			if(num_of_video_tracks > 0)
-			{
-				Util_video_decoder_exit(0);
-				if(vid_hw_decoding_mode)
-					Util_mvd_video_decoder_exit(0);
-			}
 
 			Util_decoder_close_file(0);
 			if(vid_hw_color_conversion_mode)
@@ -744,7 +758,7 @@ void Vid_decode_thread(void* arg)
 					{
 						if(vid_image_enabled[i][s][k])
 						{
-							Draw_c2d_image_free(vid_image[i][s][k]);
+							Draw_texture_free(&vid_image[i][s][k]);
 							vid_image_enabled[i][s][k] = false;
 						}
 					}
@@ -1021,9 +1035,9 @@ void Vid_convert_thread(void* arg)
 
 						osTickCounterUpdate(&counter[0]);
 						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-							result = Util_converter_y2r_yuv420p_to_bgr565(yuv_video, &video, vid_codec_width, vid_codec_height, true);
+							result = Util_converter_y2r_yuv420p_to_rgb565le(yuv_video, &video, vid_codec_width, vid_codec_height, true);
 						else if(!vid_hw_decoding_mode)
-							result = Util_converter_yuv420p_to_bgr565_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
+							result = Util_converter_yuv420p_to_rgb565le_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
 						osTickCounterUpdate(&counter[0]);
 						vid_convert_time = osTickCounterRead(&counter[0]);
 
@@ -1038,27 +1052,27 @@ void Vid_convert_thread(void* arg)
 							//Util_file_save_to_file("unknown.bin", DEF_MAIN_DIR + "debug/", video, vid_codec_width * vid_codec_height * 2, true);
 
 							if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-								result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+								result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 							else
-								result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, GPU_RGB565);
+								result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 							if(result.code != 0)
 								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 
 							if(vid_codec_width > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, GPU_RGB565);
+								result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
 							if(vid_codec_height > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, GPU_RGB565);
+								result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
 							if(vid_codec_width > 1024 && vid_codec_height > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, GPU_RGB565);
+								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
@@ -1319,29 +1333,31 @@ void Vid_init(void)
 		}
 	}
 
-	cache = (u8*)malloc(0x1000);
-	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, cache, 0x1000, &read_size);
+	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, &cache, 0x1000, &read_size);
 	Util_log_save(DEF_VID_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 
-	result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2 and v1.3.3
-	Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-	if(result.code != 0)
+	if(result.code == 0)
 	{
-		result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
+		result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3 and v1.4.0
 		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-		out_data[9] = "0";
-		out_data[10] = "0";
-		out_data[11] = "1";
-	}
-	if(result.code != 0)
-	{
-		result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
-		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-		out_data[7] = "100";
-		out_data[8] = "10";
-		out_data[9] = "0";
-		out_data[10] = "0";
-		out_data[11] = "1";
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[9] = "0";
+			out_data[10] = "0";
+			out_data[11] = "1";
+		}
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[7] = "100";
+			out_data[8] = "10";
+			out_data[9] = "0";
+			out_data[10] = "0";
+			out_data[11] = "1";
+		}
 	}
 
 	if(result.code == 0)
@@ -1468,7 +1484,6 @@ void Vid_main(void)
 	std::string swkbd_input = "";
 	Hid_info key;
 	Util_hid_query_key_state(&key);
-	Util_hid_key_flag_reset();
 
 	if (var_night_mode)
 	{
@@ -2000,7 +2015,7 @@ void Vid_main(void)
 							for(int s = 0; s < DEF_VID_BUFFERS; s++)
 							{
 								if(vid_image_enabled[i][s][k])
-									Draw_c2d_image_set_filter(&vid_image[i][s][k], vid_linear_filter);
+									Draw_set_texture_filter(&vid_image[i][s][k], vid_linear_filter);
 							}
 						}
 					}
@@ -2037,10 +2052,11 @@ void Vid_main(void)
 				{
 					vid_pause_request = true;
 					Util_swkbd_init(SWKBD_TYPE_NUMPAD, SWKBD_NOTEMPTY, 1, 3, "", std::to_string(vid_volume));
-					Util_swkbd_launch(3, &swkbd_input);
+					Util_swkbd_launch(&swkbd_input);
 					vid_volume = atoi((char*)swkbd_input.c_str());
 					vid_pause_request = false;
 					var_need_reflesh = true;
+					Util_swkbd_exit();
 				}
 				else if(Util_hid_is_pressed(key, vid_seek_duration_button))
 				{
@@ -2051,12 +2067,13 @@ void Vid_main(void)
 				{
 					vid_pause_request = true;
 					Util_swkbd_init(SWKBD_TYPE_NUMPAD, SWKBD_NOTEMPTY, 1, 2, "", std::to_string(vid_seek_duration));
-					Util_swkbd_launch(2, &swkbd_input);
+					Util_swkbd_launch(&swkbd_input);
 					vid_seek_duration = atoi((char*)swkbd_input.c_str());
 					if(vid_seek_duration == 0)
 						vid_seek_duration = 1;
 					vid_pause_request = false;
 					var_need_reflesh = true;
+					Util_swkbd_exit();
 				}
 				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button))
 				{
@@ -2327,57 +2344,57 @@ void Vid_main(void)
 			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && !vid_disable_resize_move_mode)
 			{
 				if(key.p_c_down || key.p_d_down)
-					vid_y -= 1 * var_scroll_speed * key.count;
+					vid_y -= 1 * var_scroll_speed;
 				else if(key.h_c_down || key.h_d_down)
 				{
 					if(!vid_select_audio_track_request)
 					{
 						if(vid_cd_count > 600)
-							vid_y -= 10 * var_scroll_speed * key.count;
+							vid_y -= 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_y -= 7.5 * var_scroll_speed * key.count;
+							vid_y -= 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_y -= 5 * var_scroll_speed * key.count;
+							vid_y -= 5 * var_scroll_speed;
 					}
 				}
 
 				if(key.p_c_up || key.p_d_up)
-					vid_y += 1 * var_scroll_speed * key.count;
+					vid_y += 1 * var_scroll_speed;
 				else if(key.h_c_up || key.h_d_up)
 				{
 					if(!vid_select_audio_track_request)
 					{
 						if(vid_cd_count > 600)
-							vid_y += 10 * var_scroll_speed * key.count;
+							vid_y += 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_y += 7.5 * var_scroll_speed * key.count;
+							vid_y += 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_y += 5 * var_scroll_speed * key.count;
+							vid_y += 5 * var_scroll_speed;
 					}
 				}
 
 				if(key.p_c_right)
-					vid_x -= 1 * var_scroll_speed * key.count;
+					vid_x -= 1 * var_scroll_speed;
 				else if(key.h_c_right)
 				{
 					if(vid_cd_count > 600)
-						vid_x -= 10 * var_scroll_speed * key.count;
+						vid_x -= 10 * var_scroll_speed;
 					else if(vid_cd_count > 240)
-						vid_x -= 7.5 * var_scroll_speed * key.count;
+						vid_x -= 7.5 * var_scroll_speed;
 					else if(vid_cd_count > 5)
-						vid_x -= 5 * var_scroll_speed * key.count;
+						vid_x -= 5 * var_scroll_speed;
 				}
 
 				if(key.p_c_left)
-					vid_x += 1 * var_scroll_speed * key.count;
+					vid_x += 1 * var_scroll_speed;
 				else if(key.h_c_left)
 				{
 					if(vid_cd_count > 600)
-						vid_x += 10 * var_scroll_speed * key.count;
+						vid_x += 10 * var_scroll_speed;
 					else if(vid_cd_count > 240)
-						vid_x += 7.5 * var_scroll_speed * key.count;
+						vid_x += 7.5 * var_scroll_speed;
 					else if(vid_cd_count > 5)
-						vid_x += 5 * var_scroll_speed * key.count;
+						vid_x += 5 * var_scroll_speed;
 				}
 
 				if(vid_x > 400)
@@ -2399,27 +2416,27 @@ void Vid_main(void)
 			if((key.p_l || key.p_r || key.h_l || key.h_r) && !vid_disable_resize_move_mode)
 			{
 				if(key.p_l)
-					vid_zoom -= 0.005 * var_scroll_speed * key.count;
+					vid_zoom -= 0.005 * var_scroll_speed;
 				else if(key.h_l)
 				{
 					if(vid_lr_count > 360)
-						vid_zoom -= 0.05 * var_scroll_speed * key.count;
+						vid_zoom -= 0.05 * var_scroll_speed;
 					else if(vid_lr_count > 120)
-						vid_zoom -= 0.01 * var_scroll_speed * key.count;
+						vid_zoom -= 0.01 * var_scroll_speed;
 					else if(vid_lr_count > 5)
-						vid_zoom -= 0.005 * var_scroll_speed * key.count;
+						vid_zoom -= 0.005 * var_scroll_speed;
 				}
 
 				if(key.p_r)
-					vid_zoom += 0.005 * var_scroll_speed * key.count;
+					vid_zoom += 0.005 * var_scroll_speed;
 				else if(key.h_r)
 				{
 					if(vid_lr_count > 360)
-						vid_zoom += 0.05 * var_scroll_speed * key.count;
+						vid_zoom += 0.05 * var_scroll_speed;
 					else if(vid_lr_count > 120)
-						vid_zoom += 0.01 * var_scroll_speed * key.count;
+						vid_zoom += 0.01 * var_scroll_speed;
 					else if(vid_lr_count > 5)
-						vid_zoom += 0.005 * var_scroll_speed * key.count;
+						vid_zoom += 0.005 * var_scroll_speed;
 				}
 
 				if(vid_zoom < 0.05)

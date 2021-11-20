@@ -87,14 +87,15 @@ void Menu_check_core_thread(void* arg)
 
 void Menu_init(void)
 {
-	u8 data = -1;
+	u8* data = NULL;
 	u8 region = 0;
 	u8 model = 0;
 	u32 read_size = 0;
 	Thread core_2, core_3;
 	Result_with_string result;
 
-	Util_log_init();
+	result = Util_log_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_log_init()...", result.code);
 	Util_log_save(DEF_MENU_INIT_STR, "Initializing..." + DEF_CURRENT_APP_VER);
 
 	osSetSpeedupEnable(true);
@@ -106,23 +107,24 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "aptInit()...", aptInit());
 	Util_log_save(DEF_MENU_INIT_STR, "mcuHwcInit()...", mcuHwcInit());
 	Util_log_save(DEF_MENU_INIT_STR, "ptmuInit()...", ptmuInit());
-	Util_log_save(DEF_MENU_INIT_STR, "httpcInit()...", httpcInit(DEF_HTTP_POST_BUFFER_SIZE));
 	Util_log_save(DEF_MENU_INIT_STR, "romfsInit()...", romfsInit());
 	Util_log_save(DEF_MENU_INIT_STR, "cfguInit()...", cfguInit());
 	Util_log_save(DEF_MENU_INIT_STR, "amInit()...", amInit());
-	Util_log_save(DEF_MENU_INIT_STR, "ndspInit()...", ndspInit());//0xd880A7FA
 	Util_log_save(DEF_MENU_INIT_STR, "APT_SetAppCpuTimeLimit()...", APT_SetAppCpuTimeLimit(30));
 
-	Util_init();
+	result = Util_safe_linear_alloc_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_safe_linear_alloc_init()...", result.code);
 
 	//create directory
 	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
 	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
 
-	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && data <= 5)
+	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
 	{
 		var_fake_model = true;
-		var_model = data;
+		var_model = *data;
+		free(data);
+		data = NULL;
 	}
 
 	if(CFGU_SecureInfoGetRegion(&region) == 0)
@@ -153,6 +155,7 @@ void Menu_init(void)
 		osSetSpeedupEnable(false);
 
 	Sem_init();
+
 	Sem_suspend();
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode, var_3d_mode).code);
 	Draw_frame_ready();
@@ -161,10 +164,21 @@ void Menu_init(void)
 	Draw_apply_draw();
 	Sem_draw_init();
 
-	Util_hid_init();
-	Util_expl_init();
-	Exfont_init();
-	Util_err_init();
+	result = Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()...", result.code);
+
+	result = Util_hid_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()...", result.code);
+
+	result = Util_expl_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
+
+	result = Exfont_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
+
+	result = Util_err_init();
+	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
+
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
 
@@ -332,18 +346,17 @@ void Menu_exit(void)
 	threadFree(menu_send_app_info_thread);
 	threadFree(menu_update_thread);
 	Util_log_exit();
+	Util_httpc_exit();
 
-	Util_exit();
+	Util_safe_linear_alloc_exit();
 	fsExit();
 	acExit();
 	aptExit();
 	mcuHwcExit();
 	ptmuExit();
-	httpcExit();
 	romfsExit();
 	cfguExit();
 	amExit();
-	ndspExit();
 	Draw_exit();
 
 	Util_log_save(DEF_MENU_EXIT_STR, "Exited.");
@@ -361,7 +374,6 @@ void Menu_main(void)
 	{
 		Hid_info key;		
 		Util_hid_query_key_state(&key);
-		Util_hid_key_flag_reset();
 
 		if(var_need_reflesh || !var_eco_mode)
 		{
@@ -904,11 +916,9 @@ void Menu_send_app_info_thread(void* arg)
 	OS_VersionBin os_ver;
 	bool is_new3ds = false;
 	u8* dl_data = NULL;
-	u32 status_code = 0;
 	u32 downloaded_size = 0;
 	char system_ver_char[0x50] = " ";
 	std::string new3ds;
-	dl_data = (u8*)malloc(0x10000);
 
 	osGetSystemVersionDataString(&os_ver, &os_ver, system_ver_char, 0x50);
 	std::string system_ver = system_ver_char;
@@ -917,7 +927,7 @@ void Menu_send_app_info_thread(void* arg)
 	new3ds = is_new3ds ? "yes" : "no";
 
 	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
-	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (char*)send_data.c_str(), send_data.length(), dl_data, 0x10000, &downloaded_size, &status_code, true, 5);
+	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
 	free(dl_data);
 	dl_data = NULL;
 
@@ -932,14 +942,15 @@ void Menu_check_connectivity_thread(void* arg)
 	u32 status_code = 0;
 	u32 dl_size = 0;
 	int count = 100;
-	http_buffer = (u8*)malloc(0x1000);
 
 	while (menu_thread_run)
 	{
 		if (count >= 100)
 		{
 			count = 0;
-			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+			free(http_buffer);
+			http_buffer = NULL;
 
 			if (status_code == 204)
 				var_connect_test_succes = true;
@@ -952,7 +963,6 @@ void Menu_check_connectivity_thread(void* arg)
 		count++;
 	}
 
-	free(http_buffer);
 	Util_log_save(DEF_MENU_CHECK_INTERNET_STR, "Thread exit.");
 	threadExit(0);
 }
@@ -1036,9 +1046,8 @@ void Menu_update_thread(void* arg)
 	size_t pos[2] = { 0, 0, };
 	std::string data = "";
 	Result_with_string result;
-	http_buffer = (u8*)malloc(0x1000);
 
-	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, http_buffer, 0x1000, &dl_size, &status_code, true, 3);
+	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, &status_code, true, 3);
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_httpc_dl_data()..." + result.string + result.error_description, result.code);
 	if(result.code == 0)
 	{
@@ -1054,6 +1063,7 @@ void Menu_update_thread(void* arg)
 	}
 
 	free(http_buffer);
+	http_buffer = NULL;
 
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");
 	threadExit(0);

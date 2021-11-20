@@ -1,7 +1,7 @@
 .data      
 .align 4
-.global yuv420p_to_bgr888_asm
-.type yuv420p_to_bgr888_asm, "function"
+.global yuv420p_to_rgb565le_asm
+.type yuv420p_to_rgb565le_asm, "function"
 
 //#define C(Y) ( (Y) - 16  )
 //#define D(U) ( (U) - 128 )
@@ -18,7 +18,7 @@
     r3 height
 */
 .text
-yuv420p_to_bgr888_asm:
+yuv420p_to_rgb565le_asm:
     push { r4-r12 }
 
     /*
@@ -132,7 +132,7 @@ yuv420p_to_bgr888_asm:
         r2 -> height
         r3 -> loop counter x
         r4 -> loop counter y
-        r5 -> b value -> free
+        r5 -> bgr value
         r6 -> g value -> free
         r7 -> cache -> free
         r8 -> result for 100 * D(U) - 208 * E(V) + 128
@@ -148,38 +148,37 @@ yuv420p_to_bgr888_asm:
         mla r9, r8, r11, r5
         ldr r7, =100
         ldr r8, =208
-        //r5 = (r10 + r9) >> 8
+        //r5 = (r10 + r9) >> 11
         add r5, r10, r9
 
         //r6 = 100 * D(U)
         mul r6, r7, r11
 
-        asrs r5, r5, #8
+        asrs r5, r5, #11
         //clamp
         movmi r5, #0
 
         //r6 = 208 * E(V) + r6
         mla r6, r8, r12, r6
 
-        cmp r5, #255
-        movgt r5, #255
+        cmp r5, #31
+        movgt r5, #31
 
         //r8 = r6 - 128
         sub r8, r6, #128
-        //r6 = (r10 - r8) >> 8
+        //r6 = (r10 - r8) >> 10
         sub r6, r10, r8
         add r11, r0, r1, lsl #1
-        asrs r6, r6, #8
-        add r11, r11, r1
+        asrs r6, r6, #10
 
         //clamp
         movmi r6, #0
-        cmp r6, #255
-        movgt r6, #255
+        cmp r6, #63
+        movgt r6, #63
         
-        //store
-        strb r5, [r11], #1
-        strb r6, [r11], #1
+        lsl r6, r6, #5
+        add r5, r5, r6
+
 
     convert_yub_r:
         /*
@@ -188,7 +187,8 @@ yuv420p_to_bgr888_asm:
         r2 -> height
         r3 -> loop counter x
         r4 -> loop counter y
-        r5-r6 -> cache -> free
+        r5 -> bgr value -> free
+        r6 -> cache -> free
         r7 -> result for 409 * E(V) + 128
         r8 -> result for 100 * D(U) - 208 * E(V) + 128
         r9 -> result for 516 * D(U) + 128
@@ -199,20 +199,23 @@ yuv420p_to_bgr888_asm:
         */
         //r6 = 409 * E(V) + 128
         ldr r6, =409
-        ldr r5, =128
-        mla r7, r6, r12, r5
-        //r6 = (r10 + r7) >> 8
+        mul r7, r6, r12
+        ldr r6, =128
+        add r7, r7, r6
+        //r6 = (r10 + r7) >> 11
         add r6, r10, r7
-        asrs r5, r6, #8
+        asrs r6, r6, #11
 
         //clamp
-        movmi r5, #0
-        cmp r5, #255
-        movgt r5, #255
+        movmi r6, #0
+        cmp r6, #31
+        movgt r6, #31
+
+        lsl r6, r6, #11
+        add r5, r5, r6
 
         //store
-        strb r5, [r11], #1
-
+        strh r5, [r11], #2
 
     load_y_1:
         /*
@@ -267,27 +270,33 @@ yuv420p_to_bgr888_asm:
         */
         add r5, r12, r9
 
-        asrs r5, r5, #8//clamp
+        asrs r5, r5, #11//clamp
         movmi r5, #0
-        cmp r5, #255
-        movgt r5, #255
-        strb r5, [r0], #1//store
+        cmp r5, #31
+        movgt r5, #31
+
 
         sub r6, r12, r8
 
-        asrs r6, r6, #8//clamp
+        asrs r6, r6, #10//clamp
         movmi r6, #0
-        cmp r6, #255
-        movgt r6, #255
-        strb r6, [r0], #1//store
+        cmp r6, #63
+        movgt r6, #63
+
+        lsl r6, r6, #5
+        add r5, r5, r6
+
 
         add r10, r12, r7
 
-        asrs r10, r10, #8//clamp
+        asrs r10, r10, #11//clamp
         movmi r10, #0
-        cmp r10, #255
-        movgt r10, #255
-        strb r10, [r0], #1//store
+        cmp r10, #31
+        movgt r10, #31
+        lsl r10, r10, #11
+
+        add r5, r5, r10
+        strh r5, [r0], #2//store
 
 
     load_y_2:
@@ -344,27 +353,33 @@ yuv420p_to_bgr888_asm:
         */
         add r5, r12, r9
 
-        asrs r5, r5, #8//clamp
+        asrs r5, r5, #11//clamp
         movmi r5, #0
-        cmp r5, #255
-        movgt r5, #255
-        strb r5, [r11], #1//store
+        cmp r5, #31
+        movgt r5, #31
+
 
         sub r6, r12, r8
 
-        asrs r6, r6, #8//clamp
+        asrs r6, r6, #10//clamp
         movmi r6, #0
-        cmp r6, #255
-        movgt r6, #255
-        strb r6, [r11], #1//store
+        cmp r6, #63
+        movgt r6, #63
+
+        lsl r6, r6, #5
+        add r5, r5, r6
+
 
         add r10, r12, r7
 
-        asrs r10, r10, #8//clamp
+        asrs r10, r10, #11//clamp
         movmi r10, #0
-        cmp r10, #255
-        movgt r10, #255
-        strb r10, [r11], #1//store
+        cmp r10, #31
+        movgt r10, #31
+        lsl r10, r10, #11
+
+        add r5, r5, r10
+        strh r5, [r11], #2//store
 
 
     load_y_3:
@@ -420,27 +435,33 @@ yuv420p_to_bgr888_asm:
         */
         add r5, r12, r9
 
-        asrs r5, r5, #8//clamp
+        asrs r5, r5, #11//clamp
         movmi r5, #0
-        cmp r5, #255
-        movgt r5, #255
-        strb r5, [r0], #1//store
+        cmp r5, #31
+        movgt r5, #31
+
 
         sub r6, r12, r8
 
-        asrs r6, r6, #8//clamp
+        asrs r6, r6, #10//clamp
         movmi r6, #0
-        cmp r6, #255
-        movgt r6, #255
-        strb r6, [r0], #1//store
+        cmp r6, #63
+        movgt r6, #63
+
+        lsl r6, r6, #5
+        add r5, r5, r6
+
 
         add r10, r12, r7
 
-        asrs r10, r10, #8//clamp
+        asrs r10, r10, #11//clamp
         movmi r10, #0
-        cmp r10, #255
-        movgt r10, #255
-        strb r10, [r0], #1//store
+        cmp r10, #31
+        movgt r10, #31
+        lsl r10, r10, #11
+
+        add r5, r5, r10
+        strh r5, [r0], #2//store
 
 
     cmp r3, r1
@@ -450,12 +471,11 @@ yuv420p_to_bgr888_asm:
     cmp r4, r2
 
     //y pointer += width
-    //bgr pointer += width * 3
+    //bgr pointer += width * 2
     pop { r10 }
     add r10, r10, r1
     add r0, r0, r1, lsl #1
     push { r10 }
-    add r0, r0, r1
     blt conversion_loop
 
     pop { r5-r7 }

@@ -2517,7 +2517,7 @@ enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
  * all the decoded data. Flushing is done by calling this function with packets
  * with avpkt->data set to NULL and avpkt->size set to 0 until it stops
  * returning subtitles. It is safe to flush even those decoders that are not
- * marked with AV_CODEC_CAP_DELAY, then no subtitles will be returned.
+ * marked with AV_CODEC_CAP_DELAY, then no subtitles.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
  * before packets may be fed to the decoder.

@@ -822,7 +822,7 @@ typedef struct AVIndexEntry {
 /**
  * The stream is stored in the file as an attached picture/"cover art" (e.g.
  * APIC frame in ID3v2). The first (usually only) packet associated with it
- * will be returned among the first few packets read from the file unless
+ * among the first few packets read from the file unless
  * seeking takes place. It can also be accessed at any time in
  * AVStream.attached_pic.
  */

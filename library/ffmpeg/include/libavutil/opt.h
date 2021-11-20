@@ -208,7 +208,7 @@
  * option type.
  *
  * Similarly av_opt_get() will read any option type and convert it to a string
- * which will be returned. Do not forget that the string is allocated, so you
+ * which. Do not forget that the string is allocated, so you
  * have to free it with av_free().
  *
  * In some cases it may be more convenient to put all options into an

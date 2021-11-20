@@ -106,7 +106,7 @@ void *av_tree_find(const struct AVTreeNode *root, void *key,
  * @param cmp compare function used to compare elements in the tree, API identical
  *            to that of Standard C's qsort
  * @return If no insertion happened, the found element; if an insertion or
- *         removal happened, then either key or NULL will be returned.
+ *         removal happened, then either key or NULL.
  *         Which one it is depends on the tree state and the implementation. You
  *         should make no assumptions that it's one or the other in the code.
  */

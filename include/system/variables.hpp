@@ -20,6 +20,7 @@ extern u8 var_wifi_state;
 extern u8 var_wifi_signal;
 extern u8 var_battery_charge;
 extern u8 var_model;
+extern u64 var_previous_ts;
 extern int var_hours;
 extern int var_minutes;
 extern int var_seconds;

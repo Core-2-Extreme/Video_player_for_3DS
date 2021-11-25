@@ -6,7 +6,9 @@ bool sapp3_already_init = false;
 bool sapp3_thread_suspend = true;
 std::string sapp3_msg[DEF_SAPP3_NUM_OF_MSG];
 std::string sapp3_status = "";
-Thread sapp3_init_thread, sapp3_exit_thread, sapp3_worker_thread;
+Thread sapp3_init_thread, sapp3_exit_thread, sapp3_worker_thread, sapp3_hid_thread;
+
+void Sapp3_suspend(void);
 
 bool Sapp3_query_init_flag(void)
 {
@@ -39,6 +41,50 @@ void Sapp3_worker_thread(void* arg)
 	threadExit(0);
 }
 
+void Sapp3_hid_thread(void* arg)
+{
+	Util_log_save(DEF_SAPP3_HID_THREAD_STR, "Thread started.");
+	Hid_info key;
+
+	while (sapp3_thread_run)
+	{
+		Util_hid_query_key_state(&key);
+		if (sapp3_main_run && var_previous_ts != key.ts)
+		{
+			if(Util_err_query_error_show_flag())
+				Util_err_main(key);
+			else
+			{
+				if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+				{
+					Draw_get_bot_ui_button()->selected = true;
+					var_need_reflesh = true;
+				}
+				else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+					Sapp3_suspend();
+			}
+
+			if(!key.p_touch && !key.h_touch)
+			{
+				if(Draw_get_bot_ui_button()->selected)
+					var_need_reflesh = true;
+
+				Draw_get_bot_ui_button()->selected = false;
+			}
+
+			if(Util_log_query_log_show_flag())
+				Util_log_main(key);
+
+			var_previous_ts = key.ts;
+		}
+		else
+			usleep(12000);
+	}
+
+	Util_log_save(DEF_SAPP3_HID_THREAD_STR, "Thread exit.");
+	threadExit(0);
+}
+
 void Sapp3_init_thread(void* arg)
 {
 	Util_log_save(DEF_SAPP3_INIT_STR, "Thread started.");
@@ -49,6 +95,7 @@ void Sapp3_init_thread(void* arg)
 
 	sapp3_thread_run = true;
 	sapp3_worker_thread = threadCreate(Sapp3_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	sapp3_hid_thread = threadCreate(Sapp3_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 
 	sapp3_already_init = true;
 
@@ -73,11 +120,17 @@ void Sapp3_exit_thread(void* arg)
 
 	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_worker_thread, DEF_THREAD_WAIT_TIME));
 
+	sapp3_status += ".";
+	var_need_reflesh = true;
+
+	Util_log_save(DEF_SAPP3_EXIT_STR, "threadJoin()...", threadJoin(sapp3_hid_thread, DEF_THREAD_WAIT_TIME));
+
 	sapp3_status = "Cleaning up...";
 	var_need_reflesh = true;
 
 	threadFree(sapp3_init_thread);
 	threadFree(sapp3_worker_thread);
+	threadFree(sapp3_hid_thread);
 
 	sapp3_already_init = false;
 
@@ -199,8 +252,6 @@ void Sapp3_main(void)
 {
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
-	Hid_info key;
-	Util_hid_query_key_state(&key);
 
 	if (var_night_mode)
 	{
@@ -250,15 +301,4 @@ void Sapp3_main(void)
 	}
 	else
 		gspWaitForVBlank();
-
-	if(Util_err_query_error_show_flag())
-		Util_err_main(key);
-	else
-	{
-		if (key.p_start || (key.p_touch && key.touch_x >= 110 && key.touch_x <= 230 && key.touch_y >= 220 && key.touch_y <= 240))
-			Sapp3_suspend();
-	}
-
-	if(Util_log_query_log_show_flag())
-		Util_log_main(key);
 }

@@ -20,6 +20,7 @@ u8 var_wifi_state = 0;
 u8 var_wifi_signal = 0;
 u8 var_battery_charge = 0;
 u8 var_model = 0;
+u64 var_previous_ts = -1;
 int var_hours = 0;
 int var_minutes = 0;
 int var_seconds = 0;

@@ -7,8 +7,9 @@
 #define DEF_MENU_EXIT_STR (std::string)"Menu/Exit"
 #define DEF_MENU_WORKER_THREAD_STR (std::string)"Menu/Worker thread"
 #define DEF_MENU_UPDATE_THREAD_STR (std::string)"Menu/Update thread"
-#define DEF_MENU_SEND_APP_INFO_STR (std::string)"Menu/Send app info thread"
-#define DEF_MENU_CHECK_INTERNET_STR (std::string)"Menu/Check internet thread"
+#define DEF_MENU_SEND_APP_INFO_THREAD_STR (std::string)"Menu/Send app info thread"
+#define DEF_MENU_CHECK_INTERNET_THREAD_STR (std::string)"Menu/Check internet thread"
+#define DEF_MENU_HID_THREAD_STR (std::string)"Menu/Hid thread"
 
 #define DEF_MENU_EXIST_MSG 0
 #define DEF_MENU_CONFIRM_MSG 1
@@ -28,6 +29,7 @@
 #define DEF_SEM_UPDATE_THREAD_STR (std::string)"Sem/Update thread"
 #define DEF_SEM_ENCODE_THREAD_STR (std::string)"Sem/Encode thread"
 #define DEF_SEM_RECORD_THREAD_STR (std::string)"Sem/Record thread"
+#define DEF_SEM_HID_THREAD_STR (std::string)"Sem/Hid thread"
 
 #define DEF_SEM_MENU_TOP -1
 #define DEF_SEM_MENU_UPDATE 0

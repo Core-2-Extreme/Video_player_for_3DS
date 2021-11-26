@@ -6,7 +6,7 @@ bool sapp1_already_init = false;
 bool sapp1_thread_suspend = true;
 std::string sapp1_msg[DEF_SAPP1_NUM_OF_MSG];
 std::string sapp1_status = "";
-Thread sapp1_init_thread, sapp1_exit_thread, sapp1_worker_thread, sapp1_hid_thread;
+Thread sapp1_init_thread, sapp1_exit_thread, sapp1_worker_thread;
 
 void Sapp1_suspend(void);
 
@@ -41,48 +41,31 @@ void Sapp1_worker_thread(void* arg)
 	threadExit(0);
 }
 
-void Sapp1_hid_thread(void* arg)
+void Sapp1_hid(Hid_info key)
 {
-	Util_log_save(DEF_SAPP1_HID_THREAD_STR, "Thread started.");
-	Hid_info key;
-
-	while (sapp1_thread_run)
+	if(Util_err_query_error_show_flag())
+		Util_err_main(key);
+	else
 	{
-		Util_hid_query_key_state(&key);
-		if (sapp1_main_run && var_previous_ts != key.ts)
+		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 		{
-			if(Util_err_query_error_show_flag())
-				Util_err_main(key);
-			else
-			{
-				if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
-				{
-					Draw_get_bot_ui_button()->selected = true;
-					var_need_reflesh = true;
-				}
-				else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
-					Sapp1_suspend();
-			}
-
-			if(!key.p_touch && !key.h_touch)
-			{
-				if(Draw_get_bot_ui_button()->selected)
-					var_need_reflesh = true;
-
-				Draw_get_bot_ui_button()->selected = false;
-			}
-
-			if(Util_log_query_log_show_flag())
-				Util_log_main(key);
-
-			var_previous_ts = key.ts;
+			Draw_get_bot_ui_button()->selected = true;
+			var_need_reflesh = true;
 		}
-		else
-			usleep(12000);
+		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+			Sapp1_suspend();
 	}
 
-	Util_log_save(DEF_SAPP1_HID_THREAD_STR, "Thread exit.");
-	threadExit(0);
+	if(!key.p_touch && !key.h_touch)
+	{
+		if(Draw_get_bot_ui_button()->selected)
+			var_need_reflesh = true;
+
+		Draw_get_bot_ui_button()->selected = false;
+	}
+
+	if(Util_log_query_log_show_flag())
+		Util_log_main(key);
 }
 
 void Sapp1_init_thread(void* arg)
@@ -95,7 +78,6 @@ void Sapp1_init_thread(void* arg)
 
 	sapp1_thread_run = true;
 	sapp1_worker_thread = threadCreate(Sapp1_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-	sapp1_hid_thread = threadCreate(Sapp1_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 
 	sapp1_already_init = true;
 
@@ -120,17 +102,11 @@ void Sapp1_exit_thread(void* arg)
 
 	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_worker_thread, DEF_THREAD_WAIT_TIME));
 
-	sapp1_status += ".";
-	var_need_reflesh = true;
-
-	Util_log_save(DEF_SAPP1_EXIT_STR, "threadJoin()...", threadJoin(sapp1_hid_thread, DEF_THREAD_WAIT_TIME));
-
 	sapp1_status = "Cleaning up...";
 	var_need_reflesh = true;
 
 	threadFree(sapp1_init_thread);
 	threadFree(sapp1_worker_thread);
-	threadFree(sapp1_hid_thread);
 
 	sapp1_already_init = false;
 

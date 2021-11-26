@@ -17,3 +17,5 @@ void Sem_draw_init(void);
 void Sem_exit(void);
 
 void Sem_main(void);
+
+void Sem_hid(Hid_info key);

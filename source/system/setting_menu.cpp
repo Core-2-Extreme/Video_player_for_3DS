@@ -50,6 +50,7 @@ bool sem_select_ver_request = false;
 bool sem_change_brightness_request = false;
 bool sem_dl_file_request = false;
 bool sem_scroll_mode = false;
+bool sem_draw_reinit_request = false;
 u8 sem_fake_model_num = 255;
 u8* sem_yuv420p = NULL;
 u32 sem_dled_size = 0;
@@ -68,7 +69,7 @@ double sem_touch_x_move_left = 0.0;
 double sem_touch_y_move_left = 0.0;
 std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
-Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread, sem_hid_thread;
+Thread sem_update_thread, sem_worker_thread, sem_record_thread, sem_encode_thread;
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_check_update_button, sem_english_button, sem_japanese_button,
 sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_night_mode_on_button,
 sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
@@ -80,7 +81,6 @@ sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_but
 sem_close_updater_button, sem_3dsx_button, sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, 
 sem_close_app_button, sem_use_fake_model_button;
 
-void Sem_hid_thread(void* arg);
 void Sem_encode_thread(void* arg);
 void Sem_record_thread(void* arg);
 void Sem_worker_thread(void* arg);
@@ -177,7 +177,6 @@ void Sem_init(void)
 	sem_update_thread = threadCreate(Sem_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_worker_thread = threadCreate(Sem_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 	sem_record_thread = threadCreate(Sem_record_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-	sem_hid_thread = threadCreate(Sem_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 		sem_encode_thread = threadCreate(Sem_encode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 2, false);
 	else
@@ -743,734 +742,726 @@ void Sem_main(void)
 	}
 	else
 		gspWaitForVBlank();
+
+	if(sem_draw_reinit_request)
+	{
+		Draw_reinit(var_high_resolution_mode, var_3d_mode);
+		sem_draw_reinit_request = false;
+		var_need_reflesh = true;
+	}
 }
 
-void Sem_hid_thread(void* arg)
+void Sem_hid(Hid_info key)
 {
-	Util_log_save(DEF_SEM_HID_THREAD_STR, "Thread started.");
 	int menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
 	Result_with_string result;
-	Hid_info key;
 
-	while (sem_thread_run)
+	if (Util_err_query_error_show_flag())
+		Util_err_main(key);
+	else
 	{
-		Util_hid_query_key_state(&key);
-		if (sem_main_run && var_previous_ts != key.ts)
+		if(!sem_draw_reinit_request && Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 		{
-			if (Util_err_query_error_show_flag())
-				Util_err_main(key);
-			else
+			Draw_get_bot_ui_button()->selected = true;
+			var_need_reflesh = true;
+		}
+		else if (key.p_start || (!sem_draw_reinit_request &&  Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+			Sem_suspend();
+		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
+		{
+			for(int i = 0; i < 9; i++)
 			{
-				if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+				if(Util_hid_is_pressed(key, sem_menu_button[menu_button_list[i]]))
 				{
-					Draw_get_bot_ui_button()->selected = true;
+					sem_menu_button[menu_button_list[i]].selected = true;
 					var_need_reflesh = true;
 				}
-				else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
-					Sem_suspend();
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
+				else if(Util_hid_is_released(key, sem_menu_button[menu_button_list[i]]) && sem_menu_button[menu_button_list[i]].selected)
 				{
-					for(int i = 0; i < 9; i++)
-					{
-						if(Util_hid_is_pressed(key, sem_menu_button[menu_button_list[i]]))
-						{
-							sem_menu_button[menu_button_list[i]].selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_menu_button[menu_button_list[i]]) && sem_menu_button[menu_button_list[i]].selected)
-						{
-							sem_y_offset = 0.0;
-							sem_selected_menu_mode = menu_button_list[i];
-							if (menu_button_list[i] == DEF_SEM_MENU_FONT)
-								sem_y_max = -1000.0;
-
-							var_need_reflesh = true;
-						}
-					}
-				}
-				else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
-				{
-					if (Util_hid_is_pressed(key, sem_back_button) && !sem_show_patch_note_request && !sem_select_ver_request)
-					{
-						sem_back_button.selected = true;
-						var_need_reflesh = true;
-					}
-					else if (Util_hid_is_released(key, sem_back_button) && sem_back_button.selected && !sem_show_patch_note_request && !sem_select_ver_request)
-					{
-						sem_y_offset = 0.0;
-						sem_y_max = 0.0;
-						sem_selected_menu_mode = DEF_SEM_MENU_TOP;
-						var_need_reflesh = true;
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)//Check for updates
-					{
-						if (sem_show_patch_note_request)
-						{
-							if (Util_hid_is_pressed(key, sem_close_updater_button))
-							{
-								sem_close_updater_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if (key.p_b || (Util_hid_is_released(key, sem_close_updater_button) && sem_close_updater_button.selected))
-							{
-								sem_show_patch_note_request = false;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_pressed(key, sem_select_edtion_button))
-							{
-								sem_select_edtion_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if (key.p_a || (Util_hid_is_released(key, sem_select_edtion_button) && sem_select_edtion_button.selected))
-							{
-								sem_show_patch_note_request = false;
-								sem_select_ver_request = true;
-								var_need_reflesh = true;
-							}
-						}
-						else if (sem_select_ver_request && !sem_dl_file_request)
-						{
-							if (Util_hid_is_pressed(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1")
-							{
-								sem_3dsx_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button.selected)
-							{
-								sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_pressed(key, sem_cia_button) && sem_newest_ver_data[2] == "1")
-							{
-								sem_cia_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button.selected)
-							{
-								sem_selected_edition_num = DEF_SEM_EDTION_CIA;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_pressed(key, sem_back_to_patch_note_button))
-							{
-								sem_back_to_patch_note_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if (key.p_b || (Util_hid_is_released(key, sem_back_to_patch_note_button) && sem_back_to_patch_note_button.selected))
-							{
-								sem_show_patch_note_request = true;
-								sem_select_ver_request = false;
-								var_need_reflesh = true;
-							}
-							else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
-							{
-								sem_dl_install_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
-							{
-								sem_dl_file_request = true;
-								var_need_reflesh = true;
-							}
-							else if(Util_hid_is_pressed(key, sem_close_app_button) && sem_update_progress == 4)
-							{
-								sem_close_app_button.selected = true;
-								var_need_reflesh = true;
-							}
-							else if(Util_hid_is_released(key, sem_close_app_button) && sem_update_progress == 4 && sem_close_app_button.selected)
-								Menu_set_must_exit_flag(true);
-						}
-						else
-						{
-							if(Util_hid_is_pressed(key, sem_check_update_button))
-							{
-								sem_check_update_button.selected = true;
-								var_need_reflesh = true;
-							}
-							if(Util_hid_is_released(key, sem_check_update_button) && sem_check_update_button.selected)
-							{
-								sem_check_update_request = true;
-								sem_show_patch_note_request = true;
-								var_need_reflesh = true;
-							}
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES && !sem_reload_msg_request)//Language
-					{
-						if(Util_hid_is_pressed(key, sem_english_button))
-						{
-							sem_english_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
-						{
-							var_lang = "en";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_japanese_button))
-						{
-							sem_japanese_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
-						{
-							var_lang = "jp";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_hungarian_button))
-						{
-							sem_hungarian_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
-						{
-							var_lang = "hu";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_chinese_button))
-						{
-							sem_chinese_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
-						{
-							var_lang = "zh-cn";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_italian_button))
-						{
-							sem_italian_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
-						{
-							var_lang = "it";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_spanish_button))
-						{
-							sem_spanish_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_spanish_button) && sem_spanish_button.selected)
-						{
-							var_lang = "es";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_romanian_button))
-						{
-							sem_romanian_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
-						{
-							var_lang = "ro";
-							sem_reload_msg_request = true;
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)//LCD
-					{
-						if(Util_hid_is_pressed(key, sem_night_mode_on_button))
-						{
-							sem_night_mode_on_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_night_mode_on_button) && sem_night_mode_on_button.selected)
-						{
-							var_night_mode = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_night_mode_off_button))
-						{
-							sem_night_mode_off_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_night_mode_off_button) && sem_night_mode_off_button.selected)
-						{
-							var_night_mode = false;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_flash_mode_button))
-						{
-							sem_flash_mode_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_released(key, sem_flash_mode_button) && sem_flash_mode_button.selected)
-						{
-							var_flash_mode = !var_flash_mode;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_screen_brightness_bar) || Util_hid_is_pressed(key, sem_screen_brightness_slider))
-						{
-							var_lcd_brightness = (key.touch_x / 2) + 10;
-							var_top_lcd_brightness = var_lcd_brightness;
-							var_bottom_lcd_brightness = var_lcd_brightness;
-							sem_change_brightness_request = true;
-							sem_screen_brightness_bar.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar.selected)
-						{
-							var_lcd_brightness = (key.touch_x / 2) + 10;
-							var_top_lcd_brightness = var_lcd_brightness;
-							var_bottom_lcd_brightness = var_lcd_brightness;
-							sem_change_brightness_request = true;
-							var_need_reflesh = true;
-						}
-						else if(Util_hid_is_pressed(key, sem_screen_off_time_bar) || Util_hid_is_pressed(key, sem_screen_off_time_slider))
-						{
-							var_time_to_turn_off_lcd = key.touch_x;
-							sem_screen_off_time_bar.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_off_time_bar.selected)
-						{
-							var_time_to_turn_off_lcd = key.touch_x;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS)
-						{
-							sem_800px_mode_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button.selected)
-						{
-							var_high_resolution_mode = true;
-							var_3d_mode = false;
-							Draw_reinit(var_high_resolution_mode, var_3d_mode);
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
-						{
-							sem_3d_mode_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button.selected)
-						{
-							var_high_resolution_mode = false;
-							var_3d_mode = true;
-							Draw_reinit(var_high_resolution_mode, var_3d_mode);
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_400px_mode_button) && !sem_record_request)
-						{
-							sem_400px_mode_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_400px_mode_button) && !sem_record_request && sem_400px_mode_button.selected)
-						{
-							var_high_resolution_mode = false;
-							var_3d_mode = false;
-							Draw_reinit(var_high_resolution_mode, var_3d_mode);
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)//Scroll speed
-					{
-						if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_scroll_speed_bar.selected)
-						{
-							var_scroll_speed = (double)key.touch_x / 300;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_scroll_speed_slider) || Util_hid_is_pressed(key, sem_scroll_speed_bar))
-						{
-							var_scroll_speed = (double)key.touch_x / 300;
-							sem_scroll_speed_bar.selected = true;
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)//Font
-					{
-						if (Util_hid_is_pressed(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
-						{
-							sem_load_all_ex_font_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_load_all_ex_font_button.selected)
-						{
-							for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-								Exfont_set_external_font_request_state(i ,true);
-							
-							Exfont_request_load_external_font();
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
-						{
-							sem_unload_all_ex_font_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_unload_all_ex_font_button.selected)
-						{
-							for (int i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-								Exfont_set_external_font_request_state(i ,false);
-
-							Exfont_request_unload_external_font();
-							var_need_reflesh = true;
-						}
-						else
-						{
-							for (int i = 0; i < 4; i++)
-							{
-								if (Util_hid_is_pressed(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font())
-								{
-									sem_system_font_button[i].selected = true;
-									var_need_reflesh = true;
-									break;
-								}
-								else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button[i].selected)
-								{
-									if(i != var_system_region)
-									{
-										if (Exfont_is_loaded_system_font(i))
-										{
-											Exfont_set_system_font_request_state(i, false);
-											Exfont_request_unload_system_font();
-											var_need_reflesh = true;
-										}
-										else
-										{
-											Exfont_set_system_font_request_state(i, true);
-											Exfont_request_load_system_font();
-											var_need_reflesh = true;
-										}
-									}
-									break;
-								}
-							}
-
-							for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-							{
-								if (Util_hid_is_pressed(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
-								{
-									sem_ex_font_button[i].selected = true;
-									var_need_reflesh = true;
-									break;
-								}
-								else if (Util_hid_is_released(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_ex_font_button[i].selected)
-								{
-									if (Exfont_is_loaded_external_font(i))
-									{
-										if(i != 0)
-										{
-											Exfont_set_external_font_request_state(i ,false);
-											Exfont_request_unload_external_font();
-											var_need_reflesh = true;
-										}
-									}
-									else
-									{
-										Exfont_set_external_font_request_state(i ,true);
-										Exfont_request_load_external_font();
-										var_need_reflesh = true;
-									}
-									break;
-								}
-							}
-						}
-
-						sem_scroll_mode = true;
-						if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || Draw_get_bot_ui_button()->selected)
-							sem_scroll_mode = false;
-
-						for (int i = 0; i < 4; i++)
-						{
-							if(sem_system_font_button[i].selected)
-								sem_scroll_mode = false;
-						}
-
-						for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-						{
-							if(sem_ex_font_button[i].selected)
-								sem_scroll_mode = false;
-						}
-
-						//Scroll bar
-						if(sem_scroll_mode)
-						{
-							if (key.h_c_down || key.h_c_up)
-							{
-								sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
-								var_need_reflesh = true;
-							}
-
-							if (key.h_touch && sem_scroll_bar.selected)
-							{
-								sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
-								var_need_reflesh = true;
-							}
-
-							if (Util_hid_is_pressed(key, sem_scroll_bar))
-								sem_scroll_bar.selected = true;
-
-							if(sem_touch_y_move_left * var_scroll_speed != 0)
-							{
-								sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
-								var_need_reflesh = true;
-							}
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)//Wireless
-					{
-						if (Util_hid_is_pressed(key, sem_wifi_on_button))
-						{
-							sem_wifi_on_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
-						{
-							result = Util_cset_set_wifi_state(true);
-							if(result.code == 0 || result.code == 0xC8A06C0D)
-								var_wifi_enabled = true;
-
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_wifi_off_button))
-						{
-							sem_wifi_off_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
-						{
-							result = Util_cset_set_wifi_state(false);
-							if(result.code == 0 || result.code == 0xC8A06C0D)
-								var_wifi_enabled = false;
-
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)//Advanced settings
-					{
-						if (Util_hid_is_pressed(key, sem_allow_send_info_button))
-						{
-							sem_allow_send_info_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_allow_send_info_button) && sem_allow_send_info_button.selected)
-						{
-							var_allow_send_app_info = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_deny_send_info_button))
-						{
-							sem_deny_send_info_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_deny_send_info_button) && sem_deny_send_info_button.selected)
-						{
-							var_allow_send_app_info = false;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_debug_mode_on_button))
-						{
-							sem_debug_mode_on_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button.selected)
-						{
-							var_debug_mode = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_debug_mode_off_button))
-						{
-							sem_debug_mode_off_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button.selected)
-						{
-							var_debug_mode = false;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_use_fake_model_button))
-						{
-							sem_use_fake_model_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button.selected)
-						{
-							if((u8)(sem_fake_model_num + 1) > 5)
-								sem_fake_model_num = 255;
-							else
-								sem_fake_model_num++;
-							
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
-					{
-						if (Util_hid_is_pressed(key, sem_eco_mode_on_button))
-						{
-							sem_eco_mode_on_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_eco_mode_on_button) && sem_eco_mode_on_button.selected)
-						{
-							var_eco_mode = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_eco_mode_off_button))
-						{
-							sem_eco_mode_off_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_eco_mode_off_button) && sem_eco_mode_off_button.selected)
-						{
-							var_eco_mode = false;
-							var_need_reflesh = true;
-						}
-					}
-					else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)//Screen recording
-					{
-						if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && !var_high_resolution_mode)
-						{
-							sem_record_both_lcd_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button.selected)
-						{
-							if(sem_record_request)
-								sem_stop_record_request = true;
-							else
-							{
-								sem_selected_recording_mode = DEF_SEM_RECORD_BOTH;
-								sem_record_request = true;
-							}
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && !var_high_resolution_mode)
-						{
-							sem_record_top_lcd_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button.selected)
-						{
-							if(sem_record_request)
-								sem_stop_record_request = true;
-							else
-							{
-								sem_selected_recording_mode = DEF_SEM_RECORD_TOP;
-								sem_record_request = true;
-							}
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode)
-						{
-							sem_record_bottom_lcd_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button.selected)
-						{
-							if(sem_record_request)
-								sem_stop_record_request = true;
-							else
-							{
-								sem_selected_recording_mode = DEF_SEM_RECORD_BOTTOM;
-								sem_record_request = true;
-							}
-							var_need_reflesh = true;
-						}
-					}
-				}
-
-				if (sem_y_offset >= 0)
 					sem_y_offset = 0.0;
-				else if (sem_y_offset <= sem_y_max)
-					sem_y_offset = sem_y_max;
+					sem_selected_menu_mode = menu_button_list[i];
+					if (menu_button_list[i] == DEF_SEM_MENU_FONT)
+						sem_y_max = -1000.0;
 
-				if (key.p_touch || key.h_touch)
+					var_need_reflesh = true;
+				}
+			}
+		}
+		else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
+		{
+			if (Util_hid_is_pressed(key, sem_back_button) && !sem_show_patch_note_request && !sem_select_ver_request)
+			{
+				sem_back_button.selected = true;
+				var_need_reflesh = true;
+			}
+			else if (Util_hid_is_released(key, sem_back_button) && sem_back_button.selected && !sem_show_patch_note_request && !sem_select_ver_request)
+			{
+				sem_y_offset = 0.0;
+				sem_y_max = 0.0;
+				sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+				var_need_reflesh = true;
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)//Check for updates
+			{
+				if (sem_show_patch_note_request)
 				{
-					sem_touch_x_move_left = 0;
-					sem_touch_y_move_left = 0;
-
-					if(sem_scroll_mode)
+					if (Util_hid_is_pressed(key, sem_close_updater_button))
 					{
-						sem_touch_x_move_left = key.touch_x_move;
-						sem_touch_y_move_left = key.touch_y_move;
+						sem_close_updater_button.selected = true;
+						var_need_reflesh = true;
 					}
+					else if (key.p_b || (Util_hid_is_released(key, sem_close_updater_button) && sem_close_updater_button.selected))
+					{
+						sem_show_patch_note_request = false;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_pressed(key, sem_select_edtion_button))
+					{
+						sem_select_edtion_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if (key.p_a || (Util_hid_is_released(key, sem_select_edtion_button) && sem_select_edtion_button.selected))
+					{
+						sem_show_patch_note_request = false;
+						sem_select_ver_request = true;
+						var_need_reflesh = true;
+					}
+				}
+				else if (sem_select_ver_request && !sem_dl_file_request)
+				{
+					if (Util_hid_is_pressed(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1")
+					{
+						sem_3dsx_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button.selected)
+					{
+						sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_pressed(key, sem_cia_button) && sem_newest_ver_data[2] == "1")
+					{
+						sem_cia_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button.selected)
+					{
+						sem_selected_edition_num = DEF_SEM_EDTION_CIA;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_pressed(key, sem_back_to_patch_note_button))
+					{
+						sem_back_to_patch_note_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if (key.p_b || (Util_hid_is_released(key, sem_back_to_patch_note_button) && sem_back_to_patch_note_button.selected))
+					{
+						sem_show_patch_note_request = true;
+						sem_select_ver_request = false;
+						var_need_reflesh = true;
+					}
+					else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
+					{
+						sem_dl_install_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
+					{
+						sem_dl_file_request = true;
+						var_need_reflesh = true;
+					}
+					else if(Util_hid_is_pressed(key, sem_close_app_button) && sem_update_progress == 4)
+					{
+						sem_close_app_button.selected = true;
+						var_need_reflesh = true;
+					}
+					else if(Util_hid_is_released(key, sem_close_app_button) && sem_update_progress == 4 && sem_close_app_button.selected)
+						Menu_set_must_exit_flag(true);
 				}
 				else
 				{
-					sem_scroll_mode = false;
-
-					if(sem_back_button.selected || sem_scroll_bar.selected || sem_check_update_button.selected || sem_close_updater_button.selected 
-					|| sem_select_edtion_button.selected || sem_3dsx_button.selected || sem_cia_button.selected || sem_back_to_patch_note_button.selected
-					|| sem_dl_install_button.selected || sem_close_app_button.selected || sem_english_button.selected || sem_japanese_button.selected
-					|| sem_hungarian_button.selected || sem_chinese_button.selected || sem_italian_button.selected || sem_spanish_button.selected
-					|| sem_romanian_button.selected
-					|| sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected || sem_screen_brightness_bar.selected
-					|| sem_screen_off_time_bar.selected || sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
-					|| sem_scroll_speed_bar.selected || sem_wifi_on_button.selected || sem_wifi_off_button.selected || sem_allow_send_info_button.selected
-					|| sem_deny_send_info_button.selected || sem_debug_mode_on_button.selected || sem_debug_mode_off_button.selected || sem_eco_mode_on_button.selected
-					|| sem_eco_mode_off_button.selected || sem_record_both_lcd_button.selected || sem_record_top_lcd_button.selected 
-					|| sem_record_bottom_lcd_button.selected || sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected
-					|| sem_use_fake_model_button.selected || Draw_get_bot_ui_button()->selected)
-						var_need_reflesh = true;
-
-					sem_back_button.selected = sem_scroll_bar.selected = sem_check_update_button.selected = sem_close_updater_button.selected
-					= sem_select_edtion_button.selected = sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
-					= sem_dl_install_button.selected = sem_close_app_button.selected = sem_english_button.selected = sem_japanese_button.selected
-					= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected = sem_spanish_button.selected
-					= sem_romanian_button.selected
-					= sem_night_mode_on_button.selected = sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected
-					= sem_screen_off_time_bar.selected = sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
-					= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
-					= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
-					= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
-					= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
-					= sem_use_fake_model_button.selected = Draw_get_bot_ui_button()->selected = false;
-
-					for (int i = 0; i < 9; i++)
+					if(Util_hid_is_pressed(key, sem_check_update_button))
 					{
-						if(sem_menu_button[i].selected)
-							var_need_reflesh = true;
-
-						sem_menu_button[i].selected = false;
+						sem_check_update_button.selected = true;
+						var_need_reflesh = true;
 					}
+					if(Util_hid_is_released(key, sem_check_update_button) && sem_check_update_button.selected)
+					{
+						sem_check_update_request = true;
+						sem_show_patch_note_request = true;
+						var_need_reflesh = true;
+					}
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES && !sem_reload_msg_request)//Language
+			{
+				if(Util_hid_is_pressed(key, sem_english_button))
+				{
+					sem_english_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
+				{
+					var_lang = "en";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_japanese_button))
+				{
+					sem_japanese_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
+				{
+					var_lang = "jp";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_hungarian_button))
+				{
+					sem_hungarian_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
+				{
+					var_lang = "hu";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_chinese_button))
+				{
+					sem_chinese_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
+				{
+					var_lang = "zh-cn";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_italian_button))
+				{
+					sem_italian_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
+				{
+					var_lang = "it";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_spanish_button))
+				{
+					sem_spanish_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_spanish_button) && sem_spanish_button.selected)
+				{
+					var_lang = "es";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_romanian_button))
+				{
+					sem_romanian_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
+				{
+					var_lang = "ro";
+					sem_reload_msg_request = true;
+					var_need_reflesh = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)//LCD
+			{
+				if(Util_hid_is_pressed(key, sem_night_mode_on_button))
+				{
+					sem_night_mode_on_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_night_mode_on_button) && sem_night_mode_on_button.selected)
+				{
+					var_night_mode = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_night_mode_off_button))
+				{
+					sem_night_mode_off_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_night_mode_off_button) && sem_night_mode_off_button.selected)
+				{
+					var_night_mode = false;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_flash_mode_button))
+				{
+					sem_flash_mode_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, sem_flash_mode_button) && sem_flash_mode_button.selected)
+				{
+					var_flash_mode = !var_flash_mode;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_screen_brightness_bar) || Util_hid_is_pressed(key, sem_screen_brightness_slider))
+				{
+					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_top_lcd_brightness = var_lcd_brightness;
+					var_bottom_lcd_brightness = var_lcd_brightness;
+					sem_change_brightness_request = true;
+					sem_screen_brightness_bar.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar.selected)
+				{
+					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_top_lcd_brightness = var_lcd_brightness;
+					var_bottom_lcd_brightness = var_lcd_brightness;
+					sem_change_brightness_request = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_pressed(key, sem_screen_off_time_bar) || Util_hid_is_pressed(key, sem_screen_off_time_slider))
+				{
+					var_time_to_turn_off_lcd = key.touch_x;
+					sem_screen_off_time_bar.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_off_time_bar.selected)
+				{
+					var_time_to_turn_off_lcd = key.touch_x;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS)
+				{
+					sem_800px_mode_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button.selected)
+				{
+					var_high_resolution_mode = true;
+					var_3d_mode = false;
+					sem_draw_reinit_request = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
+				{
+					sem_3d_mode_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button.selected)
+				{
+					var_high_resolution_mode = false;
+					var_3d_mode = true;
+					sem_draw_reinit_request = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_400px_mode_button) && !sem_record_request)
+				{
+					sem_400px_mode_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_400px_mode_button) && !sem_record_request && sem_400px_mode_button.selected)
+				{
+					var_high_resolution_mode = false;
+					var_3d_mode = false;
+					sem_draw_reinit_request = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)//Scroll speed
+			{
+				if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_scroll_speed_bar.selected)
+				{
+					var_scroll_speed = (double)key.touch_x / 300;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_scroll_speed_slider) || Util_hid_is_pressed(key, sem_scroll_speed_bar))
+				{
+					var_scroll_speed = (double)key.touch_x / 300;
+					sem_scroll_speed_bar.selected = true;
+					var_need_reflesh = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)//Font
+			{
+				if (Util_hid_is_pressed(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
+				{
+					sem_load_all_ex_font_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_load_all_ex_font_button.selected)
+				{
+					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+						Exfont_set_external_font_request_state(i ,true);
+					
+					Exfont_request_load_external_font();
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
+				{
+					sem_unload_all_ex_font_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_unload_all_ex_font_button.selected)
+				{
+					for (int i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+						Exfont_set_external_font_request_state(i ,false);
 
+					Exfont_request_unload_external_font();
+					var_need_reflesh = true;
+				}
+				else
+				{
 					for (int i = 0; i < 4; i++)
 					{
-						if(sem_system_font_button[i].selected)
+						if (Util_hid_is_pressed(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font())
+						{
+							sem_system_font_button[i].selected = true;
 							var_need_reflesh = true;
-						
-						sem_system_font_button[i].selected = false;
+							break;
+						}
+						else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button[i].selected)
+						{
+							if(i != var_system_region)
+							{
+								if (Exfont_is_loaded_system_font(i))
+								{
+									Exfont_set_system_font_request_state(i, false);
+									Exfont_request_unload_system_font();
+									var_need_reflesh = true;
+								}
+								else
+								{
+									Exfont_set_system_font_request_state(i, true);
+									Exfont_request_load_system_font();
+									var_need_reflesh = true;
+								}
+							}
+							break;
+						}
 					}
 
 					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 					{
-						if(sem_ex_font_button[i].selected)
+						if (Util_hid_is_pressed(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
+						{
+							sem_ex_font_button[i].selected = true;
 							var_need_reflesh = true;
-						
-						sem_ex_font_button[i].selected = false;
+							break;
+						}
+						else if (Util_hid_is_released(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_ex_font_button[i].selected)
+						{
+							if (Exfont_is_loaded_external_font(i))
+							{
+								if(i != 0)
+								{
+									Exfont_set_external_font_request_state(i ,false);
+									Exfont_request_unload_external_font();
+									var_need_reflesh = true;
+								}
+							}
+							else
+							{
+								Exfont_set_external_font_request_state(i ,true);
+								Exfont_request_load_external_font();
+								var_need_reflesh = true;
+							}
+							break;
+						}
+					}
+				}
+
+				sem_scroll_mode = true;
+				if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || (!sem_draw_reinit_request && Draw_get_bot_ui_button()->selected))
+					sem_scroll_mode = false;
+
+				for (int i = 0; i < 4; i++)
+				{
+					if(sem_system_font_button[i].selected)
+						sem_scroll_mode = false;
+				}
+
+				for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+				{
+					if(sem_ex_font_button[i].selected)
+						sem_scroll_mode = false;
+				}
+
+				//Scroll bar
+				if(sem_scroll_mode)
+				{
+					if (key.h_c_down || key.h_c_up)
+					{
+						sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
+						var_need_reflesh = true;
 					}
 
-					sem_touch_x_move_left -= (sem_touch_x_move_left * 0.025);
-					sem_touch_y_move_left -= (sem_touch_y_move_left * 0.025);
-					if (sem_touch_x_move_left < 0.5 && sem_touch_x_move_left > -0.5)
-						sem_touch_x_move_left = 0;
-					if (sem_touch_y_move_left < 0.5 && sem_touch_y_move_left > -0.5)
-						sem_touch_y_move_left = 0;
-
-					if(sem_touch_x_move_left != 0 || sem_touch_y_move_left != 0)
+					if (key.h_touch && sem_scroll_bar.selected)
+					{
+						sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
 						var_need_reflesh = true;
+					}
+
+					if (Util_hid_is_pressed(key, sem_scroll_bar))
+						sem_scroll_bar.selected = true;
+
+					if(sem_touch_y_move_left * var_scroll_speed != 0)
+					{
+						sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
+						var_need_reflesh = true;
+					}
 				}
 			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)//Wireless
+			{
+				if (Util_hid_is_pressed(key, sem_wifi_on_button))
+				{
+					sem_wifi_on_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
+				{
+					result = Util_cset_set_wifi_state(true);
+					if(result.code == 0 || result.code == 0xC8A06C0D)
+						var_wifi_enabled = true;
 
-			if(Util_log_query_log_show_flag())
-				Util_log_main(key);
-			var_previous_ts = key.ts;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_wifi_off_button))
+				{
+					sem_wifi_off_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
+				{
+					result = Util_cset_set_wifi_state(false);
+					if(result.code == 0 || result.code == 0xC8A06C0D)
+						var_wifi_enabled = false;
+
+					var_need_reflesh = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)//Advanced settings
+			{
+				if (Util_hid_is_pressed(key, sem_allow_send_info_button))
+				{
+					sem_allow_send_info_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_allow_send_info_button) && sem_allow_send_info_button.selected)
+				{
+					var_allow_send_app_info = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_deny_send_info_button))
+				{
+					sem_deny_send_info_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_deny_send_info_button) && sem_deny_send_info_button.selected)
+				{
+					var_allow_send_app_info = false;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_debug_mode_on_button))
+				{
+					sem_debug_mode_on_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button.selected)
+				{
+					var_debug_mode = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_debug_mode_off_button))
+				{
+					sem_debug_mode_off_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button.selected)
+				{
+					var_debug_mode = false;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_use_fake_model_button))
+				{
+					sem_use_fake_model_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button.selected)
+				{
+					if((u8)(sem_fake_model_num + 1) > 5)
+						sem_fake_model_num = 255;
+					else
+						sem_fake_model_num++;
+					
+					var_need_reflesh = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
+			{
+				if (Util_hid_is_pressed(key, sem_eco_mode_on_button))
+				{
+					sem_eco_mode_on_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_eco_mode_on_button) && sem_eco_mode_on_button.selected)
+				{
+					var_eco_mode = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_eco_mode_off_button))
+				{
+					sem_eco_mode_off_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_eco_mode_off_button) && sem_eco_mode_off_button.selected)
+				{
+					var_eco_mode = false;
+					var_need_reflesh = true;
+				}
+			}
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)//Screen recording
+			{
+				if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && !var_high_resolution_mode)
+				{
+					sem_record_both_lcd_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button.selected)
+				{
+					if(sem_record_request)
+						sem_stop_record_request = true;
+					else
+					{
+						sem_selected_recording_mode = DEF_SEM_RECORD_BOTH;
+						sem_record_request = true;
+					}
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && !var_high_resolution_mode)
+				{
+					sem_record_top_lcd_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button.selected)
+				{
+					if(sem_record_request)
+						sem_stop_record_request = true;
+					else
+					{
+						sem_selected_recording_mode = DEF_SEM_RECORD_TOP;
+						sem_record_request = true;
+					}
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode)
+				{
+					sem_record_bottom_lcd_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button.selected)
+				{
+					if(sem_record_request)
+						sem_stop_record_request = true;
+					else
+					{
+						sem_selected_recording_mode = DEF_SEM_RECORD_BOTTOM;
+						sem_record_request = true;
+					}
+					var_need_reflesh = true;
+				}
+			}
+		}
+
+		if (sem_y_offset >= 0)
+			sem_y_offset = 0.0;
+		else if (sem_y_offset <= sem_y_max)
+			sem_y_offset = sem_y_max;
+
+		if (key.p_touch || key.h_touch)
+		{
+			sem_touch_x_move_left = 0;
+			sem_touch_y_move_left = 0;
+
+			if(sem_scroll_mode)
+			{
+				sem_touch_x_move_left = key.touch_x_move;
+				sem_touch_y_move_left = key.touch_y_move;
+			}
 		}
 		else
-			usleep(12000);
+		{
+			sem_scroll_mode = false;
+
+			if(sem_back_button.selected || sem_scroll_bar.selected || sem_check_update_button.selected || sem_close_updater_button.selected 
+			|| sem_select_edtion_button.selected || sem_3dsx_button.selected || sem_cia_button.selected || sem_back_to_patch_note_button.selected
+			|| sem_dl_install_button.selected || sem_close_app_button.selected || sem_english_button.selected || sem_japanese_button.selected
+			|| sem_hungarian_button.selected || sem_chinese_button.selected || sem_italian_button.selected || sem_spanish_button.selected
+			|| sem_romanian_button.selected
+			|| sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected || sem_screen_brightness_bar.selected
+			|| sem_screen_off_time_bar.selected || sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
+			|| sem_scroll_speed_bar.selected || sem_wifi_on_button.selected || sem_wifi_off_button.selected || sem_allow_send_info_button.selected
+			|| sem_deny_send_info_button.selected || sem_debug_mode_on_button.selected || sem_debug_mode_off_button.selected || sem_eco_mode_on_button.selected
+			|| sem_eco_mode_off_button.selected || sem_record_both_lcd_button.selected || sem_record_top_lcd_button.selected 
+			|| sem_record_bottom_lcd_button.selected || sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected
+			|| sem_use_fake_model_button.selected || (!sem_draw_reinit_request && Draw_get_bot_ui_button()->selected))
+				var_need_reflesh = true;
+
+			sem_back_button.selected = sem_scroll_bar.selected = sem_check_update_button.selected = sem_close_updater_button.selected
+			= sem_select_edtion_button.selected = sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
+			= sem_dl_install_button.selected = sem_close_app_button.selected = sem_english_button.selected = sem_japanese_button.selected
+			= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected = sem_spanish_button.selected
+			= sem_romanian_button.selected
+			= sem_night_mode_on_button.selected = sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected
+			= sem_screen_off_time_bar.selected = sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
+			= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
+			= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
+			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
+			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
+			= sem_use_fake_model_button.selected = false;
+
+			if(!sem_draw_reinit_request)
+				Draw_get_bot_ui_button()->selected = false;
+
+			for (int i = 0; i < 9; i++)
+			{
+				if(sem_menu_button[i].selected)
+					var_need_reflesh = true;
+
+				sem_menu_button[i].selected = false;
+			}
+
+			for (int i = 0; i < 4; i++)
+			{
+				if(sem_system_font_button[i].selected)
+					var_need_reflesh = true;
+				
+				sem_system_font_button[i].selected = false;
+			}
+
+			for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+			{
+				if(sem_ex_font_button[i].selected)
+					var_need_reflesh = true;
+				
+				sem_ex_font_button[i].selected = false;
+			}
+
+			sem_touch_x_move_left -= (sem_touch_x_move_left * 0.025);
+			sem_touch_y_move_left -= (sem_touch_y_move_left * 0.025);
+			if (sem_touch_x_move_left < 0.5 && sem_touch_x_move_left > -0.5)
+				sem_touch_x_move_left = 0;
+			if (sem_touch_y_move_left < 0.5 && sem_touch_y_move_left > -0.5)
+				sem_touch_y_move_left = 0;
+
+			if(sem_touch_x_move_left != 0 || sem_touch_y_move_left != 0)
+				var_need_reflesh = true;
+		}
 	}
 
-	Util_log_save(DEF_SEM_HID_THREAD_STR, "Thread exit.");
-	threadExit(0);
+	if(Util_log_query_log_show_flag())
+		Util_log_main(key);
 }
 
 void Sem_encode_thread(void* arg)

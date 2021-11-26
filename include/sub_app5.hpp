@@ -5,6 +5,8 @@ bool Sapp5_query_init_flag(void);
 
 bool Sapp5_query_running_flag(void);
 
+void Sapp5_hid(Hid_info key);
+
 void Sapp5_resume(void);
 
 void Sapp5_suspend(void);

@@ -29,7 +29,6 @@
 #define DEF_SEM_UPDATE_THREAD_STR (std::string)"Sem/Update thread"
 #define DEF_SEM_ENCODE_THREAD_STR (std::string)"Sem/Encode thread"
 #define DEF_SEM_RECORD_THREAD_STR (std::string)"Sem/Record thread"
-#define DEF_SEM_HID_THREAD_STR (std::string)"Sem/Hid thread"
 
 #define DEF_SEM_MENU_TOP -1
 #define DEF_SEM_MENU_UPDATE 0

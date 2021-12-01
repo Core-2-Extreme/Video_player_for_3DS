@@ -54,10 +54,13 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
 	
 	ndspChnSetInterp(play_ch, NDSP_INTERP_LINEAR);
 	ndspChnSetRate(play_ch, sample_rate);
-	memset(util_ndsp_buffer[play_ch], 0, sizeof(util_ndsp_buffer[play_ch]));
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
+	{
+		Util_safe_linear_free((void*)util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
-	
+		memset(util_ndsp_buffer[play_ch], 0, sizeof(util_ndsp_buffer[play_ch]));
+	}
+
 	return result;
 
 	not_inited:

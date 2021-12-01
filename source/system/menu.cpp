@@ -987,8 +987,8 @@ void Menu_hid_thread(void* arg)
 
 			previous_ts = key.ts;
 		}
-		else
-			usleep(10000);
+
+		gspWaitForVBlank();
 	}
 
 	Util_log_save(DEF_MENU_HID_THREAD_STR, "Thread exit.");

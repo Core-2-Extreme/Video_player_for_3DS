@@ -10,7 +10,7 @@
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_video_tracks, int* num_of_audio_tracks, int session);
+Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_audio_tracks, int* num_of_video_tracks, int session);
 
 /**
  * @brief Initialize a audio decoder.

@@ -138,6 +138,8 @@ void Util_speaker_clear_buffer(int play_ch)
 {
 	if(!util_speaker_init)
 		return;
+	if(play_ch < 0 || play_ch > 23)
+		return;
 	
 	ndspChnWaveBufClear(play_ch);
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
@@ -151,6 +153,8 @@ void Util_speaker_pause(int play_ch)
 {
 	if(!util_speaker_init)
 		return;
+	if(play_ch < 0 || play_ch > 23)
+		return;
 
 	ndspChnSetPaused(play_ch, true);
 }
@@ -158,6 +162,8 @@ void Util_speaker_pause(int play_ch)
 void Util_speaker_resume(int play_ch)
 {
 	if(!util_speaker_init)
+		return;
+	if(play_ch < 0 || play_ch > 23)
 		return;
 
 	ndspChnSetPaused(play_ch, false);
@@ -167,6 +173,8 @@ bool Util_speaker_is_paused(int play_ch)
 {
 	if(!util_speaker_init)
 		return false;
+	else if(play_ch < 0 || play_ch > 23)
+		return false;
 	else
 		return ndspChnIsPaused(play_ch);
 }
@@ -174,6 +182,8 @@ bool Util_speaker_is_paused(int play_ch)
 bool Util_speaker_is_playing(int play_ch)
 {
 	if(!util_speaker_init)
+		return false;
+	else if(play_ch < 0 || play_ch > 23)
 		return false;
 	else
 		return ndspChnIsPlaying(play_ch);

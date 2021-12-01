@@ -184,8 +184,9 @@ void Util_speaker_exit(void)
 	if(!util_speaker_init)
 		return;
 	
-	util_speaker_init = false;
 	for(int i = 0; i < 24; i++)
 		Util_speaker_clear_buffer(i);
+
+	util_speaker_init = false;
 	ndspExit();
 }

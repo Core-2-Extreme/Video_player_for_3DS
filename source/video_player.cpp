@@ -132,6 +132,9 @@ bool Vid_query_running_flag(void)
 
 void Vid_hid(Hid_info key)
 {
+	if(vid_set_volume_request || vid_set_seek_duration_request)
+		return;
+
 	if(Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else if(Util_expl_query_show_flag())

@@ -115,6 +115,7 @@
 #define DEF_SEM_FAKE_MODEL_MSG 62
 #define DEF_SEM_SPANISH_MSG 63
 #define DEF_SEM_ROMANIAN_MSG 64
+#define DEF_SEM_POLISH_MSG 65
 
 
 //camera

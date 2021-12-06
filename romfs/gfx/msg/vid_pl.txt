@@ -10,8 +10,8 @@
 <9>Przybliż/Odbliż</9>
 <10>Wybór ścieżki dźwięku</10>
 <11>Wybierz ścieżke dźwięku</11>
-<12>Wćiśnij przycisk "SELECT" albo dotknij dotykowy ekran by 
-wyłączyć pełny ekran</12>
+<12>Wćiśnij przycisk "SELECT" albo dotknij dotykowy ekran
+by wyłączyć pełny ekran</12>
 <13>Dekoder Sprzętowy (jeśli dostępny) : </13>
 <14>Sprzętowa Konwersja kolorów (jeśli dostępna) : </14>
 <15>Dekoder Wielo-Wątkowy (jeśli dostępny) : </15>

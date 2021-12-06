@@ -66,4 +66,4 @@ desactivar el 'modo 800px'
 algunas funciones no estarán disponibles)</62>
 <63>Español</63>
 <64>Română</64>
-<65>Polski<65>
+<65>Polski</65>

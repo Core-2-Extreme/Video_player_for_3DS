@@ -65,4 +65,4 @@ wyłączyć tryb '800px'
 <62>Użyj fałszywego modelu (restart wymagany)</62>
 <63>Español</63>
 <64>Română</64>
-<65>Polski<65>
+<65>Polski</65>

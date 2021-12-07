@@ -1169,9 +1169,9 @@ void Vid_decode_thread(void* arg)
 					}
 					else
 					{
-						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 7MB + (raw_image_size * 8)
+						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 8MB + (raw_image_size * 8)
 						free_ram = Util_check_free_ram();
-						free_ram -= ((1024 * 1024 * 7) + (vid_codec_width * vid_codec_height * 1.5 * 8));
+						free_ram -= ((1024 * 1024 * 8) + (vid_codec_width * vid_codec_height * 1.5 * 8));
 						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
 						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;

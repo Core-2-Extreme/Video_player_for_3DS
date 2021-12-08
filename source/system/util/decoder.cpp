@@ -364,6 +364,7 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 			goto ffmpeg_api_failed;
 		}
 
+		util_audio_decoder_context[session][i]->flags = AV_CODEC_FLAG_OUTPUT_CORRUPT;
 		ffmpeg_result = avcodec_open2(util_audio_decoder_context[session][i], util_audio_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
 		{

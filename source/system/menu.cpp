@@ -396,6 +396,11 @@ void Menu_main(void)
 					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
 					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
 				}
+				else if(var_lang == "pl")
+				{
+					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 80.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
+					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
+				}
 				else
 				{
 					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);

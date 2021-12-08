@@ -532,10 +532,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_NIGHT_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_night_mode_on_button, sem_night_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_night_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_night_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_night_mode_off_button, sem_night_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_night_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_night_mode ? color : DEF_DRAW_RED);
 			//Flash
 			Draw_texture(&sem_flash_mode_button, sem_flash_mode_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 210, 40, 50, 20);
 			Draw(sem_msg[DEF_SEM_FLASH_MSG], 210, 40, 0.65, 0.65, var_flash_mode ? DEF_DRAW_RED : color);
@@ -659,10 +665,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_wifi_on_button, sem_wifi_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_wifi_enabled ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_wifi_enabled ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_wifi_enabled ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_wifi_off_button, sem_wifi_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_wifi_enabled ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_wifi_enabled ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_wifi_enabled ? color : DEF_DRAW_RED);
 
 			//Connected SSID
 			Draw(sem_msg[DEF_SEM_CONNECTED_SSID_MSG] + var_connected_ssid, 0, 65, 0.4, 0.4, color);
@@ -682,10 +694,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_debug_mode_on_button, sem_debug_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.65, 0.65, var_debug_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.55, 0.55, var_debug_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.65, 0.65, var_debug_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_debug_mode_off_button, sem_debug_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 80, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.65, 0.65, var_debug_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.55, 0.55, var_debug_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.65, 0.65, var_debug_mode ? color : DEF_DRAW_RED);
 
 			//Fake model
 			Draw(sem_msg[DEF_SEM_FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
@@ -701,10 +719,16 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 			//ON
 			Draw_texture(&sem_eco_mode_on_button, sem_eco_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_eco_mode ? DEF_DRAW_RED : color);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, var_eco_mode ? DEF_DRAW_RED : color);
+			else
+				Draw(sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.65, 0.65, var_eco_mode ? DEF_DRAW_RED : color);
 			//OFF
 			Draw_texture(&sem_eco_mode_off_button, sem_eco_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 40, 90, 20);
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_eco_mode ? color : DEF_DRAW_RED);
+			if(var_lang == "pl")
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, var_eco_mode ? color : DEF_DRAW_RED);
+			else
+				Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.65, 0.65, var_eco_mode ? color : DEF_DRAW_RED);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 		{

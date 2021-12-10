@@ -15,11 +15,11 @@
 <14>Usa conversione colore hardware (se disponibile) : </14>
 <15>Usa il decoding multi-threaded (se disponibile) : </15>
 <16>Permetti salto fotogrammi : </16>
-<17>Abbassa risolzione video (se supportato dal codec) : </17>
+<17>Abbassa risolzione video 
+(se supportato dal codec) : </17>
 <18>Cercando...</18>
 <19>Durata : </19>
 <20>Volume : </20>
 <21>Correct aspect ratio : </21>
-<22>Disabilita zoom/
-spostamento video : </22>
+<22>Disabilita zoom/spostamento video : </22>
 <23>Ricorda posizione video : </23>

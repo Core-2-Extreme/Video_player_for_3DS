@@ -13,10 +13,12 @@
 <12>Apasă Select sau atinge ecranul pentru a ieși din
 modul ecran mare</12>
 <13>Folosește decodor hardware (dacă este disponibil) : </13>
-<14>Folosește convertor culori hardware (dacă este disponibil) : </14>
+<14>Folosește convertor culori hardware
+(dacă este disponibil) : </14>
 <15>Folosește codare multi-thread (dacă este disponibil) : </15>
 <16>Permite sărire cadre cheie : </16>
-<17>Rezoluție video scăzută (dacă este suportat de codec) : </17>
+<17>Rezoluție video scăzută
+(dacă este suportat de codec) : </17>
 <18>Se caută...</18>
 <19>Durată căutare : </19>
 <20>Volum : </20>

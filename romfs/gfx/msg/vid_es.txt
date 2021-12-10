@@ -12,11 +12,15 @@
 <11>Seleccionar pista de audio</11>
 <12>Presiona Select o toca la pantalla para salir del
 modo pantalla completa</12>
-<13>Utilizar decodificación de hardware (si está disponible) : </13>
-<14>Utilizar conversión de color de hardware (si está disponible) : </14>
-<15>Utilizar decodificación multiproceso (si está disponible) : </15>
+<13>Utilizar decodificación de hardware
+(si está disponible) : </13>
+<14>Utilizar conversión de color de hardware
+(si está disponible) : </14>
+<15>Utilizar decodificación multiproceso
+(si está disponible) : </15>
 <16>Permitir salto de fotograma : </16>
-<17>Bajar resolución de video (si el códec lo soporta) : </17>
+<17>Bajar resolución de video
+(si el códec lo soporta) : </17>
 <18>Buscando...</18>
 <19>Duración : </19>
 <20>Volumen : </20>

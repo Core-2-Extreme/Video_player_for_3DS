@@ -52,8 +52,11 @@ double vid_frametime = 0;
 double vid_framerate = 0;
 double vid_duration = 0;//in ms
 double vid_zoom = 1;
-double vid_x = 0;
-double vid_y = 15;
+double vid_y_move_speed = 0;
+double vid_ui_y_max = 0;
+double vid_ui_y_offset = 0;
+double vid_video_x_offset = 0;
+double vid_video_y_offset = 15;
 double vid_current_pos = 0;//in ms
 double vid_seek_pos = 0;//in ms
 double vid_min_time = 0;
@@ -104,7 +107,7 @@ Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_s
 vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
 vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
 vid_correct_aspect_ratio_button, vid_disable_resize_move_button, vid_remember_video_pos_button, vid_show_decode_graph_button,
-vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_buffer_graph_button;
+vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_buffer_graph_button, vid_menu_background, vid_scroll_bar;
 
 void Vid_suspend(void);
 
@@ -183,9 +186,9 @@ void Vid_hid(Hid_info key)
 					else
 						vid_zoom = 1.0 / (((double)vid_height * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) / 225);
 
-					vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
-					vid_y = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
-					vid_y += 15;
+					vid_video_x_offset = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
+					vid_video_y_offset = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
+					vid_video_y_offset += 15;
 				}
 				vid_turn_off_bottom_screen_count = 0;
 				vid_full_screen_mode = false;
@@ -282,7 +285,27 @@ void Vid_hid(Hid_info key)
 		{
 			if(vid_menu_mode == DEF_VID_MENU_SETTINGS_0)
 			{
-				if(Util_hid_is_pressed(key, vid_select_audio_track_button))
+				//scroll
+				if(vid_menu_background.selected)
+					vid_y_move_speed = key.touch_y_move * var_scroll_speed;
+				else if(Util_hid_is_pressed(key, vid_scroll_bar))
+				{
+					vid_scroll_bar.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(vid_scroll_bar.selected)
+				{
+					if(key.touch_y < 50)
+						vid_ui_y_offset = 0;
+					else if(key.touch_y > 175)
+						vid_ui_y_offset = vid_ui_y_max;
+					else
+						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / vid_ui_y_max;
+
+					var_need_reflesh = true;
+				}				
+				//audio track button
+				else if(Util_hid_is_pressed(key, vid_select_audio_track_button))
 				{
 					vid_select_audio_track_button.selected = true;
 					var_need_reflesh = true;
@@ -292,6 +315,12 @@ void Vid_hid(Hid_info key)
 					vid_select_audio_track_request = !vid_select_audio_track_request;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_select_audio_track_button) && vid_select_audio_track_button.selected)
+				{
+					vid_select_audio_track_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//texture filter button
 				else if(Util_hid_is_pressed(key, vid_texture_filter_button))
 				{
 					vid_texture_filter_button.selected = true;
@@ -313,6 +342,12 @@ void Vid_hid(Hid_info key)
 					}
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_texture_filter_button) && vid_texture_filter_button.selected)
+				{
+					vid_texture_filter_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//allow skip frames button
 				else if(Util_hid_is_pressed(key, vid_allow_skip_frames_button))
 				{
 					vid_allow_skip_frames_button.selected = true;
@@ -325,6 +360,12 @@ void Vid_hid(Hid_info key)
 						vid_allow_skip_key_frames = false;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_allow_skip_frames_button) && vid_allow_skip_frames_button.selected)
+				{
+					vid_allow_skip_frames_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//allow skip key frames button
 				else if(Util_hid_is_pressed(key, vid_allow_skip_key_frames_button) && vid_allow_skip_frames)
 				{
 					vid_allow_skip_key_frames_button.selected = true;
@@ -335,6 +376,12 @@ void Vid_hid(Hid_info key)
 					vid_allow_skip_key_frames = !vid_allow_skip_key_frames;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_allow_skip_key_frames_button) && vid_allow_skip_key_frames_button.selected)
+				{
+					vid_allow_skip_key_frames_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//change volume button
 				else if(Util_hid_is_pressed(key, vid_volume_button))
 				{
 					vid_volume_button.selected = true;
@@ -344,6 +391,12 @@ void Vid_hid(Hid_info key)
 				{
 					vid_set_volume_request = true;
 				}
+				else if(!Util_hid_is_held(key, vid_volume_button) && vid_volume_button.selected)
+				{
+					vid_volume_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//change seek duration button
 				else if(Util_hid_is_pressed(key, vid_seek_duration_button))
 				{
 					vid_seek_duration_button.selected = true;
@@ -353,6 +406,12 @@ void Vid_hid(Hid_info key)
 				{
 					vid_set_seek_duration_request = true;
 				}
+				else if(!Util_hid_is_held(key, vid_seek_duration_button) && vid_seek_duration_button.selected)
+				{
+					vid_seek_duration_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//correct aspect ratio button
 				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button))
 				{
 					vid_correct_aspect_ratio_button.selected = true;
@@ -369,12 +428,18 @@ void Vid_hid(Hid_info key)
 						else
 							vid_zoom = 1.0 / (((double)vid_height * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) / 225);
 
-						vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
-						vid_y = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
-						vid_y += 15;
+						vid_video_x_offset = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
+						vid_video_y_offset = (225 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
+						vid_video_y_offset += 15;
 					}
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_correct_aspect_ratio_button) && vid_correct_aspect_ratio_button.selected)
+				{
+					vid_correct_aspect_ratio_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//disable resize and move button
 				else if(Util_hid_is_pressed(key, vid_disable_resize_move_button))
 				{
 					vid_disable_resize_move_button.selected = true;
@@ -385,6 +450,12 @@ void Vid_hid(Hid_info key)
 					vid_disable_resize_move_mode = !vid_disable_resize_move_mode;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_disable_resize_move_button) && vid_disable_resize_move_button.selected)
+				{
+					vid_disable_resize_move_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//remember video pos button
 				else if(Util_hid_is_pressed(key, vid_remember_video_pos_button))
 				{
 					vid_remember_video_pos_button.selected = true;
@@ -395,6 +466,15 @@ void Vid_hid(Hid_info key)
 					vid_remember_video_pos_mode = !vid_remember_video_pos_mode;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_remember_video_pos_button) && vid_remember_video_pos_button.selected)
+				{
+					vid_remember_video_pos_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//background
+				else if(Util_hid_is_pressed(key, vid_menu_background))
+					vid_menu_background.selected = true;
+				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
 				{
 					vid_menu_button[1].selected = true;
@@ -402,6 +482,7 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
+					vid_ui_y_max = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
 					var_need_reflesh = true;
 				}
@@ -412,12 +493,40 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
+					vid_ui_y_max = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
 					var_need_reflesh = true;
 				}
+
+				if (vid_menu_background.selected || vid_y_move_speed != 0)
+				{
+					if(!vid_menu_background.selected)
+						vid_y_move_speed *= 0.95;
+					
+					if(vid_y_move_speed < 0.1 && vid_y_move_speed > -0.1)
+						vid_y_move_speed = 0;
+
+					if(vid_ui_y_offset - vid_y_move_speed > 0)
+					{
+						vid_ui_y_offset = 0;
+						var_need_reflesh = true;
+					}
+					else if(vid_ui_y_offset - vid_y_move_speed < vid_ui_y_max)
+					{
+						vid_ui_y_offset = vid_ui_y_max;
+						var_need_reflesh = true;
+					}
+					else
+					{
+						vid_ui_y_offset -= vid_y_move_speed;
+						var_need_reflesh = true;
+					}
+				}
+				
 			}
 			if(vid_menu_mode == DEF_VID_MENU_SETTINGS_1)
 			{
+				//hardware decoding button
 				if(Util_hid_is_pressed(key, vid_use_hw_decoding_button) && !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request)
 				{
 					vid_use_hw_decoding_button.selected = true;
@@ -428,6 +537,7 @@ void Vid_hid(Hid_info key)
 					vid_use_hw_decoding_request = !vid_use_hw_decoding_request;
 					var_need_reflesh = true;
 				}
+				//hardware color conversion button
 				else if(Util_hid_is_pressed(key, vid_use_hw_color_conversion_button) && !vid_play_request)
 				{
 					vid_use_hw_color_conversion_button.selected = true;
@@ -438,6 +548,7 @@ void Vid_hid(Hid_info key)
 					vid_use_hw_color_conversion_request = !vid_use_hw_color_conversion_request;
 					var_need_reflesh = true;
 				}
+				//multi-threaded decoding button
 				else if(Util_hid_is_pressed(key, vid_use_multi_threaded_decoding_button) && !vid_play_request)
 				{
 					vid_use_multi_threaded_decoding_button.selected = true;
@@ -448,6 +559,7 @@ void Vid_hid(Hid_info key)
 					vid_use_multi_threaded_decoding_request = !vid_use_multi_threaded_decoding_request;
 					var_need_reflesh = true;
 				}
+				//lower video resolution button
 				else if(Util_hid_is_pressed(key, vid_lower_resolution_button) && !vid_play_request)
 				{
 					vid_lower_resolution_button.selected = true;
@@ -461,6 +573,7 @@ void Vid_hid(Hid_info key)
 						vid_lower_resolution++;
 					var_need_reflesh = true;
 				}
+				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
 				{
 					vid_menu_button[0].selected = true;
@@ -468,6 +581,7 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
+					vid_ui_y_max = -125;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
@@ -478,12 +592,14 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
+					vid_ui_y_max = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
 					var_need_reflesh = true;
 				}
 			}
 			else if(vid_menu_mode == DEF_VID_MENU_INFO)
 			{
+				//decoding graph button
 				if(Util_hid_is_pressed(key, vid_show_decode_graph_button))
 				{
 					vid_show_decode_graph_button.selected = true;
@@ -494,6 +610,7 @@ void Vid_hid(Hid_info key)
 					vid_show_decode_graph_mode = !vid_show_decode_graph_mode;
 					var_need_reflesh = true;
 				}
+				//color conversion graph button
 				else if(Util_hid_is_pressed(key, vid_show_color_conversion_graph_button))
 				{
 					vid_show_color_conversion_graph_button.selected = true;
@@ -504,6 +621,7 @@ void Vid_hid(Hid_info key)
 					vid_show_color_conversion_graph_mode = !vid_show_color_conversion_graph_mode;
 					var_need_reflesh = true;
 				}
+				//packet buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_packet_buffer_graph_button))
 				{
 					vid_show_packet_buffer_graph_button.selected = true;
@@ -514,6 +632,7 @@ void Vid_hid(Hid_info key)
 					vid_show_packet_buffer_graph_mode = !vid_show_packet_buffer_graph_mode;
 					var_need_reflesh = true;
 				}
+				//raw buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_raw_buffer_graph_button))
 				{
 					vid_show_raw_buffer_graph_button.selected = true;
@@ -524,6 +643,7 @@ void Vid_hid(Hid_info key)
 					vid_show_raw_buffer_graph_mode = !vid_show_raw_buffer_graph_mode;
 					var_need_reflesh = true;
 				}
+				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
 				{
 					vid_menu_button[0].selected = true;
@@ -531,6 +651,7 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
+					vid_ui_y_max = -125;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
@@ -541,6 +662,7 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
+					vid_ui_y_max = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
 					var_need_reflesh = true;
 				}
@@ -563,8 +685,8 @@ void Vid_hid(Hid_info key)
 					else 
 						vid_zoom = 1.0 / (((double)vid_height * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) / 240);
 
-					vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
-					vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
+					vid_video_x_offset = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
+					vid_video_y_offset = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
 				}
 				vid_turn_off_bottom_screen_count = 300;
 				vid_full_screen_mode = true;
@@ -595,9 +717,15 @@ void Vid_hid(Hid_info key)
 			else if(key.p_y)
 			{
 				if(vid_menu_mode == DEF_VID_MENU_NONE)
+				{
+					vid_ui_y_max = -125;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
+				}
 				else
+				{
+					vid_ui_y_max = 0;
 					vid_menu_mode = DEF_VID_MENU_NONE;
+				}
 				
 				var_need_reflesh = true;
 			}
@@ -622,68 +750,68 @@ void Vid_hid(Hid_info key)
 			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && !vid_disable_resize_move_mode)
 			{
 				if(key.p_c_down || key.p_d_down)
-					vid_y -= 1 * var_scroll_speed;
+					vid_video_y_offset -= 1 * var_scroll_speed;
 				else if(key.h_c_down || key.h_d_down)
 				{
 					if(!vid_select_audio_track_request)
 					{
 						if(vid_cd_count > 600)
-							vid_y -= 10 * var_scroll_speed;
+							vid_video_y_offset -= 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_y -= 7.5 * var_scroll_speed;
+							vid_video_y_offset -= 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_y -= 5 * var_scroll_speed;
+							vid_video_y_offset -= 5 * var_scroll_speed;
 					}
 				}
 
 				if(key.p_c_up || key.p_d_up)
-					vid_y += 1 * var_scroll_speed;
+					vid_video_y_offset += 1 * var_scroll_speed;
 				else if(key.h_c_up || key.h_d_up)
 				{
 					if(!vid_select_audio_track_request)
 					{
 						if(vid_cd_count > 600)
-							vid_y += 10 * var_scroll_speed;
+							vid_video_y_offset += 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_y += 7.5 * var_scroll_speed;
+							vid_video_y_offset += 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_y += 5 * var_scroll_speed;
+							vid_video_y_offset += 5 * var_scroll_speed;
 					}
 				}
 
 				if(key.p_c_right)
-					vid_x -= 1 * var_scroll_speed;
+					vid_video_x_offset -= 1 * var_scroll_speed;
 				else if(key.h_c_right)
 				{
 					if(vid_cd_count > 600)
-						vid_x -= 10 * var_scroll_speed;
+						vid_video_x_offset -= 10 * var_scroll_speed;
 					else if(vid_cd_count > 240)
-						vid_x -= 7.5 * var_scroll_speed;
+						vid_video_x_offset -= 7.5 * var_scroll_speed;
 					else if(vid_cd_count > 5)
-						vid_x -= 5 * var_scroll_speed;
+						vid_video_x_offset -= 5 * var_scroll_speed;
 				}
 
 				if(key.p_c_left)
-					vid_x += 1 * var_scroll_speed;
+					vid_video_x_offset += 1 * var_scroll_speed;
 				else if(key.h_c_left)
 				{
 					if(vid_cd_count > 600)
-						vid_x += 10 * var_scroll_speed;
+						vid_video_x_offset += 10 * var_scroll_speed;
 					else if(vid_cd_count > 240)
-						vid_x += 7.5 * var_scroll_speed;
+						vid_video_x_offset += 7.5 * var_scroll_speed;
 					else if(vid_cd_count > 5)
-						vid_x += 5 * var_scroll_speed;
+						vid_video_x_offset += 5 * var_scroll_speed;
 				}
 
-				if(vid_x > 400)
-					vid_x = 400;
-				else if(vid_x < -vid_codec_width * vid_zoom)
-					vid_x = -vid_codec_width * vid_zoom;
+				if(vid_video_x_offset > 400)
+					vid_video_x_offset = 400;
+				else if(vid_video_x_offset < -vid_codec_width * vid_zoom)
+					vid_video_x_offset = -vid_codec_width * vid_zoom;
 
-				if(vid_y > 480)
-					vid_y = 480;
-				else if(vid_y < -vid_codec_height * vid_zoom)
-					vid_y = -vid_codec_height * vid_zoom;
+				if(vid_video_y_offset > 480)
+					vid_video_y_offset = 480;
+				else if(vid_video_y_offset < -vid_codec_height * vid_zoom)
+					vid_video_y_offset = -vid_codec_height * vid_zoom;
 
 				vid_cd_count++;
 				var_need_reflesh = true;
@@ -759,7 +887,7 @@ void Vid_hid(Hid_info key)
 			|| vid_control_button.selected || vid_ok_button.selected || vid_correct_aspect_ratio_button.selected 
 			|| vid_disable_resize_move_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
 			|| vid_show_decode_graph_button.selected || vid_show_color_conversion_graph_button.selected || vid_show_packet_buffer_graph_button.selected
-			|| vid_show_raw_buffer_graph_button.selected)
+			|| vid_show_raw_buffer_graph_button.selected || vid_menu_background.selected || vid_scroll_bar.selected)
 				var_need_reflesh = true;
 
 
@@ -770,7 +898,7 @@ void Vid_hid(Hid_info key)
 			= vid_control_button.selected = vid_ok_button.selected = vid_correct_aspect_ratio_button.selected 
 			= vid_disable_resize_move_button.selected = vid_remember_video_pos_button.selected = Draw_get_bot_ui_button()->selected
 			= vid_show_decode_graph_button.selected = vid_show_color_conversion_graph_button.selected = vid_show_packet_buffer_graph_button.selected
-			= vid_show_raw_buffer_graph_button.selected = false;
+			= vid_show_raw_buffer_graph_button.selected = vid_menu_background.selected = vid_scroll_bar.selected = false;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 			{
@@ -828,8 +956,8 @@ void Vid_decode_thread(void* arg)
 			vid_num_of_video_tracks = 0;
 			vid_num_of_audio_tracks = 0;
 			vid_selected_audio_track = 0;
-			vid_x = 0;
-			vid_y = 15;
+			vid_video_x_offset = 0;
+			vid_video_y_offset = 15;
 			vid_frametime = 0;
 			vid_framerate = 0;
 			vid_current_pos = 0;
@@ -976,8 +1104,8 @@ void Vid_decode_thread(void* arg)
 					else 
 						vid_zoom = 1.0 / (((double)vid_height * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1)) / 240);
 					
-					vid_x = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
-					vid_y = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
+					vid_video_x_offset = (400 - (vid_width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_width : 1))) / 2;
+					vid_video_y_offset = (240 - (vid_height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_sar_height : 1))) / 2;
 
 					if(vid_codec_width % 16 != 0)
 						vid_codec_width += 16 - vid_codec_width % 16;
@@ -1936,8 +2064,11 @@ void Vid_init(void)
 	vid_selected_audio_track = 0;
 	vid_lr_count = 0;
 	vid_cd_count = 0;
-	vid_x = 0;
-	vid_y = 15;
+	vid_y_move_speed = 0;
+	vid_ui_y_max = 0;
+	vid_ui_y_offset = 0;
+	vid_video_x_offset = 0;
+	vid_video_y_offset = 15;
 	vid_frametime = 0;
 	vid_framerate = 0;
 	vid_current_pos = 0;
@@ -2085,6 +2216,8 @@ void Vid_init(void)
 	vid_show_color_conversion_graph_button.c2d = var_square_image[0];
 	vid_show_packet_buffer_graph_button.c2d = var_square_image[0];
 	vid_show_raw_buffer_graph_button.c2d = var_square_image[0];
+	vid_menu_background.c2d = var_square_image[0];
+	vid_scroll_bar.c2d = var_square_image[0];
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_button[i].c2d = var_square_image[0];
@@ -2193,13 +2326,13 @@ void Vid_main(void)
 			if(vid_play_request)
 			{
 				//video
-				Draw_texture(vid_image[0][image_num][0].c2d, vid_x, vid_y, image_width[0], image_height[0]);
+				Draw_texture(vid_image[0][image_num][0].c2d, vid_video_x_offset, vid_video_y_offset, image_width[0], image_height[0]);
 				if(vid_codec_width > 1024)
-					Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + image_width[0]), vid_y, image_width[1], image_height[1]);
+					Draw_texture(vid_image[1][image_num][0].c2d, (vid_video_x_offset + image_width[0]), vid_video_y_offset, image_width[1], image_height[1]);
 				if(vid_codec_height > 1024)
-					Draw_texture(vid_image[2][image_num][0].c2d, vid_x, (vid_y + image_height[0]), image_width[2], image_height[2]);
+					Draw_texture(vid_image[2][image_num][0].c2d, vid_video_x_offset, (vid_video_y_offset + image_height[0]), image_width[2], image_height[2]);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
-					Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + image_width[0]), (vid_y + image_height[0]), image_width[3], image_height[3]);
+					Draw_texture(vid_image[3][image_num][0].c2d, (vid_video_x_offset + image_width[0]), (vid_video_y_offset + image_height[0]), image_width[3], image_height[3]);
 			}
 			else
 				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -2226,13 +2359,13 @@ void Vid_main(void)
 				if(vid_play_request)
 				{
 					//3d video (right eye)
-					Draw_texture(vid_image[0][image_num_3d][1].c2d, vid_x, vid_y, image_width[0], image_height[0]);
+					Draw_texture(vid_image[0][image_num_3d][1].c2d, vid_video_x_offset, vid_video_y_offset, image_width[0], image_height[0]);
 					if(vid_codec_width > 1024)
-						Draw_texture(vid_image[1][image_num_3d][1].c2d, (vid_x + image_width[0]), vid_y, image_width[1], image_height[1]);
+						Draw_texture(vid_image[1][image_num_3d][1].c2d, (vid_video_x_offset + image_width[0]), vid_video_y_offset, image_width[1], image_height[1]);
 					if(vid_codec_height > 1024)
-						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_x, (vid_y + image_height[0]), image_width[2], image_height[2]);
+						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_video_x_offset, (vid_video_y_offset + image_height[0]), image_width[2], image_height[2]);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_x + image_width[0]), (vid_y + image_height[0]), image_width[3], image_height[3]);
+						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_video_x_offset + image_width[0]), (vid_video_y_offset + image_height[0]), image_width[3], image_height[3]);
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -2262,71 +2395,130 @@ void Vid_main(void)
 				if(vid_play_request)
 				{
 					//video
-					Draw_texture(vid_image[0][image_num][0].c2d, vid_x - 40, vid_y - 240, image_width[0], image_height[0]);
+					Draw_texture(vid_image[0][image_num][0].c2d, vid_video_x_offset - 40, vid_video_y_offset - 240, image_width[0], image_height[0]);
 					if(vid_codec_width > 1024)
-						Draw_texture(vid_image[1][image_num][0].c2d, (vid_x + image_width[0] - 40), vid_y - 240, image_width[1], image_height[1]);
+						Draw_texture(vid_image[1][image_num][0].c2d, (vid_video_x_offset + image_width[0] - 40), vid_video_y_offset - 240, image_width[1], image_height[1]);
 					if(vid_codec_height > 1024)
-						Draw_texture(vid_image[2][image_num][0].c2d, vid_x - 40, (vid_y + image_height[0] - 240), image_width[2], image_height[2]);
+						Draw_texture(vid_image[2][image_num][0].c2d, vid_video_x_offset - 40, (vid_video_y_offset + image_height[0] - 240), image_width[2], image_height[2]);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
-						Draw_texture(vid_image[3][image_num][0].c2d, (vid_x + image_width[0] - 40), (vid_y + image_height[0] - 240), image_width[3], image_height[3]);
+						Draw_texture(vid_image[3][image_num][0].c2d, (vid_video_x_offset + image_width[0] - 40), (vid_video_y_offset + image_height[0] - 240), image_width[3], image_height[3]);
 				}
 
 				if(vid_menu_mode != DEF_VID_MENU_NONE)
-					Draw_texture(var_square_image[0], DEF_DRAW_WEAK_GREEN, 0, 50, 320, 130);
+					Draw_texture(&vid_menu_background, DEF_DRAW_WEAK_GREEN, 0, 50, 320, 130);
 
 				if(vid_menu_mode == DEF_VID_MENU_SETTINGS_0)
 				{
+					//scroll bar
+					Draw_texture(&vid_scroll_bar, vid_scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_ui_y_offset / vid_ui_y_max * 120) + 50, 7, 10);
+
 					//select audio track
-					Draw_texture(&vid_select_audio_track_button, vid_select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 145, 10);
-					Draw(vid_msg[DEF_VID_AUDIO_TRACK_MSG], 12.5, 60, 0.4, 0.4, color);
+					if(60 + vid_ui_y_offset >= 50 && 60 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_select_audio_track_button, vid_select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_AUDIO_TRACK_MSG], 12.5, 60 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_select_audio_track_button.x_size = -1;
+						vid_select_audio_track_button.y_size = -1;
+					}
 
 					//texture filter
-					Draw_texture(&vid_texture_filter_button, vid_texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 60, 145, 10);
-					Draw(vid_msg[DEF_VID_TEX_FILTER_MSG] + (vid_linear_filter ? "ON" : "OFF"), 167.5, 60, 0.4, 0.4, color);
+					if(85 + vid_ui_y_offset >= 50 && 85 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_texture_filter_button, vid_texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 85 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_TEX_FILTER_MSG] + (vid_linear_filter ? "ON" : "OFF"), 12.5, 85 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_texture_filter_button.x_size = -1;
+						vid_texture_filter_button.y_size = -1;
+					}
 
 					//allow skip frames
-					Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 145, 10);
-					if(var_lang == "it")
-						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.375, 0.375, color);
-					else if(var_lang == "es")
-						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.35, 0.35, color);
+					if(110 + vid_ui_y_offset >= 50 && 110 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 110 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 110 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
 					else
-						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, color);
+					{
+						vid_allow_skip_frames_button.x_size = -1;
+						vid_allow_skip_frames_button.y_size = -1;
+					}
 
 					//allow skip key frames
-					Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 80, 145, 10);
-					Draw(vid_msg[DEF_VID_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 167.5, 80, 0.35, 0.35, vid_allow_skip_frames ? color : disabled_color);
+					if(135 + vid_ui_y_offset >= 50 && 135 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 135 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 12.5, 135 + vid_ui_y_offset, 0.5, 0.5, vid_allow_skip_frames ? color : disabled_color);
+					}
+					else
+					{
+						vid_allow_skip_key_frames_button.x_size = -1;
+						vid_allow_skip_key_frames_button.y_size = -1;
+					}
 
 					//volume
-					Draw_texture(&vid_volume_button, vid_volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 145, 10);
-					Draw(vid_msg[DEF_VID_VOLUME_MSG] + std::to_string(vid_volume) + "%", 12.5, 100, 0.4, 0.4, vid_too_big ? DEF_DRAW_RED : color);
+					if(160 + vid_ui_y_offset >= 50 && 160 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_volume_button, vid_volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 160 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_VOLUME_MSG] + std::to_string(vid_volume) + "%", 12.5, 160 + vid_ui_y_offset, 0.5, 0.5, vid_too_big ? DEF_DRAW_RED : color);
+					}
+					else
+					{
+						vid_volume_button.x_size = -1;
+						vid_volume_button.y_size = -1;
+					}
 
 					//seek duration
-					Draw_texture(&vid_seek_duration_button, vid_seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 100, 145, 10);
-					Draw(vid_msg[DEF_VID_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 167.5, 100, 0.4, 0.4, color);
+					if(185 + vid_ui_y_offset >= 50 && 185 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_seek_duration_button, vid_seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 185 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 12.5, 185 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_seek_duration_button.x_size = -1;
+						vid_seek_duration_button.y_size = -1;
+					}
 
 					//correct aspect ratio
-					Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 145, 10);
-					if(var_lang == "es")
-						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.35, 0.35, color);
+					if(210 + vid_ui_y_offset >= 50 && 210 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 210 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 210 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
 					else
-						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, color);
-
+					{
+						vid_correct_aspect_ratio_button.x_size = -1;
+						vid_correct_aspect_ratio_button.y_size = -1;
+					}
+				
 					//disable resize and move video
-					Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 165, 120, 145, 10);
-					if(var_lang == "zh-cn" || var_lang == "it")
-						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.4, 0.4, color);
-					else if (var_lang == "es" || var_lang == "ro" || var_lang == "pl")
-						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.325, 0.325, color);
+					if(235 + vid_ui_y_offset >= 50 && 235 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 235 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 12.5, 235 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
 					else
-						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 167.5, 120, 0.35, 0.35, color);
-
+					{
+						vid_disable_resize_move_button.x_size = -1;
+						vid_disable_resize_move_button.y_size = -1;
+					}
+					
 					//remember video pos
-					Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 140, 145, 10);
-					if (var_lang == "es")
-						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.35, 0.35, color);
+					if(260 + vid_ui_y_offset >= 50 && 260 + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 260 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 260 + vid_ui_y_offset, 0.5, 0.5, color);
+					}
 					else
-						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 140, 0.4, 0.4, color);
+					{
+						vid_remember_video_pos_button.x_size = -1;
+						vid_remember_video_pos_button.y_size = -1;
+					}
 
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 0, 180, 100, 8);
 					Draw_texture(&vid_menu_button[1], vid_menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
@@ -2335,36 +2527,21 @@ void Vid_main(void)
 				else if(vid_menu_mode == DEF_VID_MENU_SETTINGS_1)
 				{
 					//use hw decoding
-					Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 300, 10);
-					if (var_lang == "es")
-						Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.375, 0.375,
-						(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
-					else
-						Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
-						(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
+					Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 300, 20);
+					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
+					(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
 
 					//use hw color conversion
-					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 80, 300, 10);
-					if (var_lang == "es" || var_lang == "ro")
-						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.35, 0.35, vid_play_request ? disabled_color : color);
-					else
-						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 80, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 90, 300, 20);
+					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 90, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					//use multi-threaded decoding (in software decoding)
-					Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 100, 300, 10);
-					if (var_lang == "es")
-						Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.375, 0.375, vid_play_request ? disabled_color : color);
-					else
-						Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 100, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 20);
+					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					//lower resolution
-					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 10);
-					if(var_lang == "it" || var_lang == "es")
-						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.375, 0.375, vid_play_request ? disabled_color : color);
-					else if(var_lang == "ro")
-						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.35, 0.35, vid_play_request ? disabled_color : color);
-					else
-						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 150, 300, 20);
+					Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 150, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 110, 180, 100, 8);

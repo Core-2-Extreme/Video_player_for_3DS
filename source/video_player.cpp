@@ -13,7 +13,7 @@ bool vid_decode_video_wait_request = false;
 bool vid_select_audio_track_request = false;
 bool vid_use_hw_decoding_request = true;
 bool vid_use_hw_color_conversion_request = true;
-bool vid_use_multi_threaded_decoding_request = true;
+bool vid_use_multi_threaded_decoding_request = false;
 bool vid_pause_request = false;
 bool vid_seek_request = false;
 bool vid_seek_adjust_request = false;
@@ -36,7 +36,8 @@ bool vid_remember_video_pos_mode = false;
 bool vid_show_decode_graph_mode = true;
 bool vid_show_color_conversion_graph_mode = true;
 bool vid_show_packet_buffer_graph_mode = true;
-bool vid_show_raw_buffer_graph_mode = true;
+bool vid_show_raw_video_buffer_graph_mode = true;
+bool vid_show_raw_audio_buffer_graph_mode = true;
 bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
 bool vid_eof = false;
@@ -65,7 +66,8 @@ double vid_total_time = 0;
 double vid_recent_time[90];
 double vid_recent_total_time = 0;
 int vid_packet_buffer[320];
-int vid_raw_buffer[320];
+int vid_raw_video_buffer[320];
+int vid_raw_audio_buffer[320];
 int vid_sar_width = 1;
 int vid_sar_height = 1;
 int vid_seek_duration = 5;
@@ -107,7 +109,8 @@ Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_s
 vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
 vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
 vid_correct_aspect_ratio_button, vid_disable_resize_move_button, vid_remember_video_pos_button, vid_show_decode_graph_button,
-vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_buffer_graph_button, vid_menu_background, vid_scroll_bar;
+vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_video_buffer_graph_button, 
+vid_show_raw_audio_buffer_graph_button, vid_menu_background, vid_scroll_bar;
 
 void Vid_suspend(void);
 
@@ -300,7 +303,7 @@ void Vid_hid(Hid_info key)
 					else if(key.touch_y > 175)
 						vid_ui_y_offset = vid_ui_y_max;
 					else
-						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / vid_ui_y_max;
+						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / -125;
 
 					var_need_reflesh = true;
 				}				
@@ -483,6 +486,7 @@ void Vid_hid(Hid_info key)
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
 					vid_ui_y_max = 0;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
 					var_need_reflesh = true;
 				}
@@ -493,7 +497,8 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
-					vid_ui_y_max = 0;
+					vid_ui_y_max = -100;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
 					var_need_reflesh = true;
 				}
@@ -522,7 +527,6 @@ void Vid_hid(Hid_info key)
 						var_need_reflesh = true;
 					}
 				}
-				
 			}
 			if(vid_menu_mode == DEF_VID_MENU_SETTINGS_1)
 			{
@@ -582,6 +586,7 @@ void Vid_hid(Hid_info key)
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
 					vid_ui_y_max = -125;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
@@ -592,15 +597,35 @@ void Vid_hid(Hid_info key)
 				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
-					vid_ui_y_max = 0;
+					vid_ui_y_max = -100;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
 					var_need_reflesh = true;
 				}
 			}
 			else if(vid_menu_mode == DEF_VID_MENU_INFO)
 			{
+				//scroll
+				if(vid_menu_background.selected)
+					vid_y_move_speed = key.touch_y_move * var_scroll_speed;
+				else if(Util_hid_is_pressed(key, vid_scroll_bar))
+				{
+					vid_scroll_bar.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(vid_scroll_bar.selected)
+				{
+					if(key.touch_y < 50)
+						vid_ui_y_offset = 0;
+					else if(key.touch_y > 175)
+						vid_ui_y_offset = vid_ui_y_max;
+					else
+						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / -125;
+
+					var_need_reflesh = true;
+				}
 				//decoding graph button
-				if(Util_hid_is_pressed(key, vid_show_decode_graph_button))
+				else if(Util_hid_is_pressed(key, vid_show_decode_graph_button))
 				{
 					vid_show_decode_graph_button.selected = true;
 					var_need_reflesh = true;
@@ -609,6 +634,11 @@ void Vid_hid(Hid_info key)
 				{
 					vid_show_decode_graph_mode = !vid_show_decode_graph_mode;
 					var_need_reflesh = true;
+				}
+				else if(!Util_hid_is_held(key, vid_show_decode_graph_button) && vid_show_decode_graph_button.selected)
+				{
+					vid_show_decode_graph_button.selected = false;
+					vid_menu_background.selected = true;
 				}
 				//color conversion graph button
 				else if(Util_hid_is_pressed(key, vid_show_color_conversion_graph_button))
@@ -621,6 +651,11 @@ void Vid_hid(Hid_info key)
 					vid_show_color_conversion_graph_mode = !vid_show_color_conversion_graph_mode;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_show_color_conversion_graph_button) && vid_show_color_conversion_graph_button.selected)
+				{
+					vid_show_color_conversion_graph_button.selected = false;
+					vid_menu_background.selected = true;
+				}
 				//packet buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_packet_buffer_graph_button))
 				{
@@ -632,17 +667,46 @@ void Vid_hid(Hid_info key)
 					vid_show_packet_buffer_graph_mode = !vid_show_packet_buffer_graph_mode;
 					var_need_reflesh = true;
 				}
-				//raw buffer graph button
-				else if(Util_hid_is_pressed(key, vid_show_raw_buffer_graph_button))
+				else if(!Util_hid_is_held(key, vid_show_packet_buffer_graph_button) && vid_show_packet_buffer_graph_button.selected)
 				{
-					vid_show_raw_buffer_graph_button.selected = true;
+					vid_show_packet_buffer_graph_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//raw video buffer graph button
+				else if(Util_hid_is_pressed(key, vid_show_raw_video_buffer_graph_button))
+				{
+					vid_show_raw_video_buffer_graph_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, vid_show_raw_buffer_graph_button) && vid_show_raw_buffer_graph_button.selected)
+				else if(Util_hid_is_released(key, vid_show_raw_video_buffer_graph_button) && vid_show_raw_video_buffer_graph_button.selected)
 				{
-					vid_show_raw_buffer_graph_mode = !vid_show_raw_buffer_graph_mode;
+					vid_show_raw_video_buffer_graph_mode = !vid_show_raw_video_buffer_graph_mode;
 					var_need_reflesh = true;
 				}
+				else if(!Util_hid_is_held(key, vid_show_raw_video_buffer_graph_button) && vid_show_raw_video_buffer_graph_button.selected)
+				{
+					vid_show_raw_video_buffer_graph_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//raw audio buffer graph button
+				else if(Util_hid_is_pressed(key, vid_show_raw_audio_buffer_graph_button))
+				{
+					vid_show_raw_audio_buffer_graph_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_show_raw_audio_buffer_graph_button) && vid_show_raw_audio_buffer_graph_button.selected)
+				{
+					vid_show_raw_audio_buffer_graph_mode = !vid_show_raw_audio_buffer_graph_mode;
+					var_need_reflesh = true;
+				}
+				else if(!Util_hid_is_held(key, vid_show_raw_audio_buffer_graph_button) && vid_show_raw_audio_buffer_graph_button.selected)
+				{
+					vid_show_raw_audio_buffer_graph_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//background
+				else if(Util_hid_is_pressed(key, vid_menu_background))
+					vid_menu_background.selected = true;
 				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
 				{
@@ -652,6 +716,7 @@ void Vid_hid(Hid_info key)
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
 					vid_ui_y_max = -125;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
 					var_need_reflesh = true;
 				}
@@ -663,8 +728,34 @@ void Vid_hid(Hid_info key)
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
 					vid_ui_y_max = 0;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
 					var_need_reflesh = true;
+				}
+
+				if (vid_menu_background.selected || vid_y_move_speed != 0)
+				{
+					if(!vid_menu_background.selected)
+						vid_y_move_speed *= 0.95;
+					
+					if(vid_y_move_speed < 0.1 && vid_y_move_speed > -0.1)
+						vid_y_move_speed = 0;
+
+					if(vid_ui_y_offset - vid_y_move_speed > 0)
+					{
+						vid_ui_y_offset = 0;
+						var_need_reflesh = true;
+					}
+					else if(vid_ui_y_offset - vid_y_move_speed < vid_ui_y_max)
+					{
+						vid_ui_y_offset = vid_ui_y_max;
+						var_need_reflesh = true;
+					}
+					else
+					{
+						vid_ui_y_offset -= vid_y_move_speed;
+						var_need_reflesh = true;
+					}
 				}
 			}
 
@@ -719,11 +810,13 @@ void Vid_hid(Hid_info key)
 				if(vid_menu_mode == DEF_VID_MENU_NONE)
 				{
 					vid_ui_y_max = -125;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
 				}
 				else
 				{
 					vid_ui_y_max = 0;
+					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_NONE;
 				}
 				
@@ -887,7 +980,7 @@ void Vid_hid(Hid_info key)
 			|| vid_control_button.selected || vid_ok_button.selected || vid_correct_aspect_ratio_button.selected 
 			|| vid_disable_resize_move_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
 			|| vid_show_decode_graph_button.selected || vid_show_color_conversion_graph_button.selected || vid_show_packet_buffer_graph_button.selected
-			|| vid_show_raw_buffer_graph_button.selected || vid_menu_background.selected || vid_scroll_bar.selected)
+			|| vid_show_raw_video_buffer_graph_button.selected || vid_show_raw_audio_buffer_graph_button.selected || vid_menu_background.selected || vid_scroll_bar.selected)
 				var_need_reflesh = true;
 
 
@@ -898,7 +991,7 @@ void Vid_hid(Hid_info key)
 			= vid_control_button.selected = vid_ok_button.selected = vid_correct_aspect_ratio_button.selected 
 			= vid_disable_resize_move_button.selected = vid_remember_video_pos_button.selected = Draw_get_bot_ui_button()->selected
 			= vid_show_decode_graph_button.selected = vid_show_color_conversion_graph_button.selected = vid_show_packet_buffer_graph_button.selected
-			= vid_show_raw_buffer_graph_button.selected = vid_menu_background.selected = vid_scroll_bar.selected = false;
+			= vid_show_raw_video_buffer_graph_button.selected = vid_show_raw_audio_buffer_graph_button.selected = vid_menu_background.selected = vid_scroll_bar.selected = false;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 			{
@@ -1008,7 +1101,8 @@ void Vid_decode_thread(void* arg)
 				vid_time[0][i] = 0;
 				vid_time[1][i] = 0;
 				vid_packet_buffer[i] = 0;
-				vid_raw_buffer[i] = 0;
+				vid_raw_video_buffer[i] = 0;
+				vid_raw_audio_buffer[i] = 0;
 				vid_key_frame_list[i] = false;
 			}
 
@@ -1439,6 +1533,9 @@ void Vid_decode_thread(void* arg)
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
 					{
+						if(num_of_video_tracks == 0)
+							vid_raw_audio_buffer[319] = Util_speaker_get_available_buffer_num(0);
+
 						osTickCounterUpdate(&counter);
 						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, audio_track, 0);
 						osTickCounterUpdate(&counter);
@@ -1467,8 +1564,6 @@ void Vid_decode_thread(void* arg)
 									Util_log_save(DEF_VID_DECODE_THREAD_STR, "Volume is too big!!!");
 							}
 
-							//Util_log_save("", (Util_speaker_is_playing(0) ? "yes " : "no ") + std::to_string(Util_speaker_query_available_buffer(0)));
-							//Util_log_save("debug", "Util_speaker_add_buffer");
 							while(true)
 							{
 								result = Util_speaker_add_buffer(0, audio_info.ch, audio, audio_size);
@@ -1763,12 +1858,17 @@ void Vid_convert_thread(void* arg)
 				//Util_log_save(DEF_VID_CONVERT_THREAD_STR, "buffer : " + std::to_string(Util_video_decoder_get_available_raw_image_num(0, 0)));
 
 				if(vid_hw_decoding_mode)
-					vid_raw_buffer[319] = Util_mvd_video_decoder_get_available_raw_image_num(0);
+					vid_raw_video_buffer[319] = Util_mvd_video_decoder_get_available_raw_image_num(0);
 				else
-					vid_raw_buffer[319] = Util_video_decoder_get_available_raw_image_num(0, 0);
+					vid_raw_video_buffer[319] = Util_video_decoder_get_available_raw_image_num(0, 0);
+
+				vid_raw_audio_buffer[319] = Util_speaker_get_available_buffer_num(0);
 
 				for(int i = 1; i < 320; i++)
-					vid_raw_buffer[i - 1] = vid_raw_buffer[i];
+				{
+					vid_raw_video_buffer[i - 1] = vid_raw_video_buffer[i];
+					vid_raw_audio_buffer[i - 1] = vid_raw_audio_buffer[i];
+				}
 				
 				if(skip > vid_frametime || vid_seek_adjust_request)
 				{
@@ -2044,7 +2144,7 @@ void Vid_init(void)
 	vid_seek_adjust_request = false;
 	vid_use_hw_decoding_request = true;
 	vid_use_hw_color_conversion_request = true;
-	vid_use_multi_threaded_decoding_request = true;
+	vid_use_multi_threaded_decoding_request = false;
 	vid_read_packet_request = false;
 	vid_pause_for_home_menu_request = false;
 	vid_set_volume_request = false;
@@ -2052,7 +2152,8 @@ void Vid_init(void)
 	vid_show_decode_graph_mode = true;
 	vid_show_color_conversion_graph_mode = true;
 	vid_show_packet_buffer_graph_mode = true;
-	vid_show_raw_buffer_graph_mode = true;
+	vid_show_raw_video_buffer_graph_mode = true;
+	vid_show_raw_audio_buffer_graph_mode = true;
 	vid_request_thread_mode = DEF_DECODER_THREAD_TYPE_AUTO;
 	vid_thread_mode = DEF_DECODER_THREAD_TYPE_NONE;
 	vid_menu_mode = DEF_VID_MENU_NONE;
@@ -2112,7 +2213,8 @@ void Vid_init(void)
 		vid_time[0][i] = 0;
 		vid_time[1][i] = 0;
 		vid_packet_buffer[i] = 0;
-		vid_raw_buffer[i] = 0;
+		vid_raw_video_buffer[i] = 0;
+		vid_raw_audio_buffer[i] = 0;
 		vid_key_frame_list[i] = false;
 	}
 
@@ -2130,7 +2232,7 @@ void Vid_init(void)
 
 	if(result.code == 0)
 	{
-		result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3 and v1.4.0
+		result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1
 		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 		if(result.code != 0)
 		{
@@ -2215,7 +2317,8 @@ void Vid_init(void)
 	vid_show_decode_graph_button.c2d = var_square_image[0];
 	vid_show_color_conversion_graph_button.c2d = var_square_image[0];
 	vid_show_packet_buffer_graph_button.c2d = var_square_image[0];
-	vid_show_raw_buffer_graph_button.c2d = var_square_image[0];
+	vid_show_raw_video_buffer_graph_button.c2d = var_square_image[0];
+	vid_show_raw_audio_buffer_graph_button.c2d = var_square_image[0];
 	vid_menu_background.c2d = var_square_image[0];
 	vid_scroll_bar.c2d = var_square_image[0];
 
@@ -2549,67 +2652,146 @@ void Vid_main(void)
 				}
 				else if(vid_menu_mode == DEF_VID_MENU_INFO)
 				{
-					//decoding detail
+					//scroll bar
+					Draw_texture(&vid_scroll_bar, vid_scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_ui_y_offset / vid_ui_y_max * 120) + 50, 7, 10);
+
+					//color conversion time
 					if(vid_show_color_conversion_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 110 - vid_time[1][i], DEF_DRAW_BLUE, i + 1, 110 - vid_time[1][i + 1], DEF_DRAW_BLUE, 1);//Thread 1
+							Draw_line(i, 160 - vid_time[1][i] + vid_ui_y_offset, DEF_DRAW_BLUE, i + 1, 160 - vid_time[1][i + 1] + vid_ui_y_offset, DEF_DRAW_BLUE, 1);//Thread 1
 					}
+					//decoding time
 					if(vid_show_decode_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 110 - vid_time[0][i], DEF_DRAW_RED, i + 1, 110 - vid_time[0][i + 1], DEF_DRAW_RED, 1);//Thread 0		
+							Draw_line(i, 160 - vid_time[0][i] + vid_ui_y_offset, DEF_DRAW_RED, i + 1, 160 - vid_time[0][i + 1] + vid_ui_y_offset, DEF_DRAW_RED, 1);//Thread 0		
 					}
+					//compressed buffer
 					if(vid_show_packet_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 110 - vid_packet_buffer[i] / 4, 0xFFFF00FF, i + 1, 110 - vid_packet_buffer[i + 1] / 4, 0xFFFF00FF, 1);//Packet buffer
+							Draw_line(i, 160 - vid_packet_buffer[i] / 4 + vid_ui_y_offset, 0xFFFF00FF, i + 1, 160 - vid_packet_buffer[i + 1] / 4 + vid_ui_y_offset, 0xFFFF00FF, 1);//Packet buffer
 					}
-					if(vid_show_raw_buffer_graph_mode)
+					//raw video buffer
+					if(vid_show_raw_video_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 110 - vid_raw_buffer[i] / 2, 0xFF2060FF, i + 1, 110 - vid_raw_buffer[i + 1] / 2, 0xFF2060FF, 1);//Raw image buffer
+							Draw_line(i, 160 - vid_raw_video_buffer[i] / 2 + vid_ui_y_offset, 0xFF2060FF, i + 1, 160 - vid_raw_video_buffer[i + 1] / 2 + vid_ui_y_offset, 0xFF2060FF, 1);//Raw image buffer
+					}
+					//raw audio buffer
+					if(vid_show_raw_audio_buffer_graph_mode)
+					{
+						for(int i = 0; i < 319; i++)
+							Draw_line(i, 160 - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, 160 - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
 					}
 
-					Draw_line(0, 110, color, 320, 110, color, 1);
-					Draw_line(0, 110 - vid_frametime, 0xFFD0D000, 320, 110 - vid_frametime, 0xFFD0D000, 1);
+					//bottom line
+					Draw_line(0, 160 + vid_ui_y_offset, color, 320, 160 + vid_ui_y_offset, color, 1);
+					//deadline
+					Draw_line(0, 160 + vid_ui_y_offset - vid_frametime, 0xFFD0D000, 320, 160 - vid_frametime + vid_ui_y_offset, 0xFFD0D000, 1);
 
+					//key frame
 					if(vid_show_decode_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
 						{
 							if(vid_key_frame_list[i])
-								Draw_line(i, 110, disabled_color, i, 50, disabled_color, 2);
+								Draw_line(i, 160 + vid_ui_y_offset, disabled_color, i, 50 + vid_ui_y_offset, disabled_color, 2);
 						}
 					}
 
-					if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0)
+					//compressed buffer button 
+					if(160 + vid_ui_y_offset >= 50 && 160 + vid_ui_y_offset <= 170)
 					{
-						if(!vid_hw_decoding_mode && vid_thread_mode == DEF_DECODER_THREAD_TYPE_FRAME)
-							Draw("*When thread_type == frame, the red graph is unusable", 0, 110, 0.4, 0.4, color);
-						else
-							Draw("avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + " min " + std::to_string(1000 / vid_max_time).substr(0, 5) 
-							+  " max " + std::to_string(1000 / vid_min_time).substr(0, 5) + " recent avg " + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, 110, 0.4, 0.4, color);
+						Draw_texture(&vid_show_packet_buffer_graph_button, vid_show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 160 + vid_ui_y_offset, 160, 10);
+						Draw("Compressed buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 0, 160 + vid_ui_y_offset, 0.4, 0.4, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
+					}
+					else
+					{
+						vid_show_packet_buffer_graph_button.x_size = -1;
+						vid_show_packet_buffer_graph_button.y_size = -1;
 					}
 
-					Draw_texture(&vid_show_decode_graph_button, vid_show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 130, 160, 34);
-					Draw_texture(&vid_show_color_conversion_graph_button, vid_show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 120, 160, 44);
-					Draw_texture(&vid_show_packet_buffer_graph_button, vid_show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 110, 170, 120, 10);
-					Draw_texture(&vid_show_raw_buffer_graph_button, vid_show_raw_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 230, 170, 110, 10);
+					//raw video and audio buffer button
+					if(170 + vid_ui_y_offset >= 50 && 170 + vid_ui_y_offset <= 170)
+					{
+						Draw_texture(&vid_show_raw_video_buffer_graph_button, vid_show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 170 + vid_ui_y_offset, 160, 10);
+						Draw_texture(&vid_show_raw_audio_buffer_graph_button, vid_show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 170 + vid_ui_y_offset, 160, 10);
+						Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 0, 170 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
+						Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)), 160, 170 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
+					}
+					else
+					{
+						vid_show_raw_video_buffer_graph_button.x_size = -1;
+						vid_show_raw_video_buffer_graph_button.y_size = -1;
+						vid_show_raw_audio_buffer_graph_button.x_size = -1;
+						vid_show_raw_audio_buffer_graph_button.y_size = -1;
+					}
 
-					Draw("Deadline : " + std::to_string(vid_frametime).substr(0, 5) + "ms", 0, 120, 0.4, 0.4, 0xFFD0D000);
-					Draw("Video decode : " + std::to_string(vid_video_time).substr(0, 5) + "ms", 0, 130, 0.4, 0.4, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-					Draw("Audio decode : " + std::to_string(vid_audio_time).substr(0, 5) + "ms", 0, 140, 0.4, 0.4, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-					Draw("Data copy 0 : " + std::to_string(vid_copy_time[0]).substr(0, 5) + "ms", 160, 120, 0.4, 0.4, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
-					Draw("Color convert : " + std::to_string(vid_convert_time).substr(0, 5) + "ms", 160, 130, 0.4, 0.4, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
-					Draw("Data copy 1 : " + std::to_string(vid_copy_time[1]).substr(0, 5) + "ms", 160, 140, 0.4, 0.4, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
-					Draw("Thread 0 : " + std::to_string(vid_time[0][319]).substr(0, 6) + "ms", 0, 150, 0.5, 0.5, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-					Draw("Thread 1 : " + std::to_string(vid_time[1][319]).substr(0, 6) + "ms", 160, 150, 0.5, 0.5, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
-					Draw((std::string)"Hw decoding : " + (vid_hw_decoding_mode ? "yes" : "no"), 0, 160, 0.4, 0.4, color);
-					Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 160, 160, 0.4, 0.4, color);
-					Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_thread_mode], 0, 170, 0.4, 0.4, color);
-					Draw("Packet buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 110, 170, 0.4, 0.4, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
-					Draw("Raw buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 230, 170, 0.4, 0.4, vid_show_raw_buffer_graph_mode ? 0xFF2060FF : color);
+					//decoding speed
+					if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0 && 180 + vid_ui_y_offset >= 50 && 180 + vid_ui_y_offset <= 170)
+					{
+						if(!vid_hw_decoding_mode && vid_thread_mode == DEF_DECODER_THREAD_TYPE_FRAME)
+							Draw("*When thread_type == frame, the red graph is unusable", 0, 180 + vid_ui_y_offset, 0.4, 0.4, color);
+						else
+							Draw("avg/min/max/recent avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + "/" + std::to_string(1000 / vid_max_time).substr(0, 5) 
+							+  "/" + std::to_string(1000 / vid_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, 180 + vid_ui_y_offset, 0.4, 0.4, color);
+					}
+
+					//decoding mode
+					if(190 + vid_ui_y_offset >= 50 && 190 + vid_ui_y_offset <= 170)
+						Draw((std::string)"Hw decoding : " + (vid_hw_decoding_mode ? "yes" : "no"), 0, 190 + vid_ui_y_offset, 0.45, 0.45, color);
+					if(200 + vid_ui_y_offset >= 50 && 200 + vid_ui_y_offset <= 170)
+						Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 0, 200 + vid_ui_y_offset, 0.45, 0.45, color);
+					if(210 + vid_ui_y_offset >= 50 && 210 + vid_ui_y_offset <= 170)
+						Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_thread_mode], 0, 210 + vid_ui_y_offset, 0.45, 0.45, color);
+
+					//color conversion button
+					if(220 + vid_ui_y_offset >= 50 && 220 + vid_ui_y_offset <= 136)
+						Draw_texture(&vid_show_color_conversion_graph_button, vid_show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 220 + vid_ui_y_offset, 160, 44);
+					else
+					{
+						vid_show_color_conversion_graph_button.x_size = -1;
+						vid_show_color_conversion_graph_button.y_size = -1;
+					}
+
+					//deadline and color conversion text
+					if(220 + vid_ui_y_offset >= 50 && 220 + vid_ui_y_offset <= 165)
+					{
+						Draw("Deadline : " + std::to_string(vid_frametime).substr(0, 5) + "ms", 0, 220 + vid_ui_y_offset, 0.45, 0.45, 0xFFD0D000);
+						Draw("Data copy 0 : " + std::to_string(vid_copy_time[0]).substr(0, 5) + "ms", 160, 220 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+					}	
+
+					//decoding time button
+					if(230 + vid_ui_y_offset >= 50 && 230 + vid_ui_y_offset <= 146)
+						Draw_texture(&vid_show_decode_graph_button, vid_show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 230 + vid_ui_y_offset, 160, 34);
+					else
+					{
+						vid_show_decode_graph_button.x_size = -1;
+						vid_show_decode_graph_button.y_size = -1;
+					}
+
+					//decoding time text and color conversion text
+					if(230 + vid_ui_y_offset >= 50 && 230 + vid_ui_y_offset <= 165)
+					{
+						Draw("Video decode : " + std::to_string(vid_video_time).substr(0, 5) + "ms", 0, 230 + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Color conversion : " + std::to_string(vid_convert_time).substr(0, 5) + "ms", 160, 230 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+					}
+
+					//decoding time text and color conversion text
+					if(240 + vid_ui_y_offset >= 50 && 240 + vid_ui_y_offset <= 165)
+					{
+						Draw("Audio decode : " + std::to_string(vid_audio_time).substr(0, 5) + "ms", 0, 240 + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Data copy 1 : " + std::to_string(vid_copy_time[1]).substr(0, 5) + "ms", 160, 240 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+					}
+
+					//total time
+					if(250 + vid_ui_y_offset >= 50 && 250 + vid_ui_y_offset <= 165)
+					{
+						Draw("Thread 0 : " + std::to_string(vid_time[0][319]).substr(0, 6) + "ms", 0, 250 + vid_ui_y_offset, 0.5, 0.5, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Thread 1 : " + std::to_string(vid_time[1][319]).substr(0, 6) + "ms", 160, 250 + vid_ui_y_offset, 0.5, 0.5, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+					}
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 					Draw_texture(&vid_menu_button[1], vid_menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);

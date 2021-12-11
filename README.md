@@ -186,3 +186,4 @@ Workaround : encode your video without using B-frames. \
 * LITTOMA (Simplified chinese translation)
 * Cookiee (Spanish translation)
 * Tescu48 (Romanian translation)
+* JustScratchCoder (Polish translation)

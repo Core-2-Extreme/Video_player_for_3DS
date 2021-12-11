@@ -33,6 +33,15 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
 Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer, int size);
 
 /**
+ * @brief Get a number of audio buffer.
+ * Always return 0 if speaker api is not initialized.
+ * @param play_ch (in) Internal speaker ch (0 ~ 23).
+ * @return Number of audio buffer in number of buffers (not in time or bytes).
+ * @warning Thread dangerous (untested)
+*/
+int Util_speaker_get_available_buffer_num(int play_ch);
+
+/**
  * @brief Clear audio buffer.
  * Do nothing if speaker api is not initialized.
  * @param play_ch (in) Internal speaker ch (0 ~ 23).

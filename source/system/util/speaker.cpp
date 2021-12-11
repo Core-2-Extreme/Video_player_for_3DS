@@ -134,6 +134,23 @@ Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer
 	return result;
 }
 
+int Util_speaker_get_available_buffer_num(int play_ch)
+{
+	int available_buffers = 0;
+	if(!util_speaker_init)
+		return 0;
+	if(play_ch < 0 || play_ch > 23)
+		return 0;
+
+	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
+	{
+		if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_PLAYING || util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_QUEUED)
+			available_buffers++;
+	}
+
+	return available_buffers;
+}
+
 void Util_speaker_clear_buffer(int play_ch)
 {
 	if(!util_speaker_init)

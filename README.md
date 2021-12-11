@@ -1,6 +1,12 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.4.1
+The "FSUSER_OpenFile() failed" error has been fixed \
+Adjusted font and button size in settings menu \
+Multi-threaded decoding is disabled by default because it has stability problem \
+Polish(Polski) translation has been added (by JustScratchCoder)
+
 ### v1.4.0
 Decoded image(raw) buffer has been added and it makes playback \
 much much much much better (especially on OLD3DS)

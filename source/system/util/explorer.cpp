@@ -46,7 +46,7 @@ Result_with_string Util_expl_init(void)
 		util_expl_file_button[i].c2d = var_square_image[0];
 
 	util_expl_thread_run = true;
-	util_expl_read_dir_thread = threadCreate(Util_expl_read_dir_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+	util_expl_read_dir_thread = threadCreate(Util_expl_read_dir_thread, (void*)(""), DEF_STACKSIZE * 2, DEF_THREAD_PRIORITY_HIGH, 0, false);
 	if(!util_expl_read_dir_thread)
 	{
 		result.code = DEF_ERR_OTHER;

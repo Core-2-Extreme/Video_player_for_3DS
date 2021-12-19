@@ -23,14 +23,13 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
 /**
  * @brief Add audio buffer.
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
- * @param music_ch (in) Audio ch (1 or 2).
  * @param buffer (in) Pointer for raw audio data (PCM_S16LE).
  * @param size (in) Audio data size (in byte).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer, int size);
+Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size);
 
 /**
  * @brief Get a number of audio buffer.
@@ -40,6 +39,15 @@ Result_with_string Util_speaker_add_buffer(int play_ch, int music_ch, u8* buffer
  * @warning Thread dangerous (untested)
 */
 int Util_speaker_get_available_buffer_num(int play_ch);
+
+/**
+ * @brief Get a audio buffer size.
+ * Always return 0 if speaker api is not initialized.
+ * @param play_ch (in) Internal speaker ch (0 ~ 23).
+ * @return Audio buffer size in bytes.
+ * @warning Thread dangerous (untested)
+*/
+int Util_speaker_get_available_buffer_size(int play_ch);
 
 /**
  * @brief Clear audio buffer.

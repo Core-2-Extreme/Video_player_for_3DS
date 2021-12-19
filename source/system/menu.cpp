@@ -721,239 +721,242 @@ void Menu_hid_thread(void* arg)
 		{
 			if(menu_main_run)
 			{
-				if (Util_err_query_error_show_flag())
-					Util_err_main(key);
-				else
+				if(!aptShouldJumpToHome())
 				{
-					if(menu_check_exit_request)
-					{
-						if (key.p_a)
-						{
-							menu_must_exit = true;
-							var_need_reflesh = true;
-						}
-						else if (key.p_b)
-						{
-							menu_check_exit_request = false;
-							var_need_reflesh = true;
-						}
-					}
+					if (Util_err_query_error_show_flag())
+						Util_err_main(key);
 					else
 					{
-						if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+						if(menu_check_exit_request)
 						{
-							Draw_get_bot_ui_button()->selected = true;
-							var_need_reflesh = true;
+							if (key.p_a)
+							{
+								menu_must_exit = true;
+								var_need_reflesh = true;
+							}
+							else if (key.p_b)
+							{
+								menu_check_exit_request = false;
+								var_need_reflesh = true;
+							}
 						}
-						else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+						else
 						{
-							menu_check_exit_request = true;
-							var_need_reflesh = true;
+							if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+							{
+								Draw_get_bot_ui_button()->selected = true;
+								var_need_reflesh = true;
+							}
+							else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+							{
+								menu_check_exit_request = true;
+								var_need_reflesh = true;
+							}
+							else if (key.p_select)
+								Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
+							#ifdef DEF_ENABLE_SUB_APP0
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Vid_query_init_flag())
+							{
+								menu_sapp_close_button[0].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Vid_query_init_flag() && menu_sapp_close_button[0].selected)
+								menu_exit_request[0] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
+							{
+								menu_sapp_button[0].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
+							{
+								if (!Vid_query_init_flag())
+									menu_init_request[0] = true;
+								else
+									Vid_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP1
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag())
+							{
+								menu_sapp_close_button[1].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button[1].selected)
+								menu_exit_request[1] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
+							{
+								menu_sapp_button[1].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button[1].selected)
+							{
+								if (!Sapp1_query_init_flag())
+									menu_init_request[1] = true;
+								else
+									Sapp1_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP2
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag())
+							{
+								menu_sapp_close_button[2].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button[2].selected)
+								menu_exit_request[2] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
+							{
+								menu_sapp_button[2].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button[2].selected)
+							{
+								if (!Sapp2_query_init_flag())
+									menu_init_request[2] = true;
+								else
+									Sapp2_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP3
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag())
+							{
+								menu_sapp_close_button[3].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button[3].selected)
+								menu_exit_request[3] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
+							{
+								menu_sapp_button[3].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button[3].selected)
+							{
+								if (!Sapp3_query_init_flag())
+									menu_init_request[3] = true;
+								else
+									Sapp3_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP4
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag())
+							{
+								menu_sapp_close_button[4].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button[4].selected)
+								menu_exit_request[4] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
+							{
+								menu_sapp_button[4].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button[4].selected)
+							{
+								if (!Sapp4_query_init_flag())
+									menu_init_request[4] = true;
+								else
+									Sapp4_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP5
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag())
+							{
+								menu_sapp_close_button[5].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button[5].selected)
+								menu_exit_request[5] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
+							{
+								menu_sapp_button[5].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button[5].selected)
+							{
+								if (!Sapp5_query_init_flag())
+									menu_init_request[5] = true;
+								else
+									Sapp5_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP6
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag())
+							{
+								menu_sapp_close_button[6].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button[6].selected)
+								menu_exit_request[6] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
+							{
+								menu_sapp_button[6].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button[6].selected)
+							{
+								if (!Sapp6_query_init_flag())
+									menu_init_request[6] = true;
+								else
+									Sapp6_resume();
+							}
+							#endif
+							#ifdef DEF_ENABLE_SUB_APP7
+							else if (Util_hid_is_pressed(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag())
+							{
+								menu_sapp_close_button[7].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button[7].selected)
+								menu_exit_request[7] = true;
+							else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
+							{
+								menu_sapp_button[7].selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button[7].selected)
+							{
+								if (!Sapp7_query_init_flag())
+									menu_init_request[7] = true;
+								else
+									Sapp7_resume();
+							}
+							#endif
+							else if (Util_hid_is_pressed(key, menu_sem_button))
+							{
+								menu_sem_button.selected = true;
+								var_need_reflesh = true;
+							}
+							else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
+							{
+								if (!Sem_query_init_flag())
+									menu_init_request[8] = true;
+								else
+									Sem_resume();
+							}
 						}
-						else if (key.p_select)
-							Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
-						#ifdef DEF_ENABLE_SUB_APP0
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Vid_query_init_flag())
-						{
-							menu_sapp_close_button[0].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Vid_query_init_flag() && menu_sapp_close_button[0].selected)
-							menu_exit_request[0] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
-						{
-							menu_sapp_button[0].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
-						{
-							if (!Vid_query_init_flag())
-								menu_init_request[0] = true;
-							else
-								Vid_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP1
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag())
-						{
-							menu_sapp_close_button[1].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button[1].selected)
-							menu_exit_request[1] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
-						{
-							menu_sapp_button[1].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button[1].selected)
-						{
-							if (!Sapp1_query_init_flag())
-								menu_init_request[1] = true;
-							else
-								Sapp1_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP2
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag())
-						{
-							menu_sapp_close_button[2].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button[2].selected)
-							menu_exit_request[2] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
-						{
-							menu_sapp_button[2].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button[2].selected)
-						{
-							if (!Sapp2_query_init_flag())
-								menu_init_request[2] = true;
-							else
-								Sapp2_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP3
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag())
-						{
-							menu_sapp_close_button[3].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button[3].selected)
-							menu_exit_request[3] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
-						{
-							menu_sapp_button[3].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button[3].selected)
-						{
-							if (!Sapp3_query_init_flag())
-								menu_init_request[3] = true;
-							else
-								Sapp3_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP4
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag())
-						{
-							menu_sapp_close_button[4].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button[4].selected)
-							menu_exit_request[4] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
-						{
-							menu_sapp_button[4].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button[4].selected)
-						{
-							if (!Sapp4_query_init_flag())
-								menu_init_request[4] = true;
-							else
-								Sapp4_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP5
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag())
-						{
-							menu_sapp_close_button[5].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button[5].selected)
-							menu_exit_request[5] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
-						{
-							menu_sapp_button[5].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button[5].selected)
-						{
-							if (!Sapp5_query_init_flag())
-								menu_init_request[5] = true;
-							else
-								Sapp5_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP6
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag())
-						{
-							menu_sapp_close_button[6].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button[6].selected)
-							menu_exit_request[6] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
-						{
-							menu_sapp_button[6].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button[6].selected)
-						{
-							if (!Sapp6_query_init_flag())
-								menu_init_request[6] = true;
-							else
-								Sapp6_resume();
-						}
-						#endif
-						#ifdef DEF_ENABLE_SUB_APP7
-						else if (Util_hid_is_pressed(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag())
-						{
-							menu_sapp_close_button[7].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button[7].selected)
-							menu_exit_request[7] = true;
-						else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
-						{
-							menu_sapp_button[7].selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button[7].selected)
-						{
-							if (!Sapp7_query_init_flag())
-								menu_init_request[7] = true;
-							else
-								Sapp7_resume();
-						}
-						#endif
-						else if (Util_hid_is_pressed(key, menu_sem_button))
-						{
-							menu_sem_button.selected = true;
-							var_need_reflesh = true;
-						}
-						else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
-						{
-							if (!Sem_query_init_flag())
-								menu_init_request[8] = true;
-							else
-								Sem_resume();
-						}
-					}
 
-					if(!key.p_touch && !key.h_touch)
-					{
-						if(menu_sem_button.selected || Draw_get_bot_ui_button()->selected)
-							var_need_reflesh = true;
-
-						for(int i = 0; i < 8; i++)
+						if(!key.p_touch && !key.h_touch)
 						{
-							if(menu_sapp_button[i].selected || menu_sapp_close_button[i].selected)
+							if(menu_sem_button.selected || Draw_get_bot_ui_button()->selected)
 								var_need_reflesh = true;
 
-							menu_sapp_button[i].selected = false;
-							menu_sapp_close_button[i].selected = false;
-						}
-						menu_sem_button.selected = false;
-						Draw_get_bot_ui_button()->selected = false;
-					}
-				}
+							for(int i = 0; i < 8; i++)
+							{
+								if(menu_sapp_button[i].selected || menu_sapp_close_button[i].selected)
+									var_need_reflesh = true;
 
-				if(Util_log_query_log_show_flag())
-					Util_log_main(key);
+								menu_sapp_button[i].selected = false;
+								menu_sapp_close_button[i].selected = false;
+							}
+							menu_sem_button.selected = false;
+							Draw_get_bot_ui_button()->selected = false;
+						}
+					}
+
+					if(Util_log_query_log_show_flag())
+						Util_log_main(key);
+				}
 			}
 			#ifdef DEF_ENABLE_SUB_APP0
 			else if (Vid_query_running_flag())

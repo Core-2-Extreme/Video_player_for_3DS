@@ -786,6 +786,9 @@ void Sem_hid(Hid_info key)
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
 	Result_with_string result;
 
+	if(aptShouldJumpToHome())
+		return;
+
 	if (Util_err_query_error_show_flag())
 		Util_err_main(key);
 	else

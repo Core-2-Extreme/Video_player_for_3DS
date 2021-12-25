@@ -137,7 +137,7 @@ Known issues :
 windows-server-2003)
 * If video contain B-frames, hardware decoder won't play it smoothly. \
 Workaround : encode your video without using B-frames. \
-`ffmpeg -i {input_file_name} -acodec copy -vcodec h264 -crf 20 -s {width}x{height} -x264-params bframes=0 {output_file_name}`
+`ffmpeg -i {input_file_name} -acodec copy -vcodec h264 -crf 20 -s {width}x{height} -bf 0 {output_file_name}`
 
 ## Supported languages
 * English

@@ -1129,6 +1129,11 @@ void Vid_decode_thread(void* arg)
 			{
 				result = Util_speaker_init();
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_init()..." + result.string + result.error_description, result.code);
+				if(result.code != 0)
+				{
+					Util_err_set_error_message(result.string, "You have to run dsp1 in order to listen to audio.\n(https://github.com/zoogie/DSP1/releases)", DEF_VID_DECODE_THREAD_STR, result.code);
+					Util_err_set_error_show_flag(true);
+				}
 
 				vid_num_of_audio_tracks = num_of_audio_tracks;
 				result = Util_audio_decoder_init(num_of_audio_tracks, 0);
@@ -1156,10 +1161,16 @@ void Vid_decode_thread(void* arg)
 					audio_track = vid_selected_audio_track;
 					Util_audio_decoder_get_info(&vid_audio_info, audio_track, 0);
 					vid_duration *= 1000;
-					Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
+					result = Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
+					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_set_audio_info()..." + result.string + result.error_description, result.code);
+					if(result.code == DEF_ERR_INVALID_ARG)
+					{
+						Util_err_set_error_message(result.string, "Unsupported audio.", DEF_VID_DECODE_THREAD_STR, result.code);
+						Util_err_set_error_show_flag(true);
+					}
 				}
 			}
-			if(num_of_video_tracks && vid_play_request)
+			if(num_of_video_tracks > 0 && vid_play_request)
 			{
 				vid_num_of_video_tracks = num_of_video_tracks;
 				Util_fake_pthread_set_enabled_core(vid_enabled_cores);
@@ -1337,7 +1348,7 @@ void Vid_decode_thread(void* arg)
 				}
 			}
 
-			if(num_of_video_tracks > 0)
+			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag())
 			{
 				vid_full_screen_mode = true;
 				vid_turn_off_bottom_screen_count = 300;

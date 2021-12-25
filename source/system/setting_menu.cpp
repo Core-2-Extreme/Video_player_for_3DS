@@ -1591,7 +1591,7 @@ void Sem_record_thread(void* arg)
 				rec_width = 400;
 				rec_height = 480;
 				if(new_3ds)
-					rec_framerate = 20;
+					rec_framerate = 15;
 				else
 					rec_framerate = 5;
 			}
@@ -1624,11 +1624,17 @@ void Sem_record_thread(void* arg)
 				sem_record_request = false;
 
 			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_video_encoder_init()...");
-			result = Util_video_encoder_init(AV_CODEC_ID_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0);
+			result = Util_video_encoder_init(DEF_ENCODER_VIDEO_CODEC_MJPEG, rec_width, rec_height, 1500000, rec_framerate, 0);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 			if(result.code != 0)
 				sem_record_request = false;
-			
+
+			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_encoder_write_header()...");
+			result = Util_encoder_write_header(0);
+			Util_log_add(log_num, result.string + result.error_description, result.code);
+			if(result.code != 0)
+				sem_record_request = false;
+
 			sem_yuv420p = (u8*)malloc(rec_width * rec_height * 1.5);
 			if(sem_yuv420p == NULL)
 				sem_stop_record_request = true;

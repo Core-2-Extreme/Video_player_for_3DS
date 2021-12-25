@@ -375,7 +375,7 @@ Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, 
 	if(!*yuv420p)
 		goto out_of_memory;
 	
-	sws_context = sws_getContext(width, height, AV_PIX_FMT_RGB24,
+	sws_context = sws_getContext(width, height, AV_PIX_FMT_BGR24,
 	width, height, AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
 	if(!sws_context)
 	{

@@ -11,7 +11,7 @@ Result_with_string Util_speaker_init(void)
 		goto already_inited;
 
 	for(int i = 0; i < 24; i++)
-		util_speaker_music_ch[i] = 1;
+		util_speaker_music_ch[i] = -1;
 	
 	result.code = ndspInit();//0xd880A7FA
 	if(result.code != 0)
@@ -89,6 +89,9 @@ Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size)
 	if(play_ch < 0 || play_ch > 23 || !buffer || size <= 0)
 		goto invalid_arg;
 
+	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
+		goto not_inited;
+
 	//Search for free queue
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
@@ -146,6 +149,8 @@ int Util_speaker_get_available_buffer_num(int play_ch)
 		return 0;
 	if(play_ch < 0 || play_ch > 23)
 		return 0;
+	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
+		return 0;
 
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
@@ -162,6 +167,8 @@ int Util_speaker_get_available_buffer_size(int play_ch)
 	if(!util_speaker_init)
 		return 0;
 	if(play_ch < 0 || play_ch > 23)
+		return 0;
+	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
 		return 0;
 
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
@@ -239,5 +246,5 @@ void Util_speaker_exit(void)
 	util_speaker_init = false;
 	ndspExit();
 	for(int i = 0; i < 24; i++)
-		util_speaker_music_ch[i] = 1;
+		util_speaker_music_ch[i] = -1;
 }

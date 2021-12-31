@@ -22,6 +22,7 @@ bool vid_read_packet_wait_request = false;
 bool vid_pause_for_home_menu_request = false;
 bool vid_set_volume_request = false;
 bool vid_set_seek_duration_request = false;
+bool vid_clear_raw_buffer_request[2] = { false, false, };
 bool vid_linear_filter = true;
 bool vid_show_controls = false;
 bool vid_allow_skip_frames = false;
@@ -1060,6 +1061,8 @@ void Vid_decode_thread(void* arg)
 			vid_hw_decoding_mode = false;
 			vid_hw_color_conversion_mode = false;
 			vid_read_packet_request = false;
+			vid_clear_raw_buffer_request[0] = false;
+			vid_clear_raw_buffer_request[1] = false;
 			vid_eof = false;
 			vid_total_time = 0;
 			vid_total_frames = 0;
@@ -1495,14 +1498,10 @@ void Vid_decode_thread(void* arg)
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
 					Util_speaker_clear_buffer(0);
 
-					if(vid_hw_decoding_mode)
-						Util_mvd_video_decoder_clear_raw_image(0);
-					else
-					{
-						for(int i = 0; i < num_of_video_tracks; i++)
-							Util_video_decoder_clear_raw_image(i, 0);
-					}
-					
+					vid_clear_raw_buffer_request[0] = true; 
+					while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
+						usleep(10000);
+										
 					if(result.code == 0)
 					{
 						vid_eof = false;
@@ -1692,11 +1691,30 @@ void Vid_decode_video_thread(void* arg)
 			skip = 0;
 			while(vid_play_request)
 			{
-				if(vid_decode_video_request)
+				if(vid_clear_raw_buffer_request[1])
+				{
+					if(vid_hw_decoding_mode)
+						Util_mvd_video_decoder_clear_raw_image(0);
+					else
+					{
+						for(int i = 0; i < vid_num_of_video_tracks; i++)
+							Util_video_decoder_clear_raw_image(i, 0);
+					}
+
+					if(vid_hw_decoding_mode)
+						result = Util_mvd_video_decoder_decode(0);
+					else
+						result = Util_video_decoder_decode(packet_index, 0);
+
+					vid_clear_raw_buffer_request[0] = false;
+					vid_clear_raw_buffer_request[1] = false;
+				}
+				else if(vid_decode_video_request)
 				{
 					vid_decode_video_wait_request = true;
 					packet_index = vid_packet_index;
 					key_frame = vid_key_frame;
+
 					if(vid_allow_skip_frames && skip > vid_frametime && (!key_frame || vid_allow_skip_key_frames))
 					{
 						skip -= vid_frametime;
@@ -1720,7 +1738,7 @@ void Vid_decode_video_thread(void* arg)
 									result = Util_video_decoder_decode(packet_index, 0);
 								osTickCounterUpdate(&counter);
 
-								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request)
+								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || vid_clear_raw_buffer_request[1])
 									break;
 								else
 								{
@@ -1848,6 +1866,13 @@ void Vid_convert_thread(void* arg)
 					Util_speaker_resume(0);
 					aptSetSleepAllowed(false);
 				}
+
+				if(vid_clear_raw_buffer_request[0])
+				{
+					vid_clear_raw_buffer_request[1] = true;
+					while((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
+						usleep(10000);
+				}
 				osTickCounterUpdate(&counter[3]);
 
 				if(first)//start audio playback when first frame is ready
@@ -1883,10 +1908,8 @@ void Vid_convert_thread(void* arg)
 						vid_current_pos = pos;
 
 					if(vid_seek_adjust_request)
-					{
-						var_need_reflesh = true;
 						skip = 0;
-					}
+
 					osTickCounterUpdate(&counter[3]);
 					skip -= vid_frametime - osTickCounterRead(&counter[3]);
 				}
@@ -2161,6 +2184,8 @@ void Vid_init(void)
 	vid_pause_for_home_menu_request = false;
 	vid_set_volume_request = false;
 	vid_set_seek_duration_request = false;
+	vid_clear_raw_buffer_request[0] = false;
+	vid_clear_raw_buffer_request[1] = false;
 	vid_show_decode_graph_mode = true;
 	vid_show_color_conversion_graph_mode = true;
 	vid_show_packet_buffer_graph_mode = true;

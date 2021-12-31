@@ -35,9 +35,7 @@ int util_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS][DEF_DECOD
 int util_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_stream_num[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 int util_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
-Handle util_video_decoder_raw_image_counter_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
-Handle util_video_decoder_add_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
-Handle util_video_decoder_get_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+Handle util_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 AVPacket* util_video_decoder_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 AVPacket* util_video_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 AVFrame* util_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS][DEF_DECODER_MAX_RAW_IMAGE];
@@ -54,9 +52,7 @@ int util_mvd_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_packet_size = 0;
 int util_mvd_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS];
 u8* util_mvd_video_decoder_packet = NULL;
-Handle util_mvd_video_decoder_raw_image_counter_mutex[DEF_DECODER_MAX_SESSIONS];
-Handle util_mvd_video_decoder_add_raw_image_mutex[DEF_DECODER_MAX_SESSIONS];
-Handle util_mvd_video_decoder_get_raw_image_mutex[DEF_DECODER_MAX_SESSIONS];
+Handle util_mvd_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS];
 AVFrame* util_mvd_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_RAW_IMAGE];
 
 
@@ -160,9 +156,7 @@ void Util_decoder_init_variables(void)
 			util_video_decoder_raw_image_current_index[i][k] = 0;
 			util_video_decoder_stream_num[i][k] = -1;
 			util_video_decoder_max_raw_image[i][k] = 0;
-			util_video_decoder_raw_image_counter_mutex[i][k] = 0;
-			util_video_decoder_add_raw_image_mutex[i][k] = 0;
-			util_video_decoder_get_raw_image_mutex[i][k] = 0;
+			util_video_decoder_raw_image_mutex[i][k] = 0;
 			util_video_decoder_packet[i][k] = NULL;
 			util_video_decoder_cache_packet[i][k] = NULL;
 			util_video_decoder_context[i][k] = NULL;
@@ -176,9 +170,7 @@ void Util_decoder_init_variables(void)
 		util_mvd_video_decoder_raw_image_ready_index[i] = 0;
 		util_mvd_video_decoder_raw_image_current_index[i] = 0;
 		util_mvd_video_decoder_max_raw_image[i] = 0;
-		util_mvd_video_decoder_raw_image_counter_mutex[i] = 0;
-		util_mvd_video_decoder_add_raw_image_mutex[i] = 0;
-		util_mvd_video_decoder_get_raw_image_mutex[i] = 0;
+		util_mvd_video_decoder_raw_image_mutex[i] = 0;
 
 		for(int s = 0; s < DEF_DECODER_MAX_RAW_IMAGE; s++)
 			util_mvd_video_decoder_raw_image[i][s] = NULL;
@@ -526,26 +518,13 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			goto ffmpeg_api_failed;
 		}
 
-		result.code = svcCreateMutex(&util_video_decoder_raw_image_counter_mutex[session][i], false);
+		result.code = svcCreateMutex(&util_video_decoder_raw_image_mutex[session][i], false);
 		if(result.code != 0)
 		{
 			result.error_description = "[Error] svcCreateMutex() failed. ";
 			goto nintendo_api_failed;
 		}
 
-		result.code = svcCreateMutex(&util_video_decoder_add_raw_image_mutex[session][i], false);
-		if(result.code != 0)
-		{
-			result.error_description = "[Error] svcCreateMutex() failed. ";
-			goto nintendo_api_failed;
-		}
-
-		result.code = svcCreateMutex(&util_video_decoder_get_raw_image_mutex[session][i], false);
-		if(result.code != 0)
-		{
-			result.error_description = "[Error] svcCreateMutex() failed. ";
-			goto nintendo_api_failed;
-		}
 		util_video_decoder_max_raw_image[session][i] = DEF_DECODER_MAX_RAW_IMAGE;
 		util_video_decoder_changeable_buffer_size[session][i] = true;
 		util_video_decoder_init[session][i] = true;
@@ -574,9 +553,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
 		avcodec_free_context(&util_video_decoder_context[session][i]);
-		svcCloseHandle(util_video_decoder_raw_image_counter_mutex[session][i]);
-		svcCloseHandle(util_video_decoder_add_raw_image_mutex[session][i]);
-		svcCloseHandle(util_video_decoder_get_raw_image_mutex[session][i]);
+		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 	}
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -585,9 +562,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
 		avcodec_free_context(&util_video_decoder_context[session][i]);
-		svcCloseHandle(util_video_decoder_raw_image_counter_mutex[session][i]);
-		svcCloseHandle(util_video_decoder_add_raw_image_mutex[session][i]);
-		svcCloseHandle(util_video_decoder_get_raw_image_mutex[session][i]);
+		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 	}
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -635,22 +610,8 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 		width += 16 - width % 16;
 	if(height % 16 != 0)
 		height += 16 - height % 16;
-			
-	result.code = svcCreateMutex(&util_mvd_video_decoder_raw_image_counter_mutex[session], false);
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] svcCreateMutex() failed. ";
-		goto nintendo_api_failed;
-	}
 
-	result.code = svcCreateMutex(&util_mvd_video_decoder_add_raw_image_mutex[session], false);
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] svcCreateMutex() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	result.code = svcCreateMutex(&util_mvd_video_decoder_get_raw_image_mutex[session], false);
+	result.code = svcCreateMutex(&util_mvd_video_decoder_raw_image_mutex[session], false);
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] svcCreateMutex() failed. ";
@@ -690,9 +651,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 
 	nintendo_api_failed:
 	mvdstdExit();
-	svcCloseHandle(util_mvd_video_decoder_raw_image_counter_mutex[session]);
-	svcCloseHandle(util_mvd_video_decoder_add_raw_image_mutex[session]);
-	svcCloseHandle(util_mvd_video_decoder_get_raw_image_mutex[session]);
+	svcCloseHandle(util_mvd_video_decoder_raw_image_mutex[session]);
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
@@ -1332,10 +1291,8 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	}
 
 	util_video_decoder_changeable_buffer_size[session][packet_index] = false;
-	svcWaitSynchronization(util_video_decoder_add_raw_image_mutex[session][packet_index], U64_MAX);
 	if(util_video_decoder_available_raw_image[session][packet_index] + 1 >= util_video_decoder_max_raw_image[session][packet_index])
 	{
-		svcReleaseMutex(util_video_decoder_add_raw_image_mutex[session][packet_index]);
 		result.error_description = "[Error] Queues are full. ";
 		goto try_again;
 	}
@@ -1368,11 +1325,9 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	else
 		util_video_decoder_raw_image_current_index[session][packet_index] = 0;
 
-	svcReleaseMutex(util_video_decoder_add_raw_image_mutex[session][packet_index]);
-
-	svcWaitSynchronization(util_video_decoder_raw_image_counter_mutex[session][packet_index], U64_MAX);
+	svcWaitSynchronization(util_video_decoder_raw_image_mutex[session][packet_index], U64_MAX);
 	util_video_decoder_available_raw_image[session][packet_index]++;
-	svcReleaseMutex(util_video_decoder_raw_image_counter_mutex[session][packet_index]);
+	svcReleaseMutex(util_video_decoder_raw_image_mutex[session][packet_index]);
 
 	util_video_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_video_decoder_packet[session][packet_index]);
@@ -1397,7 +1352,6 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	util_video_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_video_decoder_packet[session][packet_index]);
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
-	svcReleaseMutex(util_video_decoder_add_raw_image_mutex[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -1428,7 +1382,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	}
 
 	util_mvd_video_decoder_changeable_buffer_size = false;
-	svcWaitSynchronization(util_mvd_video_decoder_add_raw_image_mutex[session], U64_MAX);
 	if(util_mvd_video_decoder_available_raw_image[session] + 1 >= util_mvd_video_decoder_max_raw_image[session])
 	{
 		result.error_description = "[Error] Queues are full. ";
@@ -1558,11 +1511,9 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	else
 		util_mvd_video_decoder_raw_image_current_index[session] = 0;
 
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
-
-	svcWaitSynchronization(util_mvd_video_decoder_raw_image_counter_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_mvd_video_decoder_raw_image_mutex[session], U64_MAX);
 	util_mvd_video_decoder_available_raw_image[session]++;
-	svcReleaseMutex(util_mvd_video_decoder_raw_image_counter_mutex[session]);
+	svcReleaseMutex(util_mvd_video_decoder_raw_image_mutex[session]);
 
 	util_video_decoder_packet_ready[session][0] = false;
 	av_packet_free(&util_video_decoder_packet[session][0]);
@@ -1579,7 +1530,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	return result;
 
 	try_again:
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
 	result.code = DEF_ERR_TRY_AGAIN;
 	result.string = DEF_ERR_TRY_AGAIN_STR;
 	return result;
@@ -1590,7 +1540,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
 	result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
 	result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
 	return result;
@@ -1601,7 +1550,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -1612,7 +1560,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
@@ -1628,9 +1575,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session)
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		return;
 
-	svcWaitSynchronization(util_video_decoder_get_raw_image_mutex[session][packet_index], U64_MAX);
-	svcWaitSynchronization(util_video_decoder_add_raw_image_mutex[session][packet_index], U64_MAX);
-	svcWaitSynchronization(util_video_decoder_raw_image_counter_mutex[session][packet_index], U64_MAX);
+	svcWaitSynchronization(util_video_decoder_raw_image_mutex[session][packet_index], U64_MAX);
 	
 	for(int k = 0; k < util_video_decoder_max_raw_image[session][packet_index]; k++)
 		av_frame_free(&util_video_decoder_raw_image[session][packet_index][k]);
@@ -1639,9 +1584,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session)
 	util_video_decoder_raw_image_ready_index[session][packet_index] = 0;
 	util_video_decoder_raw_image_current_index[session][packet_index] = 0;
 
-	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
-	svcReleaseMutex(util_video_decoder_add_raw_image_mutex[session][packet_index]);
-	svcReleaseMutex(util_video_decoder_raw_image_counter_mutex[session][packet_index]);
+	svcReleaseMutex(util_video_decoder_raw_image_mutex[session][packet_index]);
 }
 
 void Util_mvd_video_decoder_clear_raw_image(int session)
@@ -1655,9 +1598,7 @@ void Util_mvd_video_decoder_clear_raw_image(int session)
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		return;
 
-	svcWaitSynchronization(util_mvd_video_decoder_get_raw_image_mutex[session], U64_MAX);
-	svcWaitSynchronization(util_mvd_video_decoder_add_raw_image_mutex[session], U64_MAX);
-	svcWaitSynchronization(util_mvd_video_decoder_raw_image_counter_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_mvd_video_decoder_raw_image_mutex[session], U64_MAX);
 	
 	for(int i = 0; i < util_mvd_video_decoder_max_raw_image[session]; i++)
 	{
@@ -1674,9 +1615,7 @@ void Util_mvd_video_decoder_clear_raw_image(int session)
 	util_mvd_video_decoder_raw_image_ready_index[session] = 0;
 	util_mvd_video_decoder_raw_image_current_index[session] = 0;
 
-	svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
-	svcReleaseMutex(util_mvd_video_decoder_add_raw_image_mutex[session]);
-	svcReleaseMutex(util_mvd_video_decoder_raw_image_counter_mutex[session]);
+	svcReleaseMutex(util_mvd_video_decoder_raw_image_mutex[session]);
 }
 
 int Util_video_decoder_get_available_raw_image_num(int packet_index, int session)
@@ -1724,7 +1663,6 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		goto not_inited;
 	
-	svcWaitSynchronization(util_video_decoder_get_raw_image_mutex[session][packet_index], U64_MAX);
 	if(util_video_decoder_available_raw_image[session][packet_index] <= 0)
 	{
 		result.error_description = "[Error] No raw image available. ";
@@ -1759,10 +1697,9 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	else
 		util_video_decoder_raw_image_ready_index[session][packet_index] = 0;
 
-	svcWaitSynchronization(util_video_decoder_raw_image_counter_mutex[session][packet_index], U64_MAX);
+	svcWaitSynchronization(util_video_decoder_raw_image_mutex[session][packet_index], U64_MAX);
 	util_video_decoder_available_raw_image[session][packet_index]--;
-	svcReleaseMutex(util_video_decoder_raw_image_counter_mutex[session][packet_index]);
-	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
+	svcReleaseMutex(util_video_decoder_raw_image_mutex[session][packet_index]);
 
 	return result;
 
@@ -1777,13 +1714,11 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	return result;
 
 	try_again:
-	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
 	result.code = DEF_ERR_TRY_AGAIN;
 	result.string = DEF_ERR_TRY_AGAIN_STR;
 	return result;
 
 	out_of_memory:
-	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 	return result;
@@ -1807,7 +1742,6 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		goto not_inited;
 	
-	svcWaitSynchronization(util_mvd_video_decoder_get_raw_image_mutex[session], U64_MAX);
 	if(util_mvd_video_decoder_available_raw_image[session] <= 0)
 	{
 		result.error_description = "[Error] No raw image available. ";
@@ -1876,10 +1810,9 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	else
 		util_mvd_video_decoder_raw_image_ready_index[session] = 0;
 
-	svcWaitSynchronization(util_mvd_video_decoder_raw_image_counter_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_mvd_video_decoder_raw_image_mutex[session], U64_MAX);
 	util_mvd_video_decoder_available_raw_image[session]--;
-	svcReleaseMutex(util_mvd_video_decoder_raw_image_counter_mutex[session]);
-	svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
+	svcReleaseMutex(util_mvd_video_decoder_raw_image_mutex[session]);
 
 	return result;
 
@@ -1894,13 +1827,11 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	return result;
 
 	try_again:
-	svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
 	result.code = DEF_ERR_TRY_AGAIN;
 	result.string = DEF_ERR_TRY_AGAIN_STR;
 	return result;
 
 	out_of_memory:
-	svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 	return result;
@@ -1921,12 +1852,8 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		return;
 	
-	svcWaitSynchronization(util_video_decoder_get_raw_image_mutex[session][packet_index], U64_MAX);
 	if(util_video_decoder_available_raw_image[session][packet_index] <= 0)
-	{
-		svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
 		return;
-	}
 
 	*current_pos = 0;
 	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
@@ -1944,10 +1871,9 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
 	else
 		util_video_decoder_raw_image_ready_index[session][packet_index] = 0;
 
-	svcWaitSynchronization(util_video_decoder_raw_image_counter_mutex[session][packet_index], U64_MAX);
+	svcWaitSynchronization(util_video_decoder_raw_image_mutex[session][packet_index], U64_MAX);
 	util_video_decoder_available_raw_image[session][packet_index]--;
-	svcReleaseMutex(util_video_decoder_raw_image_counter_mutex[session][packet_index]);
-	svcReleaseMutex(util_video_decoder_get_raw_image_mutex[session][packet_index]);
+	svcReleaseMutex(util_video_decoder_raw_image_mutex[session][packet_index]);
 }
 
 void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
@@ -1964,12 +1890,8 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		return;
 	
-	svcWaitSynchronization(util_mvd_video_decoder_get_raw_image_mutex[session], U64_MAX);
 	if(util_mvd_video_decoder_available_raw_image[session] <= 0)
-	{
-		svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
 		return;
-	}
 	
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
@@ -1993,10 +1915,9 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 	else
 		util_mvd_video_decoder_raw_image_ready_index[session] = 0;
 
-	svcWaitSynchronization(util_mvd_video_decoder_raw_image_counter_mutex[session], U64_MAX);
+	svcWaitSynchronization(util_mvd_video_decoder_raw_image_mutex[session], U64_MAX);
 	util_mvd_video_decoder_available_raw_image[session]--;
-	svcReleaseMutex(util_mvd_video_decoder_raw_image_counter_mutex[session]);
-	svcReleaseMutex(util_mvd_video_decoder_get_raw_image_mutex[session]);
+	svcReleaseMutex(util_mvd_video_decoder_raw_image_mutex[session]);
 }
 
 Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session)
@@ -2081,9 +2002,7 @@ void Util_video_decoder_exit(int session)
 			avcodec_free_context(&util_video_decoder_context[session][i]);
 			av_packet_free(&util_video_decoder_packet[session][i]);
 			av_packet_free(&util_video_decoder_cache_packet[session][i]);
-			svcCloseHandle(util_video_decoder_raw_image_counter_mutex[session][i]);
-			svcCloseHandle(util_video_decoder_add_raw_image_mutex[session][i]);
-			svcCloseHandle(util_video_decoder_get_raw_image_mutex[session][i]);
+			svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 			util_video_decoder_available_raw_image[session][i] = 0;
 			util_video_decoder_raw_image_ready_index[session][i] = 0;
 			util_video_decoder_raw_image_current_index[session][i] = 0;
@@ -2115,9 +2034,7 @@ void Util_mvd_video_decoder_exit(int session)
 		}
 		av_frame_free(&util_mvd_video_decoder_raw_image[session][i]);
 	}
-	svcCloseHandle(util_mvd_video_decoder_raw_image_counter_mutex[session]);
-	svcCloseHandle(util_mvd_video_decoder_add_raw_image_mutex[session]);
-	svcCloseHandle(util_mvd_video_decoder_get_raw_image_mutex[session]);
+	svcCloseHandle(util_mvd_video_decoder_raw_image_mutex[session]);
 }
 
 void Util_decoder_close_file(int session)

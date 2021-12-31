@@ -42,7 +42,6 @@ bool vid_show_full_screen_msg = true;
 bool vid_too_big = false;
 bool vid_eof = false;
 bool vid_image_enabled[4][DEF_VID_BUFFERS][2];
-bool vid_enabled_cores[4] = { false, false, false, false, };
 bool vid_key_frame_list[320];
 double vid_time[2][320];
 double vid_copy_time[2] = { 0, 0, };
@@ -1173,7 +1172,6 @@ void Vid_decode_thread(void* arg)
 			if(num_of_video_tracks > 0 && vid_play_request)
 			{
 				vid_num_of_video_tracks = num_of_video_tracks;
-				Util_fake_pthread_set_enabled_core(vid_enabled_cores);
 				result = Util_video_decoder_init(vid_lower_resolution, num_of_video_tracks, vid_use_multi_threaded_decoding_request ? vid_num_of_threads : 1, vid_use_multi_threaded_decoding_request ? vid_request_thread_mode : 0, 0);
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_video_decoder_init()..." + result.string + result.error_description, result.code);
 				if(result.code != 0)
@@ -1395,9 +1393,9 @@ void Vid_decode_thread(void* arg)
 					}
 					else
 					{
-						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 8MB + (raw_image_size * 8)
+						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 8MB + (raw_image_size * (8 + num_of_threads))
 						free_ram = Util_check_free_ram();
-						free_ram -= ((1024 * 1024 * 8) + (vid_codec_width * vid_codec_height * 1.5 * 8));
+						free_ram -= ((1024 * 1024 * 8) + (vid_codec_width * vid_codec_height * 1.5 * (8 + (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1))));
 						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
 						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
@@ -2102,6 +2100,8 @@ Result_with_string Vid_load_msg(std::string lang)
 void Vid_init(void)
 {
 	Util_log_save(DEF_VID_INIT_STR, "Initializing...");
+	bool frame_cores[4] = { false, false, false, false, };
+	bool slice_cores[4] = { false, false, false, false, };
 	u8* cache = NULL;
 	u32 read_size = 0;
 	std::string out_data[12];
@@ -2110,28 +2110,36 @@ void Vid_init(void)
 	vid_thread_run = true;
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
 	{
-		vid_num_of_threads = 2;
-		vid_enabled_cores[0] = true;
-		vid_enabled_cores[1] = true;
-		vid_enabled_cores[2] = var_core_2_available;
-		vid_enabled_cores[3] = var_core_3_available;
-		if(var_core_2_available)
-			vid_num_of_threads++;
-		if(var_core_3_available)
-			vid_num_of_threads++;
-		
+		vid_num_of_threads = 1;
+		frame_cores[0] = false;
+		frame_cores[1] = true;
+		frame_cores[2] = var_core_2_available;
+		frame_cores[3] = var_core_3_available;
+
+		slice_cores[0] = false;
+		slice_cores[1] = true;
+		slice_cores[2] = false;
+		slice_cores[3] = var_core_3_available;
+
+		vid_num_of_threads += var_core_2_available;
+		vid_num_of_threads += var_core_3_available;
+
+		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, var_core_2_available ? 2 : 0, false);
-		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, var_core_3_available ? 3 : 0, false);
+		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 0, false);
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 	}
 	else
 	{
 		vid_num_of_threads = 2;
-		vid_enabled_cores[0] = true;
-		vid_enabled_cores[1] = true;
-		vid_enabled_cores[2] = false;
-		vid_enabled_cores[3] = false;
+		frame_cores[0] = true;
+		frame_cores[1] = true;
+
+		slice_cores[0] = false;
+		slice_cores[1] = true;
+
+		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, false);

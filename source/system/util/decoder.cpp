@@ -22,8 +22,9 @@ AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER
 const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 SwrContext* util_audio_decoder_swr_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 
-
 bool util_video_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
+bool util_video_decoder_frame_cores[4] = { true, true, false, false, };
+bool util_video_decoder_slice_cores[4] = { false, true, false, false, };
 bool util_video_decoder_changeable_buffer_size[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 bool util_video_decoder_cache_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 bool util_video_decoder_packet_ready[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
@@ -88,8 +89,8 @@ int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *f
 			frame->linesize[i] = 0;
 			frame->buf[i] = NULL;
 		}
-		width = avctx->width;
-		height = avctx->height;
+		width = frame->width;
+		height = frame->height;
 		if(width % 16 != 0)
 			width += 16 - width % 16;
 		if(height % 16 != 0)
@@ -419,6 +420,19 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 	return result;
 }
 
+void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool slice_threading_cores[4])
+{
+	if(!frame_threading_cores[0] && !frame_threading_cores[1] && !frame_threading_cores[2] && !frame_threading_cores[3]
+	&& !slice_threading_cores[0] && !slice_threading_cores[1] && !slice_threading_cores[2] && !slice_threading_cores[3])
+		return;
+
+	for(int i = 0; i < 4; i++)
+	{
+		util_video_decoder_frame_cores[i] = frame_threading_cores[i];
+		util_video_decoder_slice_cores[i] = slice_threading_cores[i];
+	}
+}
+
 Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_tracks, int num_of_threads, int thread_type, int session)
 {
 	int ffmpeg_result = 0;
@@ -498,6 +512,12 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			util_video_decoder_context[session][i]->thread_count = 1;
 		}
 
+		if(util_video_decoder_context[session][i]->thread_type == FF_THREAD_FRAME)
+			Util_fake_pthread_set_enabled_core(util_video_decoder_frame_cores);
+		else if(util_video_decoder_context[session][i]->thread_type == FF_THREAD_SLICE)
+			Util_fake_pthread_set_enabled_core(util_video_decoder_slice_cores);
+
+		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
 		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_yuv420p_buffer;
 		ffmpeg_result = avcodec_open2(util_video_decoder_context[session][i], util_video_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
@@ -738,7 +758,7 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 	video_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 	if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_FRAME)
 		video_info->thread_type = DEF_DECODER_THREAD_TYPE_FRAME;
-	if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_SLICE)
+	else if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_SLICE)
 		video_info->thread_type = DEF_DECODER_THREAD_TYPE_SLICE;
 	else
 		video_info->thread_type = DEF_DECODER_THREAD_TYPE_NONE;

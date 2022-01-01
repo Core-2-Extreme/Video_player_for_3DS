@@ -1924,7 +1924,7 @@ void Vid_convert_thread(void* arg)
 							result = Util_video_decoder_get_image(&yuv_video, &pos, vid_codec_width, vid_codec_height, packet_index, 0);
 						osTickCounterUpdate(&counter[2]);
 
-						if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof))
+						if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof) || vid_clear_raw_buffer_request[0])
 							break;
 						else
 						{

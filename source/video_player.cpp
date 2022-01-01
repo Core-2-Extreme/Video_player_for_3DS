@@ -1899,13 +1899,18 @@ void Vid_convert_thread(void* arg)
 				
 				if(skip > vid_frametime || vid_seek_adjust_request)
 				{
-					if(vid_hw_decoding_mode)
-						Util_mvd_video_decoder_skip_image(&pos, 0);
-					else
-						Util_video_decoder_skip_image(&pos, packet_index, 0);
+					if(vid_raw_video_buffer[319] > 0)
+					{
+						if(vid_hw_decoding_mode)
+							Util_mvd_video_decoder_skip_image(&pos, 0);
+						else
+							Util_video_decoder_skip_image(&pos, packet_index, 0);
 
-					if(!std::isnan(pos) && !std::isinf(pos))
-						vid_current_pos = pos;
+						if(!std::isnan(pos) && !std::isinf(pos))
+							vid_current_pos = pos;
+					}
+					else if(vid_seek_adjust_request)
+						usleep(3000);
 
 					if(vid_seek_adjust_request)
 						skip = 0;

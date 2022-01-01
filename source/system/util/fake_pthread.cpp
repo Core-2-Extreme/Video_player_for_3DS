@@ -98,11 +98,20 @@ int	pthread_cond_signal(pthread_cond_t *__cond)
 
 int	pthread_cond_broadcast(pthread_cond_t *__cond)
 {
-    int result = 0;
+    uint result = 0;
     
     while(true)
     {
-        svcSignalEvent((Handle)*__cond);
+        result = svcSignalEvent((Handle)*__cond);
+        if(result == 0xD8E007F7)
+        {
+            result = pthread_cond_init(__cond, NULL);
+            if(result != 0)
+                return -1;
+            else
+                continue;
+        }
+
         result = svcWaitSynchronization((Handle)*__cond, 0);
         if(result == 0)
             return 0;

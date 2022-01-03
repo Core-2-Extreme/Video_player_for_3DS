@@ -23,6 +23,7 @@ bool vid_pause_for_home_menu_request = false;
 bool vid_set_volume_request = false;
 bool vid_set_seek_duration_request = false;
 bool vid_clear_raw_buffer_request[2] = { false, false, };
+bool vid_clear_cache_packet_request = false;
 bool vid_linear_filter = true;
 bool vid_show_controls = false;
 bool vid_allow_skip_frames = false;
@@ -1063,6 +1064,7 @@ void Vid_decode_thread(void* arg)
 			vid_read_packet_request = false;
 			vid_clear_raw_buffer_request[0] = false;
 			vid_clear_raw_buffer_request[1] = false;
+			vid_clear_cache_packet_request = false;
 			vid_eof = false;
 			vid_total_time = 0;
 			vid_total_frames = 0;
@@ -1493,10 +1495,11 @@ void Vid_decode_thread(void* arg)
 
 				if(vid_seek_request)
 				{
-					result = Util_decoder_seek(vid_seek_pos, DEF_DECODER_SEEK_FLAG_BACKWARD, 0);
-					Util_decoder_clear_cache_packet(0);
-					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
 					Util_speaker_clear_buffer(0);
+
+					vid_clear_cache_packet_request = true;
+					while (vid_clear_cache_packet_request && vid_play_request && !vid_change_video_request)
+						usleep(10000);
 
 					vid_clear_raw_buffer_request[0] = true; 
 					while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
@@ -2079,14 +2082,24 @@ void Vid_read_packet_thread(void* arg)
 				vid_read_packet_wait_request = true;
 				while(vid_play_request && !vid_change_video_request && !vid_eof && vid_read_packet_request)
 				{
-					result = Util_decoder_read_packet(0);
-					if(result.code == DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS)
+					if(vid_clear_cache_packet_request)
 					{
-						Util_log_save(DEF_VID_READ_PACKET_THREAD_STR, "Util_decoder_read_packet()..." + result.string + result.error_description, result.code);
-						vid_eof = true;
+						result = Util_decoder_seek(vid_seek_pos, DEF_DECODER_SEEK_FLAG_BACKWARD, 0);
+						Util_log_save(DEF_VID_READ_PACKET_THREAD_STR, "Util_decoder_seek()..." + result.string + result.error_description, result.code);
+						Util_decoder_clear_cache_packet(0);
+						vid_clear_cache_packet_request = false;
 					}
-					else if(result.code != 0)
-						usleep(4000);
+					else
+					{
+						result = Util_decoder_read_packet(0);
+						if(result.code == DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS)
+						{
+							Util_log_save(DEF_VID_READ_PACKET_THREAD_STR, "Util_decoder_read_packet()..." + result.string + result.error_description, result.code);
+							vid_eof = true;
+						}
+						else if(result.code != 0)
+							usleep(4000);
+					}
 				}
 				vid_read_packet_wait_request = false;
 				vid_read_packet_request = false;
@@ -2191,6 +2204,7 @@ void Vid_init(void)
 	vid_set_seek_duration_request = false;
 	vid_clear_raw_buffer_request[0] = false;
 	vid_clear_raw_buffer_request[1] = false;
+	vid_clear_cache_packet_request = false;
 	vid_show_decode_graph_mode = true;
 	vid_show_color_conversion_graph_mode = true;
 	vid_show_packet_buffer_graph_mode = true;

@@ -151,7 +151,7 @@ void Sem_init(void)
 			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
 			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl")
 				var_lang = "en";
-			if(var_lcd_brightness < 15 || var_lcd_brightness > 163)
+			if(var_lcd_brightness < 0 || var_lcd_brightness > 180)
 				var_lcd_brightness = 100;
 			if(var_time_to_turn_off_lcd < 10 || var_time_to_turn_off_lcd > 310)
 				var_time_to_turn_off_lcd = 150;
@@ -550,7 +550,7 @@ void Sem_main(void)
 			Draw(sem_msg[DEF_SEM_BRIGHTNESS_MSG] + std::to_string(var_lcd_brightness), 0, 65, 0.5, 0.5, color);
 			//Bar
 			Draw_texture(&sem_screen_brightness_slider, DEF_DRAW_WEAK_RED, 10, 87.5, 300, 5);
-			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, (var_lcd_brightness - 10) * 2, 80, 4, 20);
+			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 300 * ((double)(var_lcd_brightness) / 180) + 10, 80, 4, 20);
 
 			//Time to turn off LCDs
 			Draw(sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG] + std::to_string(var_time_to_turn_off_lcd) + sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG], 0, 105, 0.5, 0.5, color);
@@ -1051,16 +1051,18 @@ void Sem_hid(Hid_info key)
 				}
 				else if(Util_hid_is_pressed(key, sem_screen_brightness_bar) || Util_hid_is_pressed(key, sem_screen_brightness_slider))
 				{
-					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_lcd_brightness = 180 * ((double)(key.touch_x - 10) / 300);
+					//var_lcd_brightness = (key.touch_x / 2) + 10;
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
 					sem_screen_brightness_bar.selected = true;
 					var_need_reflesh = true;
 				}
-				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_brightness_bar.selected)
+				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 310 && sem_screen_brightness_bar.selected)
 				{
-					var_lcd_brightness = (key.touch_x / 2) + 10;
+					var_lcd_brightness = 180 * ((double)(key.touch_x - 10) / 300);
+					//var_lcd_brightness = (key.touch_x / 2) + 10;
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;

@@ -25,3 +25,8 @@ modul ecran mare</12>
 <21>Rezoluție corectă : </21>
 <22>Oprește redimensionare/mută videoclip : </22>
 <23>Reține poziția video : </23>
+<24>Play method : </24>
+<25>No repeat</25>
+<26>Repeat</26>
+<27>In order</27>
+<28>Random</28>

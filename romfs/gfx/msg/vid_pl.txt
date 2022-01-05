@@ -23,3 +23,8 @@ by wyłączyć pełny ekran</12>
 <21>Poprawna Rozdzielczość : </21>
 <22>Wyłącz zmiane wielkości ekranu : </22>
 <23>Zapamiętaj pozycje wideo : </23>
+<24>Play method : </24>
+<25>No repeat</25>
+<26>Repeat</26>
+<27>In order</27>
+<28>Random</28>

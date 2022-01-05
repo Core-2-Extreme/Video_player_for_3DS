@@ -22,3 +22,8 @@
 <21>Correct aspect ratio : </21>
 <22>禁用画面缩放/移动：</22>
 <23>记住播放位置：</23>
+<24>Play method : </24>
+<25>No repeat</25>
+<26>Repeat</26>
+<27>In order</27>
+<28>Random</28>

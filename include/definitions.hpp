@@ -34,7 +34,7 @@
 #define DEF_SWKBD_MAX_DIC_WORDS 128
 
 //video player
-#define DEF_VID_NUM_OF_MSG 24
+#define DEF_VID_NUM_OF_MSG 29
 #define DEF_VID_ENABLE_ICON
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
@@ -65,10 +65,21 @@
 #define DEF_VID_ASPECT_RATIO_MSG 21
 #define DEF_VID_DISABLE_RESIZE_MOVE_MSG 22
 #define DEF_VID_REMEMBER_POS_MSG 23
+#define DEF_VID_PLAY_METHOD_MSG 24
+#define DEF_VID_NO_REPEAT_MSG 25
+#define DEF_VID_REPEAT_MSG 26
+#define DEF_VID_IN_ORDER_MSG 27
+#define DEF_VID_RANDOM_MSG 28
+
 #define DEF_VID_MENU_NONE -1
 #define DEF_VID_MENU_SETTINGS_0 0
 #define DEF_VID_MENU_SETTINGS_1 1
 #define DEF_VID_MENU_INFO 2
+
+#define DEF_VID_NO_REPEAT 0
+#define DEF_VID_REPEAT 1
+#define DEF_VID_IN_ORDER 2
+#define DEF_VID_RANDOM 3
 
 #define DEF_VID_BUFFERS 3
 

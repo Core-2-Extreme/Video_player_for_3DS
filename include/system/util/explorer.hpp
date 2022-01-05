@@ -32,6 +32,14 @@ std::string Util_expl_query_current_dir(void);
 int Util_expl_query_num_of_file(void);
 
 /**
+ * @brief Query current file index.
+ * Always return -1 if explorer api is not initialized.
+ * @return Current (selected) file index.
+ * @warning Thread dangerous (untested)
+*/
+int Util_expl_query_current_file_index(void);
+
+/**
  * @brief Query file name.
  * Always return empty string if explorer api is not initialized.
  * @param index (in) File index.

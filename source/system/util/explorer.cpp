@@ -114,6 +114,14 @@ int Util_expl_query_num_of_file(void)
 	return util_expl_num_of_file;
 }
 
+int Util_expl_query_current_file_index(void)
+{
+	if(!util_expl_init)
+		return -1;
+	
+	return (int)util_expl_selected_file_num + (int)util_expl_y_offset;
+}
+
 std::string Util_expl_query_file_name(int index)
 {
 	if(!util_expl_init)

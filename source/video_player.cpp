@@ -1550,7 +1550,8 @@ void Vid_decode_thread(void* arg)
 						vid_eof = false;
 						vid_read_packet_request = true;
 						vid_seek_adjust_request = true;
-						wait_count = 3;//sometimes cached previous frames so ignore first 3 frames 
+						//sometimes cached previous frames so ignore first 4 (+ num_of_threads if frame threading is used) frames
+						wait_count = 4 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
 					}
 
 					vid_seek_request = false;

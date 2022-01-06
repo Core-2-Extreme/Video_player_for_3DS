@@ -1538,9 +1538,12 @@ void Vid_decode_thread(void* arg)
 					while (vid_clear_cache_packet_request && vid_play_request && !vid_change_video_request)
 						usleep(10000);
 
-					vid_clear_raw_buffer_request[0] = true; 
-					while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
-						usleep(10000);
+					if(num_of_video_tracks > 0)
+					{
+						vid_clear_raw_buffer_request[0] = true; 
+						while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
+							usleep(10000);
+					}
 										
 					if(result.code == 0)
 					{

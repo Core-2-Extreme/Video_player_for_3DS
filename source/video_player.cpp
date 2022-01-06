@@ -1376,10 +1376,22 @@ void Vid_decode_thread(void* arg)
 				}
 			}
 
+			//Enter full screen mode if file has video track
 			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag())
 			{
-				vid_full_screen_mode = true;
-				vid_turn_off_bottom_screen_count = 300;
+				if(!vid_full_screen_mode)
+				{
+					vid_full_screen_mode = true;
+					vid_turn_off_bottom_screen_count = 300;
+				}
+			}
+			else
+			{
+				var_top_lcd_brightness = var_lcd_brightness;
+				var_bottom_lcd_brightness = var_lcd_brightness;
+				vid_turn_off_bottom_screen_count = 0;
+				var_turn_on_bottom_lcd = true;
+				vid_full_screen_mode = false;
 			}
 
 			if(vid_remember_video_pos_mode && vid_play_request)
@@ -1676,18 +1688,21 @@ void Vid_decode_thread(void* arg)
 				}
 			}
 
-			var_top_lcd_brightness = var_lcd_brightness;
-			var_bottom_lcd_brightness = var_lcd_brightness;
-			vid_turn_off_bottom_screen_count = 0;
-			var_turn_on_bottom_lcd = true;
-			vid_full_screen_mode = false;
 			vid_pause_request = false;
 			vid_seek_adjust_request = false;
 			vid_seek_request = false;
+
 			if(!vid_change_video_request && vid_playback_mode == DEF_VID_NO_REPEAT)
-			{
-				aptSetSleepAllowed(true);
 				vid_play_request = false;
+
+			if(!vid_play_request)
+			{
+				var_top_lcd_brightness = var_lcd_brightness;
+				var_bottom_lcd_brightness = var_lcd_brightness;
+				vid_turn_off_bottom_screen_count = 0;
+				var_turn_on_bottom_lcd = true;
+				vid_full_screen_mode = false;
+				aptSetSleepAllowed(true);
 			}
 
 			if(!vid_change_video_request && vid_play_request && (vid_playback_mode == DEF_VID_IN_ORDER || vid_playback_mode == DEF_VID_RANDOM))

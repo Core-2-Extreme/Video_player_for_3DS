@@ -2530,6 +2530,7 @@ void Vid_main(void)
 	int image_num_3d = 0;
 	double image_width[4] = { 0, 0, 0, 0, };
 	double image_height[4] = { 0, 0, 0, 0, };
+	double y_offset = 0;
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	std::string swkbd_input = "";
@@ -2669,59 +2670,25 @@ void Vid_main(void)
 					//scroll bar
 					Draw_texture(&vid_scroll_bar, vid_scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_ui_y_offset / vid_ui_y_max * 120) + 50, 7, 10);
 
-					//select audio track
-					if(60 + vid_ui_y_offset >= 50 && 60 + vid_ui_y_offset <= 165)
+					y_offset = 60;
+					//playback mode
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_select_audio_track_button, vid_select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_AUDIO_TRACK_MSG], 12.5, 60 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_playback_mode_button, vid_playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_PLAY_METHOD_MSG] + vid_msg[DEF_VID_NO_REPEAT_MSG + vid_playback_mode], 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
 					}
 					else
 					{
-						vid_select_audio_track_button.x_size = -1;
-						vid_select_audio_track_button.y_size = -1;
+						vid_playback_mode_button.x_size = -1;
+						vid_playback_mode_button.y_size = -1;
 					}
 
-					//texture filter
-					if(85 + vid_ui_y_offset >= 50 && 85 + vid_ui_y_offset <= 165)
-					{
-						Draw_texture(&vid_texture_filter_button, vid_texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 85 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_TEX_FILTER_MSG] + (vid_linear_filter ? "ON" : "OFF"), 12.5, 85 + vid_ui_y_offset, 0.5, 0.5, color);
-					}
-					else
-					{
-						vid_texture_filter_button.x_size = -1;
-						vid_texture_filter_button.y_size = -1;
-					}
-
-					//allow skip frames
-					if(110 + vid_ui_y_offset >= 50 && 110 + vid_ui_y_offset <= 165)
-					{
-						Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 110 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, 110 + vid_ui_y_offset, 0.5, 0.5, color);
-					}
-					else
-					{
-						vid_allow_skip_frames_button.x_size = -1;
-						vid_allow_skip_frames_button.y_size = -1;
-					}
-
-					//allow skip key frames
-					if(135 + vid_ui_y_offset >= 50 && 135 + vid_ui_y_offset <= 165)
-					{
-						Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 135 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 12.5, 135 + vid_ui_y_offset, 0.5, 0.5, vid_allow_skip_frames ? color : disabled_color);
-					}
-					else
-					{
-						vid_allow_skip_key_frames_button.x_size = -1;
-						vid_allow_skip_key_frames_button.y_size = -1;
-					}
-
+					y_offset += 25;
 					//volume
-					if(160 + vid_ui_y_offset >= 50 && 160 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_volume_button, vid_volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 160 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_VOLUME_MSG] + std::to_string(vid_volume) + "%", 12.5, 160 + vid_ui_y_offset, 0.5, 0.5, vid_too_big ? DEF_DRAW_RED : color);
+						Draw_texture(&vid_volume_button, vid_volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_VOLUME_MSG] + std::to_string(vid_volume) + "%", 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, vid_too_big ? DEF_DRAW_RED : color);
 					}
 					else
 					{
@@ -2729,11 +2696,25 @@ void Vid_main(void)
 						vid_volume_button.y_size = -1;
 					}
 
-					//seek duration
-					if(185 + vid_ui_y_offset >= 50 && 185 + vid_ui_y_offset <= 165)
+					y_offset += 25;
+					//select audio track
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_seek_duration_button, vid_seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 185 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 12.5, 185 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_select_audio_track_button, vid_select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_AUDIO_TRACK_MSG], 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_select_audio_track_button.x_size = -1;
+						vid_select_audio_track_button.y_size = -1;
+					}
+
+					y_offset += 25;
+					//seek duration
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_seek_duration_button, vid_seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SEEK_MSG] + std::to_string(vid_seek_duration) + "s", 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
 					}
 					else
 					{
@@ -2741,11 +2722,38 @@ void Vid_main(void)
 						vid_seek_duration_button.y_size = -1;
 					}
 
-					//correct aspect ratio
-					if(210 + vid_ui_y_offset >= 50 && 210 + vid_ui_y_offset <= 165)
+					y_offset += 25;
+					//remember video pos
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 210 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, 210 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_remember_video_pos_button.x_size = -1;
+						vid_remember_video_pos_button.y_size = -1;
+					}
+
+					y_offset += 25;
+					//texture filter
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_texture_filter_button, vid_texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_TEX_FILTER_MSG] + (vid_linear_filter ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
+					}
+					else
+					{
+						vid_texture_filter_button.x_size = -1;
+						vid_texture_filter_button.y_size = -1;
+					}
+
+					y_offset += 25;
+					//correct aspect ratio
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
+					{
+						Draw_texture(&vid_correct_aspect_ratio_button, vid_correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_correct_aspect_ratio_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
 					}
 					else
 					{
@@ -2753,6 +2761,7 @@ void Vid_main(void)
 						vid_correct_aspect_ratio_button.y_size = -1;
 					}
 				
+					y_offset += 25;
 					//disable resize and move video
 					if(235 + vid_ui_y_offset >= 50 && 235 + vid_ui_y_offset <= 165)
 					{
@@ -2764,29 +2773,31 @@ void Vid_main(void)
 						vid_disable_resize_move_button.x_size = -1;
 						vid_disable_resize_move_button.y_size = -1;
 					}
-					
-					//remember video pos
-					if(260 + vid_ui_y_offset >= 50 && 260 + vid_ui_y_offset <= 165)
+
+					y_offset += 25;
+					//allow skip frames
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_remember_video_pos_button, vid_remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 260 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_remember_video_pos_mode ? "ON" : "OFF"), 12.5, 260 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_allow_skip_frames_button, vid_allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_allow_skip_frames ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color);
 					}
 					else
 					{
-						vid_remember_video_pos_button.x_size = -1;
-						vid_remember_video_pos_button.y_size = -1;
+						vid_allow_skip_frames_button.x_size = -1;
+						vid_allow_skip_frames_button.y_size = -1;
 					}
 
-					//allow skip frames
-					if(285 + vid_ui_y_offset >= 50 && 285 + vid_ui_y_offset <= 165)
+					y_offset += 25;
+					//allow skip key frames
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_playback_mode_button, vid_playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 285 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_PLAY_METHOD_MSG] + vid_msg[DEF_VID_NO_REPEAT_MSG + vid_playback_mode], 12.5, 285 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_allow_skip_key_frames_button, vid_allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_SKIP_KEY_FRAME_MSG] + (vid_allow_skip_key_frames ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, vid_allow_skip_frames ? color : disabled_color);
 					}
 					else
 					{
-						vid_playback_mode_button.x_size = -1;
-						vid_playback_mode_button.y_size = -1;
+						vid_allow_skip_key_frames_button.x_size = -1;
+						vid_allow_skip_key_frames_button.y_size = -1;
 					}
 
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 0, 180, 100, 8);
@@ -2795,22 +2806,26 @@ void Vid_main(void)
 				}
 				else if(vid_menu_mode == DEF_VID_MENU_SETTINGS_1)
 				{
+					y_offset = 60;
 					//use hw decoding
-					Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 60, 300, 20);
-					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, 60, 0.4, 0.4, 
+					Draw_texture(&vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset, 300, 20);
+					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, 
 					(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color);
 
+					y_offset += 30;
 					//use hw color conversion
-					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 90, 300, 20);
-					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, 90, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset, 300, 20);
+					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
+					y_offset += 30;
 					//use multi-threaded decoding (in software decoding)
-					Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 120, 300, 20);
-					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, 120, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset, 300, 20);
+					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
+					y_offset += 30;
 					//lower resolution
-					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 150, 300, 20);
-					Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, 150, 0.4, 0.4, vid_play_request ? disabled_color : color);
+					Draw_texture(&vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, y_offset, 300, 20);
+					Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color);
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 110, 180, 100, 8);
@@ -2821,41 +2836,42 @@ void Vid_main(void)
 					//scroll bar
 					Draw_texture(&vid_scroll_bar, vid_scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_ui_y_offset / vid_ui_y_max * 120) + 50, 7, 10);
 
+					y_offset = 160;
 					//color conversion time
 					if(vid_show_color_conversion_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 160 - vid_time[1][i] + vid_ui_y_offset, DEF_DRAW_BLUE, i + 1, 160 - vid_time[1][i + 1] + vid_ui_y_offset, DEF_DRAW_BLUE, 1);//Thread 1
+							Draw_line(i, y_offset - vid_time[1][i] + vid_ui_y_offset, DEF_DRAW_BLUE, i + 1, y_offset - vid_time[1][i + 1] + vid_ui_y_offset, DEF_DRAW_BLUE, 1);//Thread 1
 					}
 					//decoding time
 					if(vid_show_decode_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 160 - vid_time[0][i] + vid_ui_y_offset, DEF_DRAW_RED, i + 1, 160 - vid_time[0][i + 1] + vid_ui_y_offset, DEF_DRAW_RED, 1);//Thread 0		
+							Draw_line(i, y_offset - vid_time[0][i] + vid_ui_y_offset, DEF_DRAW_RED, i + 1, y_offset - vid_time[0][i + 1] + vid_ui_y_offset, DEF_DRAW_RED, 1);//Thread 0		
 					}
 					//compressed buffer
 					if(vid_show_packet_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 160 - vid_packet_buffer[i] / 4 + vid_ui_y_offset, 0xFFFF00FF, i + 1, 160 - vid_packet_buffer[i + 1] / 4 + vid_ui_y_offset, 0xFFFF00FF, 1);//Packet buffer
+							Draw_line(i, y_offset - vid_packet_buffer[i] / 4 + vid_ui_y_offset, 0xFFFF00FF, i + 1, y_offset - vid_packet_buffer[i + 1] / 4 + vid_ui_y_offset, 0xFFFF00FF, 1);//Packet buffer
 					}
 					//raw video buffer
 					if(vid_show_raw_video_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 160 - vid_raw_video_buffer[i] / 2 + vid_ui_y_offset, 0xFF2060FF, i + 1, 160 - vid_raw_video_buffer[i + 1] / 2 + vid_ui_y_offset, 0xFF2060FF, 1);//Raw image buffer
+							Draw_line(i, y_offset - vid_raw_video_buffer[i] / 2 + vid_ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_raw_video_buffer[i + 1] / 2 + vid_ui_y_offset, 0xFF2060FF, 1);//Raw image buffer
 					}
 					//raw audio buffer
 					if(vid_show_raw_audio_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, 160 - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, 160 - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
+							Draw_line(i, y_offset - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
 					}
 
 					//bottom line
-					Draw_line(0, 160 + vid_ui_y_offset, color, 320, 160 + vid_ui_y_offset, color, 1);
+					Draw_line(0, y_offset + vid_ui_y_offset, color, 320, y_offset + vid_ui_y_offset, color, 1);
 					//deadline
-					Draw_line(0, 160 + vid_ui_y_offset - vid_frametime, 0xFFD0D000, 320, 160 - vid_frametime + vid_ui_y_offset, 0xFFD0D000, 1);
+					Draw_line(0, y_offset + vid_ui_y_offset - vid_frametime, 0xFFD0D000, 320, y_offset - vid_frametime + vid_ui_y_offset, 0xFFD0D000, 1);
 
 					//key frame
 					if(vid_show_decode_graph_mode)
@@ -2863,15 +2879,15 @@ void Vid_main(void)
 						for(int i = 0; i < 319; i++)
 						{
 							if(vid_key_frame_list[i])
-								Draw_line(i, 160 + vid_ui_y_offset, disabled_color, i, 50 + vid_ui_y_offset, disabled_color, 2);
+								Draw_line(i, y_offset + vid_ui_y_offset, disabled_color, i, y_offset - 110 + vid_ui_y_offset, disabled_color, 2);
 						}
 					}
 
 					//compressed buffer button 
-					if(160 + vid_ui_y_offset >= 50 && 160 + vid_ui_y_offset <= 170)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
-						Draw_texture(&vid_show_packet_buffer_graph_button, vid_show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 160 + vid_ui_y_offset, 160, 10);
-						Draw("Compressed buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 0, 160 + vid_ui_y_offset, 0.4, 0.4, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
+						Draw_texture(&vid_show_packet_buffer_graph_button, vid_show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_ui_y_offset, 160, 10);
+						Draw("Compressed buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
 					}
 					else
 					{
@@ -2879,20 +2895,21 @@ void Vid_main(void)
 						vid_show_packet_buffer_graph_button.y_size = -1;
 					}
 
+					y_offset += 10;
 					//raw video and audio buffer button
-					if(170 + vid_ui_y_offset >= 50 && 170 + vid_ui_y_offset <= 170)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
-						Draw_texture(&vid_show_raw_video_buffer_graph_button, vid_show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 170 + vid_ui_y_offset, 160, 10);
+						Draw_texture(&vid_show_raw_video_buffer_graph_button, vid_show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_ui_y_offset, 160, 10);
 						if(vid_frametime != 0)
 						{
 							Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0))
 							+ "(" + std::to_string(int((vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)) * vid_frametime)) + "ms)",
-							0, 170 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
+							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
 						}
 						else
 						{
 							Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 
-							0, 170 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
+							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
 						}
 					}
 					else
@@ -2901,17 +2918,18 @@ void Vid_main(void)
 						vid_show_raw_video_buffer_graph_button.y_size = -1;
 					}
 
-					if(180 + vid_ui_y_offset >= 50 && 180 + vid_ui_y_offset <= 170)
+					y_offset += 10;
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
-						Draw_texture(&vid_show_raw_audio_buffer_graph_button, vid_show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 180 + vid_ui_y_offset, 160, 10);
+						Draw_texture(&vid_show_raw_audio_buffer_graph_button, vid_show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_ui_y_offset, 160, 10);
 						if(vid_audio_info.ch != 0 && vid_audio_info.sample_rate != 0)
 						{
 							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)) + "(" 
 							+ std::to_string((int)(Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000)) + "ms)",
-							0, 180 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
+							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
 						}
 						else
-							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)), 0, 180 + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
+							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)), 0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
 					}
 					else
 					{
@@ -2919,27 +2937,35 @@ void Vid_main(void)
 						vid_show_raw_audio_buffer_graph_button.y_size = -1;
 					}
 
+					y_offset += 10;
 					//decoding speed
-					if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0 && 190 + vid_ui_y_offset >= 50 && 190 + vid_ui_y_offset <= 170)
+					if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0 && y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
 						if(!vid_hw_decoding_mode && vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME)
-							Draw("*When thread_type == frame, the red graph is unusable", 0, 190 + vid_ui_y_offset, 0.4, 0.4, color);
+							Draw("*When thread_type == frame, the red graph is unusable", 0, y_offset + vid_ui_y_offset, 0.4, 0.4, color);
 						else
 							Draw("avg/min/max/recent avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + "/" + std::to_string(1000 / vid_max_time).substr(0, 5) 
-							+  "/" + std::to_string(1000 / vid_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, 190 + vid_ui_y_offset, 0.4, 0.4, color);
+							+  "/" + std::to_string(1000 / vid_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, y_offset + vid_ui_y_offset, 0.4, 0.4, color);
 					}
 
+					y_offset += 10;
 					//decoding mode
-					if(200 + vid_ui_y_offset >= 50 && 200 + vid_ui_y_offset <= 170)
-						Draw((std::string)"Hw decoding : " + (vid_hw_decoding_mode ? "yes" : "no"), 0, 200 + vid_ui_y_offset, 0.45, 0.45, color);
-					if(210 + vid_ui_y_offset >= 50 && 210 + vid_ui_y_offset <= 170)
-						Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 0, 210 + vid_ui_y_offset, 0.45, 0.45, color);
-					if(220 + vid_ui_y_offset >= 50 && 220 + vid_ui_y_offset <= 170)
-						Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_video_info.thread_type], 0, 220 + vid_ui_y_offset, 0.45, 0.45, color);
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
+						Draw((std::string)"Hw decoding : " + (vid_hw_decoding_mode ? "yes" : "no"), 0, y_offset + vid_ui_y_offset, 0.45, 0.45, color);
 
+					y_offset += 10;
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
+						Draw((std::string)"Hw color conversion : " + ((vid_hw_decoding_mode || vid_hw_color_conversion_mode) ? "yes" : "no"), 0, y_offset + vid_ui_y_offset, 0.45, 0.45, color);
+
+					y_offset += 10;
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
+						Draw((std::string)"Thread type : " + thread_mode[vid_hw_decoding_mode ? 0 : vid_video_info.thread_type], 0, y_offset + vid_ui_y_offset, 0.45, 0.45, color);
+
+
+					y_offset += 10;
 					//color conversion button
-					if(230 + vid_ui_y_offset >= 50 && 230 + vid_ui_y_offset <= 136)
-						Draw_texture(&vid_show_color_conversion_graph_button, vid_show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 230 + vid_ui_y_offset, 160, 44);
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 136)
+						Draw_texture(&vid_show_color_conversion_graph_button, vid_show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, y_offset + vid_ui_y_offset, 160, 44);
 					else
 					{
 						vid_show_color_conversion_graph_button.x_size = -1;
@@ -2947,15 +2973,16 @@ void Vid_main(void)
 					}
 
 					//deadline and color conversion text
-					if(230 + vid_ui_y_offset >= 50 && 230 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw("Deadline : " + std::to_string(vid_frametime).substr(0, 5) + "ms", 0, 230 + vid_ui_y_offset, 0.45, 0.45, 0xFFD0D000);
-						Draw("Data copy 0 : " + std::to_string(vid_copy_time[0]).substr(0, 5) + "ms", 160, 230 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+						Draw("Deadline : " + std::to_string(vid_frametime).substr(0, 5) + "ms", 0, y_offset + vid_ui_y_offset, 0.45, 0.45, 0xFFD0D000);
+						Draw("Data copy 0 : " + std::to_string(vid_copy_time[0]).substr(0, 5) + "ms", 160, y_offset + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
 					}	
 
+					y_offset += 10;
 					//decoding time button
-					if(240 + vid_ui_y_offset >= 50 && 240 + vid_ui_y_offset <= 146)
-						Draw_texture(&vid_show_decode_graph_button, vid_show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, 240 + vid_ui_y_offset, 160, 34);
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 146)
+						Draw_texture(&vid_show_decode_graph_button, vid_show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_ui_y_offset, 160, 34);
 					else
 					{
 						vid_show_decode_graph_button.x_size = -1;
@@ -2963,24 +2990,26 @@ void Vid_main(void)
 					}
 
 					//decoding time text and color conversion text
-					if(240 + vid_ui_y_offset >= 50 && 240 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw("Video decode : " + std::to_string(vid_video_time).substr(0, 5) + "ms", 0, 240 + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-						Draw("Color conversion : " + std::to_string(vid_convert_time).substr(0, 5) + "ms", 160, 240 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+						Draw("Video decode : " + std::to_string(vid_video_time).substr(0, 5) + "ms", 0, y_offset + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Color conversion : " + std::to_string(vid_convert_time).substr(0, 5) + "ms", 160, y_offset + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
 					}
 
+					y_offset += 10;
 					//decoding time text and color conversion text
-					if(250 + vid_ui_y_offset >= 50 && 250 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw("Audio decode : " + std::to_string(vid_audio_time).substr(0, 5) + "ms", 0, 250 + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-						Draw("Data copy 1 : " + std::to_string(vid_copy_time[1]).substr(0, 5) + "ms", 160, 250 + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+						Draw("Audio decode : " + std::to_string(vid_audio_time).substr(0, 5) + "ms", 0, y_offset + vid_ui_y_offset, 0.45, 0.45, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Data copy 1 : " + std::to_string(vid_copy_time[1]).substr(0, 5) + "ms", 160, y_offset + vid_ui_y_offset, 0.45, 0.45, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
 					}
 
+					y_offset += 10;
 					//total time
-					if(260 + vid_ui_y_offset >= 50 && 260 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw("Thread 0 : " + std::to_string(vid_time[0][319]).substr(0, 6) + "ms", 0, 260 + vid_ui_y_offset, 0.5, 0.5, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
-						Draw("Thread 1 : " + std::to_string(vid_time[1][319]).substr(0, 6) + "ms", 160, 260 + vid_ui_y_offset, 0.5, 0.5, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
+						Draw("Thread 0 : " + std::to_string(vid_time[0][319]).substr(0, 6) + "ms", 0, y_offset + vid_ui_y_offset, 0.5, 0.5, vid_show_decode_graph_mode ? DEF_DRAW_RED : color);
+						Draw("Thread 1 : " + std::to_string(vid_time[1][319]).substr(0, 6) + "ms", 160, y_offset + vid_ui_y_offset, 0.5, 0.5, vid_show_color_conversion_graph_mode ? DEF_DRAW_BLUE : color);
 					}
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);

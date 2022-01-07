@@ -1224,14 +1224,6 @@ void Vid_decode_thread(void* arg)
 
 					vid_codec_width = vid_video_info.width;
 					vid_codec_height = vid_video_info.height;
-					//fit to screen size
-					if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240))
-						vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
-					else 
-						vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
-					
-					vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-					vid_video_y_offset = (240 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
 
 					if(vid_codec_width % 16 != 0)
 						vid_codec_width += 16 - vid_codec_width % 16;
@@ -1379,6 +1371,14 @@ void Vid_decode_thread(void* arg)
 			//Enter full screen mode if file has video track
 			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag())
 			{
+				//fit to screen size
+				if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240))
+					vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+				else
+					vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
+				
+				vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+				vid_video_y_offset = (240 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
 				if(!vid_full_screen_mode)
 				{
 					vid_full_screen_mode = true;
@@ -1387,6 +1387,16 @@ void Vid_decode_thread(void* arg)
 			}
 			else
 			{
+				//fit to screen size
+				if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225))
+					vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+				else
+					vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
+
+				vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+				vid_video_y_offset = (225 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+				vid_video_y_offset += 15;
+
 				var_top_lcd_brightness = var_lcd_brightness;
 				var_bottom_lcd_brightness = var_lcd_brightness;
 				vid_turn_off_bottom_screen_count = 0;

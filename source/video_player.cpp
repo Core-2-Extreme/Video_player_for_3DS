@@ -1414,6 +1414,7 @@ void Vid_decode_thread(void* arg)
 					{
 						Util_log_save(DEF_VID_DECODE_THREAD_STR, "saved pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
 						vid_seek_pos = saved_pos;
+						vid_convert_request = true;
 						vid_seek_request = true;
 					}
 				}

@@ -2245,7 +2245,7 @@ void Vid_init(void)
 		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, var_core_2_available ? 2 : 0, false);
-		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 0, false);
+		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 	}
 	else
@@ -2260,7 +2260,7 @@ void Vid_init(void)
 		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, false);
+		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 	}
 

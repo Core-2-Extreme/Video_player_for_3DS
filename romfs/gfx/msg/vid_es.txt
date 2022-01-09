@@ -27,7 +27,7 @@ modo pantalla completa</12>
 <21>Relación de aspecto correcta : </21>
 <22>Desactivar redimensión/mover video : </22>
 <23>Recordar posición del video : </23>
-<24>Play method : </24>
+<24>Playback method : </24>
 <25>No repeat</25>
 <26>Repeat</26>
 <27>In order</27>

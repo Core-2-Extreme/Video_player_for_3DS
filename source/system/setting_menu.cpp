@@ -2008,13 +2008,13 @@ void Sem_update_thread(void* arg)
 							free(buffer);
 							buffer = NULL;
 							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "Util_file_load_from_file_with_range()...");
-							result = Util_file_load_from_file_with_range(file_name, dir_path, (u8**)buffer, 0x20000, offset, &read_size);
+							result = Util_file_load_from_file_with_range(file_name, dir_path, &buffer, 0x20000, offset, &read_size);
 							Util_log_add(log_num, result.string, result.code);
 							if(result.code != 0 || read_size <= 0)
 								break;
 
 							log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "FSFILE_Write()...");
-							result.code = FSFILE_Write(am_handle, &write_size, offset, (u8*)buffer, read_size, FS_WRITE_FLUSH);
+							result.code = FSFILE_Write(am_handle, &write_size, offset, buffer, read_size, FS_WRITE_FLUSH);
 							Util_log_add(log_num, "", result.code);
 							if(result.code != 0)
 								break;

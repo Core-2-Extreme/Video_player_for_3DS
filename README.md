@@ -2,9 +2,9 @@
 
 ## Patch note
 ### v1.4.2
-Fixed unexpected touch in Nintendo's home menu
-Fixed multi-threaded decoding stability and it is enabled by default
-Fixed seeking stability
+Fixed unexpected touch in Nintendo's home menu \
+Fixed multi-threaded decoding stability and it is enabled by default \
+Fixed seeking stability \
 Added repeat, in order, random playback mode \
 Other minor changes
 

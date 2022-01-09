@@ -1,24 +1,34 @@
 # Video player for 3DS
 
 ## Patch note
+### v1.4.2
+Fixed unexpected touch in Nintendo's home menu
+Fixed multi-threaded decoding stability and it is enabled by default
+Fixed seeking stability
+Added repeat, in order, random playback mode \
+Other minor changes
+
 ### v1.4.1
 The "FSUSER_OpenFile() failed" error has been fixed \
 Adjusted font and button size in settings menu \
 Multi-threaded decoding is disabled by default because it has stability problem \
-Polish(Polski) translation has been added (by JustScratchCoder)
+Polish(Polski) translation has been added (by JustScratchCoder) \
+Other minor changes
 
 ### v1.4.0
 Decoded image(raw) buffer has been added and it makes playback \
 much much much much better (especially on OLD3DS)
 Spanish(español) translation has been added (by Cookiee) \
-Romanian(Română) translation has been added (by Tescu48)
+Romanian(Română) translation has been added (by Tescu48) \
+Other minor changes
 
 ### v1.3.3
 'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)) \
 Color conversion speed has been improved \
 Simplified Chinese(简体中文) translation has been added (by LITTOMA) \
 Italian(italiano) translation has been added (by dixy52-beep) \
-*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2
+*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2 \
+Other minor changes
 
 ### v1.3.2
 Added aspect ratio 10:3 mode (for 800x240 videos) \

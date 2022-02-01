@@ -1,9 +1,15 @@
-./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/libctru --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D _POSIX_THREADS" --extra-ldflags="-mfloat-abi=hard" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,wav" --enable-encoder="aac,ac3,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-gpl --enable-pthreads
+//How to build ffmpeg library for 3DS
+//Used commit : e102fd98d6f30d3cd41debafab30d29d5f72117c
+//*build x264 library first*
+
+git clone https://github.com/FFmpeg/FFmpeg; cd FFmpeg
 
 /*
-replace configure line 6322~6347
+replace configure line 6445~6472
 from :
 
+# check for some common methods of building with pthread support
+# do this before the optional library checks as some of them require pthreads
 if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
     if check_lib pthreads pthread.h pthread_join   -pthread &&
 ...
@@ -14,20 +20,14 @@ fi
 
 to :
 
+# check for some common methods of building with pthread support
+# do this before the optional library checks as some of them require pthreads
 if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
     enable pthreads
 fi
-
-
-
-add libavutil/slicethread.c line 73~74
-from :
-    pthread_mutex_lock(&w->mutex);
-    pthread_cond_signal(&w->cond);
-
-to :
-    pthread_mutex_lock(&w->mutex);
-    w->done = 1;
-    pthread_cond_signal(&w->cond);
-
 */
+
+./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp,subrip,subviewer*" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,wav,srt,subviewer*" --enable-encoder="aac,ac3,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-gpl --enable-pthreads
+
+make -j 8
+sudo make install

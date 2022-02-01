@@ -1,2 +1,10 @@
-//https://github.com/mirror/x264
- ./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/libctru --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --bit-depth=8 --chroma-format=420 --disable-avs --enable-static --disable-cli
+//How to build x264 library for 3DS
+//Used commit : 0bb85e8bbc85244d5c8fd300033ca32539b541b7
+//*install devkitpro (libctru) first*
+
+git clone https://github.com/mirror/x264; cd x264
+
+./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --bit-depth=8 --chroma-format=420 --disable-avs --enable-static --disable-cli
+
+make -j 8
+sudo make install

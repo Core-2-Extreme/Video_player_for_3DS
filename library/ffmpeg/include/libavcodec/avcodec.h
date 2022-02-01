@@ -2384,8 +2384,6 @@ int avcodec_parameters_to_context(AVCodecContext *codec,
  * avcodec_find_decoder() and avcodec_find_encoder() provide an easy way for
  * retrieving a codec.
  *
- * @warning This function is not thread safe!
- *
  * @note Always call this function before using decoding routines (such as
  * @ref avcodec_receive_frame()).
  *
@@ -2517,7 +2515,7 @@ enum AVChromaLocation avcodec_chroma_pos_to_enum(int xpos, int ypos);
  * all the decoded data. Flushing is done by calling this function with packets
  * with avpkt->data set to NULL and avpkt->size set to 0 until it stops
  * returning subtitles. It is safe to flush even those decoders that are not
- * marked with AV_CODEC_CAP_DELAY, then no subtitles.
+ * marked with AV_CODEC_CAP_DELAY, then no subtitles will be returned.
  *
  * @note The AVCodecContext MUST have been opened with @ref avcodec_open2()
  * before packets may be fed to the decoder.

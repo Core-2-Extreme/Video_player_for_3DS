@@ -21,10 +21,14 @@ by wyłączyć pełny ekran</12>
 <19>Długość przewijania : </19>
 <20>Głośność : </20>
 <21>Poprawna Rozdzielczość : </21>
-<22>Wyłącz zmiane wielkości ekranu : </22>
+<22>Resize/move content : </22>
 <23>Zapamiętaj pozycje wideo : </23>
 <24>Playback method : </24>
 <25>No repeat</25>
 <26>Repeat</26>
 <27>In order</27>
 <28>Random</28>
+<29>Disable</29>
+<30>Video and subtitle</30>
+<31>Only video</31>
+<32>Only subtitle</32>

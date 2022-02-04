@@ -3,14 +3,15 @@
 /**
  * @brief Open media file.
  * @param file_path (in) File path.
- * @param num_of_video_tracks (out) Number of video tracks.
  * @param num_of_audio_tracks (out) Number of audio tracks.
+ * @param num_of_video_tracks (out) Number of video tracks.
+ * @param num_of_subtitle_tracks (out) Number of subtitle tracks.
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_audio_tracks, int* num_of_video_tracks, int session);
+Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_audio_tracks, int* num_of_video_tracks, int* num_of_subtitle_tracks, int session);
 
 /**
  * @brief Initialize a audio decoder.
@@ -55,6 +56,16 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 Result_with_string Util_mvd_video_decoder_init(int session);
 
 /**
+ * @brief Initialize a subtitle decoder.
+ * @param num_of_subtitle_tracks (in) Number of subtitle tracks.
+ * @param session (in) Session number.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int session);
+
+/**
  * @brief Get audio info.
  * Do nothing if audio decoder is not initialized.
  * @param audio_info (out) Pointer for audio info.
@@ -73,6 +84,16 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
  * @warning Thread dangerous (untested)
 */
 void Util_video_decoder_get_info(Video_info* video_info, int video_index, int session);
+
+/**
+ * @brief Get subtitle info.
+ * Do nothing if subtitle decoder is not initialized.
+ * @param subtitle_info (out) Pointer for subtitle info.
+ * @param subtitle_index (in) Subtitle track index.
+ * @param session (in) Session number.
+ * @warning Thread dangerous (untested)
+*/
+void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_index, int session);
 
 /**
  * @brief Clear cache packet.
@@ -135,6 +156,17 @@ Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session
 Result_with_string Util_decoder_ready_video_packet(int packet_index, int session);
 
 /**
+ * @brief Ready subtitle packet for decoding.
+ * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_SUBTITLE.
+ * @param packet_index (in) Packet index.
+ * @param session (in) Session number.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int session);
+
+/**
  * @brief Skip audio packet.
  * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_AUDIO.
  * Do nothing if audio decoder is not initialized.
@@ -153,6 +185,16 @@ void Util_decoder_skip_audio_packet(int packet_index, int session);
  * @warning Thread dangerous (untested)
 */
 void Util_decoder_skip_video_packet(int packet_index, int session);
+
+/**
+ * @brief Skip subtitle packet.
+ * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_SUBTITLE.
+ * Do nothing if subtitle decoder is not initialized.
+ * @param packet_index (in) Packet index.
+ * @param session (in) Session number.
+ * @warning Thread dangerous (untested)
+*/
+void Util_decoder_skip_subtitle_packet(int packet_index, int session);
 
 /**
  * @brief Set max raw buffer size.
@@ -228,6 +270,18 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session);
  * @note Thread safe
 */
 Result_with_string Util_mvd_video_decoder_decode(int session);
+
+/**
+ * @brief Decode subtitle.
+ * Call it after calling Util_decoder_ready_subtitle_packet().
+ * @param Subtitle_data (out) Pointer for subtitle data.
+ * @param packet_index (in) Packet index.
+ * @param session (in) Session number.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, int packet_index, int session);
 
 /**
  * @brief Clear raw buffer (created by Util_video_decoder_decode()).

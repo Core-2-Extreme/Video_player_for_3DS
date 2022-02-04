@@ -33,7 +33,6 @@ bool vid_full_screen_mode = false;
 bool vid_hw_decoding_mode = false;
 bool vid_hw_color_conversion_mode = false;
 bool vid_correct_aspect_ratio_mode = false;
-bool vid_disable_resize_move_mode = false;
 bool vid_remember_video_pos_mode = false;
 bool vid_show_decode_graph_mode = true;
 bool vid_show_color_conversion_graph_mode = true;
@@ -52,12 +51,15 @@ double vid_video_time = 0;
 double vid_convert_time = 0;
 double vid_frametime = 0;
 double vid_duration = 0;//in ms
-double vid_zoom = 1;
+double vid_video_zoom = 1;
+double vid_subtitle_zoom = 1;
 double vid_y_move_speed = 0;
 double vid_ui_y_max = 0;
 double vid_ui_y_offset = 0;
 double vid_video_x_offset = 0;
 double vid_video_y_offset = 15;
+double vid_subtitle_x_offset = 0;
+double vid_subtitle_y_offset = 0;
 double vid_current_pos = 0;//in ms
 double vid_seek_pos = 0;//in ms
 double vid_min_time = 0;
@@ -65,6 +67,7 @@ double vid_max_time = 0;
 double vid_total_time = 0;
 double vid_recent_time[90];
 double vid_recent_total_time = 0;
+int vid_move_content_mode = DEF_VID_MOVE_BOTH;
 int vid_packet_buffer[320];
 int vid_raw_video_buffer[320];
 int vid_raw_audio_buffer[320];
@@ -78,6 +81,7 @@ int vid_request_thread_mode = DEF_DECODER_THREAD_TYPE_AUTO;
 int vid_turn_off_bottom_screen_count = 0;
 int vid_num_of_video_tracks = 0;
 int vid_num_of_audio_tracks = 0;
+int vid_num_of_subtitle_tracks = 0;
 int vid_selected_audio_track = 0;
 int vid_total_frames = 0;
 int vid_codec_width = 0;
@@ -92,6 +96,7 @@ int vid_packet_index = 0;
 int vid_control_texture_num = -1;
 int vid_banner_texture_num = -1;
 int vid_file_index = 0;
+int vid_subtitle_index = 0;
 std::string vid_file = "";
 std::string vid_dir = "";
 std::string vid_audio_track_lang[DEF_DECODER_MAX_AUDIO_TRACKS];
@@ -103,12 +108,13 @@ Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread, vid_read_
 Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_skip_frames_button, vid_allow_skip_key_frames_button,
 vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
 vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
-vid_correct_aspect_ratio_button, vid_disable_resize_move_button, vid_remember_video_pos_button, vid_show_decode_graph_button,
+vid_correct_aspect_ratio_button, vid_move_content_button, vid_remember_video_pos_button, vid_show_decode_graph_button,
 vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_video_buffer_graph_button, 
 vid_show_raw_audio_buffer_graph_button, vid_menu_background, vid_scroll_bar, vid_playback_mode_button;
 Audio_info vid_audio_info;
 Video_info vid_video_info;
-
+Subtitle_info vid_subtitle_info;
+Subtitle_data vid_subtitle_data[DEF_DECODER_MAX_SUBTITLE_DATA];
 
 void Vid_suspend(void);
 
@@ -146,22 +152,6 @@ void Vid_hid(Hid_info key)
 		Util_expl_main(key);
 	else
 	{
-		/*if(key.p_zr)
-		{
-			var_debug_bool[0] = !var_debug_bool[0];
-			Util_log_save("debug", (std::string)"detect all blue image : " + (var_debug_bool[0] ? "true" : "false"));
-		}*/
-		/*if(key.p_d_down)
-		{
-			var_debug_int[0]--;
-			Util_log_save("", std::to_string(var_debug_int[0]));
-		}
-		if(key.p_d_up)
-		{
-			var_debug_int[0]++;
-			Util_log_save("", std::to_string(var_debug_int[0]));
-		}*/
-
 		if(vid_pause_for_home_menu_request)
 		{
 			vid_pause_request = false;
@@ -184,13 +174,16 @@ void Vid_hid(Hid_info key)
 				{
 					//fit to screen size
 					if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225))
-						vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+						vid_video_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
 					else
-						vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
+						vid_video_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
 
-					vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-					vid_video_y_offset = (225 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+					vid_video_x_offset = (400 - (vid_video_info.width * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+					vid_video_y_offset = (225 - (vid_video_info.height * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
 					vid_video_y_offset += 15;
+					vid_subtitle_x_offset = 0;
+					vid_subtitle_y_offset = 0;
+					vid_subtitle_zoom = 1;
 				}
 				vid_turn_off_bottom_screen_count = 0;
 				vid_full_screen_mode = false;
@@ -426,13 +419,16 @@ void Vid_hid(Hid_info key)
 					{
 						//fit to screen size
 						if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225))
-							vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+							vid_video_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
 						else
-							vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
+							vid_video_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
 
-						vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-						vid_video_y_offset = (225 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+						vid_video_x_offset = (400 - (vid_video_info.width * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+						vid_video_y_offset = (225 - (vid_video_info.height * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
 						vid_video_y_offset += 15;
+						vid_subtitle_x_offset = 0;
+						vid_subtitle_y_offset = 0;
+						vid_subtitle_zoom = 1;
 					}
 					var_need_reflesh = true;
 				}
@@ -442,19 +438,23 @@ void Vid_hid(Hid_info key)
 					vid_menu_background.selected = true;
 				}
 				//disable resize and move button
-				else if(Util_hid_is_pressed(key, vid_disable_resize_move_button))
+				else if(Util_hid_is_pressed(key, vid_move_content_button))
 				{
-					vid_disable_resize_move_button.selected = true;
+					vid_move_content_button.selected = true;
 					var_need_reflesh = true;
 				}
-				else if(Util_hid_is_released(key, vid_disable_resize_move_button) && vid_disable_resize_move_button.selected)
+				else if(Util_hid_is_released(key, vid_move_content_button) && vid_move_content_button.selected)
 				{
-					vid_disable_resize_move_mode = !vid_disable_resize_move_mode;
+					if(vid_move_content_mode + 1 > DEF_VID_MOVE_SUBTITLE)
+						vid_move_content_mode = DEF_VID_MOVE_DISABLE;
+					else
+						vid_move_content_mode++;
+
 					var_need_reflesh = true;
 				}
-				else if(!Util_hid_is_held(key, vid_disable_resize_move_button) && vid_disable_resize_move_button.selected)
+				else if(!Util_hid_is_held(key, vid_move_content_button) && vid_move_content_button.selected)
 				{
-					vid_disable_resize_move_button.selected = false;
+					vid_move_content_button.selected = false;
 					vid_menu_background.selected = true;
 				}
 				//remember video pos button
@@ -791,12 +791,15 @@ void Vid_hid(Hid_info key)
 				{
 					//fit to screen size
 					if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240))
-						vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+						vid_video_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
 					else 
-						vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
+						vid_video_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
 
-					vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-					vid_video_y_offset = (240 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+					vid_video_x_offset = (400 - (vid_video_info.width * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+					vid_video_y_offset = (240 - (vid_video_info.height * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+					vid_subtitle_x_offset = 0;
+					vid_subtitle_y_offset = 0;
+					vid_subtitle_zoom = 1;
 				}
 				vid_turn_off_bottom_screen_count = 300;
 				vid_full_screen_mode = true;
@@ -859,111 +862,218 @@ void Vid_hid(Hid_info key)
 			}
 			
 			if((key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
-			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && !vid_disable_resize_move_mode)
+			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && vid_move_content_mode)
 			{
-				if(key.p_c_down || key.p_d_down)
-					vid_video_y_offset -= 1 * var_scroll_speed;
-				else if(key.h_c_down || key.h_d_down)
+				if(vid_move_content_mode == DEF_VID_MOVE_VIDEO || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(!vid_select_audio_track_request)
+					if(key.p_c_down || key.p_d_down)
+						vid_video_y_offset -= 1 * var_scroll_speed;
+					else if(key.h_c_down || key.h_d_down)
+					{
+						if(!vid_select_audio_track_request)
+						{
+							if(vid_cd_count > 600)
+								vid_video_y_offset -= 10 * var_scroll_speed;
+							else if(vid_cd_count > 240)
+								vid_video_y_offset -= 7.5 * var_scroll_speed;
+							else if(vid_cd_count > 5)
+								vid_video_y_offset -= 5 * var_scroll_speed;
+						}
+					}
+
+					if(key.p_c_up || key.p_d_up)
+						vid_video_y_offset += 1 * var_scroll_speed;
+					else if(key.h_c_up || key.h_d_up)
+					{
+						if(!vid_select_audio_track_request)
+						{
+							if(vid_cd_count > 600)
+								vid_video_y_offset += 10 * var_scroll_speed;
+							else if(vid_cd_count > 240)
+								vid_video_y_offset += 7.5 * var_scroll_speed;
+							else if(vid_cd_count > 5)
+								vid_video_y_offset += 5 * var_scroll_speed;
+						}
+					}
+
+					if(key.p_c_right)
+						vid_video_x_offset -= 1 * var_scroll_speed;
+					else if(key.h_c_right)
 					{
 						if(vid_cd_count > 600)
-							vid_video_y_offset -= 10 * var_scroll_speed;
+							vid_video_x_offset -= 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_video_y_offset -= 7.5 * var_scroll_speed;
+							vid_video_x_offset -= 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_video_y_offset -= 5 * var_scroll_speed;
+							vid_video_x_offset -= 5 * var_scroll_speed;
 					}
-				}
 
-				if(key.p_c_up || key.p_d_up)
-					vid_video_y_offset += 1 * var_scroll_speed;
-				else if(key.h_c_up || key.h_d_up)
-				{
-					if(!vid_select_audio_track_request)
+					if(key.p_c_left)
+						vid_video_x_offset += 1 * var_scroll_speed;
+					else if(key.h_c_left)
 					{
 						if(vid_cd_count > 600)
-							vid_video_y_offset += 10 * var_scroll_speed;
+							vid_video_x_offset += 10 * var_scroll_speed;
 						else if(vid_cd_count > 240)
-							vid_video_y_offset += 7.5 * var_scroll_speed;
+							vid_video_x_offset += 7.5 * var_scroll_speed;
 						else if(vid_cd_count > 5)
-							vid_video_y_offset += 5 * var_scroll_speed;
+							vid_video_x_offset += 5 * var_scroll_speed;
 					}
-				}
 
-				if(key.p_c_right)
-					vid_video_x_offset -= 1 * var_scroll_speed;
-				else if(key.h_c_right)
+					if(vid_video_x_offset > 400)
+						vid_video_x_offset = 400;
+					else if(vid_video_x_offset < -vid_codec_width * vid_video_zoom)
+						vid_video_x_offset = -vid_codec_width * vid_video_zoom;
+
+					if(vid_video_y_offset > 480)
+						vid_video_y_offset = 480;
+					else if(vid_video_y_offset < -vid_codec_height * vid_video_zoom)
+						vid_video_y_offset = -vid_codec_height * vid_video_zoom;
+
+					var_need_reflesh = true;
+				}
+				if(vid_move_content_mode == DEF_VID_MOVE_SUBTITLE || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(vid_cd_count > 600)
-						vid_video_x_offset -= 10 * var_scroll_speed;
-					else if(vid_cd_count > 240)
-						vid_video_x_offset -= 7.5 * var_scroll_speed;
-					else if(vid_cd_count > 5)
-						vid_video_x_offset -= 5 * var_scroll_speed;
+					if(key.p_c_down || key.p_d_down)
+						vid_subtitle_y_offset -= 1 * var_scroll_speed;
+					else if(key.h_c_down || key.h_d_down)
+					{
+						if(!vid_select_audio_track_request)
+						{
+							if(vid_cd_count > 600)
+								vid_subtitle_y_offset -= 10 * var_scroll_speed;
+							else if(vid_cd_count > 240)
+								vid_subtitle_y_offset -= 7.5 * var_scroll_speed;
+							else if(vid_cd_count > 5)
+								vid_subtitle_y_offset -= 5 * var_scroll_speed;
+						}
+					}
+
+					if(key.p_c_up || key.p_d_up)
+						vid_subtitle_y_offset += 1 * var_scroll_speed;
+					else if(key.h_c_up || key.h_d_up)
+					{
+						if(!vid_select_audio_track_request)
+						{
+							if(vid_cd_count > 600)
+								vid_subtitle_y_offset += 10 * var_scroll_speed;
+							else if(vid_cd_count > 240)
+								vid_subtitle_y_offset += 7.5 * var_scroll_speed;
+							else if(vid_cd_count > 5)
+								vid_subtitle_y_offset += 5 * var_scroll_speed;
+						}
+					}
+
+					if(key.p_c_right)
+						vid_subtitle_x_offset -= 1 * var_scroll_speed;
+					else if(key.h_c_right)
+					{
+						if(vid_cd_count > 600)
+							vid_subtitle_x_offset -= 10 * var_scroll_speed;
+						else if(vid_cd_count > 240)
+							vid_subtitle_x_offset -= 7.5 * var_scroll_speed;
+						else if(vid_cd_count > 5)
+							vid_subtitle_x_offset -= 5 * var_scroll_speed;
+					}
+
+					if(key.p_c_left)
+						vid_subtitle_x_offset += 1 * var_scroll_speed;
+					else if(key.h_c_left)
+					{
+						if(vid_cd_count > 600)
+							vid_subtitle_x_offset += 10 * var_scroll_speed;
+						else if(vid_cd_count > 240)
+							vid_subtitle_x_offset += 7.5 * var_scroll_speed;
+						else if(vid_cd_count > 5)
+							vid_subtitle_x_offset += 5 * var_scroll_speed;
+					}
+
+					if(vid_subtitle_x_offset > 400)
+						vid_subtitle_x_offset = 400;
+					else if(vid_subtitle_x_offset < -vid_codec_width * vid_video_zoom)
+						vid_subtitle_x_offset = -vid_codec_width * vid_video_zoom;
+
+					if(vid_subtitle_y_offset > 480)
+						vid_subtitle_y_offset = 480;
+					else if(vid_subtitle_y_offset < -vid_codec_height * vid_video_zoom)
+						vid_subtitle_y_offset = -vid_codec_height * vid_video_zoom;
+	
+					var_need_reflesh = true;
 				}
-
-				if(key.p_c_left)
-					vid_video_x_offset += 1 * var_scroll_speed;
-				else if(key.h_c_left)
-				{
-					if(vid_cd_count > 600)
-						vid_video_x_offset += 10 * var_scroll_speed;
-					else if(vid_cd_count > 240)
-						vid_video_x_offset += 7.5 * var_scroll_speed;
-					else if(vid_cd_count > 5)
-						vid_video_x_offset += 5 * var_scroll_speed;
-				}
-
-				if(vid_video_x_offset > 400)
-					vid_video_x_offset = 400;
-				else if(vid_video_x_offset < -vid_codec_width * vid_zoom)
-					vid_video_x_offset = -vid_codec_width * vid_zoom;
-
-				if(vid_video_y_offset > 480)
-					vid_video_y_offset = 480;
-				else if(vid_video_y_offset < -vid_codec_height * vid_zoom)
-					vid_video_y_offset = -vid_codec_height * vid_zoom;
 
 				vid_cd_count++;
-				var_need_reflesh = true;
 			}
 			else
 				vid_cd_count = 0;
 
-			if((key.p_l || key.p_r || key.h_l || key.h_r) && !vid_disable_resize_move_mode)
+			if((key.p_l || key.p_r || key.h_l || key.h_r) && vid_move_content_mode)
 			{
-				if(key.p_l)
-					vid_zoom -= 0.005 * var_scroll_speed;
-				else if(key.h_l)
+				if(vid_move_content_mode == DEF_VID_MOVE_VIDEO || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(vid_lr_count > 360)
-						vid_zoom -= 0.05 * var_scroll_speed;
-					else if(vid_lr_count > 120)
-						vid_zoom -= 0.01 * var_scroll_speed;
-					else if(vid_lr_count > 5)
-						vid_zoom -= 0.005 * var_scroll_speed;
+					if(key.p_l)
+						vid_video_zoom -= 0.005 * var_scroll_speed;
+					else if(key.h_l)
+					{
+						if(vid_lr_count > 360)
+							vid_video_zoom -= 0.05 * var_scroll_speed;
+						else if(vid_lr_count > 120)
+							vid_video_zoom -= 0.01 * var_scroll_speed;
+						else if(vid_lr_count > 5)
+							vid_video_zoom -= 0.005 * var_scroll_speed;
+					}
+
+					if(key.p_r)
+						vid_video_zoom += 0.005 * var_scroll_speed;
+					else if(key.h_r)
+					{
+						if(vid_lr_count > 360)
+							vid_video_zoom += 0.05 * var_scroll_speed;
+						else if(vid_lr_count > 120)
+							vid_video_zoom += 0.01 * var_scroll_speed;
+						else if(vid_lr_count > 5)
+							vid_video_zoom += 0.005 * var_scroll_speed;
+					}
+
+					if(vid_video_zoom < 0.05)
+						vid_video_zoom = 0.05;
+					else if(vid_video_zoom > 10)
+						vid_video_zoom = 10;
+				}
+				if(vid_move_content_mode == DEF_VID_MOVE_SUBTITLE || vid_move_content_mode == DEF_VID_MOVE_BOTH)
+				{
+					if(key.p_l)
+						vid_subtitle_zoom -= 0.005 * var_scroll_speed;
+					else if(key.h_l)
+					{
+						if(vid_lr_count > 360)
+							vid_subtitle_zoom -= 0.05 * var_scroll_speed;
+						else if(vid_lr_count > 120)
+							vid_subtitle_zoom -= 0.01 * var_scroll_speed;
+						else if(vid_lr_count > 5)
+							vid_subtitle_zoom -= 0.005 * var_scroll_speed;
+					}
+
+					if(key.p_r)
+						vid_subtitle_zoom += 0.005 * var_scroll_speed;
+					else if(key.h_r)
+					{
+						if(vid_lr_count > 360)
+							vid_subtitle_zoom += 0.05 * var_scroll_speed;
+						else if(vid_lr_count > 120)
+							vid_subtitle_zoom += 0.01 * var_scroll_speed;
+						else if(vid_lr_count > 5)
+							vid_subtitle_zoom += 0.005 * var_scroll_speed;
+					}
+
+					if(vid_subtitle_zoom < 0.05)
+						vid_subtitle_zoom = 0.05;
+					else if(vid_subtitle_zoom > 10)
+						vid_subtitle_zoom = 10;
 				}
 
-				if(key.p_r)
-					vid_zoom += 0.005 * var_scroll_speed;
-				else if(key.h_r)
-				{
-					if(vid_lr_count > 360)
-						vid_zoom += 0.05 * var_scroll_speed;
-					else if(vid_lr_count > 120)
-						vid_zoom += 0.01 * var_scroll_speed;
-					else if(vid_lr_count > 5)
-						vid_zoom += 0.005 * var_scroll_speed;
-				}
-
-				if(vid_zoom < 0.05)
-					vid_zoom = 0.05;
-				else if(vid_zoom > 10)
-					vid_zoom = 10;
+				var_need_reflesh = true;
 
 				vid_lr_count++;
-				var_need_reflesh = true;
 			}
 			else
 				vid_lr_count = 0;
@@ -997,7 +1107,7 @@ void Vid_hid(Hid_info key)
 			|| vid_use_hw_decoding_button.selected || vid_use_hw_color_conversion_button.selected || vid_use_multi_threaded_decoding_button.selected
 			|| vid_lower_resolution_button.selected || vid_menu_button[0].selected || vid_menu_button[1].selected || vid_menu_button[2].selected
 			|| vid_control_button.selected || vid_ok_button.selected || vid_correct_aspect_ratio_button.selected 
-			|| vid_disable_resize_move_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
+			|| vid_move_content_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
 			|| vid_show_decode_graph_button.selected || vid_show_color_conversion_graph_button.selected || vid_show_packet_buffer_graph_button.selected
 			|| vid_show_raw_video_buffer_graph_button.selected || vid_show_raw_audio_buffer_graph_button.selected || vid_menu_background.selected 
 			|| vid_scroll_bar.selected || vid_playback_mode_button.selected)
@@ -1009,7 +1119,7 @@ void Vid_hid(Hid_info key)
 			= vid_use_hw_decoding_button.selected = vid_use_hw_color_conversion_button.selected = vid_use_multi_threaded_decoding_button.selected
 			= vid_lower_resolution_button.selected = vid_menu_button[0].selected = vid_menu_button[1].selected = vid_menu_button[2].selected 
 			= vid_control_button.selected = vid_ok_button.selected = vid_correct_aspect_ratio_button.selected 
-			= vid_disable_resize_move_button.selected = vid_remember_video_pos_button.selected = Draw_get_bot_ui_button()->selected
+			= vid_move_content_button.selected = vid_remember_video_pos_button.selected = Draw_get_bot_ui_button()->selected
 			= vid_show_decode_graph_button.selected = vid_show_color_conversion_graph_button.selected = vid_show_packet_buffer_graph_button.selected
 			= vid_show_raw_video_buffer_graph_button.selected = vid_show_raw_audio_buffer_graph_button.selected = vid_menu_background.selected 
 			= vid_scroll_bar.selected = vid_playback_mode_button.selected = false;
@@ -1039,6 +1149,7 @@ void Vid_decode_thread(void* arg)
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
+	int num_of_subtitle_tracks = 0;
 	int max_buffer = 0;
 	int free_ram = 0;
 	int type = DEF_DECODER_PACKET_TYPE_UNKNOWN;
@@ -1067,13 +1178,15 @@ void Vid_decode_thread(void* arg)
 			wait_count = 0;
 			vid_num_of_video_tracks = 0;
 			vid_num_of_audio_tracks = 0;
+			vid_num_of_subtitle_tracks = 0;
 			vid_selected_audio_track = 0;
 			vid_video_x_offset = 0;
 			vid_video_y_offset = 15;
 			vid_frametime = 0;
 			vid_current_pos = 0;
 			vid_duration = 0;
-			vid_zoom = 1;
+			vid_video_zoom = 1;
+			vid_subtitle_zoom = 1;
 			vid_codec_width = 0;
 			vid_codec_height = 0;
 			cache_file_name = "";
@@ -1098,6 +1211,9 @@ void Vid_decode_thread(void* arg)
 			vid_recent_total_time = 0;
 			vid_image_num = 0;
 			vid_selected_audio_track = 0;
+			vid_subtitle_index = 0;
+			vid_subtitle_x_offset = 0;
+			vid_subtitle_y_offset = 0;
 			vid_audio_info.bitrate = 0;
 			vid_audio_info.sample_rate = 0;
 			vid_audio_info.ch = 0;
@@ -1112,6 +1228,14 @@ void Vid_decode_thread(void* arg)
 			vid_video_info.thread_type = DEF_DECODER_THREAD_TYPE_NONE;
 			vid_video_info.sar_width = 1;
 			vid_video_info.sar_height = 1;
+			vid_subtitle_info.format_name = "n/a";
+			vid_subtitle_info.track_lang = "n/a";
+			for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)
+			{
+				vid_subtitle_data[i].text = "";
+				vid_subtitle_data[i].start_time = 0;
+				vid_subtitle_data[i].end_time = 0;
+			}
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 				vid_audio_track_lang[i] = "";
@@ -1149,7 +1273,7 @@ void Vid_decode_thread(void* arg)
 					cache_file_name += cache.substr(i, 1);
 			}
 
-			result = Util_decoder_open_file(vid_dir + vid_file, &num_of_audio_tracks, &num_of_video_tracks, 0);
+			result = Util_decoder_open_file(vid_dir + vid_file, &num_of_audio_tracks, &num_of_video_tracks, &num_of_subtitle_tracks, 0);
 			Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_open_file()..." + result.string + result.error_description, result.code);
 			if(result.code != 0)
 				vid_play_request = false;
@@ -1367,18 +1491,39 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 			}
+			if(num_of_subtitle_tracks > 0 && vid_play_request)
+			{
+				vid_num_of_subtitle_tracks = num_of_subtitle_tracks;
+				result = Util_subtitle_decoder_init(num_of_subtitle_tracks, 0);
+				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_subtitle_decoder_init()..." + result.string + result.error_description, result.code);
+				if(result.code != 0)
+					vid_play_request = false;
+
+				if(vid_play_request)
+				{
+					for(int i = 0; i < num_of_subtitle_tracks; i++)
+					{
+						Util_subtitle_decoder_get_info(&vid_subtitle_info, i, 0);
+						Util_log_save("debug", vid_subtitle_info.track_lang + " " + vid_subtitle_info.format_name);
+					}
+				}
+			}
 
 			//Enter full screen mode if file has video track
 			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag())
 			{
 				//fit to screen size
 				if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240))
-					vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+					vid_video_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
 				else
-					vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
+					vid_video_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 240);
 				
-				vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-				vid_video_y_offset = (240 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+				vid_video_x_offset = (400 - (vid_video_info.width * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+				vid_video_y_offset = (240 - (vid_video_info.height * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+				vid_subtitle_x_offset = 0;
+				vid_subtitle_y_offset = 0;
+				vid_subtitle_zoom = 1;
+
 				if(!vid_full_screen_mode)
 				{
 					vid_full_screen_mode = true;
@@ -1389,13 +1534,16 @@ void Vid_decode_thread(void* arg)
 			{
 				//fit to screen size
 				if((((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400) >= (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225))
-					vid_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
+					vid_video_zoom = 1.0 / (((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1)) / 400);
 				else
-					vid_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
+					vid_video_zoom = 1.0 / (((double)vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1)) / 225);
 
-				vid_video_x_offset = (400 - (vid_video_info.width * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
-				vid_video_y_offset = (225 - (vid_video_info.height * vid_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
+				vid_video_x_offset = (400 - (vid_video_info.width * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1))) / 2;
+				vid_video_y_offset = (225 - (vid_video_info.height * vid_video_zoom * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1))) / 2;
 				vid_video_y_offset += 15;
+				vid_subtitle_x_offset = 0;
+				vid_subtitle_y_offset = 0;
+				vid_subtitle_zoom = 1;
 
 				var_top_lcd_brightness = var_lcd_brightness;
 				var_bottom_lcd_brightness = var_lcd_brightness;
@@ -1448,7 +1596,7 @@ void Vid_decode_thread(void* arg)
 					{
 						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 8MB + (raw_image_size * (8 + num_of_threads))
 						free_ram = Util_check_free_ram();
-						free_ram -= ((1024 * 1024 * 8) + (vid_codec_width * vid_codec_height * 1.5 * (8 + (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1))));
+						free_ram -= ((1024 * 1024 * 12) + (vid_codec_width * vid_codec_height * 1.5 * (8 + (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1))));
 						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
 						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
@@ -1584,7 +1732,9 @@ void Vid_decode_thread(void* arg)
 					break;
 				}
 
-				if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
+				if(type == DEF_DECODER_PACKET_TYPE_UNKNOWN)
+					Util_log_save("debug", "unknown packet!!!!!");
+				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -1640,6 +1790,26 @@ void Vid_decode_thread(void* arg)
 				}
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO)
 					Util_decoder_skip_audio_packet(packet_index, 0);
+				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE)
+				{
+					result = Util_decoder_ready_subtitle_packet(packet_index, 0);
+					if(result.code == 0)
+					{
+						result = Util_subtitle_decoder_decode(&vid_subtitle_data[vid_subtitle_index], packet_index, 0);
+						if(result.code == 0)
+						{
+							if(vid_subtitle_index + 1 >= DEF_DECODER_MAX_SUBTITLE_DATA)
+								vid_subtitle_index = 0;
+							else
+								vid_subtitle_index++;
+						}
+						else
+							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_subtitle_decoder_decode()..." + result.string + result.error_description, result.code);
+					}
+					else
+						Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_ready_subtitle_packet()..." + result.string + result.error_description, result.code);
+
+				}
 				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)))
 				{
 					vid_packet_index = packet_index;
@@ -1773,13 +1943,13 @@ void Vid_decode_video_thread(void* arg)
 			{
 				if(vid_clear_raw_buffer_request[1])
 				{
-					if(vid_hw_decoding_mode)
+					/*if(vid_hw_decoding_mode)
 						Util_mvd_video_decoder_clear_raw_image(0);
 					else
 					{
 						for(int i = 0; i < vid_num_of_video_tracks; i++)
 							Util_video_decoder_clear_raw_image(i, 0);
-					}
+					}*/
 
 					if(vid_hw_decoding_mode)
 						result = Util_mvd_video_decoder_decode(0);
@@ -2294,6 +2464,7 @@ void Vid_init(void)
 	vid_lower_resolution = 0;
 	vid_num_of_video_tracks = 0;
 	vid_num_of_audio_tracks = 0;
+	vid_num_of_subtitle_tracks = 0;
 	vid_selected_audio_track = 0;
 	vid_lr_count = 0;
 	vid_cd_count = 0;
@@ -2305,7 +2476,8 @@ void Vid_init(void)
 	vid_frametime = 0;
 	vid_current_pos = 0;
 	vid_duration = 0;
-	vid_zoom = 1;
+	vid_video_zoom = 1;
+	vid_subtitle_zoom = 1;
 	vid_codec_width = 0;
 	vid_codec_height = 0;
 	vid_total_time = 0;
@@ -2319,6 +2491,9 @@ void Vid_init(void)
 	vid_copy_time[1] = 0;
 	vid_convert_time = 0;
 	vid_file_index = 0;
+	vid_subtitle_index = 0;
+	vid_subtitle_x_offset = 0;
+	vid_subtitle_y_offset = 0;
 	vid_file = "";
 	vid_dir = "";
 	vid_audio_info.bitrate = 0;
@@ -2335,6 +2510,15 @@ void Vid_init(void)
 	vid_video_info.thread_type = DEF_DECODER_THREAD_TYPE_NONE;
 	vid_video_info.sar_width = 1;
 	vid_video_info.sar_height = 1;
+	vid_subtitle_info.format_name = "n/a";
+	vid_subtitle_info.track_lang = "n/a";
+
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)
+	{
+		vid_subtitle_data[i].text = "";
+		vid_subtitle_data[i].start_time = 0;
+		vid_subtitle_data[i].end_time = 0;
+	}
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_lang[i] = "";
@@ -2414,7 +2598,7 @@ void Vid_init(void)
 		vid_volume = atoi((char*)out_data[7].c_str());
 		vid_seek_duration = atoi((char*)out_data[8].c_str());
 		vid_correct_aspect_ratio_mode = (out_data[9] == "1");
-		vid_disable_resize_move_mode = (out_data[10] == "1");
+		vid_move_content_mode = atoi((char*)out_data[10].c_str());
 		vid_remember_video_pos_mode = (out_data[11] == "1");
 		vid_playback_mode = atoi((char*)out_data[12].c_str());
 	}
@@ -2437,6 +2621,10 @@ void Vid_init(void)
 	if(vid_playback_mode != DEF_VID_NO_REPEAT && vid_playback_mode != DEF_VID_REPEAT 
 		&& vid_playback_mode != DEF_VID_IN_ORDER && vid_playback_mode != DEF_VID_RANDOM)
 		vid_playback_mode = DEF_VID_NO_REPEAT;
+
+	if(vid_move_content_mode != DEF_VID_MOVE_BOTH && vid_move_content_mode != DEF_VID_MOVE_VIDEO
+	&& vid_move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_move_content_mode != DEF_VID_MOVE_DISABLE)
+		vid_move_content_mode = DEF_VID_MOVE_BOTH;
 
 	free(cache);
 	cache = NULL;
@@ -2465,7 +2653,7 @@ void Vid_init(void)
 	vid_control_button.c2d = var_square_image[0];
 	vid_ok_button.c2d = var_square_image[0];
 	vid_correct_aspect_ratio_button.c2d = var_square_image[0];
-	vid_disable_resize_move_button.c2d = var_square_image[0];
+	vid_move_content_button.c2d = var_square_image[0];
 	vid_remember_video_pos_button.c2d = var_square_image[0];
 	vid_show_decode_graph_button.c2d = var_square_image[0];
 	vid_show_color_conversion_graph_button.c2d = var_square_image[0];
@@ -2503,7 +2691,7 @@ void Vid_exit(void)
 	+ std::to_string(vid_use_hw_color_conversion_request) + "</4><5>" + std::to_string(vid_use_multi_threaded_decoding_request) + "</5><6>"
 	+ std::to_string(vid_lower_resolution) + "</6><7>"	+ std::to_string(vid_volume) + "</7><8>"
 	+ std::to_string(vid_seek_duration) + "</8><9>" + std::to_string(vid_correct_aspect_ratio_mode) + "</9><10>"
-	+ std::to_string(vid_disable_resize_move_mode) + "</10><11>" + std::to_string(vid_remember_video_pos_mode) + "</11><12>"
+	+ std::to_string(vid_move_content_mode) + "</10><11>" + std::to_string(vid_remember_video_pos_mode) + "</11><12>"
 	+ std::to_string(vid_playback_mode) + "</12>";
 	Util_file_save_to_file("vid_settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
 
@@ -2531,6 +2719,9 @@ void Vid_main(void)
 	int image_num_3d = 0;
 	double image_width[4] = { 0, 0, 0, 0, };
 	double image_height[4] = { 0, 0, 0, 0, };
+	double subtitle_width = 0;
+	double subtitle_height = 0;
+	double subtitle_x = 0;
 	double y_offset = 0;
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
@@ -2566,8 +2757,8 @@ void Vid_main(void)
 
 	for(int i = 0; i < 4; i++)
 	{
-		image_width[i] = vid_tex_width[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_zoom;
-		image_height[i] = vid_tex_height[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_zoom;
+		image_width[i] = vid_tex_width[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom;
+		image_height[i] = vid_tex_height[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_video_zoom;
 	}
 	
 	if(var_need_reflesh || !var_eco_mode)
@@ -2592,10 +2783,23 @@ void Vid_main(void)
 					Draw_texture(vid_image[2][image_num][0].c2d, vid_video_x_offset, (vid_video_y_offset + image_height[0]), image_width[2], image_height[2]);
 				if(vid_codec_width > 1024 && vid_codec_height > 1024)
 					Draw_texture(vid_image[3][image_num][0].c2d, (vid_video_x_offset + image_width[0]), (vid_video_y_offset + image_height[0]), image_width[3], image_height[3]);
+
+				for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
+				{
+					if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+					{
+						Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
+						subtitle_x = (400 - subtitle_width) / 2;
+
+						Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, subtitle_width, subtitle_height);
+						Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+						break;
+					}
+				}
 			}
 			else
 				Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
-			
+						
 			if(vid_full_screen_mode && vid_turn_off_bottom_screen_count > 0 && vid_show_full_screen_msg)
 			{
 				Draw_texture(var_square_image[0], DEF_DRAW_WEAK_BLACK, 40, 20, 320, 30);
@@ -2625,6 +2829,19 @@ void Vid_main(void)
 						Draw_texture(vid_image[2][image_num_3d][1].c2d, vid_video_x_offset, (vid_video_y_offset + image_height[0]), image_width[2], image_height[2]);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						Draw_texture(vid_image[3][image_num_3d][1].c2d, (vid_video_x_offset + image_width[0]), (vid_video_y_offset + image_height[0]), image_width[3], image_height[3]);
+
+					for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
+					{
+						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+						{
+							Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
+							subtitle_x = (400 - subtitle_width) / 2;
+
+							Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, subtitle_width, subtitle_height);
+							Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+							break;
+						}
+					}
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
@@ -2661,6 +2878,19 @@ void Vid_main(void)
 						Draw_texture(vid_image[2][image_num][0].c2d, vid_video_x_offset - 40, (vid_video_y_offset + image_height[0] - 240), image_width[2], image_height[2]);
 					if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						Draw_texture(vid_image[3][image_num][0].c2d, (vid_video_x_offset + image_width[0] - 40), (vid_video_y_offset + image_height[0] - 240), image_width[3], image_height[3]);
+
+					for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
+					{
+						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+						{
+							Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
+							subtitle_x = (320 - subtitle_width) / 2;
+
+							Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, ((200 + vid_subtitle_y_offset) * vid_subtitle_zoom) - 240, subtitle_width, subtitle_height);
+							Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, ((200 + vid_subtitle_y_offset) * vid_subtitle_zoom) - 240, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+							break;
+						}
+					}
 				}
 
 				if(vid_menu_mode != DEF_VID_MENU_NONE)
@@ -2763,16 +2993,16 @@ void Vid_main(void)
 					}
 				
 					y_offset += 25;
-					//disable resize and move video
+					//move content mode
 					if(235 + vid_ui_y_offset >= 50 && 235 + vid_ui_y_offset <= 165)
 					{
-						Draw_texture(&vid_disable_resize_move_button, vid_disable_resize_move_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 235 + vid_ui_y_offset, 300, 15);
-						Draw(vid_msg[DEF_VID_DISABLE_RESIZE_MOVE_MSG] + (vid_disable_resize_move_mode ? "ON" : "OFF"), 12.5, 235 + vid_ui_y_offset, 0.5, 0.5, color);
+						Draw_texture(&vid_move_content_button, vid_move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 10, 235 + vid_ui_y_offset, 300, 15);
+						Draw(vid_msg[DEF_VID_MOVE_MODE_MSG] + vid_msg[DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_move_content_mode], 12.5, 235 + vid_ui_y_offset, 0.5, 0.5, color);
 					}
 					else
 					{
-						vid_disable_resize_move_button.x_size = -1;
-						vid_disable_resize_move_button.y_size = -1;
+						vid_move_content_button.x_size = -1;
+						vid_move_content_button.y_size = -1;
 					}
 
 					y_offset += 25;

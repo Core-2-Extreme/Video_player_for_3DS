@@ -30,6 +30,19 @@ struct Video_info
 	int sar_height = 1;
 };
 
+struct Subtitle_info
+{
+	std::string format_name = "";
+	std::string track_lang = "";
+};
+
+struct Subtitle_data
+{
+	std::string text = "";
+	double start_time = 0;
+	double end_time = 0;
+};
+
 struct Image_data
 {
 	C2D_Image c2d = { .tex = NULL, };

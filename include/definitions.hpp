@@ -7,9 +7,9 @@
 #define DEF_CHECK_INTERNET_URL (std::string)"https://connectivitycheck.gstatic.com/generate_204"
 #define DEF_SEND_APP_INFO_URL (std::string)"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"
 #define DEF_CHECK_UPDATE_URL (std::string)"https://script.google.com/macros/s/AKfycbwTd3jzV0npUE9MNKmZIv3isazVR5D9_7A8rexsG1vr9SE7iavDBxgtzlph8dZipwu9/exec"
-#define DEF_HTTP_USER_AGENT (std::string)"video player for 3ds v1.4.2"
-#define DEF_CURRENT_APP_VER (std::string)"v1.4.2"
-#define DEF_CURRENT_APP_VER_INT 1090
+#define DEF_HTTP_USER_AGENT (std::string)"video player for 3ds v1.5.0-d"
+#define DEF_CURRENT_APP_VER (std::string)"v1.5.0-d"
+#define DEF_CURRENT_APP_VER_INT 1120
 #define DEF_ENABLE_SUB_APP0
 //#define DEF_ENABLE_SUB_APP1
 //#define DEF_ENABLE_SUB_APP2
@@ -36,12 +36,12 @@
 #define DEF_SWKBD_MAX_DIC_WORDS 128
 
 //video player
-#define DEF_VID_NUM_OF_MSG 29
+#define DEF_VID_NUM_OF_MSG 33
 #define DEF_VID_ENABLE_ICON
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
 #define DEF_VID_NAME (std::string)"Video\nplayer"
-#define DEF_VID_VER (std::string)"v1.4.2"
+#define DEF_VID_VER (std::string)"v1.5.0-d"
 #define DEF_VID_MAIN_STR (std::string)"Vid/Main"
 #define DEF_VID_INIT_STR (std::string)"Vid/Init"
 #define DEF_VID_EXIT_STR (std::string)"Vid/Exit"
@@ -65,13 +65,17 @@
 #define DEF_VID_SEEK_MSG 19
 #define DEF_VID_VOLUME_MSG 20
 #define DEF_VID_ASPECT_RATIO_MSG 21
-#define DEF_VID_DISABLE_RESIZE_MOVE_MSG 22
+#define DEF_VID_MOVE_MODE_MSG 22
 #define DEF_VID_REMEMBER_POS_MSG 23
 #define DEF_VID_PLAY_METHOD_MSG 24
 #define DEF_VID_NO_REPEAT_MSG 25
 #define DEF_VID_REPEAT_MSG 26
 #define DEF_VID_IN_ORDER_MSG 27
 #define DEF_VID_RANDOM_MSG 28
+#define DEF_VID_MOVE_MODE_EDIABLE_MSG 29
+#define DEF_VID_MOVE_MODE_ENABLE_BOTH_MSG 30
+#define DEF_VID_MOVE_MODE_ENABLE_VIDEO_MSG 31
+#define DEF_VID_MOVE_MODE_ENABLE_SUBTITLE_MSG 32
 
 #define DEF_VID_MENU_NONE -1
 #define DEF_VID_MENU_SETTINGS_0 0
@@ -82,6 +86,11 @@
 #define DEF_VID_REPEAT 1
 #define DEF_VID_IN_ORDER 2
 #define DEF_VID_RANDOM 3
+
+#define DEF_VID_MOVE_DISABLE 0
+#define DEF_VID_MOVE_BOTH 1
+#define DEF_VID_MOVE_VIDEO 2
+#define DEF_VID_MOVE_SUBTITLE 3
 
 #define DEF_VID_BUFFERS 3
 

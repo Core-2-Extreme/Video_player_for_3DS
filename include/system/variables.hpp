@@ -47,3 +47,4 @@ extern std::string var_lang;
 extern std::string var_model_name[6];
 extern std::string var_debug_string[8];
 extern C2D_Image var_square_image[1];
+extern C2D_Image var_null_image;

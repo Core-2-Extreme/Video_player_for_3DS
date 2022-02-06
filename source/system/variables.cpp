@@ -47,3 +47,4 @@ std::string var_lang = "en";
 std::string var_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "NEW 3DS", "OLD 2DS", "NEW 3DS XL", "NEW 2DS XL", };
 std::string var_debug_string[8] = { "", "", "", "", "", "", "", "", };
 C2D_Image var_square_image[1];
+C2D_Image var_null_image;

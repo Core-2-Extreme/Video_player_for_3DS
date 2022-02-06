@@ -2719,9 +2719,6 @@ void Vid_main(void)
 	int image_num_3d = 0;
 	double image_width[4] = { 0, 0, 0, 0, };
 	double image_height[4] = { 0, 0, 0, 0, };
-	double subtitle_width = 0;
-	double subtitle_height = 0;
-	double subtitle_x = 0;
 	double y_offset = 0;
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
@@ -2788,11 +2785,8 @@ void Vid_main(void)
 				{
 					if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
 					{
-						Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
-						subtitle_x = (400 - subtitle_width) / 2;
-
-						Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, subtitle_width, subtitle_height);
-						Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+						Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 200 + vid_subtitle_y_offset, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
+							DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_TOP, 400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 						break;
 					}
 				}
@@ -2834,11 +2828,8 @@ void Vid_main(void)
 					{
 						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
 						{
-							Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
-							subtitle_x = (400 - subtitle_width) / 2;
-
-							Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, subtitle_width, subtitle_height);
-							Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, (200 + vid_subtitle_y_offset) * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+							Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 200 + vid_subtitle_y_offset, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
+								DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_TOP, 400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 							break;
 						}
 					}
@@ -2883,11 +2874,8 @@ void Vid_main(void)
 					{
 						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
 						{
-							Draw_get_text_size(vid_subtitle_data[i].text, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, &subtitle_width, &subtitle_height);
-							subtitle_x = (320 - subtitle_width) / 2;
-
-							Draw_texture(var_square_image[0], 0xA0000000, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, ((200 + vid_subtitle_y_offset) * vid_subtitle_zoom) - 240, subtitle_width, subtitle_height);
-							Draw(vid_subtitle_data[i].text, (subtitle_x + vid_subtitle_x_offset) * vid_subtitle_zoom, ((200 + vid_subtitle_y_offset) * vid_subtitle_zoom) - 240, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE);
+							Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 200 + vid_subtitle_y_offset - 240, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
+								DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_TOP, 320, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 							break;
 						}
 					}

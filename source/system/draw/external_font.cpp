@@ -1013,11 +1013,10 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
     *out_element = std_num;
 }
 
-void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x, float texture_size_y, int abgr8888, float* out_width, float* out_height)
+void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x, float texture_size_y, int abgr8888, float* out_width, float* out_height, bool size_only)
 {
     double interval_offset = 0.5;
     double x_offset = 0.0;
-    double y_offset = 0.0;
     double x_size = 0.0;
     int block = -1;
     int char_size = 0;
@@ -1122,7 +1121,9 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
                 {
                     unknown = false;
                     x_size = (util_exfont_font_interval[util_exfont_font_start_num[block] + k] + interval_offset) * texture_size_x;
-                    Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
+                    if(!size_only)
+                        Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
+
                     x_offset += x_size;
                     break;
                 }
@@ -1138,12 +1139,25 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         if (unknown)
         {
             x_size = (util_exfont_font_interval[0] + interval_offset) * texture_size_x;
-            Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), (texture_y + y_offset), x_size, 20.0 * texture_size_y);
+            if(!size_only)
+                Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
+
             x_offset += x_size;
         }
     }
     *out_width = x_offset;
-    *out_height = y_offset;
+    *out_height = 20.0 * texture_size_y;
+}
+
+void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x,
+ float texture_size_y, int abgr8888, float* out_width, float* out_height)
+{
+    Exfont_draw_external_fonts(in_string, texture_x, texture_y, texture_size_x, texture_size_y, abgr8888, out_width, out_height, false);    
+}
+
+void Exfont_draw_get_text_size(std::string in_string, float texture_size_x, float texture_size_y, float* out_width, float* out_height)
+{
+    Exfont_draw_external_fonts(in_string, 0, 0, texture_size_x, texture_size_y, DEF_DRAW_NO_COLOR, out_width, out_height, true);
 }
 
 Result_with_string Exfont_load_exfont(int exfont_num)

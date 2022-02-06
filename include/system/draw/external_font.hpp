@@ -147,7 +147,7 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
 /**
  * @brief Draw external font.
  * Do nothing if external font api is not initialized.
- * @param string (in) Text.
+ * @param in_string (in) Text.
  * @param texture_x (in) X position (in px).
  * @param texture_y (in) Y position (in px).
  * @param texture_size_x (in) Font size for X direction.
@@ -155,8 +155,22 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
  * @param abgr8888 (in) Font color.
  * @param out_width (out) Total font width (in px).
  * @param out_height (out) Total font height (in px).
+ * @param out_height (out) Total font height (in px).
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Exfont_draw_external_fonts(std::string string, float texture_x, float texture_y, float texture_size_x,
-float texture_size_y, int abgr8888, float* out_width, float* out_height);
+void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x,
+ float texture_size_y, int abgr8888, float* out_width, float* out_height);
+
+/**
+ * @brief Get text size.
+ * Do nothing if external font api is not initialized.
+ * @param in_string (in) Text.
+ * @param texture_size_x (in) Font size for X direction.
+ * @param texture_size_y (in) Font size for Y direction.
+ * @param out_width (out) Text width (in px).
+ * @param out_height (out) Text height (in px).
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+void Exfont_draw_get_text_size(std::string in_string, float texture_size_x, float texture_size_y, float* out_width, float* out_height);

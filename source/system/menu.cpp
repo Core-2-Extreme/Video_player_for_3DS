@@ -390,22 +390,12 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw(menu_msg[DEF_MENU_EXIST_MSG], 90.0, 105.0, 0.5, 0.5, color);
-				if(var_lang == "ro")
-				{
-					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
-					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
-				}
-				else if(var_lang == "pl")
-				{
-					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 80.0, 140.0, 0.4, 0.4, DEF_DRAW_GREEN);
-					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.4, 0.4, DEF_DRAW_RED);
-				}
-				else
-				{
-					Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 130.0, 140.0, 0.5, 0.5, DEF_DRAW_GREEN);
-					Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210.0, 140.0, 0.5, 0.5, DEF_DRAW_RED);
-				}
+				Draw(menu_msg[DEF_MENU_EXIST_MSG], 0, 105, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_CENTER,
+					DEF_DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DEF_DRAW_X_ALIGN_RIGHT,
+					DEF_DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DEF_DRAW_X_ALIGN_LEFT,
+					DEF_DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{

@@ -198,6 +198,28 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888);
 
 /**
+ * @brief Draw text.
+ * Do nothing if draw api is not initialized.
+ * @param text (in) Text.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param text_size_x (in) Font size for X direction.
+ * @param text_size_y (in) Font size for Y direction.
+ * @param abgr8888 (in) Font color.
+ * @param x_align (in) DEF_DRAW_X_ALIGN_*.
+ * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
+ * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
+ * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
+ * @param texture_position (in) Background texture position DEF_DRAW_BACKGROUND_*.
+ * @param background_image (in&out) Image data.
+ * @param texture_abgr8888 (in) Texture color.
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
+ float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888);
+
+/**
  * @brief Get free sheet index that can be used for Draw_load_texture().
  * Always return -1 if draw api is not initialized.
  * @return Free sheet index.

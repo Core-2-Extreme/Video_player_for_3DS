@@ -1797,10 +1797,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 {
 	int ffmpeg_result = 0;
 	int decoded = 0;
-	int swr_size = 0;
-	int text_length = 0;
 	size_t cut_pos;
-	double current_frame = 0;
 	double timebase = 0;
 	std::string text = "";
 	Result_with_string result;
@@ -1822,7 +1819,6 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	subtitle_data->text = "";
 	subtitle_data->start_time = 0;
 	subtitle_data->end_time = 0;
-	current_frame = (double)util_subtitle_decoder_packet[session][packet_index]->dts / util_subtitle_decoder_packet[session][packet_index]->duration;
 	
 	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)malloc(sizeof(AVSubtitle));
 	if(!util_subtitle_decoder_raw_data[session][packet_index])

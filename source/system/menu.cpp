@@ -399,8 +399,8 @@ void Menu_main(void)
 			}
 			else if(menu_update_available)
 			{
-				Draw(menu_msg[DEF_MENU_NEW_VERSION_MSG], 10.0, 30.0, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10.0, 60.0, 0.5, 0.5, color);
+				Draw(menu_msg[DEF_MENU_NEW_VERSION_MSG], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
+				Draw(menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_log_show_flag())
@@ -411,141 +411,141 @@ void Menu_main(void)
 			Draw_screen_ready(1, back_color);
 
 			#ifdef DEF_ENABLE_SUB_APP0
-			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 60, 60.0);
 
 			#ifdef DEF_VID_ENABLE_ICON
-			Draw_texture(menu_icon_image[0], 0.0, 0.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[0], 0, 0, 60, 60.0);
 			#endif
 			#ifdef DEF_VID_ENABLE_NAME
-			Draw(DEF_VID_NAME, 10.0, 25.0, 0.4, 0.4, color);
+			Draw(DEF_VID_NAME, 0, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Vid_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 0.0, 15.0, 15.0);
-				Draw("X", 47.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 0, 15, 15.0);
+				Draw("X", 47.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1
-			Draw_texture(&menu_sapp_button[1], menu_sapp_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[1], menu_sapp_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80, 0, 60, 60.0);
 
 			#ifdef DEF_SAPP1_ENABLE_ICON
-			Draw_texture(menu_icon_image[1], 80.0, 0.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[1], 80, 0, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw(DEF_SAPP1_NAME, 90.0, 25.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp1_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[1], menu_sapp_close_button[1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 0.0, 15.0, 15.0);
-				Draw("X", 127.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[1], menu_sapp_close_button[1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 0, 15, 15.0);
+				Draw("X", 127.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP2
-			Draw_texture(&menu_sapp_button[2], menu_sapp_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[2], menu_sapp_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160, 0, 60, 60.0);
 
 			#ifdef DEF_SAPP2_ENABLE_ICON
-			Draw_texture(menu_icon_image[2], 160.0, 0.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[2], 160, 0, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP2_ENABLE_NAME
-			Draw(DEF_SAPP2_NAME, 170.0, 25.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp2_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[2], menu_sapp_close_button[2].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 0.0, 15.0, 15.0);
-				Draw("X", 207.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[2], menu_sapp_close_button[2].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 0, 15, 15.0);
+				Draw("X", 207.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP3
-			Draw_texture(&menu_sapp_button[3], menu_sapp_button[3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 0.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[3], menu_sapp_button[3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240, 0, 60, 60.0);
 
 			#ifdef DEF_SAPP3_ENABLE_ICON
-			Draw_texture(menu_icon_image[3], 240.0, 0.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[3], 240, 0, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP3_ENABLE_NAME
-			Draw(DEF_SAPP3_NAME, 250.0, 25.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp3_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[3], menu_sapp_close_button[3].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 0.0, 15.0, 15.0);
-				Draw("X", 287.5, 0.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[3], menu_sapp_close_button[3].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 0, 15, 15.0);
+				Draw("X", 287.5, 0, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP4
-			Draw_texture(&menu_sapp_button[4], menu_sapp_button[4].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[4], menu_sapp_button[4].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 80, 60, 60.0);
 
 			#ifdef DEF_SAPP4_ENABLE_ICON
-			Draw_texture(menu_icon_image[4], 0.0, 80.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[4], 0, 80, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP4_ENABLE_NAME
-			Draw(DEF_SAPP4_NAME, 10.0, 105.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp4_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[4], menu_sapp_close_button[4].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45.0, 80.0, 15.0, 15.0);
-				Draw("X", 47.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[4], menu_sapp_close_button[4].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 80, 15, 15.0);
+				Draw("X", 47.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP5
-			Draw_texture(&menu_sapp_button[5], menu_sapp_button[5].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[5], menu_sapp_button[5].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80, 80, 60, 60.0);
 
 			#ifdef DEF_SAPP5_ENABLE_ICON
-			Draw_texture(menu_icon_image[5], 80.0, 80.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[5], 80, 80, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP5_ENABLE_NAME
-			Draw(DEF_SAPP5_NAME, 90.0, 105.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp5_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[5], menu_sapp_close_button[5].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125.0, 80.0, 15.0, 15.0);
-				Draw("X", 127.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[5], menu_sapp_close_button[5].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 80, 15, 15.0);
+				Draw("X", 127.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP6
-			Draw_texture(&menu_sapp_button[6], menu_sapp_button[6].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[6], menu_sapp_button[6].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160, 80, 60, 60.0);
 
 			#ifdef DEF_SAPP6_ENABLE_ICON
-			Draw_texture(menu_icon_image[6], 160.0, 80.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[6], 160, 80, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP6_ENABLE_NAME
-			Draw(DEF_SAPP6_NAME, 170.0, 105.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp6_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[6], menu_sapp_close_button[6].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205.0, 80.0, 15.0, 15.0);
-				Draw("X", 207.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[6], menu_sapp_close_button[6].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 80, 15, 15.0);
+				Draw("X", 207.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP7
-			Draw_texture(&menu_sapp_button[7], menu_sapp_button[7].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240.0, 80.0, 60.0, 60.0);
+			Draw_texture(&menu_sapp_button[7], menu_sapp_button[7].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240, 80, 60, 60.0);
 
 			#ifdef DEF_SAPP7_ENABLE_ICON
-			Draw_texture(menu_icon_image[7], 240.0, 80.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[7], 240, 80, 60, 60.0);
 			#endif
 			#ifdef DEF_SAPP7_ENABLE_NAME
-			Draw(DEF_SAPP7_NAME, 250.0, 105.0, 0.4, 0.4, color);
+			Draw(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp7_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[7], menu_sapp_close_button[7].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285.0, 80.0, 15.0, 15.0);
-				Draw("X", 287.5, 80.0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[7], menu_sapp_close_button[7].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 80, 15, 15.0);
+				Draw("X", 287.5, 80, 0.5, 0.5, DEF_DRAW_RED);
 			}
 			#endif
 
-			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260.0, 170.0, 60.0, 60.0);
+			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260, 170, 60, 60.0);
 
 			#ifdef DEF_SEM_ENABLE_ICON
-			Draw_texture(menu_icon_image[8 + var_night_mode], 260.0, 170.0, 60.0, 60.0);
+			Draw_texture(menu_icon_image[8 + var_night_mode], 260, 170, 60, 60.0);
 			#endif
 			#ifdef DEF_SEM_ENABLE_NAME
-			Draw(DEF_SEM_NAME, 270.0, 205.0, 0.4, 0.4, color);
+			Draw(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
 			#endif
 
 			if(Util_err_query_error_show_flag())

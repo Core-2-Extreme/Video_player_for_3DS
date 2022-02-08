@@ -32,3 +32,5 @@ by wyłączyć pełny ekran</12>
 <30>Video and subtitle</30>
 <31>Only video</31>
 <32>Only subtitle</32>
+<33>Subtitle track selection</33>
+<34>Select subtitle track</34>

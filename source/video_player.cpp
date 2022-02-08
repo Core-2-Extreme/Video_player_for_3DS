@@ -11,6 +11,7 @@ bool vid_convert_wait_request = false;
 bool vid_decode_video_request = false;
 bool vid_decode_video_wait_request = false;
 bool vid_select_audio_track_request = false;
+bool vid_select_subtitle_track_request = false;
 bool vid_use_hw_decoding_request = true;
 bool vid_use_hw_color_conversion_request = true;
 bool vid_use_multi_threaded_decoding_request = true;
@@ -83,6 +84,7 @@ int vid_num_of_video_tracks = 0;
 int vid_num_of_audio_tracks = 0;
 int vid_num_of_subtitle_tracks = 0;
 int vid_selected_audio_track = 0;
+int vid_selected_subtitle_track = 0;
 int vid_total_frames = 0;
 int vid_codec_width = 0;
 int vid_codec_height = 0;
@@ -100,6 +102,7 @@ int vid_subtitle_index = 0;
 std::string vid_file = "";
 std::string vid_dir = "";
 std::string vid_audio_track_lang[DEF_DECODER_MAX_AUDIO_TRACKS];
+std::string vid_subtitle_track_lang[DEF_DECODER_MAX_SUBTITLE_TRACKS];
 std::string vid_msg[DEF_VID_NUM_OF_MSG];
 Image_data vid_image[4][DEF_VID_BUFFERS][2];
 C2D_Image vid_banner[2];
@@ -110,7 +113,8 @@ vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use
 vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
 vid_correct_aspect_ratio_button, vid_move_content_button, vid_remember_video_pos_button, vid_show_decode_graph_button,
 vid_show_color_conversion_graph_button, vid_show_packet_buffer_graph_button, vid_show_raw_video_buffer_graph_button, 
-vid_show_raw_audio_buffer_graph_button, vid_menu_background, vid_scroll_bar, vid_playback_mode_button;
+vid_show_raw_audio_buffer_graph_button, vid_menu_background, vid_scroll_bar, vid_playback_mode_button,
+vid_subtitle_track_button[DEF_DECODER_MAX_SUBTITLE_TRACKS], vid_select_subtitle_track_button;
 Audio_info vid_audio_info;
 Video_info vid_video_info;
 Subtitle_info vid_subtitle_info;
@@ -263,6 +267,47 @@ void Vid_hid(Hid_info key)
 				}
 			}
 		}
+		else if(vid_select_subtitle_track_request)//subtitle selection
+		{
+			if(key.p_d_down || key.p_c_down)
+			{
+				if(vid_selected_subtitle_track + 1 < vid_num_of_subtitle_tracks)
+					vid_selected_subtitle_track++;
+				var_need_reflesh = true;
+			}
+			else if(key.p_d_up || key.p_c_up)
+			{
+				if(vid_selected_subtitle_track - 1 > -1)
+					vid_selected_subtitle_track--;
+				var_need_reflesh = true;
+			}
+			else if(Util_hid_is_pressed(key, vid_ok_button))
+			{
+				vid_ok_button.selected = true;
+				var_need_reflesh = true;
+			}
+			else if(key.p_a || (Util_hid_is_released(key, vid_ok_button) && vid_ok_button.selected))
+			{
+				vid_select_subtitle_track_request = false;
+				var_need_reflesh = true;
+			}
+
+			for(int i = 0; i < vid_num_of_subtitle_tracks; i++)
+			{
+				if(Util_hid_is_pressed(key, vid_subtitle_track_button[i]))
+				{
+					vid_subtitle_track_button[i].selected = true;
+					var_need_reflesh = true;
+					break;
+				}
+				else if(Util_hid_is_released(key, vid_subtitle_track_button[i]) && vid_subtitle_track_button[i].selected)
+				{
+					vid_selected_subtitle_track = i;
+					var_need_reflesh = true;
+					break;
+				}
+			}
+		}
 		else if(vid_show_controls)
 		{
 			if(Util_hid_is_pressed(key, vid_control_button))
@@ -298,7 +343,7 @@ void Vid_hid(Hid_info key)
 						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / -125;
 
 					var_need_reflesh = true;
-				}				
+				}
 				//audio track button
 				else if(Util_hid_is_pressed(key, vid_select_audio_track_button))
 				{
@@ -313,6 +358,22 @@ void Vid_hid(Hid_info key)
 				else if(!Util_hid_is_held(key, vid_select_audio_track_button) && vid_select_audio_track_button.selected)
 				{
 					vid_select_audio_track_button.selected = false;
+					vid_menu_background.selected = true;
+				}
+				//subtitle track button
+				else if(Util_hid_is_pressed(key, vid_select_subtitle_track_button))
+				{
+					vid_select_subtitle_track_button.selected = true;
+					var_need_reflesh = true;
+				}
+				else if(Util_hid_is_released(key, vid_select_subtitle_track_button) && vid_select_subtitle_track_button.selected)
+				{
+					vid_select_subtitle_track_request = !vid_select_subtitle_track_request;
+					var_need_reflesh = true;
+				}
+				else if(!Util_hid_is_held(key, vid_select_subtitle_track_button) && vid_select_subtitle_track_button.selected)
+				{
+					vid_select_subtitle_track_button.selected = false;
 					vid_menu_background.selected = true;
 				}
 				//texture filter button
@@ -870,7 +931,7 @@ void Vid_hid(Hid_info key)
 						vid_video_y_offset -= 1 * var_scroll_speed;
 					else if(key.h_c_down || key.h_d_down)
 					{
-						if(!vid_select_audio_track_request)
+						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
 							if(vid_cd_count > 600)
 								vid_video_y_offset -= 10 * var_scroll_speed;
@@ -885,7 +946,7 @@ void Vid_hid(Hid_info key)
 						vid_video_y_offset += 1 * var_scroll_speed;
 					else if(key.h_c_up || key.h_d_up)
 					{
-						if(!vid_select_audio_track_request)
+						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
 							if(vid_cd_count > 600)
 								vid_video_y_offset += 10 * var_scroll_speed;
@@ -938,7 +999,7 @@ void Vid_hid(Hid_info key)
 						vid_subtitle_y_offset -= 1 * var_scroll_speed;
 					else if(key.h_c_down || key.h_d_down)
 					{
-						if(!vid_select_audio_track_request)
+						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
 							if(vid_cd_count > 600)
 								vid_subtitle_y_offset -= 10 * var_scroll_speed;
@@ -953,7 +1014,7 @@ void Vid_hid(Hid_info key)
 						vid_subtitle_y_offset += 1 * var_scroll_speed;
 					else if(key.h_c_up || key.h_d_up)
 					{
-						if(!vid_select_audio_track_request)
+						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
 							if(vid_cd_count > 600)
 								vid_subtitle_y_offset += 10 * var_scroll_speed;
@@ -1110,7 +1171,7 @@ void Vid_hid(Hid_info key)
 			|| vid_move_content_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
 			|| vid_show_decode_graph_button.selected || vid_show_color_conversion_graph_button.selected || vid_show_packet_buffer_graph_button.selected
 			|| vid_show_raw_video_buffer_graph_button.selected || vid_show_raw_audio_buffer_graph_button.selected || vid_menu_background.selected 
-			|| vid_scroll_bar.selected || vid_playback_mode_button.selected)
+			|| vid_scroll_bar.selected || vid_playback_mode_button.selected || vid_select_subtitle_track_button.selected)
 				var_need_reflesh = true;
 
 
@@ -1122,7 +1183,7 @@ void Vid_hid(Hid_info key)
 			= vid_move_content_button.selected = vid_remember_video_pos_button.selected = Draw_get_bot_ui_button()->selected
 			= vid_show_decode_graph_button.selected = vid_show_color_conversion_graph_button.selected = vid_show_packet_buffer_graph_button.selected
 			= vid_show_raw_video_buffer_graph_button.selected = vid_show_raw_audio_buffer_graph_button.selected = vid_menu_background.selected 
-			= vid_scroll_bar.selected = vid_playback_mode_button.selected = false;
+			= vid_scroll_bar.selected = vid_playback_mode_button.selected = vid_select_subtitle_track_button.selected = false;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 			{
@@ -1130,6 +1191,14 @@ void Vid_hid(Hid_info key)
 					var_need_reflesh = true;
 
 				vid_audio_track_button[i].selected = false;
+			}
+
+			for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
+			{
+				if(vid_subtitle_track_button[i].selected)
+					var_need_reflesh = true;
+
+				vid_subtitle_track_button[i].selected = false;
 			}
 		}
 	}
@@ -1145,6 +1214,7 @@ void Vid_decode_thread(void* arg)
 	bool key_frame = false;
 	int wait_count = 0;
 	int audio_track = 0;
+	int subtitle_track = 0;
 	int audio_size = 0;
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
@@ -1180,6 +1250,7 @@ void Vid_decode_thread(void* arg)
 			vid_num_of_audio_tracks = 0;
 			vid_num_of_subtitle_tracks = 0;
 			vid_selected_audio_track = 0;
+			vid_selected_subtitle_track = 0;
 			vid_video_x_offset = 0;
 			vid_video_y_offset = 15;
 			vid_frametime = 0;
@@ -1210,7 +1281,6 @@ void Vid_decode_thread(void* arg)
 			vid_max_time = 0;
 			vid_recent_total_time = 0;
 			vid_image_num = 0;
-			vid_selected_audio_track = 0;
 			vid_subtitle_index = 0;
 			vid_subtitle_x_offset = 0;
 			vid_subtitle_y_offset = 0;
@@ -1239,6 +1309,9 @@ void Vid_decode_thread(void* arg)
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 				vid_audio_track_lang[i] = "";
+
+			for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
+				vid_subtitle_track_lang[i] = "";
 
 			for(int i = 0; i < 90; i++)
 				vid_recent_time[i] = 0;
@@ -1504,8 +1577,18 @@ void Vid_decode_thread(void* arg)
 					for(int i = 0; i < num_of_subtitle_tracks; i++)
 					{
 						Util_subtitle_decoder_get_info(&vid_subtitle_info, i, 0);
-						Util_log_save("debug", vid_subtitle_info.track_lang + " " + vid_subtitle_info.format_name);
+						vid_subtitle_track_lang[i] = vid_subtitle_info.track_lang;
 					}
+
+					if(num_of_subtitle_tracks > 1)
+					{
+						vid_select_subtitle_track_request = true;
+						var_need_reflesh = true;
+						while(vid_select_subtitle_track_request)
+							usleep(16600);
+					}
+
+					subtitle_track = vid_selected_subtitle_track;
 				}
 			}
 
@@ -1668,6 +1751,7 @@ void Vid_decode_thread(void* arg)
 
 				var_afk_time = 0;
 
+				//change audio track
 				if(!vid_select_audio_track_request && audio_track != vid_selected_audio_track)
 				{
 					audio_track = vid_selected_audio_track;
@@ -1675,6 +1759,18 @@ void Vid_decode_thread(void* arg)
 					Util_audio_decoder_get_info(&vid_audio_info, audio_track, 0);
 					vid_duration = vid_audio_info.duration * 1000;
 					Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
+				}
+
+				//change subtitle track
+				if(!vid_select_subtitle_track_request && subtitle_track != vid_selected_subtitle_track)
+				{
+					subtitle_track = vid_selected_subtitle_track;
+					for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)
+					{
+						vid_subtitle_data[i].text = "";
+						vid_subtitle_data[i].start_time = 0;
+						vid_subtitle_data[i].end_time = 0;
+					}
 				}
 
 				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO))
@@ -1790,7 +1886,7 @@ void Vid_decode_thread(void* arg)
 				}
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO)
 					Util_decoder_skip_audio_packet(packet_index, 0);
-				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE)
+				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE && packet_index == subtitle_track && !vid_seek_adjust_request)
 				{
 					result = Util_decoder_ready_subtitle_packet(packet_index, 0);
 					if(result.code == 0)
@@ -1810,6 +1906,8 @@ void Vid_decode_thread(void* arg)
 						Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_ready_subtitle_packet()..." + result.string + result.error_description, result.code);
 
 				}
+				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE)
+					Util_decoder_skip_subtitle_packet(packet_index, 0);
 				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)))
 				{
 					vid_packet_index = packet_index;
@@ -2466,6 +2564,7 @@ void Vid_init(void)
 	vid_num_of_audio_tracks = 0;
 	vid_num_of_subtitle_tracks = 0;
 	vid_selected_audio_track = 0;
+	vid_selected_subtitle_track = 0;
 	vid_lr_count = 0;
 	vid_cd_count = 0;
 	vid_y_move_speed = 0;
@@ -2522,6 +2621,9 @@ void Vid_init(void)
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_lang[i] = "";
+
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
+		vid_subtitle_track_lang[i] = "";
 
 	for(int i = 0; i < 90; i++)
 		vid_recent_time[i] = 0;
@@ -2663,9 +2765,13 @@ void Vid_init(void)
 	vid_menu_background.c2d = var_square_image[0];
 	vid_scroll_bar.c2d = var_square_image[0];
 	vid_playback_mode_button.c2d = var_square_image[0];
+	vid_select_subtitle_track_button.c2d = var_square_image[0];
 
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		vid_audio_track_button[i].c2d = var_square_image[0];
+
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
+		vid_subtitle_track_button[i].c2d = var_square_image[0];
 
 	Vid_resume();
 	vid_already_init = true;
@@ -2685,6 +2791,7 @@ void Vid_exit(void)
 	vid_decode_video_request = false;
 	vid_play_request = false;
 	vid_select_audio_track_request = false;
+	vid_select_subtitle_track_request = false;
 
 	data = "<0>" + std::to_string(vid_linear_filter) + "</0><1>" + std::to_string(vid_allow_skip_frames) + "</1><2>"
 	+ std::to_string(vid_allow_skip_key_frames) + "</2><3>" + std::to_string(vid_use_hw_decoding_request) + "</3><4>"
@@ -2931,6 +3038,19 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
+					//select subtitle track
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
+					{
+						Draw(vid_msg[DEF_VID_SUBTITLE_TRACK_MSG], 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 15,
+						DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_select_subtitle_track_button, vid_select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+					}
+					else
+					{
+						vid_select_subtitle_track_button.x_size = -1;
+						vid_select_subtitle_track_button.y_size = -1;
+					}
+
+					y_offset += 25;
 					//seek duration
 					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
@@ -2984,9 +3104,9 @@ void Vid_main(void)
 				
 					y_offset += 25;
 					//move content mode
-					if(235 + vid_ui_y_offset >= 50 && 235 + vid_ui_y_offset <= 165)
+					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw(vid_msg[DEF_VID_MOVE_MODE_MSG] + vid_msg[DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_move_content_mode], 12.5, 235 + vid_ui_y_offset, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 15,
+						Draw(vid_msg[DEF_VID_MOVE_MODE_MSG] + vid_msg[DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_move_content_mode], 12.5, y_offset + vid_ui_y_offset, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 15,
 						DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_move_content_button, vid_move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
@@ -3282,6 +3402,21 @@ void Vid_main(void)
 					{
 						Draw_texture(&vid_audio_track_button[i], vid_audio_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
 						Draw("Track " + std::to_string(i) + "(" + vid_audio_track_lang[i] + ")", 42.5, 40 + (i * 12), 0.475, 0.475, i == vid_selected_audio_track ? DEF_DRAW_RED : color);
+					}
+
+					Draw_texture(&vid_ok_button, vid_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
+					Draw("OK", 152.5, 140, 0.4, 0.4, DEF_DRAW_BLACK);
+				}
+
+				if(vid_select_subtitle_track_request)
+				{
+					Draw_texture(var_square_image[0], DEF_DRAW_GREEN, 40, 20, 240, 140);
+					Draw(vid_msg[DEF_VID_SUBTITLE_TRACK_DESCRIPTION_MSG], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
+
+					for(int i = 0; i < vid_num_of_subtitle_tracks; i++)
+					{
+						Draw_texture(&vid_subtitle_track_button[i], vid_subtitle_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
+						Draw("Track " + std::to_string(i) + "(" + vid_subtitle_track_lang[i] + ")", 42.5, 40 + (i * 12), 0.475, 0.475, i == vid_selected_subtitle_track ? DEF_DRAW_RED : color);
 					}
 
 					Draw_texture(&vid_ok_button, vid_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);

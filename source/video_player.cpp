@@ -165,6 +165,35 @@ void Vid_fit_to_screen(int screen_width, int screen_height)
 	vid_subtitle_zoom = 1;
 }
 
+void Vid_enter_fullscreen(int bottom_screen_timeout)
+{
+	vid_turn_off_bottom_screen_count = bottom_screen_timeout;
+	vid_full_screen_mode = true;
+	var_top_lcd_brightness = var_lcd_brightness;
+	var_bottom_lcd_brightness = var_lcd_brightness;
+}
+
+void Vid_exit_fullscreen(void)
+{
+	vid_turn_off_bottom_screen_count = 0;
+	vid_full_screen_mode = false;
+	var_turn_on_bottom_lcd = true;
+	var_top_lcd_brightness = var_lcd_brightness;
+	var_bottom_lcd_brightness = var_lcd_brightness;
+}
+
+void Vid_control_fullscreen(void)
+{
+	if(vid_turn_off_bottom_screen_count > 0)
+	{
+		vid_turn_off_bottom_screen_count--;
+		if(vid_turn_off_bottom_screen_count == 0 && var_model != CFG_MODEL_2DS)
+			var_turn_on_bottom_lcd = false;
+		if(var_bottom_lcd_brightness > 10 && var_model != CFG_MODEL_2DS)
+			var_bottom_lcd_brightness--;
+	}
+}
+
 void Vid_hid(Hid_info key)
 {
 	if(vid_set_volume_request || vid_set_seek_duration_request || (aptShouldJumpToHome() && vid_pause_for_home_menu_request))
@@ -195,11 +224,7 @@ void Vid_hid(Hid_info key)
 			if(key.p_select || key.p_touch || aptShouldJumpToHome())
 			{
 				Vid_fit_to_screen(400, 225);
-				vid_turn_off_bottom_screen_count = 0;
-				vid_full_screen_mode = false;
-				var_turn_on_bottom_lcd = true;
-				var_top_lcd_brightness = var_lcd_brightness;
-				var_bottom_lcd_brightness = var_lcd_brightness;
+				Vid_exit_fullscreen();
 				vid_show_full_screen_msg = false;
 				var_need_reflesh = true;
 			}
@@ -841,10 +866,7 @@ void Vid_hid(Hid_info key)
 			else if(key.p_select)
 			{
 				Vid_fit_to_screen(400, 240);
-				vid_turn_off_bottom_screen_count = 300;
-				vid_full_screen_mode = true;
-				var_top_lcd_brightness = var_lcd_brightness;
-				var_bottom_lcd_brightness = var_lcd_brightness;
+				Vid_enter_fullscreen(300);
 				var_need_reflesh = true;
 			}
 			else if(key.p_a)
@@ -1355,8 +1377,10 @@ void Vid_decode_thread(void* arg)
 					}
 
 					vid_duration = vid_audio_info.duration;
+					//if there is more than 1 audio tracks, select a audio track
 					if(num_of_audio_tracks > 1)
 					{
+						Vid_exit_fullscreen();
 						vid_select_audio_track_request = true;
 						var_need_reflesh = true;
 						while(vid_select_audio_track_request)
@@ -1559,8 +1583,10 @@ void Vid_decode_thread(void* arg)
 						vid_subtitle_track_lang[i] = vid_subtitle_info.track_lang;
 					}
 
+					//if there is more than 1 subtitle tracks, select a subtitle track
 					if(num_of_subtitle_tracks > 1)
 					{
+						Vid_exit_fullscreen();
 						vid_select_subtitle_track_request = true;
 						var_need_reflesh = true;
 						while(vid_select_subtitle_track_request)
@@ -1576,19 +1602,12 @@ void Vid_decode_thread(void* arg)
 			{
 				Vid_fit_to_screen(400, 240);
 				if(!vid_full_screen_mode)
-				{
-					vid_full_screen_mode = true;
-					vid_turn_off_bottom_screen_count = 300;
-				}
+					Vid_enter_fullscreen(300);
 			}
 			else
 			{
 				Vid_fit_to_screen(400, 225);
-				var_top_lcd_brightness = var_lcd_brightness;
-				var_bottom_lcd_brightness = var_lcd_brightness;
-				vid_turn_off_bottom_screen_count = 0;
-				var_turn_on_bottom_lcd = true;
-				vid_full_screen_mode = false;
+				Vid_exit_fullscreen();
 			}
 
 			if(vid_remember_video_pos_mode && vid_play_request)
@@ -1930,6 +1949,7 @@ void Vid_decode_thread(void* arg)
 			vid_pause_request = false;
 			vid_seek_adjust_request = false;
 			vid_seek_request = false;
+			vid_show_full_screen_msg = false;
 
 			if(!vid_change_video_request && vid_playback_mode == DEF_VID_NO_REPEAT)
 				vid_play_request = false;
@@ -2806,14 +2826,7 @@ void Vid_main(void)
 	else
 		image_num_3d = DEF_VID_BUFFERS - 1;
 
-	if(vid_turn_off_bottom_screen_count > 0)
-	{
-		vid_turn_off_bottom_screen_count--;
-		if(vid_turn_off_bottom_screen_count == 0 && var_model != CFG_MODEL_2DS)
-			var_turn_on_bottom_lcd = false;
-		if(var_bottom_lcd_brightness > 10 && var_model != CFG_MODEL_2DS)
-			var_bottom_lcd_brightness--;
-	}
+	Vid_control_fullscreen();
 
 	for(int i = 0; i < 4; i++)
 	{

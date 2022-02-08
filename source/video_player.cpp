@@ -165,7 +165,7 @@ void Vid_fit_to_screen(int screen_width, int screen_height)
 	vid_subtitle_zoom = 1;
 }
 
-void Vid_enter_fullscreen(int bottom_screen_timeout)
+void Vid_enter_full_screen(int bottom_screen_timeout)
 {
 	vid_turn_off_bottom_screen_count = bottom_screen_timeout;
 	vid_full_screen_mode = true;
@@ -173,7 +173,7 @@ void Vid_enter_fullscreen(int bottom_screen_timeout)
 	var_bottom_lcd_brightness = var_lcd_brightness;
 }
 
-void Vid_exit_fullscreen(void)
+void Vid_exit_full_screen(void)
 {
 	vid_turn_off_bottom_screen_count = 0;
 	vid_full_screen_mode = false;
@@ -182,7 +182,7 @@ void Vid_exit_fullscreen(void)
 	var_bottom_lcd_brightness = var_lcd_brightness;
 }
 
-void Vid_control_fullscreen(void)
+void Vid_control_full_screen(void)
 {
 	if(vid_turn_off_bottom_screen_count > 0)
 	{
@@ -224,7 +224,7 @@ void Vid_hid(Hid_info key)
 			if(key.p_select || key.p_touch || aptShouldJumpToHome())
 			{
 				Vid_fit_to_screen(400, 225);
-				Vid_exit_fullscreen();
+				Vid_exit_full_screen();
 				vid_show_full_screen_msg = false;
 				var_need_reflesh = true;
 			}
@@ -866,7 +866,7 @@ void Vid_hid(Hid_info key)
 			else if(key.p_select)
 			{
 				Vid_fit_to_screen(400, 240);
-				Vid_enter_fullscreen(300);
+				Vid_enter_full_screen(300);
 				var_need_reflesh = true;
 			}
 			else if(key.p_a)
@@ -1380,7 +1380,7 @@ void Vid_decode_thread(void* arg)
 					//if there is more than 1 audio tracks, select a audio track
 					if(num_of_audio_tracks > 1)
 					{
-						Vid_exit_fullscreen();
+						Vid_exit_full_screen();
 						vid_select_audio_track_request = true;
 						var_need_reflesh = true;
 						while(vid_select_audio_track_request)
@@ -1586,7 +1586,7 @@ void Vid_decode_thread(void* arg)
 					//if there is more than 1 subtitle tracks, select a subtitle track
 					if(num_of_subtitle_tracks > 1)
 					{
-						Vid_exit_fullscreen();
+						Vid_exit_full_screen();
 						vid_select_subtitle_track_request = true;
 						var_need_reflesh = true;
 						while(vid_select_subtitle_track_request)
@@ -1602,12 +1602,12 @@ void Vid_decode_thread(void* arg)
 			{
 				Vid_fit_to_screen(400, 240);
 				if(!vid_full_screen_mode)
-					Vid_enter_fullscreen(300);
+					Vid_enter_full_screen(300);
 			}
 			else
 			{
 				Vid_fit_to_screen(400, 225);
-				Vid_exit_fullscreen();
+				Vid_exit_full_screen();
 			}
 
 			if(vid_remember_video_pos_mode && vid_play_request)
@@ -2826,7 +2826,7 @@ void Vid_main(void)
 	else
 		image_num_3d = DEF_VID_BUFFERS - 1;
 
-	Vid_control_fullscreen();
+	Vid_control_full_screen();
 
 	for(int i = 0; i < 4; i++)
 	{

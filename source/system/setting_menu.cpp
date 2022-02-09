@@ -188,6 +188,109 @@ void Sem_init(void)
 	if(result.code == 0 || result.code == 0xC8A06C0D)
 		var_wifi_enabled = wifi_state;
 
+	//global
+	Util_add_watch(&sem_y_offset);
+	Util_add_watch(&sem_y_max);
+	Util_add_watch(&sem_selected_menu_mode);
+	Util_add_watch(&sem_scroll_mode);
+	Util_add_watch(&sem_scroll_bar.selected);
+
+	Util_add_watch(&sem_back_button.selected);
+	for(int i = 0; i < 9; i++)
+		Util_add_watch(&sem_menu_button[i].selected);
+
+	//Updater
+	Util_add_watch(&sem_show_patch_note_request);
+	Util_add_watch(&sem_select_ver_request);
+	Util_add_watch(&sem_dl_file_request);
+	Util_add_watch(&sem_check_update_request);
+	Util_add_watch(&sem_selected_edition_num);
+
+	Util_add_watch(&sem_close_updater_button.selected);
+	Util_add_watch(&sem_select_edtion_button.selected);
+	Util_add_watch(&sem_3dsx_button.selected);
+	Util_add_watch(&sem_cia_button.selected);
+	Util_add_watch(&sem_back_to_patch_note_button.selected);
+	Util_add_watch(&sem_dl_install_button.selected);
+	Util_add_watch(&sem_close_app_button.selected);
+	Util_add_watch(&sem_check_update_button.selected);
+
+	//Languages
+	Util_add_watch(&sem_reload_msg_request);
+
+	Util_add_watch(&sem_english_button.selected);
+	Util_add_watch(&sem_japanese_button.selected);
+	Util_add_watch(&sem_hungarian_button.selected);
+	Util_add_watch(&sem_chinese_button.selected);
+	Util_add_watch(&sem_italian_button.selected);
+	Util_add_watch(&sem_spanish_button.selected);
+	Util_add_watch(&sem_romanian_button.selected);
+	Util_add_watch(&sem_polish_button.selected);
+
+	//LCD
+	Util_add_watch(&var_night_mode);
+	Util_add_watch(&var_flash_mode);
+	Util_add_watch(&var_lcd_brightness);
+	Util_add_watch(&var_top_lcd_brightness);
+	Util_add_watch(&var_bottom_lcd_brightness);
+	Util_add_watch(&sem_change_brightness_request);
+	Util_add_watch(&var_time_to_turn_off_lcd);
+	Util_add_watch(&var_high_resolution_mode);
+	Util_add_watch(&var_3d_mode);
+	Util_add_watch(&sem_draw_reinit_request);
+
+	Util_add_watch(&sem_night_mode_on_button.selected);
+	Util_add_watch(&sem_night_mode_off_button.selected);
+	Util_add_watch(&sem_flash_mode_button.selected);
+	Util_add_watch(&sem_screen_brightness_bar.selected);
+	Util_add_watch(&sem_screen_off_time_bar.selected);
+	Util_add_watch(&sem_800px_mode_button.selected);
+	Util_add_watch(&sem_3d_mode_button.selected);
+	Util_add_watch(&sem_400px_mode_button.selected);
+
+	//Scroll speed
+	Util_add_watch(&var_scroll_speed);
+
+	Util_add_watch(&sem_scroll_speed_bar.selected);
+
+	//Font
+	Util_add_watch(&sem_load_all_ex_font_button.selected);
+	Util_add_watch(&sem_unload_all_ex_font_button.selected);
+	for(int i = 0; i < 4; i++)
+		Util_add_watch(&sem_system_font_button[i].selected);
+
+	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+		Util_add_watch(&sem_ex_font_button[i].selected);
+	
+	//Wireless
+	Util_add_watch(&var_wifi_enabled);
+
+	Util_add_watch(&sem_wifi_on_button.selected);
+	Util_add_watch(&sem_wifi_off_button.selected);
+
+	//Advanced settings
+	Util_add_watch(&var_allow_send_app_info);
+	Util_add_watch(&var_debug_mode);
+
+	Util_add_watch(&sem_allow_send_info_button.selected);
+	Util_add_watch(&sem_deny_send_info_button.selected);
+	Util_add_watch(&sem_debug_mode_on_button.selected);
+	Util_add_watch(&sem_debug_mode_off_button.selected);
+	Util_add_watch(&sem_use_fake_model_button.selected);
+
+	//Battery
+	Util_add_watch(&var_eco_mode);
+	Util_add_watch(&sem_eco_mode_on_button.selected);
+	Util_add_watch(&sem_eco_mode_off_button.selected);
+
+	//Screen recording
+	Util_add_watch(&sem_record_request);
+	Util_add_watch(&sem_stop_record_request);
+
+	Util_add_watch(&sem_record_both_lcd_button.selected);
+	Util_add_watch(&sem_record_top_lcd_button.selected);
+	Util_add_watch(&sem_record_bottom_lcd_button.selected);
+
 	Sem_resume();
 	sem_already_init = true;
 	Util_log_save(DEF_SEM_INIT_STR, "Initialized.");
@@ -195,6 +298,7 @@ void Sem_init(void)
 
 void Sem_draw_init(void)
 {
+	Util_add_watch(&Draw_get_bot_ui_button()->selected);
 	sem_back_button.c2d = var_square_image[0];
 	sem_scroll_bar.c2d = var_square_image[0];
 	sem_check_update_button.c2d = var_square_image[0];
@@ -282,6 +386,110 @@ void Sem_exit(void)
 	threadFree(sem_encode_thread);
 	threadFree(sem_record_thread);
 
+	//global
+	Util_remove_watch(&Draw_get_bot_ui_button()->selected);
+	Util_remove_watch(&sem_y_offset);
+	Util_remove_watch(&sem_y_max);
+	Util_remove_watch(&sem_selected_menu_mode);
+	Util_remove_watch(&sem_scroll_mode);
+	Util_remove_watch(&sem_scroll_bar.selected);
+
+	Util_remove_watch(&sem_back_button.selected);
+	for(int i = 0; i < 9; i++)
+		Util_remove_watch(&sem_menu_button[i].selected);
+
+	//Updater
+	Util_remove_watch(&sem_show_patch_note_request);
+	Util_remove_watch(&sem_select_ver_request);
+	Util_remove_watch(&sem_dl_file_request);
+	Util_remove_watch(&sem_check_update_request);
+	Util_remove_watch(&sem_selected_edition_num);
+
+	Util_remove_watch(&sem_close_updater_button.selected);
+	Util_remove_watch(&sem_select_edtion_button.selected);
+	Util_remove_watch(&sem_3dsx_button.selected);
+	Util_remove_watch(&sem_cia_button.selected);
+	Util_remove_watch(&sem_back_to_patch_note_button.selected);
+	Util_remove_watch(&sem_dl_install_button.selected);
+	Util_remove_watch(&sem_close_app_button.selected);
+	Util_remove_watch(&sem_check_update_button.selected);
+
+	//Languages
+	Util_remove_watch(&sem_reload_msg_request);
+
+	Util_remove_watch(&sem_english_button.selected);
+	Util_remove_watch(&sem_japanese_button.selected);
+	Util_remove_watch(&sem_hungarian_button.selected);
+	Util_remove_watch(&sem_chinese_button.selected);
+	Util_remove_watch(&sem_italian_button.selected);
+	Util_remove_watch(&sem_spanish_button.selected);
+	Util_remove_watch(&sem_romanian_button.selected);
+	Util_remove_watch(&sem_polish_button.selected);
+
+	//LCD
+	Util_remove_watch(&var_night_mode);
+	Util_remove_watch(&var_flash_mode);
+	Util_remove_watch(&var_lcd_brightness);
+	Util_remove_watch(&var_top_lcd_brightness);
+	Util_remove_watch(&var_bottom_lcd_brightness);
+	Util_remove_watch(&sem_change_brightness_request);
+	Util_remove_watch(&var_time_to_turn_off_lcd);
+	Util_remove_watch(&var_high_resolution_mode);
+	Util_remove_watch(&var_3d_mode);
+	Util_remove_watch(&sem_draw_reinit_request);
+
+	Util_remove_watch(&sem_night_mode_on_button.selected);
+	Util_remove_watch(&sem_night_mode_off_button.selected);
+	Util_remove_watch(&sem_flash_mode_button.selected);
+	Util_remove_watch(&sem_screen_brightness_bar.selected);
+	Util_remove_watch(&sem_screen_off_time_bar.selected);
+	Util_remove_watch(&sem_800px_mode_button.selected);
+	Util_remove_watch(&sem_3d_mode_button.selected);
+	Util_remove_watch(&sem_400px_mode_button.selected);
+
+	//Scroll speed
+	Util_remove_watch(&var_scroll_speed);
+
+	Util_remove_watch(&sem_scroll_speed_bar.selected);
+
+	//Font
+	Util_remove_watch(&sem_load_all_ex_font_button.selected);
+	Util_remove_watch(&sem_unload_all_ex_font_button.selected);
+	for(int i = 0; i < 4; i++)
+		Util_remove_watch(&sem_system_font_button[i].selected);
+
+	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
+		Util_remove_watch(&sem_ex_font_button[i].selected);
+	
+	//Wireless
+	Util_remove_watch(&var_wifi_enabled);
+
+	Util_remove_watch(&sem_wifi_on_button.selected);
+	Util_remove_watch(&sem_wifi_off_button.selected);
+
+	//Advanced settings
+	Util_remove_watch(&var_allow_send_app_info);
+	Util_remove_watch(&var_debug_mode);
+
+	Util_remove_watch(&sem_allow_send_info_button.selected);
+	Util_remove_watch(&sem_deny_send_info_button.selected);
+	Util_remove_watch(&sem_debug_mode_on_button.selected);
+	Util_remove_watch(&sem_debug_mode_off_button.selected);
+	Util_remove_watch(&sem_use_fake_model_button.selected);
+
+	//Battery
+	Util_remove_watch(&var_eco_mode);
+	Util_remove_watch(&sem_eco_mode_on_button.selected);
+	Util_remove_watch(&sem_eco_mode_off_button.selected);
+
+	//Screen recording
+	Util_remove_watch(&sem_record_request);
+	Util_remove_watch(&sem_stop_record_request);
+
+	Util_remove_watch(&sem_record_both_lcd_button.selected);
+	Util_remove_watch(&sem_record_top_lcd_button.selected);
+	Util_remove_watch(&sem_record_bottom_lcd_button.selected);
+
 	Util_log_save(DEF_SEM_EXIT_STR, "Exited.");
 }
 
@@ -302,7 +510,7 @@ void Sem_main(void)
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		cache_color[i] = color;
 
-	if(var_need_reflesh || !var_eco_mode)
+	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();
@@ -746,7 +954,9 @@ void Sem_main(void)
 
 	if(sem_draw_reinit_request)
 	{
+		Util_remove_watch(&Draw_get_bot_ui_button()->selected);
 		Draw_reinit(var_high_resolution_mode, var_3d_mode);
+		Util_add_watch(&Draw_get_bot_ui_button()->selected);
 		sem_draw_reinit_request = false;
 		var_need_reflesh = true;
 	}
@@ -766,10 +976,7 @@ void Sem_hid(Hid_info key)
 	else
 	{
 		if(!sem_draw_reinit_request && Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
-		{
 			Draw_get_bot_ui_button()->selected = true;
-			var_need_reflesh = true;
-		}
 		else if (key.p_start || (!sem_draw_reinit_request &&  Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sem_suspend();
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
@@ -777,250 +984,152 @@ void Sem_hid(Hid_info key)
 			for(int i = 0; i < 9; i++)
 			{
 				if(Util_hid_is_pressed(key, sem_menu_button[menu_button_list[i]]))
-				{
 					sem_menu_button[menu_button_list[i]].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_menu_button[menu_button_list[i]]) && sem_menu_button[menu_button_list[i]].selected)
 				{
 					sem_y_offset = 0.0;
 					sem_selected_menu_mode = menu_button_list[i];
-					if (menu_button_list[i] == DEF_SEM_MENU_FONT)
+					if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 						sem_y_max = -1000.0;
-
-					var_need_reflesh = true;
 				}
 			}
 		}
 		else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
 		{
 			if (Util_hid_is_pressed(key, sem_back_button) && !sem_show_patch_note_request && !sem_select_ver_request)
-			{
 				sem_back_button.selected = true;
-				var_need_reflesh = true;
-			}
 			else if (Util_hid_is_released(key, sem_back_button) && sem_back_button.selected && !sem_show_patch_note_request && !sem_select_ver_request)
 			{
 				sem_y_offset = 0.0;
 				sem_y_max = 0.0;
 				sem_selected_menu_mode = DEF_SEM_MENU_TOP;
-				var_need_reflesh = true;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)//Check for updates
 			{
 				if (sem_show_patch_note_request)
 				{
 					if (Util_hid_is_pressed(key, sem_close_updater_button))
-					{
 						sem_close_updater_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if (key.p_b || (Util_hid_is_released(key, sem_close_updater_button) && sem_close_updater_button.selected))
-					{
 						sem_show_patch_note_request = false;
-						var_need_reflesh = true;
-					}
 					else if (Util_hid_is_pressed(key, sem_select_edtion_button))
-					{
 						sem_select_edtion_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if (key.p_a || (Util_hid_is_released(key, sem_select_edtion_button) && sem_select_edtion_button.selected))
 					{
 						sem_show_patch_note_request = false;
 						sem_select_ver_request = true;
-						var_need_reflesh = true;
 					}
 				}
 				else if (sem_select_ver_request && !sem_dl_file_request)
 				{
 					if (Util_hid_is_pressed(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1")
-					{
 						sem_3dsx_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if (Util_hid_is_released(key, sem_3dsx_button) && sem_newest_ver_data[1] == "1" && sem_3dsx_button.selected)
-					{
 						sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-						var_need_reflesh = true;
-					}
 					else if (Util_hid_is_pressed(key, sem_cia_button) && sem_newest_ver_data[2] == "1")
-					{
 						sem_cia_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if (Util_hid_is_released(key, sem_cia_button) && sem_newest_ver_data[2] == "1" && sem_cia_button.selected)
-					{
 						sem_selected_edition_num = DEF_SEM_EDTION_CIA;
-						var_need_reflesh = true;
-					}
 					else if (Util_hid_is_pressed(key, sem_back_to_patch_note_button))
-					{
 						sem_back_to_patch_note_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if (key.p_b || (Util_hid_is_released(key, sem_back_to_patch_note_button) && sem_back_to_patch_note_button.selected))
 					{
 						sem_show_patch_note_request = true;
 						sem_select_ver_request = false;
-						var_need_reflesh = true;
 					}
 					else if (Util_hid_is_pressed(key, sem_dl_install_button) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
-					{
 						sem_dl_install_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if ((key.p_x || (Util_hid_is_released(key, sem_dl_install_button) && sem_dl_install_button.selected)) && sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1")
-					{
 						sem_dl_file_request = true;
-						var_need_reflesh = true;
-					}
 					else if(Util_hid_is_pressed(key, sem_close_app_button) && sem_update_progress == 4)
-					{
 						sem_close_app_button.selected = true;
-						var_need_reflesh = true;
-					}
 					else if(Util_hid_is_released(key, sem_close_app_button) && sem_update_progress == 4 && sem_close_app_button.selected)
 						Menu_set_must_exit_flag(true);
 				}
 				else
 				{
 					if(Util_hid_is_pressed(key, sem_check_update_button))
-					{
 						sem_check_update_button.selected = true;
-						var_need_reflesh = true;
-					}
 					if(Util_hid_is_released(key, sem_check_update_button) && sem_check_update_button.selected)
 					{
 						sem_check_update_request = true;
 						sem_show_patch_note_request = true;
-						var_need_reflesh = true;
 					}
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES && !sem_reload_msg_request)//Language
 			{
 				if(Util_hid_is_pressed(key, sem_english_button))
-				{
 					sem_english_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
 				{
 					var_lang = "en";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_japanese_button))
-				{
 					sem_japanese_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
 				{
 					var_lang = "jp";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_hungarian_button))
-				{
 					sem_hungarian_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
 				{
 					var_lang = "hu";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_chinese_button))
-				{
 					sem_chinese_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
 				{
 					var_lang = "zh-cn";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_italian_button))
-				{
 					sem_italian_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
 				{
 					var_lang = "it";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_spanish_button))
-				{
 					sem_spanish_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_spanish_button) && sem_spanish_button.selected)
 				{
 					var_lang = "es";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_romanian_button))
-				{
 					sem_romanian_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
 				{
 					var_lang = "ro";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_polish_button))
-				{
 					sem_polish_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_polish_button) && sem_polish_button.selected)
 				{
 					var_lang = "pl";
 					sem_reload_msg_request = true;
-					var_need_reflesh = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)//LCD
 			{
 				if(Util_hid_is_pressed(key, sem_night_mode_on_button))
-				{
 					sem_night_mode_on_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_night_mode_on_button) && sem_night_mode_on_button.selected)
-				{
 					var_night_mode = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_pressed(key, sem_night_mode_off_button))
-				{
 					sem_night_mode_off_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_night_mode_off_button) && sem_night_mode_off_button.selected)
-				{
 					var_night_mode = false;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_pressed(key, sem_flash_mode_button))
-				{
 					sem_flash_mode_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, sem_flash_mode_button) && sem_flash_mode_button.selected)
-				{
 					var_flash_mode = !var_flash_mode;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_pressed(key, sem_screen_brightness_bar) || Util_hid_is_pressed(key, sem_screen_brightness_slider))
 				{
 					var_lcd_brightness = 180 * ((double)(key.touch_x - 10) / 300);
@@ -1029,7 +1138,6 @@ void Sem_hid(Hid_info key)
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
 					sem_screen_brightness_bar.selected = true;
-					var_need_reflesh = true;
 				}
 				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 310 && sem_screen_brightness_bar.selected)
 				{
@@ -1038,24 +1146,16 @@ void Sem_hid(Hid_info key)
 					var_top_lcd_brightness = var_lcd_brightness;
 					var_bottom_lcd_brightness = var_lcd_brightness;
 					sem_change_brightness_request = true;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_screen_off_time_bar) || Util_hid_is_pressed(key, sem_screen_off_time_slider))
 				{
 					var_time_to_turn_off_lcd = key.touch_x;
 					sem_screen_off_time_bar.selected = true;
-					var_need_reflesh = true;
 				}
 				else if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_screen_off_time_bar.selected)
-				{
 					var_time_to_turn_off_lcd = key.touch_x;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS)
-				{
 					sem_800px_mode_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_800px_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button.selected)
 				{
 					var_high_resolution_mode = true;
@@ -1063,10 +1163,7 @@ void Sem_hid(Hid_info key)
 					sem_draw_reinit_request = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
-				{
 					sem_3d_mode_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_3d_mode_button) && !sem_record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button.selected)
 				{
 					var_high_resolution_mode = false;
@@ -1074,10 +1171,7 @@ void Sem_hid(Hid_info key)
 					sem_draw_reinit_request = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_400px_mode_button) && !sem_record_request)
-				{
 					sem_400px_mode_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_400px_mode_button) && !sem_record_request && sem_400px_mode_button.selected)
 				{
 					var_high_resolution_mode = false;
@@ -1088,44 +1182,32 @@ void Sem_hid(Hid_info key)
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)//Scroll speed
 			{
 				if (key.h_touch && key.touch_x >= 10 && key.touch_x <= 309 && sem_scroll_speed_bar.selected)
-				{
 					var_scroll_speed = (double)key.touch_x / 300;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_scroll_speed_slider) || Util_hid_is_pressed(key, sem_scroll_speed_bar))
 				{
 					var_scroll_speed = (double)key.touch_x / 300;
 					sem_scroll_speed_bar.selected = true;
-					var_need_reflesh = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)//Font
 			{
 				if (Util_hid_is_pressed(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
-				{
 					sem_load_all_ex_font_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_load_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_load_all_ex_font_button.selected)
 				{
 					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						Exfont_set_external_font_request_state(i ,true);
 					
 					Exfont_request_load_external_font();
-					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
-				{
 					sem_unload_all_ex_font_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_unload_all_ex_font_button.selected)
 				{
 					for (int i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						Exfont_set_external_font_request_state(i ,false);
 
 					Exfont_request_unload_external_font();
-					var_need_reflesh = true;
 				}
 				else
 				{
@@ -1134,7 +1216,6 @@ void Sem_hid(Hid_info key)
 						if (Util_hid_is_pressed(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font())
 						{
 							sem_system_font_button[i].selected = true;
-							var_need_reflesh = true;
 							break;
 						}
 						else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button[i].selected)
@@ -1145,13 +1226,11 @@ void Sem_hid(Hid_info key)
 								{
 									Exfont_set_system_font_request_state(i, false);
 									Exfont_request_unload_system_font();
-									var_need_reflesh = true;
 								}
 								else
 								{
 									Exfont_set_system_font_request_state(i, true);
 									Exfont_request_load_system_font();
-									var_need_reflesh = true;
 								}
 							}
 							break;
@@ -1163,7 +1242,6 @@ void Sem_hid(Hid_info key)
 						if (Util_hid_is_pressed(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
 						{
 							sem_ex_font_button[i].selected = true;
-							var_need_reflesh = true;
 							break;
 						}
 						else if (Util_hid_is_released(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font() && sem_ex_font_button[i].selected)
@@ -1174,14 +1252,12 @@ void Sem_hid(Hid_info key)
 								{
 									Exfont_set_external_font_request_state(i ,false);
 									Exfont_request_unload_external_font();
-									var_need_reflesh = true;
 								}
 							}
 							else
 							{
 								Exfont_set_external_font_request_state(i ,true);
 								Exfont_request_load_external_font();
-								var_need_reflesh = true;
 							}
 							break;
 						}
@@ -1208,103 +1284,57 @@ void Sem_hid(Hid_info key)
 				if(sem_scroll_mode)
 				{
 					if (key.h_c_down || key.h_c_up)
-					{
 						sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
-						var_need_reflesh = true;
-					}
 
 					if (key.h_touch && sem_scroll_bar.selected)
-					{
 						sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
-						var_need_reflesh = true;
-					}
 
 					if (Util_hid_is_pressed(key, sem_scroll_bar))
 						sem_scroll_bar.selected = true;
 
 					if(sem_touch_y_move_left * var_scroll_speed != 0)
-					{
 						sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
-						var_need_reflesh = true;
-					}
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)//Wireless
 			{
 				if (Util_hid_is_pressed(key, sem_wifi_on_button))
-				{
 					sem_wifi_on_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_wifi_on_button) && sem_wifi_on_button.selected)
 				{
 					result = Util_cset_set_wifi_state(true);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
 						var_wifi_enabled = true;
-
-					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_wifi_off_button))
-				{
 					sem_wifi_off_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_wifi_off_button) && sem_wifi_off_button.selected)
 				{
 					result = Util_cset_set_wifi_state(false);
 					if(result.code == 0 || result.code == 0xC8A06C0D)
 						var_wifi_enabled = false;
-
-					var_need_reflesh = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)//Advanced settings
 			{
 				if (Util_hid_is_pressed(key, sem_allow_send_info_button))
-				{
 					sem_allow_send_info_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_allow_send_info_button) && sem_allow_send_info_button.selected)
-				{
 					var_allow_send_app_info = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_deny_send_info_button))
-				{
 					sem_deny_send_info_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_deny_send_info_button) && sem_deny_send_info_button.selected)
-				{
 					var_allow_send_app_info = false;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_debug_mode_on_button))
-				{
 					sem_debug_mode_on_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button.selected)
-				{
 					var_debug_mode = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_debug_mode_off_button))
-				{
 					sem_debug_mode_off_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button.selected)
-				{
 					var_debug_mode = false;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_use_fake_model_button))
-				{
 					sem_use_fake_model_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_use_fake_model_button) && sem_use_fake_model_button.selected)
 				{
 					if((u8)(sem_fake_model_num + 1) > 5)
@@ -1318,33 +1348,18 @@ void Sem_hid(Hid_info key)
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
 			{
 				if (Util_hid_is_pressed(key, sem_eco_mode_on_button))
-				{
 					sem_eco_mode_on_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_eco_mode_on_button) && sem_eco_mode_on_button.selected)
-				{
 					var_eco_mode = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_pressed(key, sem_eco_mode_off_button))
-				{
 					sem_eco_mode_off_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_eco_mode_off_button) && sem_eco_mode_off_button.selected)
-				{
 					var_eco_mode = false;
-					var_need_reflesh = true;
-				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)//Screen recording
 			{
 				if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && !var_high_resolution_mode)
-				{
 					sem_record_both_lcd_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button.selected)
 				{
 					if(sem_record_request)
@@ -1354,13 +1369,9 @@ void Sem_hid(Hid_info key)
 						sem_selected_recording_mode = DEF_SEM_RECORD_BOTH;
 						sem_record_request = true;
 					}
-					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && !var_high_resolution_mode)
-				{
 					sem_record_top_lcd_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button.selected)
 				{
 					if(sem_record_request)
@@ -1370,13 +1381,9 @@ void Sem_hid(Hid_info key)
 						sem_selected_recording_mode = DEF_SEM_RECORD_TOP;
 						sem_record_request = true;
 					}
-					var_need_reflesh = true;
 				}
 				else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode)
-				{
 					sem_record_bottom_lcd_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button.selected)
 				{
 					if(sem_record_request)
@@ -1386,7 +1393,6 @@ void Sem_hid(Hid_info key)
 						sem_selected_recording_mode = DEF_SEM_RECORD_BOTTOM;
 						sem_record_request = true;
 					}
-					var_need_reflesh = true;
 				}
 			}
 		}
@@ -1411,20 +1417,6 @@ void Sem_hid(Hid_info key)
 		{
 			sem_scroll_mode = false;
 
-			if(sem_back_button.selected || sem_scroll_bar.selected || sem_check_update_button.selected || sem_close_updater_button.selected 
-			|| sem_select_edtion_button.selected || sem_3dsx_button.selected || sem_cia_button.selected || sem_back_to_patch_note_button.selected
-			|| sem_dl_install_button.selected || sem_close_app_button.selected || sem_english_button.selected || sem_japanese_button.selected
-			|| sem_hungarian_button.selected || sem_chinese_button.selected || sem_italian_button.selected || sem_spanish_button.selected
-			|| sem_romanian_button.selected || sem_polish_button.selected
-			|| sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected || sem_screen_brightness_bar.selected
-			|| sem_screen_off_time_bar.selected || sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
-			|| sem_scroll_speed_bar.selected || sem_wifi_on_button.selected || sem_wifi_off_button.selected || sem_allow_send_info_button.selected
-			|| sem_deny_send_info_button.selected || sem_debug_mode_on_button.selected || sem_debug_mode_off_button.selected || sem_eco_mode_on_button.selected
-			|| sem_eco_mode_off_button.selected || sem_record_both_lcd_button.selected || sem_record_top_lcd_button.selected 
-			|| sem_record_bottom_lcd_button.selected || sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected
-			|| sem_use_fake_model_button.selected || (!sem_draw_reinit_request && Draw_get_bot_ui_button()->selected))
-				var_need_reflesh = true;
-
 			sem_back_button.selected = sem_scroll_bar.selected = sem_check_update_button.selected = sem_close_updater_button.selected
 			= sem_select_edtion_button.selected = sem_3dsx_button.selected = sem_cia_button.selected = sem_back_to_patch_note_button.selected
 			= sem_dl_install_button.selected = sem_close_app_button.selected = sem_english_button.selected = sem_japanese_button.selected
@@ -1442,28 +1434,13 @@ void Sem_hid(Hid_info key)
 				Draw_get_bot_ui_button()->selected = false;
 
 			for (int i = 0; i < 9; i++)
-			{
-				if(sem_menu_button[i].selected)
-					var_need_reflesh = true;
-
 				sem_menu_button[i].selected = false;
-			}
 
 			for (int i = 0; i < 4; i++)
-			{
-				if(sem_system_font_button[i].selected)
-					var_need_reflesh = true;
-				
 				sem_system_font_button[i].selected = false;
-			}
 
 			for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-			{
-				if(sem_ex_font_button[i].selected)
-					var_need_reflesh = true;
-				
 				sem_ex_font_button[i].selected = false;
-			}
 
 			sem_touch_x_move_left -= (sem_touch_x_move_left * 0.025);
 			sem_touch_y_move_left -= (sem_touch_y_move_left * 0.025);
@@ -1471,9 +1448,6 @@ void Sem_hid(Hid_info key)
 				sem_touch_x_move_left = 0;
 			if (sem_touch_y_move_left < 0.5 && sem_touch_y_move_left > -0.5)
 				sem_touch_y_move_left = 0;
-
-			if(sem_touch_x_move_left != 0 || sem_touch_y_move_left != 0)
-				var_need_reflesh = true;
 		}
 	}
 

@@ -345,7 +345,6 @@ void Vid_hid(Hid_info key)
 				Vid_fit_to_screen(400, 225);
 				Vid_exit_full_screen();
 				vid_show_full_screen_msg = false;
-				var_need_reflesh = true;
 			}
 			else if(key.p_a)
 			{
@@ -353,7 +352,6 @@ void Vid_hid(Hid_info key)
 					vid_pause_request = !vid_pause_request;
 				else
 					vid_play_request = true;
-				var_need_reflesh = true;
 			}
 			else if(key.p_d_right)
 			{
@@ -363,7 +361,6 @@ void Vid_hid(Hid_info key)
 					vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
 
 				vid_seek_request = true;
-				var_need_reflesh = true;
 			}
 			if(key.p_d_left)
 			{
@@ -373,7 +370,6 @@ void Vid_hid(Hid_info key)
 					vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
 				
 				vid_seek_request = true;
-				var_need_reflesh = true;
 			}
 		}
 		else if(vid_select_audio_track_request)
@@ -382,37 +378,27 @@ void Vid_hid(Hid_info key)
 			{
 				if(vid_selected_audio_track + 1 < vid_num_of_audio_tracks)
 					vid_selected_audio_track++;
-				var_need_reflesh = true;
 			}
 			else if(key.p_d_up || key.p_c_up)
 			{
 				if(vid_selected_audio_track - 1 > -1)
 					vid_selected_audio_track--;
-				var_need_reflesh = true;
 			}
 			else if(Util_hid_is_pressed(key, vid_ok_button))
-			{
 				vid_ok_button.selected = true;
-				var_need_reflesh = true;
-			}
 			else if(key.p_a || (Util_hid_is_released(key, vid_ok_button) && vid_ok_button.selected))
-			{
 				vid_select_audio_track_request = false;
-				var_need_reflesh = true;
-			}
 
 			for(int i = 0; i < vid_num_of_audio_tracks; i++)
 			{
 				if(Util_hid_is_pressed(key, vid_audio_track_button[i]))
 				{
 					vid_audio_track_button[i].selected = true;
-					var_need_reflesh = true;
 					break;
 				}
 				else if(Util_hid_is_released(key, vid_audio_track_button[i]) && vid_audio_track_button[i].selected)
 				{
 					vid_selected_audio_track = i;
-					var_need_reflesh = true;
 					break;
 				}
 			}
@@ -423,37 +409,27 @@ void Vid_hid(Hid_info key)
 			{
 				if(vid_selected_subtitle_track + 1 < vid_num_of_subtitle_tracks)
 					vid_selected_subtitle_track++;
-				var_need_reflesh = true;
 			}
 			else if(key.p_d_up || key.p_c_up)
 			{
 				if(vid_selected_subtitle_track - 1 > -1)
 					vid_selected_subtitle_track--;
-				var_need_reflesh = true;
 			}
 			else if(Util_hid_is_pressed(key, vid_ok_button))
-			{
 				vid_ok_button.selected = true;
-				var_need_reflesh = true;
-			}
 			else if(key.p_a || (Util_hid_is_released(key, vid_ok_button) && vid_ok_button.selected))
-			{
 				vid_select_subtitle_track_request = false;
-				var_need_reflesh = true;
-			}
 
 			for(int i = 0; i < vid_num_of_subtitle_tracks; i++)
 			{
 				if(Util_hid_is_pressed(key, vid_subtitle_track_button[i]))
 				{
 					vid_subtitle_track_button[i].selected = true;
-					var_need_reflesh = true;
 					break;
 				}
 				else if(Util_hid_is_released(key, vid_subtitle_track_button[i]) && vid_subtitle_track_button[i].selected)
 				{
 					vid_selected_subtitle_track = i;
-					var_need_reflesh = true;
 					break;
 				}
 			}
@@ -461,15 +437,9 @@ void Vid_hid(Hid_info key)
 		else if(vid_show_controls_request)
 		{
 			if(Util_hid_is_pressed(key, vid_control_button))
-			{
 				vid_control_button.selected = true;
-				var_need_reflesh = true;
-			}
 			else if((key.p_a || Util_hid_is_released(key, vid_control_button)) && vid_control_button.selected)
-			{
 				vid_show_controls_request = false;
-				var_need_reflesh = true;
-			}
 		}
 		else
 		{
@@ -479,10 +449,7 @@ void Vid_hid(Hid_info key)
 				if(vid_menu_background.selected)
 					vid_y_move_speed = key.touch_y_move * var_scroll_speed;
 				else if(Util_hid_is_pressed(key, vid_scroll_bar))
-				{
 					vid_scroll_bar.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(vid_scroll_bar.selected)
 				{
 					if(key.touch_y < 50)
@@ -491,20 +458,12 @@ void Vid_hid(Hid_info key)
 						vid_ui_y_offset = vid_ui_y_max;
 					else
 						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / -125;
-
-					var_need_reflesh = true;
 				}
 				//audio track button
 				else if(Util_hid_is_pressed(key, vid_select_audio_track_button))
-				{
 					vid_select_audio_track_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_select_audio_track_button) && vid_select_audio_track_button.selected)
-				{
 					vid_select_audio_track_request = !vid_select_audio_track_request;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_select_audio_track_button) && vid_select_audio_track_button.selected)
 				{
 					vid_select_audio_track_button.selected = false;
@@ -512,15 +471,9 @@ void Vid_hid(Hid_info key)
 				}
 				//subtitle track button
 				else if(Util_hid_is_pressed(key, vid_select_subtitle_track_button))
-				{
 					vid_select_subtitle_track_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_select_subtitle_track_button) && vid_select_subtitle_track_button.selected)
-				{
 					vid_select_subtitle_track_request = !vid_select_subtitle_track_request;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_select_subtitle_track_button) && vid_select_subtitle_track_button.selected)
 				{
 					vid_select_subtitle_track_button.selected = false;
@@ -528,10 +481,7 @@ void Vid_hid(Hid_info key)
 				}
 				//texture filter button
 				else if(Util_hid_is_pressed(key, vid_texture_filter_button))
-				{
 					vid_texture_filter_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_texture_filter_button) && vid_texture_filter_button.selected)
 				{
 					vid_linear_filter = !vid_linear_filter;
@@ -546,7 +496,6 @@ void Vid_hid(Hid_info key)
 							}
 						}
 					}
-					var_need_reflesh = true;
 				}
 				else if(!Util_hid_is_held(key, vid_texture_filter_button) && vid_texture_filter_button.selected)
 				{
@@ -555,16 +504,12 @@ void Vid_hid(Hid_info key)
 				}
 				//allow skip frames button
 				else if(Util_hid_is_pressed(key, vid_allow_skip_frames_button))
-				{
 					vid_allow_skip_frames_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_allow_skip_frames_button) && vid_allow_skip_frames_button.selected)
 				{
 					vid_allow_skip_frames = !vid_allow_skip_frames;
 					if(vid_allow_skip_key_frames)
 						vid_allow_skip_key_frames = false;
-					var_need_reflesh = true;
 				}
 				else if(!Util_hid_is_held(key, vid_allow_skip_frames_button) && vid_allow_skip_frames_button.selected)
 				{
@@ -573,15 +518,9 @@ void Vid_hid(Hid_info key)
 				}
 				//allow skip key frames button
 				else if(Util_hid_is_pressed(key, vid_allow_skip_key_frames_button) && vid_allow_skip_frames)
-				{
 					vid_allow_skip_key_frames_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_allow_skip_key_frames_button) && vid_allow_skip_key_frames_button.selected && vid_allow_skip_frames)
-				{
 					vid_allow_skip_key_frames = !vid_allow_skip_key_frames;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_allow_skip_key_frames_button) && vid_allow_skip_key_frames_button.selected)
 				{
 					vid_allow_skip_key_frames_button.selected = false;
@@ -589,14 +528,9 @@ void Vid_hid(Hid_info key)
 				}
 				//change volume button
 				else if(Util_hid_is_pressed(key, vid_volume_button))
-				{
 					vid_volume_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_volume_button) && vid_volume_button.selected)
-				{
 					vid_set_volume_request = true;
-				}
 				else if(!Util_hid_is_held(key, vid_volume_button) && vid_volume_button.selected)
 				{
 					vid_volume_button.selected = false;
@@ -604,14 +538,9 @@ void Vid_hid(Hid_info key)
 				}
 				//change seek duration button
 				else if(Util_hid_is_pressed(key, vid_seek_duration_button))
-				{
 					vid_seek_duration_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_seek_duration_button) && vid_seek_duration_button.selected)
-				{
 					vid_set_seek_duration_request = true;
-				}
 				else if(!Util_hid_is_held(key, vid_seek_duration_button) && vid_seek_duration_button.selected)
 				{
 					vid_seek_duration_button.selected = false;
@@ -619,15 +548,11 @@ void Vid_hid(Hid_info key)
 				}
 				//correct aspect ratio button
 				else if(Util_hid_is_pressed(key, vid_correct_aspect_ratio_button))
-				{
 					vid_correct_aspect_ratio_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_correct_aspect_ratio_button) && vid_correct_aspect_ratio_button.selected)
 				{
 					vid_correct_aspect_ratio_mode = !vid_correct_aspect_ratio_mode;
 					Vid_fit_to_screen(400, 225);
-					var_need_reflesh = true;
 				}
 				else if(!Util_hid_is_held(key, vid_correct_aspect_ratio_button) && vid_correct_aspect_ratio_button.selected)
 				{
@@ -636,18 +561,13 @@ void Vid_hid(Hid_info key)
 				}
 				//disable resize and move button
 				else if(Util_hid_is_pressed(key, vid_move_content_button))
-				{
 					vid_move_content_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_move_content_button) && vid_move_content_button.selected)
 				{
 					if(vid_move_content_mode + 1 > DEF_VID_MOVE_SUBTITLE)
 						vid_move_content_mode = DEF_VID_MOVE_DISABLE;
 					else
 						vid_move_content_mode++;
-
-					var_need_reflesh = true;
 				}
 				else if(!Util_hid_is_held(key, vid_move_content_button) && vid_move_content_button.selected)
 				{
@@ -656,15 +576,9 @@ void Vid_hid(Hid_info key)
 				}
 				//remember video pos button
 				else if(Util_hid_is_pressed(key, vid_remember_video_pos_button))
-				{
 					vid_remember_video_pos_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_remember_video_pos_button) && vid_remember_video_pos_button.selected)
-				{
 					vid_remember_video_pos_mode = !vid_remember_video_pos_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_remember_video_pos_button) && vid_remember_video_pos_button.selected)
 				{
 					vid_remember_video_pos_button.selected = false;
@@ -672,18 +586,13 @@ void Vid_hid(Hid_info key)
 				}
 				//playback mode button
 				else if(Util_hid_is_pressed(key, vid_playback_mode_button))
-				{
 					vid_playback_mode_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_playback_mode_button) && vid_playback_mode_button.selected)
 				{
 					if(vid_playback_mode + 1 > DEF_VID_RANDOM)
 						vid_playback_mode = DEF_VID_NO_REPEAT;
 					else
 						vid_playback_mode++;
-
-					var_need_reflesh = true;
 				}
 				else if(!Util_hid_is_held(key, vid_playback_mode_button) && vid_playback_mode_button.selected)
 				{
@@ -695,28 +604,20 @@ void Vid_hid(Hid_info key)
 					vid_menu_background.selected = true;
 				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
-				{
 					vid_menu_button[1].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
 					vid_ui_y_max = 0;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, vid_menu_button[2]))
-				{
 					vid_menu_button[2].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
 					vid_ui_y_max = -100;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
-					var_need_reflesh = true;
 				}
 
 				if (vid_menu_background.selected || vid_y_move_speed != 0)
@@ -728,95 +629,56 @@ void Vid_hid(Hid_info key)
 						vid_y_move_speed = 0;
 
 					if(vid_ui_y_offset - vid_y_move_speed > 0)
-					{
 						vid_ui_y_offset = 0;
-						var_need_reflesh = true;
-					}
 					else if(vid_ui_y_offset - vid_y_move_speed < vid_ui_y_max)
-					{
 						vid_ui_y_offset = vid_ui_y_max;
-						var_need_reflesh = true;
-					}
 					else
-					{
 						vid_ui_y_offset -= vid_y_move_speed;
-						var_need_reflesh = true;
-					}
 				}
 			}
 			if(vid_menu_mode == DEF_VID_MENU_SETTINGS_1)
 			{
 				//hardware decoding button
 				if(Util_hid_is_pressed(key, vid_use_hw_decoding_button) && !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request)
-				{
 					vid_use_hw_decoding_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_use_hw_decoding_button) && !(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL) && !vid_play_request && vid_use_hw_decoding_button.selected)
-				{
 					vid_use_hw_decoding_request = !vid_use_hw_decoding_request;
-					var_need_reflesh = true;
-				}
 				//hardware color conversion button
 				else if(Util_hid_is_pressed(key, vid_use_hw_color_conversion_button) && !vid_play_request)
-				{
 					vid_use_hw_color_conversion_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_use_hw_color_conversion_button) && !vid_play_request && vid_use_hw_color_conversion_button.selected)
-				{
 					vid_use_hw_color_conversion_request = !vid_use_hw_color_conversion_request;
-					var_need_reflesh = true;
-				}
 				//multi-threaded decoding button
 				else if(Util_hid_is_pressed(key, vid_use_multi_threaded_decoding_button) && !vid_play_request)
-				{
 					vid_use_multi_threaded_decoding_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_use_multi_threaded_decoding_button) && !vid_play_request && vid_use_multi_threaded_decoding_button.selected)
-				{
 					vid_use_multi_threaded_decoding_request = !vid_use_multi_threaded_decoding_request;
-					var_need_reflesh = true;
-				}
 				//lower video resolution button
 				else if(Util_hid_is_pressed(key, vid_lower_resolution_button) && !vid_play_request)
-				{
 					vid_lower_resolution_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_lower_resolution_button) && !vid_play_request && vid_lower_resolution_button.selected)
 				{
 					if(vid_lower_resolution + 1 > 2)
 						vid_lower_resolution = 0;
 					else
 						vid_lower_resolution++;
-					var_need_reflesh = true;
 				}
 				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
-				{
 					vid_menu_button[0].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
 					vid_ui_y_max = -150;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, vid_menu_button[2]))
-				{
 					vid_menu_button[2].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[2]) && vid_menu_button[2].selected)
 				{
 					vid_ui_y_max = -100;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_INFO;
-					var_need_reflesh = true;
 				}
 			}
 			else if(vid_menu_mode == DEF_VID_MENU_INFO)
@@ -825,10 +687,7 @@ void Vid_hid(Hid_info key)
 				if(vid_menu_background.selected)
 					vid_y_move_speed = key.touch_y_move * var_scroll_speed;
 				else if(Util_hid_is_pressed(key, vid_scroll_bar))
-				{
 					vid_scroll_bar.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(vid_scroll_bar.selected)
 				{
 					if(key.touch_y < 50)
@@ -837,20 +696,12 @@ void Vid_hid(Hid_info key)
 						vid_ui_y_offset = vid_ui_y_max;
 					else
 						vid_ui_y_offset = vid_ui_y_max * (50 - key.touch_y) / -125;
-
-					var_need_reflesh = true;
 				}
 				//decoding graph button
 				else if(Util_hid_is_pressed(key, vid_show_decode_graph_button))
-				{
 					vid_show_decode_graph_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_show_decode_graph_button) && vid_show_decode_graph_button.selected)
-				{
 					vid_show_decode_graph_mode = !vid_show_decode_graph_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_show_decode_graph_button) && vid_show_decode_graph_button.selected)
 				{
 					vid_show_decode_graph_button.selected = false;
@@ -858,15 +709,9 @@ void Vid_hid(Hid_info key)
 				}
 				//color conversion graph button
 				else if(Util_hid_is_pressed(key, vid_show_color_conversion_graph_button))
-				{
 					vid_show_color_conversion_graph_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_show_color_conversion_graph_button) && vid_show_color_conversion_graph_button.selected)
-				{
 					vid_show_color_conversion_graph_mode = !vid_show_color_conversion_graph_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_show_color_conversion_graph_button) && vid_show_color_conversion_graph_button.selected)
 				{
 					vid_show_color_conversion_graph_button.selected = false;
@@ -874,15 +719,9 @@ void Vid_hid(Hid_info key)
 				}
 				//packet buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_packet_buffer_graph_button))
-				{
 					vid_show_packet_buffer_graph_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_show_packet_buffer_graph_button) && vid_show_packet_buffer_graph_button.selected)
-				{
 					vid_show_packet_buffer_graph_mode = !vid_show_packet_buffer_graph_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_show_packet_buffer_graph_button) && vid_show_packet_buffer_graph_button.selected)
 				{
 					vid_show_packet_buffer_graph_button.selected = false;
@@ -890,15 +729,9 @@ void Vid_hid(Hid_info key)
 				}
 				//raw video buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_raw_video_buffer_graph_button))
-				{
 					vid_show_raw_video_buffer_graph_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_show_raw_video_buffer_graph_button) && vid_show_raw_video_buffer_graph_button.selected)
-				{
 					vid_show_raw_video_buffer_graph_mode = !vid_show_raw_video_buffer_graph_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_show_raw_video_buffer_graph_button) && vid_show_raw_video_buffer_graph_button.selected)
 				{
 					vid_show_raw_video_buffer_graph_button.selected = false;
@@ -906,15 +739,9 @@ void Vid_hid(Hid_info key)
 				}
 				//raw audio buffer graph button
 				else if(Util_hid_is_pressed(key, vid_show_raw_audio_buffer_graph_button))
-				{
 					vid_show_raw_audio_buffer_graph_button.selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_show_raw_audio_buffer_graph_button) && vid_show_raw_audio_buffer_graph_button.selected)
-				{
 					vid_show_raw_audio_buffer_graph_mode = !vid_show_raw_audio_buffer_graph_mode;
-					var_need_reflesh = true;
-				}
 				else if(!Util_hid_is_held(key, vid_show_raw_audio_buffer_graph_button) && vid_show_raw_audio_buffer_graph_button.selected)
 				{
 					vid_show_raw_audio_buffer_graph_button.selected = false;
@@ -925,28 +752,20 @@ void Vid_hid(Hid_info key)
 					vid_menu_background.selected = true;
 				//menu mode button
 				else if(Util_hid_is_pressed(key, vid_menu_button[0]))
-				{
 					vid_menu_button[0].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[0]) && vid_menu_button[0].selected)
 				{
 					vid_ui_y_max = -150;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_0;
-					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, vid_menu_button[1]))
-				{
 					vid_menu_button[1].selected = true;
-					var_need_reflesh = true;
-				}
 				else if(Util_hid_is_released(key, vid_menu_button[1]) && vid_menu_button[1].selected)
 				{
 					vid_ui_y_max = 0;
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_SETTINGS_1;
-					var_need_reflesh = true;
 				}
 
 				if (vid_menu_background.selected || vid_y_move_speed != 0)
@@ -958,35 +777,22 @@ void Vid_hid(Hid_info key)
 						vid_y_move_speed = 0;
 
 					if(vid_ui_y_offset - vid_y_move_speed > 0)
-					{
 						vid_ui_y_offset = 0;
-						var_need_reflesh = true;
-					}
 					else if(vid_ui_y_offset - vid_y_move_speed < vid_ui_y_max)
-					{
 						vid_ui_y_offset = vid_ui_y_max;
-						var_need_reflesh = true;
-					}
 					else
-					{
 						vid_ui_y_offset -= vid_y_move_speed;
-						var_need_reflesh = true;
-					}
 				}
 			}
 
 			if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
-			{
 				Draw_get_bot_ui_button()->selected = true;
-				var_need_reflesh = true;
-			}
 			else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 				Vid_suspend();
 			else if(key.p_select)
 			{
 				Vid_fit_to_screen(400, 240);
 				Vid_enter_full_screen(300);
-				var_need_reflesh = true;
 			}
 			else if(key.p_a)
 			{
@@ -994,14 +800,9 @@ void Vid_hid(Hid_info key)
 					vid_pause_request = !vid_pause_request;
 				else
 					vid_play_request = true;
-
-				var_need_reflesh = true;
 			}
 			else if(key.p_b)
-			{
 				vid_play_request = false;
-				var_need_reflesh = true;
-			}
 			else if(key.p_x)
 			{
 				Util_expl_set_show_flag(true);
@@ -1022,24 +823,15 @@ void Vid_hid(Hid_info key)
 					vid_ui_y_offset = 0;
 					vid_menu_mode = DEF_VID_MENU_NONE;
 				}
-				
-				var_need_reflesh = true;
 			}
 			else if(Util_hid_is_pressed(key, vid_control_button))
-			{
 				vid_control_button.selected = true;
-				var_need_reflesh = true;
-			}
 			else if(Util_hid_is_released(key, vid_control_button) && vid_control_button.selected)
-			{
 				vid_show_controls_request = true;
-				var_need_reflesh = true;
-			}
 			else if(key.p_touch && key.touch_x >= 5 && key.touch_x <= 314 && key.touch_y >= 210 && key.touch_y <= 219)
 			{
 				vid_seek_pos = vid_duration * (((double)key.touch_x - 5) / 310);
 				vid_seek_request = true;
-				var_need_reflesh = true;
 			}
 			
 			if((key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
@@ -1110,8 +902,6 @@ void Vid_hid(Hid_info key)
 						vid_video_y_offset = 480;
 					else if(vid_video_y_offset < -vid_codec_height * vid_video_zoom)
 						vid_video_y_offset = -vid_codec_height * vid_video_zoom;
-
-					var_need_reflesh = true;
 				}
 				if(vid_move_content_mode == DEF_VID_MOVE_SUBTITLE || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
@@ -1178,8 +968,6 @@ void Vid_hid(Hid_info key)
 						vid_subtitle_y_offset = 480;
 					else if(vid_subtitle_y_offset < -vid_codec_height * vid_video_zoom)
 						vid_subtitle_y_offset = -vid_codec_height * vid_video_zoom;
-	
-					var_need_reflesh = true;
 				}
 
 				vid_cd_count++;
@@ -1252,8 +1040,6 @@ void Vid_hid(Hid_info key)
 						vid_subtitle_zoom = 10;
 				}
 
-				var_need_reflesh = true;
-
 				vid_lr_count++;
 			}
 			else
@@ -1268,7 +1054,6 @@ void Vid_hid(Hid_info key)
 				vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
 
 			vid_seek_request = true;
-			var_need_reflesh = true;
 		}
 		if(key.p_d_left)
 		{
@@ -1278,23 +1063,10 @@ void Vid_hid(Hid_info key)
 				vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
 			
 			vid_seek_request = true;
-			var_need_reflesh = true;
 		}
 
 		if(!key.p_touch && !key.h_touch)
 		{
-			if(vid_select_audio_track_button.selected || vid_texture_filter_button.selected || vid_allow_skip_frames_button.selected
-			|| vid_allow_skip_key_frames_button.selected || vid_volume_button.selected || vid_seek_duration_button.selected
-			|| vid_use_hw_decoding_button.selected || vid_use_hw_color_conversion_button.selected || vid_use_multi_threaded_decoding_button.selected
-			|| vid_lower_resolution_button.selected || vid_menu_button[0].selected || vid_menu_button[1].selected || vid_menu_button[2].selected
-			|| vid_control_button.selected || vid_ok_button.selected || vid_correct_aspect_ratio_button.selected 
-			|| vid_move_content_button.selected || vid_remember_video_pos_button.selected || Draw_get_bot_ui_button()->selected
-			|| vid_show_decode_graph_button.selected || vid_show_color_conversion_graph_button.selected || vid_show_packet_buffer_graph_button.selected
-			|| vid_show_raw_video_buffer_graph_button.selected || vid_show_raw_audio_buffer_graph_button.selected || vid_menu_background.selected 
-			|| vid_scroll_bar.selected || vid_playback_mode_button.selected || vid_select_subtitle_track_button.selected)
-				var_need_reflesh = true;
-
-
 			vid_select_audio_track_button.selected = vid_texture_filter_button.selected = vid_allow_skip_frames_button.selected
 			= vid_allow_skip_key_frames_button.selected = vid_volume_button.selected = vid_seek_duration_button.selected
 			= vid_use_hw_decoding_button.selected = vid_use_hw_color_conversion_button.selected = vid_use_multi_threaded_decoding_button.selected
@@ -1306,20 +1078,10 @@ void Vid_hid(Hid_info key)
 			= vid_scroll_bar.selected = vid_playback_mode_button.selected = vid_select_subtitle_track_button.selected = false;
 
 			for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
-			{
-				if(vid_audio_track_button[i].selected)
-					var_need_reflesh = true;
-
 				vid_audio_track_button[i].selected = false;
-			}
 
 			for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
-			{
-				if(vid_subtitle_track_button[i].selected)
-					var_need_reflesh = true;
-
 				vid_subtitle_track_button[i].selected = false;
-			}
 		}
 	}
 	
@@ -1429,7 +1191,6 @@ void Vid_decode_thread(void* arg)
 					{
 						Vid_exit_full_screen();
 						vid_select_audio_track_request = true;
-						var_need_reflesh = true;
 						while(vid_select_audio_track_request)
 							usleep(16600);
 					}
@@ -1635,7 +1396,6 @@ void Vid_decode_thread(void* arg)
 					{
 						Vid_exit_full_screen();
 						vid_select_subtitle_track_request = true;
-						var_need_reflesh = true;
 						while(vid_select_subtitle_track_request)
 							usleep(16600);
 					}
@@ -2660,6 +2420,80 @@ void Vid_init(void)
 	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		vid_subtitle_track_button[i].c2d = var_square_image[0];
 
+
+	Util_add_watch(&vid_pause_request);
+	Util_add_watch(&vid_play_request);
+	Util_add_watch(&vid_seek_request);
+	Util_add_watch(&vid_select_audio_track_request);
+	Util_add_watch(&vid_select_subtitle_track_request);
+	Util_add_watch(&vid_show_controls_request);
+	Util_add_watch(&vid_set_seek_duration_request);
+	Util_add_watch(&vid_set_volume_request);
+	Util_add_watch(&vid_use_hw_decoding_request);
+	Util_add_watch(&vid_use_hw_color_conversion_request);
+	Util_add_watch(&vid_use_multi_threaded_decoding_request);
+
+	Util_add_watch(&vid_linear_filter);
+	Util_add_watch(&vid_allow_skip_frames);
+	Util_add_watch(&vid_allow_skip_key_frames);
+	Util_add_watch(&vid_full_screen_mode);
+	Util_add_watch(&vid_correct_aspect_ratio_mode);
+	Util_add_watch(&vid_move_content_mode);
+	Util_add_watch(&vid_remember_video_pos_mode);
+	Util_add_watch(&vid_playback_mode);
+	Util_add_watch(&vid_menu_mode);
+	Util_add_watch(&vid_lower_resolution);
+	Util_add_watch(&vid_show_decode_graph_mode);
+	Util_add_watch(&vid_show_color_conversion_graph_mode);
+	Util_add_watch(&vid_show_packet_buffer_graph_mode);
+	Util_add_watch(&vid_show_raw_video_buffer_graph_mode);
+	Util_add_watch(&vid_show_raw_audio_buffer_graph_mode);
+
+	Util_add_watch(&vid_ui_y_offset);
+	Util_add_watch(&vid_ui_y_max);
+	Util_add_watch(&vid_subtitle_x_offset);
+	Util_add_watch(&vid_subtitle_y_offset);
+	Util_add_watch(&vid_subtitle_zoom);
+	Util_add_watch(&vid_video_x_offset);
+	Util_add_watch(&vid_video_y_offset);
+	Util_add_watch(&vid_video_zoom);
+	Util_add_watch(&vid_selected_audio_track);
+	Util_add_watch(&vid_selected_subtitle_track);
+
+	Util_add_watch(&vid_ok_button.selected);
+	Util_add_watch(&vid_control_button.selected);
+	Util_add_watch(&vid_scroll_bar.selected);
+	Util_add_watch(&vid_select_audio_track_button.selected);
+	Util_add_watch(&vid_select_subtitle_track_button.selected);
+	Util_add_watch(&vid_texture_filter_button.selected);
+	Util_add_watch(&vid_allow_skip_frames_button.selected);
+	Util_add_watch(&vid_allow_skip_key_frames_button.selected);
+	Util_add_watch(&vid_volume_button.selected);
+	Util_add_watch(&vid_seek_duration_button.selected);
+	Util_add_watch(&vid_correct_aspect_ratio_button.selected);
+	Util_add_watch(&vid_move_content_button.selected);
+	Util_add_watch(&vid_remember_video_pos_button.selected);
+	Util_add_watch(&vid_playback_mode_button.selected);
+	Util_add_watch(&vid_menu_background.selected);
+	Util_add_watch(&vid_use_hw_decoding_button.selected);
+	Util_add_watch(&vid_use_hw_color_conversion_button.selected);
+	Util_add_watch(&vid_use_multi_threaded_decoding_button.selected);
+	Util_add_watch(&vid_lower_resolution_button.selected);
+	Util_add_watch(&vid_show_decode_graph_button.selected);
+	Util_add_watch(&vid_show_color_conversion_graph_button.selected);
+	Util_add_watch(&vid_show_packet_buffer_graph_button.selected);
+	Util_add_watch(&vid_show_raw_video_buffer_graph_button.selected);
+	Util_add_watch(&vid_show_raw_audio_buffer_graph_button.selected);
+
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+		Util_add_watch(&vid_audio_track_button[i].selected);
+
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)
+		Util_add_watch(&vid_subtitle_track_button[i].selected);
+
+	for(int i = 0; i < 3; i++)
+		Util_add_watch(&vid_menu_button[i].selected);
+
 	Vid_resume();
 	vid_already_init = true;
 	Util_log_save(DEF_VID_INIT_STR, "Initialized.");
@@ -2700,6 +2534,79 @@ void Vid_exit(void)
 
 	Draw_free_texture(vid_banner_texture_num);
 	Draw_free_texture(vid_control_texture_num);
+	
+	Util_remove_watch(&vid_pause_request);
+	Util_remove_watch(&vid_play_request);
+	Util_remove_watch(&vid_seek_request);
+	Util_remove_watch(&vid_select_audio_track_request);
+	Util_remove_watch(&vid_select_subtitle_track_request);
+	Util_remove_watch(&vid_show_controls_request);
+	Util_remove_watch(&vid_set_seek_duration_request);
+	Util_remove_watch(&vid_set_volume_request);
+	Util_remove_watch(&vid_use_hw_decoding_request);
+	Util_remove_watch(&vid_use_hw_color_conversion_request);
+	Util_remove_watch(&vid_use_multi_threaded_decoding_request);
+
+	Util_remove_watch(&vid_linear_filter);
+	Util_remove_watch(&vid_allow_skip_frames);
+	Util_remove_watch(&vid_allow_skip_key_frames);
+	Util_remove_watch(&vid_full_screen_mode);
+	Util_remove_watch(&vid_correct_aspect_ratio_mode);
+	Util_remove_watch(&vid_move_content_mode);
+	Util_remove_watch(&vid_remember_video_pos_mode);
+	Util_remove_watch(&vid_playback_mode);
+	Util_remove_watch(&vid_menu_mode);
+	Util_remove_watch(&vid_lower_resolution);
+	Util_remove_watch(&vid_show_decode_graph_mode);
+	Util_remove_watch(&vid_show_color_conversion_graph_mode);
+	Util_remove_watch(&vid_show_packet_buffer_graph_mode);
+	Util_remove_watch(&vid_show_raw_video_buffer_graph_mode);
+	Util_remove_watch(&vid_show_raw_audio_buffer_graph_mode);
+
+	Util_remove_watch(&vid_ui_y_offset);
+	Util_remove_watch(&vid_ui_y_max);
+	Util_remove_watch(&vid_subtitle_x_offset);
+	Util_remove_watch(&vid_subtitle_y_offset);
+	Util_remove_watch(&vid_subtitle_zoom);
+	Util_remove_watch(&vid_video_x_offset);
+	Util_remove_watch(&vid_video_y_offset);
+	Util_remove_watch(&vid_video_zoom);
+	Util_remove_watch(&vid_selected_audio_track);
+	Util_remove_watch(&vid_selected_subtitle_track);
+
+	Util_remove_watch(&vid_ok_button.selected);
+	Util_remove_watch(&vid_control_button.selected);
+	Util_remove_watch(&vid_scroll_bar.selected);
+	Util_remove_watch(&vid_select_audio_track_button.selected);
+	Util_remove_watch(&vid_select_subtitle_track_button.selected);
+	Util_remove_watch(&vid_texture_filter_button.selected);
+	Util_remove_watch(&vid_allow_skip_frames_button.selected);
+	Util_remove_watch(&vid_allow_skip_key_frames_button.selected);
+	Util_remove_watch(&vid_volume_button.selected);
+	Util_remove_watch(&vid_seek_duration_button.selected);
+	Util_remove_watch(&vid_correct_aspect_ratio_button.selected);
+	Util_remove_watch(&vid_move_content_button.selected);
+	Util_remove_watch(&vid_remember_video_pos_button.selected);
+	Util_remove_watch(&vid_playback_mode_button.selected);
+	Util_remove_watch(&vid_menu_background.selected);
+	Util_remove_watch(&vid_use_hw_decoding_button.selected);
+	Util_remove_watch(&vid_use_hw_color_conversion_button.selected);
+	Util_remove_watch(&vid_use_multi_threaded_decoding_button.selected);
+	Util_remove_watch(&vid_lower_resolution_button.selected);
+	Util_remove_watch(&vid_show_decode_graph_button.selected);
+	Util_remove_watch(&vid_show_color_conversion_graph_button.selected);
+	Util_remove_watch(&vid_show_packet_buffer_graph_button.selected);
+	Util_remove_watch(&vid_show_raw_video_buffer_graph_button.selected);
+	Util_remove_watch(&vid_show_raw_audio_buffer_graph_button.selected);
+
+	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+		Util_remove_watch(&vid_audio_track_button[i].selected);
+
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)
+		Util_remove_watch(&vid_subtitle_track_button[i].selected);
+
+	for(int i = 0; i < 3; i++)
+		Util_remove_watch(&vid_menu_button[i].selected);
 	
 	Util_log_save(DEF_VID_EXIT_STR, "Exited.");
 }
@@ -2745,7 +2652,7 @@ void Vid_main(void)
 		image_height[i] = vid_tex_height[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_video_zoom;
 	}
 	
-	if(var_need_reflesh || !var_eco_mode)
+	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;
 		Draw_frame_ready();

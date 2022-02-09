@@ -8,6 +8,30 @@ struct Result_with_string
 	uint code = DEF_SUCCESS;
 };
 
+struct Watch_bool
+{
+	bool* address = NULL;
+	bool previous_value = false;
+};
+
+struct Watch_int
+{
+	int* address = NULL;
+	int previous_value = 0;
+};
+
+struct Watch_double
+{
+	double* address = NULL;
+	double previous_value = 0;
+};
+
+struct Watch_string
+{
+	std::string* address = NULL;
+	std::string previous_value = "";
+};
+
 struct Audio_info
 {
 	int bitrate = 0;

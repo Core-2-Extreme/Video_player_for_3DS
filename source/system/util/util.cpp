@@ -1,9 +1,465 @@
 #include "system/headers.hpp"
 
-bool util_safe_linear_alloc_init = false;
-Handle util_safe_linear_alloc_mutex = -1;
+bool util_safe_linear_alloc_init = false, util_init = false;
+int util_draw_num_of_watch_bool = 0, util_draw_num_of_watch_int = 0, util_draw_num_of_watch_double = 0, util_draw_num_of_watch_string = 0;
+Handle util_safe_linear_alloc_mutex = -1, util_watch_variables_mutex = -1;
+Watch_bool util_draw_watch_bool[DEF_DRAW_MAX_WATCH_BOOL_VARIABLES];
+Watch_int util_draw_watch_int[DEF_DRAW_MAX_WATCH_INT_VARIABLES];
+Watch_double util_draw_watch_double[DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES];
+Watch_string util_draw_watch_string[DEF_DRAW_MAX_WATCH_STRING_VARIABLES];
 
 extern "C" void memcpy_asm(u8*, u8*, int);
+
+Result_with_string Util_init(void)
+{
+	Result_with_string result;
+
+	if(util_init)
+		goto already_inited;
+
+	result.code = svcCreateMutex(&util_watch_variables_mutex, false);
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] svcCreateMutex() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	util_draw_num_of_watch_bool = 0;
+	util_draw_num_of_watch_int = 0;
+	util_draw_num_of_watch_double = 0;
+	util_draw_num_of_watch_string = 0;
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	{
+		util_draw_watch_bool[i].address = NULL;
+		util_draw_watch_bool[i].previous_value = false;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	{
+		util_draw_watch_int[i].address = NULL;
+		util_draw_watch_int[i].previous_value = INT_MAX;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
+	{
+		util_draw_watch_double[i].address = NULL;
+		util_draw_watch_double[i].previous_value = INT_MAX;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
+	{
+		util_draw_watch_string[i].address = NULL;
+		util_draw_watch_string[i].previous_value = "";
+	}
+
+	util_init = true;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	already_inited:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+}
+
+void Util_exit(void)
+{
+	if(!util_init)
+		return;
+
+	util_init = false;
+	util_draw_num_of_watch_bool = 0;
+	util_draw_num_of_watch_int = 0;
+	util_draw_num_of_watch_double = 0;
+	util_draw_num_of_watch_string = 0;
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	{
+		util_draw_watch_bool[i].address = NULL;
+		util_draw_watch_bool[i].previous_value = false;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	{
+		util_draw_watch_int[i].address = NULL;
+		util_draw_watch_int[i].previous_value = INT_MAX;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
+	{
+		util_draw_watch_double[i].address = NULL;
+		util_draw_watch_double[i].previous_value = INTMAX_MAX;
+	}
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
+	{
+		util_draw_watch_string[i].address = NULL;
+		util_draw_watch_string[i].previous_value = "";
+	}
+	svcCloseHandle(util_watch_variables_mutex);
+}
+
+int Util_get_watch_bool_usage(void)
+{
+	return util_draw_num_of_watch_bool;
+}
+
+int Util_get_watch_int_usage(void)
+{
+	return util_draw_num_of_watch_int;
+}
+
+int Util_get_watch_double_usage(void)
+{
+	return util_draw_num_of_watch_double;
+}
+
+int Util_get_watch_string_usage(void)
+{
+	return util_draw_num_of_watch_string;
+}
+
+bool Util_add_watch(bool* variable)
+{
+	if(!variable)
+		return false;
+
+	if(!util_init)
+		return false;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return false;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	{
+		if(!util_draw_watch_bool[i].address)
+		{
+			util_draw_watch_bool[i].address = variable;
+			util_draw_watch_bool[i].previous_value = *variable;
+			util_draw_num_of_watch_bool++;
+			break;
+		}
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return true;
+}
+
+bool Util_add_watch(int* variable)
+{
+	if(!variable)
+		return false;
+
+	if(!util_init)
+		return false;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return false;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	{
+		if(!util_draw_watch_int[i].address)
+		{
+			util_draw_watch_int[i].address = variable;
+			util_draw_watch_int[i].previous_value = *variable;
+			util_draw_num_of_watch_int++;
+			break;
+		}
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return true;
+}
+
+bool Util_add_watch(double* variable)
+{
+	if(!variable)
+		return false;
+
+	if(!util_init)
+		return false;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return false;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
+	{
+		if(!util_draw_watch_double[i].address)
+		{
+			util_draw_watch_double[i].address = variable;
+			util_draw_watch_double[i].previous_value = *variable;
+			util_draw_num_of_watch_double++;
+			break;
+		}
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return true;
+}
+
+bool Util_add_watch(std::string* variable)
+{
+	if(!variable)
+		return false;
+
+	if(!util_init)
+		return false;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return false;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
+	{
+		if(!util_draw_watch_string[i].address)
+		{
+			util_draw_watch_string[i].address = variable;
+			util_draw_watch_string[i].previous_value = *variable;
+			util_draw_num_of_watch_string++;
+			break;
+		}
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return true;
+}
+
+void Util_remove_watch(int* variable)
+{
+	int count = 0;
+	if(!variable)
+		return;
+
+	if(!util_init)
+		return;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	{
+		if(util_draw_watch_int[i].address == variable)
+		{
+			util_draw_watch_int[i].address = NULL;
+			util_draw_watch_int[i].previous_value = INT_MAX;
+			util_draw_num_of_watch_int--;
+			break;
+		}
+		else if(util_draw_watch_int[i].address)
+			count++;
+		
+		if(count >= util_draw_num_of_watch_int)
+			break;
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return;
+}
+
+void Util_remove_watch(bool* variable)
+{
+	int count = 0;
+	if(!variable)
+		return;
+
+	if(!util_init)
+		return;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	{
+		if(util_draw_watch_bool[i].address == variable)
+		{
+			util_draw_watch_bool[i].address = NULL;
+			util_draw_watch_bool[i].previous_value = INTMAX_MAX;
+			util_draw_num_of_watch_bool--;
+			break;
+		}
+		else if(util_draw_watch_bool[i].address)
+			count++;
+		
+		if(count >= util_draw_num_of_watch_bool)
+			break;
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return;
+}
+
+void Util_remove_watch(double* variable)
+{
+	int count = 0;
+	if(!variable)
+		return;
+
+	if(!util_init)
+		return;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
+	{
+		if(util_draw_watch_double[i].address == variable)
+		{
+			util_draw_watch_double[i].address = NULL;
+			util_draw_watch_double[i].previous_value = INTMAX_MAX;
+			util_draw_num_of_watch_double--;
+			break;
+		}
+		else if(util_draw_watch_double[i].address)
+			count++;
+		
+		if(count >= util_draw_num_of_watch_double)
+			break;
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return;
+}
+
+void Util_remove_watch(std::string* variable)
+{
+	int count = 0;
+	if(!variable)
+		return;
+
+	if(!util_init)
+		return;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
+	{
+		svcReleaseMutex(util_watch_variables_mutex);
+		return;
+	}
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
+	{
+		if(util_draw_watch_string[i].address == variable)
+		{
+			util_draw_watch_string[i].address = NULL;
+			util_draw_watch_string[i].previous_value = "";
+			util_draw_num_of_watch_string--;
+			break;
+		}
+		else if(util_draw_watch_string[i].address)
+			count++;
+		
+		if(count >= util_draw_num_of_watch_string)
+			break;
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return;
+}
+
+bool Util_is_watch_changed(void)
+{
+	bool changed = false;
+	int count = 0;
+
+	if(!util_init)
+		return false;
+
+	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
+	{
+		if(util_draw_watch_bool[i].address)
+		{
+			if(util_draw_watch_bool[i].previous_value != *util_draw_watch_bool[i].address)
+			{
+				util_draw_watch_bool[i].previous_value = *util_draw_watch_bool[i].address;
+				changed = true;
+			}
+			count++;
+		}
+		
+		if(count >= util_draw_num_of_watch_bool)
+			break;
+	}
+
+	count = 0;
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
+	{
+		if(util_draw_watch_int[i].address)
+		{
+			if(util_draw_watch_int[i].previous_value != *util_draw_watch_int[i].address)
+			{
+				util_draw_watch_int[i].previous_value = *util_draw_watch_int[i].address;
+				changed = true;
+			}
+			count++;
+		}
+		
+		if(count >= util_draw_num_of_watch_int)
+			break;
+	}
+
+	count = 0;
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
+	{
+		if(util_draw_watch_double[i].address)
+		{
+			if(util_draw_watch_double[i].previous_value != *util_draw_watch_double[i].address)
+			{
+				util_draw_watch_double[i].previous_value = *util_draw_watch_double[i].address;
+				changed = true;
+			}
+			count++;
+		}
+		
+		if(count >= util_draw_num_of_watch_double)
+			break;
+	}
+
+	count = 0;
+	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
+	{
+		if(util_draw_watch_string[i].address)
+		{
+			if(util_draw_watch_string[i].previous_value.length() != util_draw_watch_string[i].address->length()
+			|| util_draw_watch_string[i].previous_value != *util_draw_watch_string[i].address)
+			{
+				util_draw_watch_string[i].previous_value = *util_draw_watch_string[i].address;
+				changed = true;
+			}
+			count++;
+		}
+		
+		if(count >= util_draw_num_of_watch_string)
+			break;
+	}
+
+	svcReleaseMutex(util_watch_variables_mutex);
+	return changed;
+}
 
 Result_with_string Util_parse_file(std::string source_data, int expected_items, std::string out_data[])
 {

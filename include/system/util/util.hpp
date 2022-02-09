@@ -1,6 +1,118 @@
 #pragma once
 
 /**
+ * @brief Initialize util API.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_init(void);
+
+/**
+ * @brief Uninitialize util API.
+ * Do nothing if util api is not initialized.
+ * @warning Thread dangerous (untested)
+*/
+void Util_exit(void);
+
+/**
+ * @brief Get watch usage (bool).
+ * Always return 0 if util api is not initialized.
+ * @return Number of watch (bool).
+ * @note Thread safe
+*/
+int Util_get_watch_bool_usage(void);
+
+/**
+ * @brief Get watch usage (int).
+ * Always return 0 if util api is not initialized.
+ * @return Number of watch (int).
+ * @note Thread safe
+*/
+int Util_get_watch_int_usage(void);
+
+/**
+ * @brief Get watch usage (double).
+ * Always return 0 if util api is not initialized.
+ * @return Number of watch (double).
+ * @note Thread safe
+*/
+int Util_get_watch_double_usage(void);
+
+/**
+ * @brief Get watch usage (std::string).
+ * Always return 0 if util api is not initialized.
+ * @return Number of watch (std::string).
+ * @note Thread safe
+*/
+int Util_get_watch_string_usage(void);
+
+/**
+ * @brief Add watch value (bool).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+bool Util_add_watch(bool* variable);
+
+/**
+ * @brief Add watch value (int).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+bool Util_add_watch(int* variable);
+
+/**
+ * @brief Add watch value (double).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+bool Util_add_watch(double* variable);
+
+/**
+ * @brief Add watch value (std::string).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+bool Util_add_watch(std::string* variable);
+
+/**
+ * @brief Remove watched value (bool).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+void Util_remove_watch(bool* variable);
+
+/**
+ * @brief Remove watched value (int).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+void Util_remove_watch(int* variable);
+
+/**
+ * @brief Remove watched value (double).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+void Util_remove_watch(double* variable);
+
+/**
+ * @brief Remove watched value (std::string).
+ * Do nothing if util api is not initialized.
+ * @note Thread safe
+*/
+void Util_remove_watch(std::string* variable);
+
+/**
+ * @brief Check if watched values were changed.
+ * Always return false if util api is not initialized.
+ * @return True if values were changed otherwise false. 
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+bool Util_is_watch_changed(void);
+
+/**
  * @brief Parse a file.
  * @param source_data (in) Text data.
  * @param expected_items (in) Expected elements.

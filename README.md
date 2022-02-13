@@ -197,3 +197,8 @@ Workaround : encode your video without using B-frames. \
 * Cookiee (Spanish translation)
 * Tescu48 (Romanian translation)
 * JustScratchCoder (Polish translation)
+
+## Donation
+If you find my app helpful, buy me a cup of coffee.
+* BTC : bc1qch33qdce5hwxte0pm8pn0a6qqnartg2ujklhhc
+* LTC : MKTD3U2vCMi7S7Jb1EQ2FiS4AdHC23PxJh

@@ -87,7 +87,26 @@ File explorer ✅
 ⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
 you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 
-## Performance
+## Recommended resolution
+Videos that in this resolution will be played without any problems in most of the situations.
+|  Recommended resolution  | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
+| ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
+| OLD3DS Software decoding | 400x240@30 | 400x240@30 | 400x240@24 | 256x144@24 | 256x144@10 |
+| NEW3DS Software decoding | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@20 |
+| NEW3DS Hardware decoding |    none    |    none    |    none    | 800x240@60 |    none    |
+
+
+Videos that in this resolution may be played without problems if video is not moving a lot.
+|    Maximum resolution    | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
+| ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
+| OLD3DS Software decoding | 800x240@24 | 800x240@24 | 800x240@20 | 400x240@15 | 256x144@20 |
+| NEW3DS Software decoding | 800x480@30 | 800x480@30 | 800x480@30 | 800x480@24 | 800x240@30 |
+| NEW3DS Hardware decoding |    none    |    none    |    none    |1280x720@20 |    none    |
+#### Note : Video resolution that exceeds screen resolution (400x240 on OLD2DS, 800x240 on OLD3DS, NEW2DS and NEW3DS) has little visible effect.
+
+If you are not familiar with command line tool to reencode your video, you can use [VideoPlayer3DS-DS-Assistant](https://github.com/JustScratchCoder/VideoPlayer3DS-DS-Assistant) to convert your video (by JustScratchCoder).
+
+## Benchmark
 
 ⚠️ Decoding speed depends on encoder option, video type, video scene, etc... \
 ⚠️ This table shows average fps, so you may hear stutter audio if you use this framerate. \

@@ -11,7 +11,7 @@ bool util_exfont_load_system_font_request = false;
 bool util_exfont_unload_system_font_request = false;
 bool util_exfont_init = false;
 int util_exfont_texture_num[DEF_EXFONT_NUM_OF_FONT_NAME];
-double util_exfont_font_interval[10240] =
+u8 util_exfont_font_interval[9216] =
 {
   //#0000~#007F (128) Basic latin
   20,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
@@ -634,11 +634,11 @@ double util_exfont_font_interval[10240] =
 };
 
 std::string util_exfont_part_string[1024];
-std::string util_exfont_font_samples[10241];
+std::string util_exfont_font_samples[9216];
 std::string util_exfont_font_right_to_left_samples[257];
 std::string util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME];
 std::string util_exfont_ignore_chars = "\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u200B\u200C\u200D\u200E\u200F";
-C2D_Image util_exfont_font_images[10240];
+C2D_Image util_exfont_font_images[9216];
 
 int util_exfont_font_characters[DEF_EXFONT_NUM_OF_FONT_NAME] = {
  128,  96, 128, 208,  96,  80, 112, 135, 256,  48,  89,  88,  255, 128, 79,  72, 
@@ -1120,7 +1120,7 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
                 if (memcmp_result == 0)
                 {
                     unknown = false;
-                    x_size = (util_exfont_font_interval[util_exfont_font_start_num[block] + k] + interval_offset) * texture_size_x;
+                    x_size = ((double)util_exfont_font_interval[util_exfont_font_start_num[block] + k] + interval_offset) * texture_size_x;
                     if(!size_only)
                         Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
 
@@ -1138,7 +1138,7 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
 
         if (unknown)
         {
-            x_size = (util_exfont_font_interval[0] + interval_offset) * texture_size_x;
+            x_size = ((double)util_exfont_font_interval[0] + interval_offset) * texture_size_x;
             if(!size_only)
                 Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
 

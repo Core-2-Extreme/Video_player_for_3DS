@@ -1012,7 +1012,7 @@ Result_with_string Draw_load_texture(std::string file_path, int sheet_map_num, C
 	}
 
 	num_of_images = C2D_SpriteSheetCount(util_draw_sheet_texture[sheet_map_num]);
-	if ((int)num_of_images < num_of_array)
+	if (num_of_array < (int)num_of_images)
 		goto out_of_memory;
 
 	for (int i = 0; i <= (num_of_array - 1); i++)

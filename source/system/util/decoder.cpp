@@ -523,6 +523,13 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 
 		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
 		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_yuv420p_buffer;
+
+		if(util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUV420P)
+		{
+			result.error_description = "[Error] Unsupported pixel format. ";
+			goto other;
+		}
+
 		ffmpeg_result = avcodec_open2(util_video_decoder_context[session][i], util_video_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
 		{
@@ -577,6 +584,16 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 	}
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	other:
+	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	{
+		avcodec_free_context(&util_video_decoder_context[session][i]);
+		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
+	}
+	result.code = DEF_ERR_OTHER;
+	result.string = DEF_ERR_OTHER_STR;
 	return result;
 }
 

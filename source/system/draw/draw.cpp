@@ -1044,7 +1044,7 @@ void Draw_free_texture(int sheet_map_num)
 
 	if(sheet_map_num >= 0 && sheet_map_num < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS)
 	{
-		if (!util_draw_sheet_texture[sheet_map_num])
+		if (util_draw_sheet_texture[sheet_map_num])
 		{
 			C2D_SpriteSheetFree(util_draw_sheet_texture[sheet_map_num]);
 			util_draw_sheet_texture[sheet_map_num] = NULL;

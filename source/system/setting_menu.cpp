@@ -205,6 +205,8 @@ void Sem_init(void)
 	Util_add_watch(&sem_dl_file_request);
 	Util_add_watch(&sem_check_update_request);
 	Util_add_watch(&sem_selected_edition_num);
+	Util_add_watch(&sem_installed_size);
+	Util_add_watch((int*)&sem_dled_size);
 
 	Util_add_watch(&sem_close_updater_button.selected);
 	Util_add_watch(&sem_select_edtion_button.selected);
@@ -404,6 +406,8 @@ void Sem_exit(void)
 	Util_remove_watch(&sem_dl_file_request);
 	Util_remove_watch(&sem_check_update_request);
 	Util_remove_watch(&sem_selected_edition_num);
+	Util_remove_watch(&sem_installed_size);
+	Util_remove_watch((int*)&sem_dled_size);
 
 	Util_remove_watch(&sem_close_updater_button.selected);
 	Util_remove_watch(&sem_select_edtion_button.selected);
@@ -597,8 +601,8 @@ void Sem_main(void)
 					Draw(sem_msg[DEF_SEM_CHECKING_UPDATE_FAILED_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 				else if (sem_update_progress == 1)//success
 				{
-					Draw(sem_msg[sem_new_version_available ? DEF_SEM_UP_TO_DATE_MSG : DEF_SEM_NEW_VERSION_AVAILABLE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw(sem_newest_ver_data[5], 17.5, 35, 0.45, 0.45, DEF_DRAW_BLACK);
+					Draw(sem_msg[sem_new_version_available ? DEF_SEM_NEW_VERSION_AVAILABLE_MSG : DEF_SEM_UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+					Draw(sem_newest_ver_data[5], 17.5, 35, 0.4, 0.4, DEF_DRAW_BLACK);
 				}
 				if(var_lang == "ro")
 					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
@@ -634,7 +638,7 @@ void Sem_main(void)
 				if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 				{
 					Draw(sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw("sdmc:" + DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/" + DEF_UPDATE_FILE_PREFIX + ".3dsx", 17.5, 150, 0.45, 0.45, DEF_DRAW_RED);
+					Draw("sdmc:" + DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/" + DEF_UPDATE_FILE_PREFIX + ".3dsx", 17.5, 150, 0.4, 0.4, DEF_DRAW_RED);
 				}
 
 				if(sem_update_progress == 2)
@@ -1930,6 +1934,11 @@ void Sem_update_thread(void* arg)
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;
+						
+						if(envIsHomebrew() && sem_newest_ver_data[1] == "1")
+							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
+						else if(sem_newest_ver_data[2] == "1")
+							sem_selected_edition_num = DEF_SEM_EDTION_CIA;
 					}
 
 					sem_update_progress = 1;
@@ -1967,7 +1976,6 @@ void Sem_update_thread(void* arg)
 
 							offset += write_size;
 							sem_installed_size += write_size;
-							var_need_reflesh = true;
 						}
 
 						log_num = Util_log_save(DEF_SEM_UPDATE_THREAD_STR, "AM_FinishCiaInstall()...");

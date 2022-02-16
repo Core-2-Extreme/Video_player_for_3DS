@@ -1486,6 +1486,7 @@ void Vid_decode_thread(void* arg)
 			//Wait for packet thread
 			while(vid_play_request)
 			{
+				usleep(10000);
 				if(Util_decoder_get_available_packet_num(0) > 0)
 					break;
 			}

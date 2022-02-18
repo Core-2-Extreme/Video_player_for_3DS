@@ -2149,7 +2149,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->time_base);
 	if(timebase != 0)
-		*current_pos = (double)util_video_decoder_raw_image[session][0][buffer_num]->pts * timebase * 1000;//calc pos
+		*current_pos = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts * timebase * 1000;//calc pos
 	else if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
@@ -2295,7 +2295,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->time_base);
 	if(timebase != 0)
-		*current_pos = (double)util_video_decoder_raw_image[session][0][buffer_num]->pts * timebase * 1000;//calc pos
+		*current_pos = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts * timebase * 1000;//calc pos
 	else if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 

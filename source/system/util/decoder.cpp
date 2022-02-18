@@ -524,7 +524,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
 		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_yuv420p_buffer;
 
-		if(util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUV420P)
+		if(util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUV420P && util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUVJ420P)
 		{
 			result.error_description = "[Error] Unsupported pixel format. ";
 			goto other;

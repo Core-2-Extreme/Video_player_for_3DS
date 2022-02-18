@@ -99,6 +99,7 @@ int vid_control_texture_num = -1;
 int vid_banner_texture_num = -1;
 int vid_file_index = 0;
 int vid_subtitle_index = 0;
+u64 vid_previous_ts = 0;
 std::string vid_file = "";
 std::string vid_dir = "";
 std::string vid_audio_track_lang[DEF_DECODER_MAX_AUDIO_TRACKS];
@@ -289,6 +290,7 @@ void Vid_init_variable(void)
 		vid_subtitle_track_lang[i] = "";
 
 	//debug
+	vid_previous_ts = 0;
 	vid_total_time = 0;
 	vid_total_frames = 0;
 	vid_min_time = 99999999;
@@ -1512,10 +1514,6 @@ void Vid_decode_thread(void* arg)
 				while(vid_decode_video_request && vid_play_request && !vid_change_video_request)
 					usleep(2000);
 
-				vid_packet_buffer[319] = Util_decoder_get_available_packet_num(0);
-				for(int i = 1; i < 320; i++)
-					vid_packet_buffer[i - 1] = vid_packet_buffer[i];
-
 				while(true)
 				{
 					result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, 0);
@@ -1628,9 +1626,6 @@ void Vid_decode_thread(void* arg)
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
 					{
-						if(num_of_video_tracks == 0)
-							vid_raw_audio_buffer[319] = Util_speaker_get_available_buffer_num(0);
-
 						osTickCounterUpdate(&counter);
 						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, audio_track, 0);
 						osTickCounterUpdate(&counter);
@@ -2010,24 +2005,12 @@ void Vid_convert_thread(void* arg)
 					Util_speaker_resume(0);
 					first = false;
 				}
-
-				if(vid_hw_decoding_mode)
-					vid_raw_video_buffer[319] = Util_mvd_video_decoder_get_available_raw_image_num(0);
-				else
-					vid_raw_video_buffer[319] = Util_video_decoder_get_available_raw_image_num(0, 0);
-
-				vid_raw_audio_buffer[319] = Util_speaker_get_available_buffer_num(0);
-
-				for(int i = 1; i < 320; i++)
-				{
-					vid_raw_video_buffer[i - 1] = vid_raw_video_buffer[i];
-					vid_raw_audio_buffer[i - 1] = vid_raw_audio_buffer[i];
-				}
 				
 				//skip video frame if can't keep up
 				if((skip > vid_frametime || vid_seek_adjust_request) && vid_frametime != 0)
 				{
-					if(vid_raw_video_buffer[319] > 0)
+					if(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) > 0 
+					: Util_video_decoder_get_available_raw_image_num(packet_index, 0) > 0)
 					{
 						if(vid_hw_decoding_mode)
 							Util_mvd_video_decoder_skip_image(&pos, 0);
@@ -2664,7 +2647,26 @@ void Vid_main(void)
 		image_width[i] = vid_tex_width[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom;
 		image_height[i] = vid_tex_height[i] * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_video_zoom;
 	}
-	
+
+	//Update performance data every 100ms
+	if(osGetTime() >= vid_previous_ts + 100)
+	{
+		vid_previous_ts = osGetTime();
+		vid_packet_buffer[319] = Util_decoder_get_available_packet_num(0);
+		vid_raw_audio_buffer[319] = Util_speaker_get_available_buffer_num(0);
+		vid_raw_video_buffer[319] = vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0);
+
+		for(int i = 1; i < 320; i++)
+			vid_packet_buffer[i - 1] = vid_packet_buffer[i];
+
+		for(int i = 1; i < 320; i++)
+			vid_raw_audio_buffer[i - 1] = vid_raw_audio_buffer[i];
+
+		for(int i = 1; i < 320; i++)
+			vid_raw_video_buffer[i - 1] = vid_raw_video_buffer[i];
+	}
+
+
 	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
 	{
 		var_need_reflesh = false;

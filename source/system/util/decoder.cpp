@@ -821,7 +821,11 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 
 	video_info->width = util_video_decoder_context[session][video_index]->width;
 	video_info->height = util_video_decoder_context[session][video_index]->height;
-	video_info->framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
+	if(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den == 0)
+		video_info->framerate = 0;
+	else
+		video_info->framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
+
 	video_info->format_name = util_video_decoder_codec[session][video_index]->long_name;
 	video_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 	if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_FRAME)

@@ -1226,8 +1226,13 @@ void Vid_decode_thread(void* arg)
 						vid_video_info.sar_height = 2;
 					
 					vid_duration *= 1000;
-					vid_frametime = (1000.0 / vid_video_info.framerate);
-					if(num_of_video_tracks == 2)
+
+					if(vid_video_info.framerate == 0)
+						vid_frametime = 0;
+					else
+						vid_frametime = (1000.0 / vid_video_info.framerate);
+
+					if(num_of_video_tracks == 2 && vid_frametime != 0)
 						vid_frametime /= 2;
 
 					vid_codec_width = vid_video_info.width;
@@ -1558,7 +1563,8 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 
-				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO))
+				//Handle seek adjust request
+				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO || vid_frametime == 0))
 				{
 					if(wait_count <= 0)
 					{
@@ -1569,6 +1575,7 @@ void Vid_decode_thread(void* arg)
 						wait_count--;
 				}
 
+				//Handle seek request
 				if(vid_seek_request)
 				{
 					Util_speaker_clear_buffer(0);
@@ -1615,7 +1622,8 @@ void Vid_decode_thread(void* arg)
 
 				if(type == DEF_DECODER_PACKET_TYPE_UNKNOWN)
 					Util_log_save("debug", "unknown packet!!!!!");
-				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track && (!vid_seek_adjust_request || num_of_video_tracks == 0))
+				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track 
+				&& (!vid_seek_adjust_request || num_of_video_tracks == 0 || vid_frametime == 0))//Always decode audio if video framerate is unknown or file does not have video track
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -1628,7 +1636,8 @@ void Vid_decode_thread(void* arg)
 						osTickCounterUpdate(&counter);
 						vid_audio_time = osTickCounterRead(&counter);
 						
-						if(num_of_video_tracks == 0 && !std::isnan(pos) && !std::isinf(pos))
+						//Get position from audio if video framerate is unknown or or file does not have video track
+						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos;
 						
 						if(result.code == 0 && !vid_seek_adjust_request)
@@ -1851,7 +1860,7 @@ void Vid_decode_video_thread(void* arg)
 					packet_index = vid_packet_index;
 					key_frame = vid_key_frame;
 
-					if(vid_allow_skip_frames && skip > vid_frametime && (!key_frame || vid_allow_skip_key_frames))
+					if(vid_allow_skip_frames && skip > vid_frametime && (!key_frame || vid_allow_skip_key_frames) && vid_frametime != 0)
 					{
 						skip -= vid_frametime;
 						Util_decoder_skip_video_packet(packet_index, 0);
@@ -1900,7 +1909,7 @@ void Vid_decode_video_thread(void* arg)
 							vid_key_frame_list[319] = key_frame;
 							vid_time[0][319] = vid_video_time;
 
-							if(vid_frametime - vid_video_time < 0 && vid_allow_skip_frames)
+							if(vid_frametime - vid_video_time < 0 && vid_allow_skip_frames && vid_frametime != 0)
 								skip -= vid_frametime - vid_video_time;
 
 							if(vid_min_time > vid_video_time)
@@ -2016,7 +2025,7 @@ void Vid_convert_thread(void* arg)
 				}
 				
 				//skip video frame if can't keep up
-				if(skip > vid_frametime || vid_seek_adjust_request)
+				if((skip > vid_frametime || vid_seek_adjust_request) && vid_frametime != 0)
 				{
 					if(vid_raw_video_buffer[319] > 0)
 					{
@@ -2050,15 +2059,18 @@ void Vid_convert_thread(void* arg)
 
 						if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || (result.code == DEF_ERR_TRY_AGAIN && vid_eof) || vid_clear_raw_buffer_request[0])
 							break;
-						else
+						else if(vid_frametime != 0)
 							usleep((vid_frametime / 4) * 1000);
+						else//if framerate is unknown just sleep 10ms
+							usleep(10000);
 					}
 					
 					vid_copy_time[0] = osTickCounterRead(&counter[2]);
 
 					if(result.code == 0)
 					{
-						if(!std::isnan(pos) && !std::isinf(pos))
+						//Get position from video if video framerate is known
+						if(!std::isnan(pos) && !std::isinf(pos) && vid_frametime != 0)
 							vid_current_pos = pos;
 
 						osTickCounterUpdate(&counter[0]);
@@ -2150,14 +2162,14 @@ void Vid_convert_thread(void* arg)
 					osTickCounterUpdate(&counter[3]);
 					vid_time[1][319] = osTickCounterRead(&counter[3]);
 
-					if(vid_frametime - vid_time[1][319] > 0)
+					if(vid_frametime - vid_time[1][319] > 0 && vid_frametime != 0)
 					{
 						osTickCounterUpdate(&counter[4]);
 						usleep((vid_frametime - vid_time[1][319]) * 1000);
 						osTickCounterUpdate(&counter[4]);
 						skip -= (vid_frametime - vid_time[1][319]) - osTickCounterRead(&counter[4]);
 					}
-					else
+					else if(vid_frametime != 0)
 						skip -= vid_frametime - vid_time[1][319];
 				}
 			}

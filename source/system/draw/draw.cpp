@@ -607,6 +607,7 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 	short font_list[2][1024];
 	int count = 0;
 	float width = 0, height = 0, y_offset = 0, used_x = 0, used_x_max = 0, used_y_max = 0;
+	double font_height_factor = 1, font_width_factor = 1;
 	C2D_Text c2d_text;
 	C2D_TextBuf c2d_buf;
 
@@ -626,7 +627,7 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 			break;
 		else if (font_list[1][i] == -1)
 		{			
-			height = 20.0 * text_size_y * 1.56;
+			height = 30 * text_size_y;
 			if(height > used_y_max)
 				used_y_max = height;
 
@@ -641,13 +642,38 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 			if(!Exfont_is_loaded_external_font(0))
 				util_draw_system_fonts[font_list[1][i]] = 0;
 
+			if(font_list[1][i] == 1)
+			{
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+			}
+			else if(font_list[1][i] == 2)
+			{
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+			}
+			else if(font_list[1][i] == 3)
+			{
+				font_width_factor = 1.2;
+				font_height_factor = 0.83333;
+			}
+			else
+			{
+				font_width_factor = 1;
+				font_height_factor = 1;
+			}
+
 			C2D_TextBufClear(c2d_buf);
 			C2D_TextFontParse(&c2d_text, util_draw_system_fonts[font_list[1][i]], c2d_buf, util_draw_part_text[1][i].c_str());
 			C2D_TextOptimize(&c2d_text);
-			C2D_TextGetDimensions(&c2d_text, text_size_x, text_size_y, &width, &height);
+			C2D_TextGetDimensions(&c2d_text, text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
 		}
 		else if(font_list[1][i] == 4)
-			Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * 1.56, text_size_y * 1.56, &width, &height);
+		{
+			font_width_factor = 1.2;
+			font_height_factor = 1.2;
+			Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
+		}
 		
 		used_x += width;
 		if(used_x > used_x_max)
@@ -672,6 +698,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DEF_DRAW_BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
 }
 
+//todo : merge code
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
  float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888)
 {
@@ -681,6 +708,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	int line_count = 0;
 	int array_count = 0;
 	float width = 0, height = 0, original_x = 0, original_y = 0, x_min = 0, y_offset = 0, used_x = 0, used_x_max = 0, used_y_max = 0;
+	double font_height_factor = 1, font_width_factor = 1, font_draw_height_factor = 1, font_draw_width_factor = 1;
 	C2D_Text c2d_text;
 	C2D_TextBuf c2d_buf;
 	original_x = x;
@@ -711,7 +739,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 				break;
 			else if (font_list[1][i] == -1)
 			{
-				height = 20.0 * text_size_y * 1.56;
+				height = 30 * text_size_y;
 				if(height > used_y_max)
 					used_y_max = height;
 
@@ -732,13 +760,38 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 				if(!Exfont_is_loaded_external_font(0))
 					util_draw_system_fonts[font_list[1][i]] = 0;
 
+				if(font_list[1][i] == 1)
+				{
+					font_width_factor = 1;
+					font_height_factor = 0.83333;
+				}
+				else if(font_list[1][i] == 2)
+				{
+					font_width_factor = 1;
+					font_height_factor = 0.83333;
+				}
+				else if(font_list[1][i] == 3)
+				{
+					font_width_factor = 1.2;
+					font_height_factor = 0.83333;
+				}
+				else
+				{
+					font_width_factor = 1;
+					font_height_factor = 1;
+				}
+
 				C2D_TextBufClear(c2d_buf);
 				C2D_TextFontParse(&c2d_text, util_draw_system_fonts[font_list[1][i]], c2d_buf, util_draw_part_text[1][i].c_str());
 				C2D_TextOptimize(&c2d_text);
-				C2D_TextGetDimensions(&c2d_text, text_size_x, text_size_y, &width, &height);
+				C2D_TextGetDimensions(&c2d_text, text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
 			}
 			else if(font_list[1][i] == 4)
-				Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * 1.56, text_size_y * 1.56, &width, &height);
+			{
+				font_width_factor = 1.2;
+				font_height_factor = 1.2;
+				Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
+			}
 			
 			used_x += width;
 			if(used_x > used_x_max)
@@ -787,7 +840,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			break;
 		else if (font_list[1][i] == -1)
 		{
-			y += 20.0 * text_size_y * 1.56;
+			y += 30 * text_size_y;
 			if(x_align == DEF_DRAW_X_ALIGN_LEFT)
 				x = original_x;
 			else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
@@ -808,25 +861,56 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)
-				y_offset = 3 * text_size_y;
+			{
+				y_offset = 3.5 * text_size_y;
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
+			else if(font_list[1][i] == 2)
+			{
+				y_offset = 3.5 * text_size_y;
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
 			else if(font_list[1][i] == 3)
+			{
 				y_offset = 5 * text_size_y;
+				font_width_factor = 1.2;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1.2;
+				font_draw_height_factor = 1.2;
+			}
 			else
+			{
 				y_offset = 0;
+				font_width_factor = 1;
+				font_height_factor = 1;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
 
 			C2D_TextFontParse(&c2d_text, util_draw_system_fonts[font_list[1][i]], c2d_buf, util_draw_part_text[1][i].c_str());
 			C2D_TextOptimize(&c2d_text);
-			C2D_TextGetDimensions(&c2d_text, text_size_x, text_size_y, &width, &height);
-			C2D_DrawText(&c2d_text, C2D_WithColor, x, y + y_offset, 0.0, text_size_x, text_size_y, abgr8888);
+			C2D_TextGetDimensions(&c2d_text, text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
+			C2D_DrawText(&c2d_text, C2D_WithColor, x, y + y_offset, 0.0, text_size_x * font_draw_width_factor, text_size_y * font_draw_height_factor, abgr8888);
 		}
 		else if(font_list[1][i] == 4)
-			Exfont_draw_external_fonts(util_draw_part_text[1][i], x, y, text_size_x * 1.56, text_size_y * 1.56, abgr8888, &width, &height);
+		{
+			font_draw_width_factor = 1.2;
+			font_draw_height_factor = 1.2;
+			Exfont_draw_external_fonts(util_draw_part_text[1][i], x, y, text_size_x * font_draw_width_factor, text_size_y * font_draw_height_factor, abgr8888, &width, &height);
+		}
 
 		x += width;
 	}
 	C2D_TextBufDelete(c2d_buf);
 }
 
+//todo : merge code
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
  float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888)
 {
@@ -836,6 +920,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 	int line_count = 0;
 	int array_count = 0;
 	float width = 0, height = 0, original_x = 0, original_y = 0, x_min = 0, y_offset = 0, used_x = 0, used_x_max = 0, used_y_max = 0;
+	double font_height_factor = 1, font_width_factor = 1, font_draw_height_factor = 1, font_draw_width_factor = 1;
 	C2D_Text c2d_text;
 	C2D_TextBuf c2d_buf;
 	original_x = x;
@@ -866,7 +951,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 				break;
 			else if (font_list[1][i] == -1)
 			{
-				height = 20.0 * text_size_y * 1.56;
+				height = 30 * text_size_y;
 				if(height > used_y_max)
 					used_y_max = height;
 
@@ -887,13 +972,38 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 				if(!Exfont_is_loaded_external_font(0))
 					util_draw_system_fonts[font_list[1][i]] = 0;
 
+				if(font_list[1][i] == 1)
+				{
+					font_width_factor = 1;
+					font_height_factor = 0.83333;
+				}
+				else if(font_list[1][i] == 2)
+				{
+					font_width_factor = 1;
+					font_height_factor = 0.83333;
+				}
+				else if(font_list[1][i] == 3)
+				{
+					font_width_factor = 1.2;
+					font_height_factor = 0.83333;
+				}
+				else
+				{
+					font_width_factor = 1;
+					font_height_factor = 1;
+				}
+
 				C2D_TextBufClear(c2d_buf);
 				C2D_TextFontParse(&c2d_text, util_draw_system_fonts[font_list[1][i]], c2d_buf, util_draw_part_text[1][i].c_str());
 				C2D_TextOptimize(&c2d_text);
-				C2D_TextGetDimensions(&c2d_text, text_size_x, text_size_y, &width, &height);
+				C2D_TextGetDimensions(&c2d_text, text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
 			}
 			else if(font_list[1][i] == 4)
-				Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * 1.56, text_size_y * 1.56, &width, &height);
+			{
+				font_width_factor = 1.2;
+				font_height_factor = 1.2;
+				Exfont_draw_get_text_size(util_draw_part_text[1][i], text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
+			}
 			
 			used_x += width;
 			if(used_x > used_x_max)
@@ -942,7 +1052,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			break;
 		else if (font_list[1][i] == -1)
 		{
-			y += 20.0 * text_size_y * 1.56;
+			y += 30 * text_size_y;
 			if(x_align == DEF_DRAW_X_ALIGN_LEFT)
 				x = original_x;
 			else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
@@ -963,19 +1073,49 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)
-				y_offset = 3 * text_size_y;
+			{
+				y_offset = 3.5 * text_size_y;
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
+			else if(font_list[1][i] == 2)
+			{
+				y_offset = 3.5 * text_size_y;
+				font_width_factor = 1;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
 			else if(font_list[1][i] == 3)
+			{
 				y_offset = 5 * text_size_y;
+				font_width_factor = 1.2;
+				font_height_factor = 0.83333;
+				font_draw_width_factor = 1.2;
+				font_draw_height_factor = 1.2;
+			}
 			else
+			{
 				y_offset = 0;
+				font_width_factor = 1;
+				font_height_factor = 1;
+				font_draw_width_factor = 1;
+				font_draw_height_factor = 1;
+			}
 
 			C2D_TextFontParse(&c2d_text, util_draw_system_fonts[font_list[1][i]], c2d_buf, util_draw_part_text[1][i].c_str());
 			C2D_TextOptimize(&c2d_text);
-			C2D_TextGetDimensions(&c2d_text, text_size_x, text_size_y, &width, &height);
-			C2D_DrawText(&c2d_text, C2D_WithColor, x, y + y_offset, 0.0, text_size_x, text_size_y, abgr8888);
+			C2D_TextGetDimensions(&c2d_text, text_size_x * font_width_factor, text_size_y * font_height_factor, &width, &height);
+			C2D_DrawText(&c2d_text, C2D_WithColor, x, y + y_offset, 0.0, text_size_x * font_draw_width_factor, text_size_y * font_draw_height_factor, abgr8888);
 		}
 		else if(font_list[1][i] == 4)
-			Exfont_draw_external_fonts(util_draw_part_text[1][i], x, y, text_size_x * 1.56, text_size_y * 1.56, abgr8888, &width, &height);
+		{
+			font_draw_width_factor = 1.2;
+			font_draw_height_factor = 1.2;
+			Exfont_draw_external_fonts(util_draw_part_text[1][i], x, y, text_size_x * font_draw_width_factor, text_size_y * font_draw_height_factor, abgr8888, &width, &height);
+		}
 
 		x += width;
 	}

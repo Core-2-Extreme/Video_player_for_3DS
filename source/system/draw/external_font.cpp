@@ -394,7 +394,7 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
 
 void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x, float texture_size_y, int abgr8888, float* out_width, float* out_height, bool size_only)
 {
-    double interval_offset = 0.5;
+    double interval_offset = 1;
     double x_offset = 0.0;
     double x_size = 0.0;
     int block = -1;
@@ -501,9 +501,9 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
                     unknown = false;
                     x_size = util_exfont_font_images[util_exfont_font_start_num[block] + k].subtex->width * texture_size_x;
                     if(!size_only)
-                        Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
+                        Draw_texture(util_exfont_font_images[util_exfont_font_start_num[block] + k], abgr8888, (texture_x + x_offset), texture_y, x_size, util_exfont_font_images[0].subtex->height * texture_size_y);
 
-                    x_offset += x_size;
+                    x_offset += x_size + (interval_offset * texture_size_x);
                     break;
                 }
                 else if (memcmp_result < 0 || k >= util_exfont_font_characters[block])
@@ -519,13 +519,13 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
         {
             x_size = util_exfont_font_images[0].subtex->width * texture_size_x;
             if(!size_only)
-                Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), texture_y, x_size, 20.0 * texture_size_y);
+                Draw_texture(util_exfont_font_images[0], abgr8888, (texture_x + x_offset), texture_y, x_size, util_exfont_font_images[0].subtex->height * texture_size_y);
 
-            x_offset += x_size;
+            x_offset += x_size + (interval_offset * texture_size_x);
         }
     }
     *out_width = x_offset;
-    *out_height = 20.0 * texture_size_y;
+    *out_height = util_exfont_font_images[0].subtex->height * texture_size_y;
 }
 
 void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x,

@@ -209,5 +209,5 @@ void Util_log_draw(void)
 		Draw("Log api is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
 
 	for (int i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
-		Draw(util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.4, 0.4, DEF_LOG_COLOR);
+		Draw(util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
 }

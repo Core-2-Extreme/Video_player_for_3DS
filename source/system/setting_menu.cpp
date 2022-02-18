@@ -602,14 +602,14 @@ void Sem_main(void)
 				else if (sem_update_progress == 1)//success
 				{
 					Draw(sem_msg[sem_new_version_available ? DEF_SEM_NEW_VERSION_AVAILABLE_MSG : DEF_SEM_UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw(sem_newest_ver_data[5], 17.5, 35, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw(sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				if(var_lang == "ro")
 					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
 				else
-					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw(sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
 
-				Draw(sem_msg[DEF_SEM_CLOSE_UPDATER_MSG], 162.5, 200, 0.4, 0.4, DEF_DRAW_BLACK);
+				Draw(sem_msg[DEF_SEM_CLOSE_UPDATER_MSG], 162.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
 			}
 			else if (sem_select_ver_request)
 			{
@@ -638,19 +638,19 @@ void Sem_main(void)
 				if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 				{
 					Draw(sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw("sdmc:" + DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/" + DEF_UPDATE_FILE_PREFIX + ".3dsx", 17.5, 150, 0.4, 0.4, DEF_DRAW_RED);
+					Draw("sdmc:" + DEF_UPDATE_DIR_PREFIX + sem_newest_ver_data[0] + "/" + DEF_UPDATE_FILE_PREFIX + ".3dsx", 17.5, 150, 0.425, 0.425, DEF_DRAW_RED);
 				}
 
 				if(sem_update_progress == 2)
 				{
 					//downloading...
-					Draw(std::to_string(sem_dled_size / 1024.0 / 1024.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1024) + "KB)", 17.5, 180, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw(std::to_string(sem_dled_size / 1024.0 / 1024.0).substr(0, 4) + "MB(" + std::to_string(sem_dled_size / 1024) + "KB)", 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 					Draw(sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 				}
 				else if(sem_update_progress == 3)
 				{
 					//installing...
-					Draw(std::to_string(sem_installed_size / 1024.0 / 1024.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1024.0 / 1024.0).substr(0, 4) + "MB", 17.5, 180, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw(std::to_string(sem_installed_size / 1024.0 / 1024.0).substr(0, 4) + "MB/" + std::to_string(sem_total_cia_size / 1024.0 / 1024.0).substr(0, 4) + "MB", 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
 					Draw(sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == 4)
@@ -664,7 +664,7 @@ void Sem_main(void)
 				else if (sem_update_progress == -2)
 					Draw(sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
 
-				Draw(sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.4, 0.4, (sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1") ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK);
+				Draw(sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (sem_selected_edition_num != DEF_SEM_EDTION_NONE && sem_newest_ver_data[1 + sem_selected_edition_num] == "1") ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK);
 				Draw(sem_msg[DEF_SEM_BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
 			}
 		}
@@ -875,7 +875,7 @@ void Sem_main(void)
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_wifi_off_button, sem_wifi_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Connected SSID
-			Draw(sem_msg[DEF_SEM_CONNECTED_SSID_MSG] + var_connected_ssid, 0, 65, 0.4, 0.4, color);
+			Draw(sem_msg[DEF_SEM_CONNECTED_SSID_MSG] + var_connected_ssid, 0, 65, 0.425, 0.425, color);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
 		{

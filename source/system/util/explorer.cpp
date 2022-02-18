@@ -206,7 +206,7 @@ void Util_expl_draw(void)
 	}
 
 	Draw_texture(var_square_image[0], DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.4, 0.4, DEF_DRAW_BLACK);
+	Draw("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
 	Draw(util_expl_current_dir, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 	for (int i = 0; i < 16; i++)
 	{
@@ -214,13 +214,13 @@ void Util_expl_draw(void)
 		if(util_expl_type[i + (int)util_expl_y_offset] & DEF_EXPL_TYPE_DIR)
 		{
 			Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + Util_expl_generate_file_type_string(util_expl_type[i + (int)util_expl_y_offset])
-			 + ")" , 12.5, 19 + (i * 10), 0.4, 0.4, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+			 + ")" , 12.5, 19 + (i * 10), 0.425, 0.425, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
 		}
 		else
 		{
 			Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + std::to_string(util_expl_size[i + (int)util_expl_y_offset] / 1024.0 / 1024.0).substr(0, 4)
 			+ "MB) (" + Util_expl_generate_file_type_string(util_expl_type[i + (int)util_expl_y_offset]) + ")"
-			, 12.5, 19 + (i * 10), 0.4, 0.4, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
+			, 12.5, 19 + (i * 10), 0.425, 0.425, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
 		}
 	}
 }

@@ -2763,7 +2763,7 @@ void Vid_main(void)
 			else
 			{
 				Draw_screen_ready(1, back_color);
-				Draw(DEF_VID_VER, 0, 0, 0.4, 0.4, DEF_DRAW_GREEN);
+				Draw(DEF_VID_VER, 0, 0, 0.425, 0.425, DEF_DRAW_GREEN);
 
 				//codec info
 				Draw(vid_video_info.format_name, 0, 10, 0.5, 0.5, color);
@@ -2951,23 +2951,23 @@ void Vid_main(void)
 				{
 					y_offset = 60;
 					//use hw decoding
-					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, 
+					Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_use_hw_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.425, 0.425, 
 					(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL || vid_play_request) ? disabled_color : color,
 					DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20, DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_use_hw_decoding_button, vid_use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 					y_offset += 30;
 					//use hw color conversion
-					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+					Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_use_hw_color_conversion_request ? "ON" : "OFF"), 12.5, y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 					DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_use_hw_color_conversion_button, vid_use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 					y_offset += 30;
 					//use multi-threaded decoding (in software decoding)
-					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+					Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_use_multi_threaded_decoding_request ? "ON" : "OFF"), 12.5, y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 					DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_use_multi_threaded_decoding_button, vid_use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 					y_offset += 30;
 					//lower resolution
-					Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, y_offset, 0.4, 0.4, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+					Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_lower_resolution], 12.5, y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 					DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_lower_resolution_button, vid_lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 					Draw_texture(&vid_menu_button[0], vid_menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
@@ -3030,7 +3030,7 @@ void Vid_main(void)
 					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
 						Draw_texture(&vid_show_packet_buffer_graph_button, vid_show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_ui_y_offset, 160, 10);
-						Draw("Compressed buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
+						Draw("Compressed buffer : " + std::to_string(Util_decoder_get_available_packet_num(0)), 0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_packet_buffer_graph_mode ? 0xFFFF00FF : color);
 					}
 					else
 					{
@@ -3047,12 +3047,12 @@ void Vid_main(void)
 						{
 							Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0))
 							+ "(" + std::to_string(int((vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)) * vid_frametime)) + "ms)",
-							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
+							0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
 						}
 						else
 						{
 							Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 
-							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
+							0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
 						}
 					}
 					else
@@ -3069,10 +3069,10 @@ void Vid_main(void)
 						{
 							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)) + "(" 
 							+ std::to_string((int)(Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000)) + "ms)",
-							0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
+							0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
 						}
 						else
-							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)), 0, y_offset + vid_ui_y_offset, 0.4, 0.4, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
+							Draw("Raw audio buffer : " + std::to_string(Util_speaker_get_available_buffer_num(0)), 0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_raw_audio_buffer_graph_mode ? 0xFF00A000 : color);
 					}
 					else
 					{
@@ -3085,10 +3085,10 @@ void Vid_main(void)
 					if(vid_total_frames != 0 && vid_min_time != 0  && vid_recent_total_time != 0 && y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 170)
 					{
 						if(!vid_hw_decoding_mode && vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME)
-							Draw("*When thread_type == frame, the red graph is unusable", 0, y_offset + vid_ui_y_offset, 0.4, 0.4, color);
+							Draw("*When thread_type == frame, the red graph is unusable", 0, y_offset + vid_ui_y_offset, 0.425, 0.425, color);
 						else
 							Draw("avg/min/max/recent avg " + std::to_string(1000 / (vid_total_time / vid_total_frames)).substr(0, 5) + "/" + std::to_string(1000 / vid_max_time).substr(0, 5) 
-							+  "/" + std::to_string(1000 / vid_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, y_offset + vid_ui_y_offset, 0.4, 0.4, color);
+							+  "/" + std::to_string(1000 / vid_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_recent_total_time / 90)).substr(0, 5) +  " fps", 0, y_offset + vid_ui_y_offset, 0.425, 0.425, color);
 					}
 
 					y_offset += 10;
@@ -3161,7 +3161,7 @@ void Vid_main(void)
 				}
 
 				//controls
-				Draw(vid_msg[DEF_VID_CONTROLS_MSG], 167.5, 195, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 145, 10,
+				Draw(vid_msg[DEF_VID_CONTROLS_MSG], 167.5, 195, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 145, 10,
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_control_button, vid_control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 				//time bar
@@ -3175,13 +3175,13 @@ void Vid_main(void)
 					Draw_texture(vid_control[var_night_mode], 80, 20, 160, 160);
 					if(var_lang == "ro")
 					{
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.425, 0.425, DEF_DRAW_BLACK);
 					}
 					else
 					{
@@ -3207,7 +3207,7 @@ void Vid_main(void)
 					}
 
 					Draw_texture(&vid_ok_button, vid_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
-					Draw("OK", 152.5, 140, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw("OK", 152.5, 140, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 
 				if(vid_select_subtitle_track_request)
@@ -3222,7 +3222,7 @@ void Vid_main(void)
 					}
 
 					Draw_texture(&vid_ok_button, vid_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
-					Draw("OK", 152.5, 140, 0.4, 0.4, DEF_DRAW_BLACK);
+					Draw("OK", 152.5, 140, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 
 				if(Util_expl_query_show_flag())

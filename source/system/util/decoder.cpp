@@ -574,6 +574,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		avcodec_free_context(&util_video_decoder_context[session][i]);
 		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 	}
+	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 

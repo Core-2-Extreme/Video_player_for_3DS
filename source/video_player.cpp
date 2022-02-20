@@ -166,6 +166,13 @@ void Vid_fit_to_screen(int screen_width, int screen_height)
 	vid_subtitle_zoom = 1;
 }
 
+void Vid_change_video_size(double change_px)
+{
+	double current_width = (double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom;
+	if(vid_video_info.width != 0 && vid_video_info.height != 0 && vid_video_info.sar_width != 0 && vid_video_info.sar_height != 0)
+		vid_video_zoom = 1.0 / ((double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) / (current_width + change_px));
+}
+
 void Vid_enter_full_screen(int bottom_screen_timeout)
 {
 	vid_turn_off_bottom_screen_count = bottom_screen_timeout;
@@ -317,6 +324,7 @@ void Vid_init_variable(void)
 
 void Vid_hid(Hid_info key)
 {
+	double video_width = 0;
 	if(vid_set_volume_request || vid_set_seek_duration_request || (aptShouldJumpToHome() && vid_pause_for_home_menu_request))
 		return;
 
@@ -981,40 +989,50 @@ void Vid_hid(Hid_info key)
 			{
 				if(vid_move_content_mode == DEF_VID_MOVE_VIDEO || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(key.p_l)
-						vid_video_zoom -= 0.005 * var_scroll_speed;
-					else if(key.h_l)
+					if(key.h_l || key.p_l)
 					{
 						if(vid_lr_count > 360)
-							vid_video_zoom -= 0.05 * var_scroll_speed;
+							Vid_change_video_size(-5);
 						else if(vid_lr_count > 120)
-							vid_video_zoom -= 0.01 * var_scroll_speed;
+							Vid_change_video_size(-3);
 						else if(vid_lr_count > 5)
-							vid_video_zoom -= 0.005 * var_scroll_speed;
+							Vid_change_video_size(-1);
 					}
 
-					if(key.p_r)
-						vid_video_zoom += 0.005 * var_scroll_speed;
-					else if(key.h_r)
+					if(key.h_r || key.p_r)
 					{
 						if(vid_lr_count > 360)
-							vid_video_zoom += 0.05 * var_scroll_speed;
+							Vid_change_video_size(5);
 						else if(vid_lr_count > 120)
-							vid_video_zoom += 0.01 * var_scroll_speed;
+							Vid_change_video_size(3);
 						else if(vid_lr_count > 5)
-							vid_video_zoom += 0.005 * var_scroll_speed;
+							Vid_change_video_size(1);
 					}
 
-					if(vid_video_zoom < 0.05)
-						vid_video_zoom = 0.05;
-					else if(vid_video_zoom > 10)
-						vid_video_zoom = 10;
+					video_width = (double)vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom;
+					//If video is too large or small, don't enlarge or make it small anymore.
+					if(video_width < 20)
+					{
+						if(vid_lr_count > 360)
+							Vid_change_video_size(5);
+						else if(vid_lr_count > 120)
+							Vid_change_video_size(3);
+						else if(vid_lr_count > 5)
+							Vid_change_video_size(1);
+					}
+					else if(video_width > 2000)
+					{
+						if(vid_lr_count > 360)
+							Vid_change_video_size(-5);
+						else if(vid_lr_count > 120)
+							Vid_change_video_size(-3);
+						else if(vid_lr_count > 5)
+							Vid_change_video_size(-1);
+					}
 				}
 				if(vid_move_content_mode == DEF_VID_MOVE_SUBTITLE || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(key.p_l)
-						vid_subtitle_zoom -= 0.005 * var_scroll_speed;
-					else if(key.h_l)
+					if(key.h_l || key.p_l)
 					{
 						if(vid_lr_count > 360)
 							vid_subtitle_zoom -= 0.05 * var_scroll_speed;
@@ -1024,9 +1042,7 @@ void Vid_hid(Hid_info key)
 							vid_subtitle_zoom -= 0.005 * var_scroll_speed;
 					}
 
-					if(key.p_r)
-						vid_subtitle_zoom += 0.005 * var_scroll_speed;
-					else if(key.h_r)
+					if(key.h_r || key.p_r)
 					{
 						if(vid_lr_count > 360)
 							vid_subtitle_zoom += 0.05 * var_scroll_speed;

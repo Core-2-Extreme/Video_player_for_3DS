@@ -154,7 +154,7 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 		Util_encoder_init_variables();
 
 	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate <= 0 || encode_sample_rate <= 0 || bitrate <= 0
-	|| (codec != DEF_ENCODER_AUDIO_CODEC_AAC && codec != DEF_ENCODER_AUDIO_CODEC_AC3 && codec != DEF_ENCODER_AUDIO_CODEC_MP2))
+	|| (codec != DEF_ENCODER_AUDIO_CODEC_AAC && codec != DEF_ENCODER_AUDIO_CODEC_AC3 && codec != DEF_ENCODER_AUDIO_CODEC_MP2 && codec != DEF_ENCODER_AUDIO_CODEC_MP3))
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -169,6 +169,8 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 		codec_id = AV_CODEC_ID_AC3;
 	else if(codec == DEF_ENCODER_AUDIO_CODEC_MP2)
 		codec_id = AV_CODEC_ID_MP2;
+	else if(codec == DEF_ENCODER_AUDIO_CODEC_MP3)
+		codec_id = AV_CODEC_ID_MP3;
 
 	util_audio_pos[session] = 0;
 	util_audio_increase_pts[session] = 0;
@@ -189,6 +191,8 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 
 	if(codec_id == AV_CODEC_ID_MP2)
 		util_audio_encoder_context[session]->sample_fmt = AV_SAMPLE_FMT_S16;
+	else if(codec_id == AV_CODEC_ID_MP3)
+		util_audio_encoder_context[session]->sample_fmt = AV_SAMPLE_FMT_S16P;
 	else
 		util_audio_encoder_context[session]->sample_fmt = AV_SAMPLE_FMT_FLT;
 	

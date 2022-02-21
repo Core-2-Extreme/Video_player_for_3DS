@@ -1256,10 +1256,21 @@ void Vid_decode_thread(void* arg)
 					vid_codec_width = vid_video_info.width;
 					vid_codec_height = vid_video_info.height;
 
-					if(vid_codec_width % 16 != 0)
-						vid_codec_width += 16 - vid_codec_width % 16;
-					if(vid_codec_height % 16 != 0)
-						vid_codec_height += 16 - vid_codec_height % 16;
+					//av1 needs to be multiple of 128
+					if(vid_video_info.format_name == "dav1d AV1 decoder by VideoLAN")
+					{
+						if(vid_codec_width % 128 != 0)
+							vid_codec_width += 128 - vid_codec_width % 128;
+						if(vid_codec_height % 128 != 0)
+							vid_codec_height += 128 - vid_codec_height % 128;
+					}
+					else
+					{
+						if(vid_codec_width % 16 != 0)
+							vid_codec_width += 16 - vid_codec_width % 16;
+						if(vid_codec_height % 16 != 0)
+							vid_codec_height += 16 - vid_codec_height % 16;
+					}
 
 					if(vid_use_hw_decoding_request && vid_video_info.format_name == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10")
 					{
@@ -2285,7 +2296,7 @@ void Vid_init(void)
 
 		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, var_core_2_available ? 2 : 0, false);
+		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), 1024 * 1024, DEF_THREAD_PRIORITY_HIGH, var_core_2_available ? 2 : 0, false);
 		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 	}
@@ -2300,7 +2311,7 @@ void Vid_init(void)
 
 		Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 		vid_decode_thread = threadCreate(Vid_decode_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+		vid_decode_video_thread = threadCreate(Vid_decode_video_thread, (void*)(""), 1024 * 1024, DEF_THREAD_PRIORITY_HIGH, 0, false);
 		vid_convert_thread = threadCreate(Vid_convert_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 	}

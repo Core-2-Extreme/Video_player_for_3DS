@@ -159,3 +159,66 @@ int	pthread_join(pthread_t __pthread, void **__value_ptr)
             return 0;
     }
 }
+
+int pthread_attr_init(pthread_attr_t *attr)
+{
+    if(!attr)
+        return -1;
+
+    attr->is_initialized = true;
+    attr->stackaddr = NULL;
+    attr->stacksize = DEF_STACKSIZE;
+    attr->contentionscope = PTHREAD_SCOPE_SYSTEM;
+    attr->inheritsched = PTHREAD_INHERIT_SCHED;
+    attr->schedpolicy = SCHED_FIFO;
+    attr->schedparam.sched_priority = DEF_THREAD_PRIORITY_LOW;
+    attr->detachstate = PTHREAD_CREATE_JOINABLE;
+    return 0;
+}
+
+int pthread_attr_destroy(pthread_attr_t *attr)
+{
+    if(!attr)
+        return -1;
+
+    attr->is_initialized = false;
+    return 0;
+}
+
+int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize)
+{
+    if(!attr || stacksize < 16384)
+        return -1;
+
+    attr->stacksize = stacksize;
+    return 0;
+}
+
+int posix_memalign(void **memptr, size_t alignment, size_t size)
+{
+    *memptr = memalign(alignment, size);
+    if(!*memptr)
+        return -1;
+    else
+        return 0;
+}
+
+long sysconf(int name)
+{
+    if(name == _SC_NPROCESSORS_CONF)
+    {
+        if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
+            return 4;
+        else
+            return 2;
+    }
+    else if(name == _SC_NPROCESSORS_ONLN)
+    {
+        if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
+            return 2 + var_core_2_available + var_core_3_available;
+        else
+            return 2;
+    }
+    else
+        return -1;
+}

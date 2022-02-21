@@ -35,7 +35,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/system source/system/util source/system/draw library/base64
 DATA		:=	data
-INCLUDES	:=	include library library/ffmpeg/include library/libctru/include library/x264/include
+INCLUDES	:=	include library library/ffmpeg/include library/libctru/include
 GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
@@ -58,7 +58,7 @@ RSF_PATH				:= resource/app.rsf
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:= -Wall -O2 -mword-relocations \
+CFLAGS	:= -Wall -g -O2 -mword-relocations \
 		-fomit-frame-pointer -ffunction-sections \
 		$(ARCH)
 
@@ -69,13 +69,13 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:= $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lctru -lm -lx264
+LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lctru -lm -lx264 -ldav1d -lmp3lame
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib
+LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/dav1d/lib library/mp3lame/lib
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

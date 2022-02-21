@@ -150,15 +150,9 @@ int Util_mic_query_remaining_buffer_time(void)
 
 	current_pos = micGetLastSampleOffset();
 	if(util_mic_last_pos < current_pos)
-	{
 		remaining_time = ((double)((micGetSampleDataSize() - 4) - (current_pos - util_mic_last_pos)) / (util_mic_sample_rate * 2)) * 1000;
-		Util_log_save("debug", "util_mic_last_pos < current_pos " + std::to_string(remaining_time) + "ms");
-	}
 	else
-	{
 		remaining_time = ((double)(util_mic_last_pos - current_pos) / (util_mic_sample_rate * 2)) * 1000;
-		Util_log_save("debug", "util_mic_last_pos >= current_pos " + std::to_string(remaining_time) + "ms");
-	}
 
 	return remaining_time;
 }

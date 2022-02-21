@@ -277,19 +277,16 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 	{
 		if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO && audio_index < DEF_DECODER_MAX_AUDIO_TRACKS)
 		{
-			Util_log_save("debug", std::to_string(i) + " audio");
 			util_audio_decoder_stream_num[session][audio_index] = i;
 			audio_index++;
 		}
 		else if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && video_index < DEF_DECODER_MAX_VIDEO_TRACKS)
 		{
-			Util_log_save("debug", std::to_string(i) + " video");
 			util_video_decoder_stream_num[session][video_index] = i;
 			video_index++;
 		}
 		else if(util_decoder_format_context[session]->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE && subtitle_index < DEF_DECODER_MAX_SUBTITLE_TRACKS)
 		{
-			Util_log_save("debug", std::to_string(i) + " subtitle");
 			util_subtitle_decoder_stream_num[session][subtitle_index] = i;
 			subtitle_index++;
 		}
@@ -1867,7 +1864,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 		goto ffmpeg_api_failed;
 	}
 
-	Util_log_save("debug", "decoded " + std::to_string(decoded));
+	//Util_log_save("debug", "decoded " + std::to_string(decoded));
 	if(decoded > 0)
 	{
 		timebase = av_q2d(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][packet_index]]->time_base);
@@ -1877,31 +1874,31 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 			subtitle_data->end_time = subtitle_data->start_time + (util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000);
 		}
 
-		Util_log_save("debug", "duration : " + std::to_string(util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000));
+		//Util_log_save("debug", "duration : " + std::to_string(util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000));
 		
 		//Util_log_save("debug", "dts : " + std::to_string(util_subtitle_decoder_packet[session][packet_index]->dts));
 		for(uint i = 0; i < util_subtitle_decoder_raw_data[session][packet_index]->num_rects; i++)
 		{
-			Util_log_save("debug", "from : " + std::to_string(subtitle_data->start_time) + " to : " + std::to_string(subtitle_data->end_time));
+			//Util_log_save("debug", "from : " + std::to_string(subtitle_data->start_time) + " to : " + std::to_string(subtitle_data->end_time));
 
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_NONE)
 			{
-				Util_log_save("debug", "type : NONE");
+				//Util_log_save("debug", "type : NONE");
 			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_BITMAP)
 			{
-				Util_log_save("debug", "type : BITMAP");
+				//Util_log_save("debug", "type : BITMAP");
 			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_TEXT)
 			{
-				Util_log_save("debug", "type : TEXT");
-				Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text);
+				//Util_log_save("debug", "type : TEXT");
+				//Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text);
 				subtitle_data->text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text;
 			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_ASS)
 			{
-				Util_log_save("debug", "type : ASS");
-				Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass);
+				//Util_log_save("debug", "type : ASS");
+				//Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass);
 
 				text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass;
 				cut_pos = 0;

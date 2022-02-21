@@ -1,5 +1,5 @@
 //How to build x264 library for 3DS
-//Used commit : 0bb85e8bbc85244d5c8fd300033ca32539b541b7
+//Used commit : 5585eafe31c2299163dcb206e05e18be7dd93098
 //*install devkitpro (libctru) first*
 
 git clone https://github.com/mirror/x264; cd x264

@@ -34,8 +34,8 @@ Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, in
 	if(!yuv422 || !rgb565 || width <= 0 || height <= 0)
 		goto invalid_arg;
 
-	free(*rgb565);
-	*rgb565 = (u8*)malloc(width * height * 2);
+	Util_safe_linear_free(*rgb565);
+	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -73,7 +73,7 @@ Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, in
 	return result;
 
 	ffmpeg_api_failed:
-	free(*rgb565);
+	Util_safe_linear_free(*rgb565);
 	*rgb565 = NULL;
 	sws_freeContext(sws_context);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -94,8 +94,8 @@ Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, in
 	if(!yuv422 || !yuv420p || width <= 0 || height <= 0)
 		goto invalid_arg;
 
-	free(*yuv420p);
-	*yuv420p = (u8*)malloc(width * height * 1.5);
+	Util_safe_linear_free(*yuv420p);
+	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(!*yuv420p)
 		goto out_of_memory;
 		
@@ -134,7 +134,7 @@ Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, in
 	return result;
 
 	ffmpeg_api_failed:
-	free(*yuv420p);
+	Util_safe_linear_free(*yuv420p);
 	*yuv420p = NULL;
 	sws_freeContext(sws_context);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -154,8 +154,8 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, 
 	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	free(*rgb565);
-	*rgb565 = (u8*)malloc(width * height * 2);
+	Util_safe_linear_free(*rgb565);
+	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 	
@@ -197,8 +197,8 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb5
 	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	free(*rgb565);
-	*rgb565 = (u8*)malloc(width * height * 2);
+	Util_safe_linear_free(*rgb565);
+	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 
@@ -227,8 +227,8 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
 	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	free(*rgb888);
-	*rgb888 = (u8*)malloc(width * height * 3);
+	Util_safe_linear_free(*rgb888);
+	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 	
@@ -267,8 +267,8 @@ Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb8
 	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	free(*rgb888);
-	*rgb888 = (u8*)malloc(width * height * 3);
+	Util_safe_linear_free(*rgb888);
+	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rgb888)
 		goto out_of_memory;
 
@@ -325,8 +325,8 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
 	if(!rgb888 || !rotated_rgb888 || width <= 0 || height <= 0 || !rotated_width || !rotated_height)
 		goto invalid_arg;
 
-	free(*rotated_rgb888);
-	*rotated_rgb888 = (u8*)malloc(width * height * 3);
+	Util_safe_linear_free(*rotated_rgb888);
+	*rotated_rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
 	if(!*rotated_rgb888)
 		goto out_of_memory;
 
@@ -370,8 +370,8 @@ Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, 
 	if(!rgb888 || !yuv420p || width <= 0 || height <= 0)
 		goto invalid_arg;
 
-	free(*yuv420p);
-	*yuv420p = (u8*)malloc(width * height * 1.5);
+	Util_safe_linear_free(*yuv420p);
+	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(!*yuv420p)
 		goto out_of_memory;
 	
@@ -414,7 +414,7 @@ Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, 
 	return result;
 
 	ffmpeg_api_failed:
-	free(*yuv420p);
+	Util_safe_linear_free(*yuv420p);
 	*yuv420p = NULL;
 	sws_freeContext(sws_context);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -461,8 +461,8 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb5
 	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
 		goto invalid_arg;
 
-	free(*rgb565);
-	*rgb565 = (u8*)malloc(width * height * 2);
+	Util_safe_linear_free(*rgb565);
+	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*rgb565)
 		goto out_of_memory;
 	

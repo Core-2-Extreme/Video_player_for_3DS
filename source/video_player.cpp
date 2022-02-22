@@ -1455,7 +1455,7 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 				result.code = 0;
-				free(saved_data);
+				Util_safe_linear_free(saved_data);
 				saved_data = NULL;
 			}
 
@@ -1683,7 +1683,7 @@ void Vid_decode_thread(void* arg)
 						else
 							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
 
-						free(audio);
+						Util_safe_linear_free(audio);
 						audio = NULL;
 					}
 					else
@@ -2150,8 +2150,8 @@ void Vid_convert_thread(void* arg)
 							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 					}
 
-					free(yuv_video);
-					free(video);
+					Util_safe_linear_free(yuv_video);
+					Util_safe_linear_free(video);
 					yuv_video = NULL;
 					video = NULL;
 
@@ -2387,7 +2387,7 @@ void Vid_init(void)
 	&& vid_move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_move_content_mode != DEF_VID_MOVE_DISABLE)
 		vid_move_content_mode = DEF_VID_MOVE_BOTH;
 
-	free(cache);
+	Util_safe_linear_free(cache);
 	cache = NULL;
 
 	vid_banner_texture_num = Draw_get_free_sheet_num();

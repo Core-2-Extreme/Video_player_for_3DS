@@ -547,7 +547,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	in_samples = size / 2;
 	swr_in_cache[0] = raw_data;
 	max_out_samples = in_samples * util_audio_encoder_conversion_size_rate[session];
-	raw_audio = (u8*)malloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
+	raw_audio = (u8*)Util_safe_linear_alloc((max_out_samples * bytes_per_sample) + util_audio_encoder_cache_size[session]);
 	if(!raw_audio)
 		goto out_of_memory;
 
@@ -606,16 +606,16 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 			break;
 	}
 
-	free(util_audio_encoder_cache[session]);
+	Util_safe_linear_free(util_audio_encoder_cache[session]);
 	util_audio_encoder_cache[session] = NULL;
-	util_audio_encoder_cache[session] = (u8*)malloc(out_size);
+	util_audio_encoder_cache[session] = (u8*)Util_safe_linear_alloc(out_size);
 	if(!util_audio_encoder_cache[session])
 		goto out_of_memory;
 	
 	memcpy(util_audio_encoder_cache[session], raw_audio + encode_offset, out_size);
 	util_audio_encoder_cache_size[session] = out_size;
 
-	free(raw_audio);
+	Util_safe_linear_free(raw_audio);
 	raw_audio = NULL;
 
 	return result;
@@ -632,8 +632,8 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 
 	out_of_memory:
 	util_audio_encoder_cache_size[session] = 0;
-	free(util_audio_encoder_cache[session]);
-	free(raw_audio);
+	Util_safe_linear_free(util_audio_encoder_cache[session]);
+	Util_safe_linear_free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
 	result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -642,8 +642,8 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	
 	ffmpeg_api_failed:
 	util_audio_encoder_cache_size[session] = 0;
-	free(util_audio_encoder_cache[session]);
-	free(raw_audio);
+	Util_safe_linear_free(util_audio_encoder_cache[session]);
+	Util_safe_linear_free(raw_audio);
 	util_audio_encoder_cache[session] = NULL;
 	raw_audio = NULL;
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -756,7 +756,7 @@ void Util_audio_encoder_exit(int session)
 		av_packet_free(&util_audio_encoder_packet[session]);
 		av_frame_free(&util_audio_encoder_raw_data[session]);
 		swr_free(&util_audio_encoder_swr_context[session]);
-		free(util_audio_encoder_cache[session]);
+		Util_safe_linear_free(util_audio_encoder_cache[session]);
 		util_audio_encoder_cache[session] = NULL;
 	}
 	util_audio_encoder_init[session] = false;

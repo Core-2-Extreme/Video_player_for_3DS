@@ -116,7 +116,7 @@ Result_with_string Exfont_init(void)
     if(result.code != 0)
         goto api_failed;
 
-    free(fs_buffer);
+    Util_safe_linear_free(fs_buffer);
     fs_buffer = NULL;
 
     result = Util_file_load_from_rom("font_samples.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
@@ -124,7 +124,7 @@ Result_with_string Exfont_init(void)
         goto api_failed;
 
     Exfont_text_parse((char*)fs_buffer, util_exfont_font_samples, 10240, &characters);
-    free(fs_buffer);
+    Util_safe_linear_free(fs_buffer);
     fs_buffer = NULL;
 
     for (int i = characters; i > -1; i--)
@@ -135,7 +135,7 @@ Result_with_string Exfont_init(void)
         goto api_failed;
 
     Exfont_text_parse((char*)fs_buffer, util_exfont_font_right_to_left_samples, 256, &characters);
-    free(fs_buffer);
+    Util_safe_linear_free(fs_buffer);
     fs_buffer = NULL;
 
     util_exfont_num_of_right_left_charcters = characters;
@@ -169,7 +169,7 @@ Result_with_string Exfont_init(void)
 	return result;
 
     api_failed:
-    free(fs_buffer);
+    Util_safe_linear_free(fs_buffer);
     fs_buffer = NULL;
 	return result;
 

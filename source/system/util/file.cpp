@@ -161,8 +161,8 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
 	}
 
 	max_read_size = (file_size - read_offset) > (u64)max_size ? max_size : (file_size - read_offset);
-	free(*read_data);
-	*read_data = (u8*)malloc(max_read_size + 1);
+	Util_safe_linear_free(*read_data);
+	*read_data = (u8*)Util_safe_linear_alloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
@@ -189,7 +189,7 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
 
 	out_of_memory:
 	free(utf16_path);
-	free(*read_data);
+	Util_safe_linear_free(*read_data);
 	utf16_path = NULL;
 	*read_data = NULL;
 	FSFILE_Close(handle);
@@ -200,7 +200,7 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
 
 	nintendo_api_failed:
 	free(utf16_path);
-	free(*read_data);
+	Util_safe_linear_free(*read_data);
 	utf16_path = NULL;
 	*read_data = NULL;
 	FSFILE_Close(handle);
@@ -250,8 +250,8 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
 	rewind(handle);
 
 	max_read_size = file_size > (u64)max_size ? max_size : file_size;
-	free(*read_data);
-	*read_data = (u8*)malloc(max_read_size + 1);
+	Util_safe_linear_free(*read_data);
+	*read_data = (u8*)Util_safe_linear_alloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
@@ -280,7 +280,7 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
 	return result;
 
 	fopen_failed:
-	free(*read_data);
+	Util_safe_linear_free(*read_data);
 	fclose(handle);
 	result.code = DEF_ERR_OTHER;
 	result.string = DEF_ERR_OTHER_STR;

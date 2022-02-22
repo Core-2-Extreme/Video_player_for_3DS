@@ -78,7 +78,7 @@ AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS];
 
 void Util_video_decoder_free(void *opaque, uint8_t *data)
 {
-	free(data);
+	Util_safe_linear_free(data);
 }
 
 int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
@@ -105,9 +105,9 @@ int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *f
 		frame->linesize[1] = width / 2;
 		frame->linesize[2] = width / 2;
 		
-        frame->data[0] = (u8*)malloc(width * height);
-        frame->data[1] = (u8*)malloc(width * height / 4);
-        frame->data[2] = (u8*)malloc(width * height / 4);
+        frame->data[0] = (u8*)Util_safe_linear_alloc(width * height);
+        frame->data[1] = (u8*)Util_safe_linear_alloc(width * height / 4);
+        frame->data[2] = (u8*)Util_safe_linear_alloc(width * height / 4);
 
         frame->buf[0] = av_buffer_create(frame->data[0], frame->linesize[0] * frame->height, Util_video_decoder_free, NULL, 0);
         frame->buf[1] = av_buffer_create(frame->data[1], frame->linesize[1] * frame->height / 4, Util_video_decoder_free, NULL, 0);
@@ -1477,9 +1477,9 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 	else
 		*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session][packet_index]->sample_rate) * util_audio_decoder_raw_data[session][packet_index]->nb_samples);//calc pos
 
-	free(*raw_data);
+	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)malloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
+	*raw_data = (u8*)Util_safe_linear_alloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
 	swr_size = swr_convert(util_audio_decoder_swr_context[session][packet_index], raw_data, util_audio_decoder_raw_data[session][packet_index]->nb_samples, (const uint8_t**)util_audio_decoder_raw_data[session][packet_index]->data, util_audio_decoder_raw_data[session][packet_index]->nb_samples);
 	if(swr_size <= 0)
 	{
@@ -1510,7 +1510,7 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 
 	ffmpeg_api_failed:
 	util_audio_decoder_packet_ready[session][packet_index] = false;
-	free(*raw_data);
+	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
 	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
 	av_frame_free(&util_audio_decoder_raw_data[session][packet_index]);
@@ -1840,7 +1840,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	subtitle_data->start_time = 0;
 	subtitle_data->end_time = 0;
 	
-	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)malloc(sizeof(AVSubtitle));
+	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)Util_safe_linear_alloc(sizeof(AVSubtitle));
 	if(!util_subtitle_decoder_raw_data[session][packet_index])
 	{
 		result.error_description = "[Error] av_subtitle_alloc() failed. ";
@@ -1927,7 +1927,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	free(util_subtitle_decoder_raw_data[session][packet_index]);
+	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
 	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	return result;
 
@@ -1950,7 +1950,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	util_subtitle_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
-	free(util_subtitle_decoder_raw_data[session][packet_index]);
+	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
@@ -2055,9 +2055,9 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	}
 
 	*current_pos = 0;
-	free(*raw_data);
+	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)malloc(width * height * 1.5);
+	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 1.5);
 	if(!*raw_data)
 		goto out_of_memory;
 
@@ -2137,9 +2137,9 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 		goto try_again;
 	}
 
-	free(*raw_data);
+	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)malloc(width * height * 2);
+	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*raw_data)
 		goto out_of_memory;
 	
@@ -2448,7 +2448,7 @@ void Util_subtitle_decoder_exit(int session)
 			if(util_subtitle_decoder_raw_data[session][i])
 			{
 				avsubtitle_free(util_subtitle_decoder_raw_data[session][i]);
-				free(util_subtitle_decoder_raw_data[session][i]);
+				Util_safe_linear_free(util_subtitle_decoder_raw_data[session][i]);
 				util_subtitle_decoder_raw_data[session][i] = NULL;
 			}
 		}

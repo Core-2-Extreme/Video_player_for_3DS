@@ -124,7 +124,7 @@ void Menu_init(void)
 	{
 		var_fake_model = true;
 		var_model = *data;
-		free(data);
+		Util_safe_linear_free(data);
 		data = NULL;
 	}
 
@@ -178,7 +178,7 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
 
 	result = Exfont_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()...", result.code);
 
 	result = Util_err_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
@@ -961,7 +961,7 @@ void Menu_get_system_info(void)
 {
 	u8 battery_level = -1;
 	u8 battery_voltage = -1;
-	char* ssid = (char*)malloc(512);
+	char* ssid = (char*)Util_safe_linear_alloc(512);
 	Result_with_string result;
 
 	PTMU_GetBatteryChargeState(&var_battery_charge);//battery charge
@@ -996,7 +996,7 @@ void Menu_get_system_info(void)
 	else
 		var_connected_ssid = "";
 
-	free(ssid);
+	Util_safe_linear_free(ssid);
 	ssid = NULL;
 
 	var_wifi_signal = osGetWifiStrength();
@@ -1051,7 +1051,7 @@ void Menu_send_app_info_thread(void* arg)
 
 	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
 	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
-	free(dl_data);
+	Util_safe_linear_free(dl_data);
 	dl_data = NULL;
 
 	Util_log_save(DEF_MENU_SEND_APP_INFO_THREAD_STR, "Thread exit.");
@@ -1072,7 +1072,7 @@ void Menu_check_connectivity_thread(void* arg)
 		{
 			count = 0;
 			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
-			free(http_buffer);
+			Util_safe_linear_free(http_buffer);
 			http_buffer = NULL;
 
 			if (status_code == 204)
@@ -1185,7 +1185,7 @@ void Menu_update_thread(void* arg)
 		}
 	}
 
-	free(http_buffer);
+	Util_safe_linear_free(http_buffer);
 	http_buffer = NULL;
 
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");

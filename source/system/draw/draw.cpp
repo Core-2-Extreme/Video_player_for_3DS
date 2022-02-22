@@ -1340,7 +1340,7 @@ Result_with_string Draw_load_kanji_samples(void)
 	if(result.code == 0)
 	{
 		Exfont_text_parse((char*)fs_buffer, util_draw_japanese_kanji, 3000, &characters);
-		free(fs_buffer);
+		Util_safe_linear_free(fs_buffer);
 		fs_buffer = NULL;
 	}
 
@@ -1348,7 +1348,7 @@ Result_with_string Draw_load_kanji_samples(void)
 	if(result.code == 0)
 	{
 		Exfont_text_parse((char*)fs_buffer, util_draw_simple_chinese, 6300, &characters);
-		free(fs_buffer);
+		Util_safe_linear_free(fs_buffer);
 		fs_buffer = NULL;
 	}
 

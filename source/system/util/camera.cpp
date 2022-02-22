@@ -155,8 +155,8 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 	if(!raw_data || !width || !height)
 		goto invalid_arg;
 	
-	free(*raw_data);
-	*raw_data = (u8*)malloc(util_cam_width * util_cam_height * 2);
+	Util_safe_linear_free(*raw_data);
+	*raw_data = (u8*)Util_safe_linear_alloc(util_cam_width * util_cam_height * 2);
 	if(*raw_data == NULL)
 		goto out_of_memory;
 

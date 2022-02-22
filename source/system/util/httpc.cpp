@@ -171,8 +171,8 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 	Result_with_string result;
 
 	buffer_size = max_size > 0x40000 ? 0x40000 : max_size;
-	free(*data);
-	*data = (u8*)malloc(buffer_size);
+	Util_safe_linear_free(*data);
+	*data = (u8*)Util_safe_linear_alloc(buffer_size);
 	if (!*data)
 		goto out_of_memory;
 	
@@ -213,7 +213,7 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 	return result;
 
 	out_of_memory:
-	free(*data);
+	Util_safe_linear_free(*data);
 	*data = NULL;
 	Util_httpc_close(httpc_context);
 	result.code = DEF_ERR_OUT_OF_MEMORY;
@@ -221,7 +221,7 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 	return result;
 
 	nintendo_api_failed:
-	free(*data);
+	Util_safe_linear_free(*data);
 	*data = NULL;
 	Util_httpc_close(httpc_context);
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
@@ -236,7 +236,7 @@ Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_
 	Result_with_string result;
 	Result_with_string fs_result;
 
-	cache = (u8*)malloc(buffer_size);
+	cache = (u8*)Util_safe_linear_alloc(buffer_size);
 	if (!cache)
 		goto out_of_memory;
 
@@ -289,14 +289,14 @@ Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_
 	return result;
 
 	nintendo_api_failed:
-	free(cache);
+	Util_safe_linear_free(cache);
 	cache = NULL;
 	Util_httpc_close(httpc_context);
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 
 	api_failed:
-	free(cache);
+	Util_safe_linear_free(cache);
 	cache = NULL;
 	return result;
 }

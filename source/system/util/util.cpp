@@ -595,7 +595,7 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	if (result.code != 0)
 		goto api_failed;
 
-	free(fs_buffer);
+	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
 
@@ -605,7 +605,7 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	return result;
 
 	api_failed:
-	free(fs_buffer);
+	Util_safe_linear_free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
 }

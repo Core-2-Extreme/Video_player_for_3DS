@@ -1256,21 +1256,10 @@ void Vid_decode_thread(void* arg)
 					vid_codec_width = vid_video_info.width;
 					vid_codec_height = vid_video_info.height;
 
-					//av1 needs to be multiple of 128
-					if(vid_video_info.format_name == "dav1d AV1 decoder by VideoLAN")
-					{
-						if(vid_codec_width % 128 != 0)
-							vid_codec_width += 128 - vid_codec_width % 128;
-						if(vid_codec_height % 128 != 0)
-							vid_codec_height += 128 - vid_codec_height % 128;
-					}
-					else
-					{
-						if(vid_codec_width % 16 != 0)
-							vid_codec_width += 16 - vid_codec_width % 16;
-						if(vid_codec_height % 16 != 0)
-							vid_codec_height += 16 - vid_codec_height % 16;
-					}
+					if(vid_codec_width % 16 != 0)
+						vid_codec_width += 16 - vid_codec_width % 16;
+					if(vid_codec_height % 16 != 0)
+						vid_codec_height += 16 - vid_codec_height % 16;
 
 					if(vid_use_hw_decoding_request && vid_video_info.format_name == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10")
 					{

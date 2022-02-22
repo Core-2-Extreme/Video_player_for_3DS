@@ -96,20 +96,10 @@ int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *f
 		width = frame->width;
 		height = frame->height;
 
-		if(avctx->codec_id == AV_CODEC_ID_AV1)
-		{
-			if(width % 128 != 0)
-				width += 128 - width % 128;
-			if(height % 128 != 0)
-				height += 128 - height % 128;
-		}
-		else
-		{
-			if(width % 16 != 0)
-				width += 16 - width % 16;
-			if(height % 16 != 0)
-				height += 16 - height % 16;
-		}
+		if(width % 16 != 0)
+			width += 16 - width % 16;
+		if(height % 16 != 0)
+			height += 16 - height % 16;
 
 		frame->linesize[0] = width;
 		frame->linesize[1] = width / 2;

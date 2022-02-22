@@ -1463,37 +1463,31 @@ void Vid_decode_thread(void* arg)
 			{
 				if(vid_num_of_video_tracks > 0)
 				{
+					//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 10MB
+					free_ram = Util_check_free_linear_space();
+					free_ram -= (1024 * 1024 * 10);
+
 					if(vid_hw_decoding_mode)
-					{
-						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 7MB
-						free_ram = Util_check_free_linear_space();
-						free_ram -= (1024 * 1024 * 7);
 						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 2);
-						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
-							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
-						if(max_buffer < 3)
-						{
-							result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
-							result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
-							vid_play_request = false;
-						}
-						else
-							Util_mvd_video_decoder_set_raw_image_buffer_size(max_buffer, 0);
+					else
+					{
+						//(+ raw_picture_size * num_of_thread if hw decoding is not enabled)
+						free_ram -= (vid_codec_width * vid_codec_height * 1.5 * (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1));
+						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
+					}
+
+					if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
+						max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
+					if(max_buffer < 3)
+					{
+						result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
+						result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+						vid_play_request = false;
 					}
 					else
 					{
-						//to prevent out of memory in other task(e.g. compressed packet buffer, audio decoder), keep 8MB + (raw_image_size * (8 + num_of_threads))
-						free_ram = Util_check_free_ram();
-						free_ram -= ((1024 * 1024 * 12) + (vid_codec_width * vid_codec_height * 1.5 * (8 + (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1))));
-						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
-						if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
-							max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
-						if(max_buffer < 3)
-						{
-							result.code = DEF_ERR_OUT_OF_MEMORY;
-							result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-							vid_play_request = false;
-						}
+						if(vid_hw_decoding_mode)
+							Util_mvd_video_decoder_set_raw_image_buffer_size(max_buffer, 0);
 						else
 						{
 							for(int i = 0; i < vid_num_of_video_tracks; i++)

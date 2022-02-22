@@ -1,5 +1,8 @@
 #include "system/headers.hpp"
 
+//set heap size, rest memory will be linear ram
+u32 __ctru_heap_size = 1024 * 1024 * 10;
+
 bool var_connect_test_succes = false;
 bool var_need_reflesh = true;
 bool var_allow_send_app_info = false;

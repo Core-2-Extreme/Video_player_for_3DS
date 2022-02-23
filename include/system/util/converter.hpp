@@ -110,6 +110,18 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
 Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, int width, int height);
 
 /**
+ * @brief Convert RGB565LE to RGB888LE.
+ * @param rgb565 (in) Pointer for rgb565 data.
+ * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
+ * @param width (in) Picture width.
+ * @param height (in) Picture height.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, int width, int height);
+
+/**
  * @brief Initialize a y2r(hardware color converter).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_* or Nintendo API's error.

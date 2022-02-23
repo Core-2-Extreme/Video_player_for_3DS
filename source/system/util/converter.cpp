@@ -422,6 +422,67 @@ Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, 
 	return result;
 }
 
+Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, int width, int height)
+{
+	int src_line_size[4] = { 0, 0, 0, 0, };
+	int dst_line_size[4] = { 0, 0, 0, 0, };
+	int ffmpeg_result = 0;
+	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
+	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
+	Result_with_string result;
+	SwsContext* sws_context = NULL;
+
+	if(!rgb565 || !rgb888 || width <= 0 || height <= 0)
+		goto invalid_arg;
+
+	Util_safe_linear_free(*rgb888);
+	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
+	if(!*rgb888)
+		goto out_of_memory;
+	
+	sws_context = sws_getContext(width, height, AV_PIX_FMT_BGR565LE,
+	width, height, AV_PIX_FMT_BGR24, 0, 0, 0, 0);
+	if(!sws_context)
+	{
+		result.error_description = "[Error] sws_getContext() failed. ";
+		goto ffmpeg_api_failed;
+	}
+
+	src_data[0] = rgb565;
+	src_line_size[0] = width * 2;
+	dst_data[0] = *rgb888;
+	dst_line_size[0] = width * 3;
+	
+	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, height, dst_data, dst_line_size);
+	if(ffmpeg_result < 0)
+	{
+		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
+	}
+
+	sws_freeContext(sws_context);
+
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	out_of_memory:
+	result.code = DEF_ERR_OUT_OF_MEMORY;
+	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+	return result;
+
+	ffmpeg_api_failed:
+	Util_safe_linear_free(*rgb888);
+	*rgb888 = NULL;
+	sws_freeContext(sws_context);
+	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
+	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
+	return result;
+}
+
 Result_with_string Util_converter_y2r_init(void)
 {
 	Result_with_string result;

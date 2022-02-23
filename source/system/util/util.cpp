@@ -760,3 +760,31 @@ void av_free(void *ptr)
 	else
 		Util_safe_linear_free(ptr);
 }
+
+void* stbi_malloc(size_t size)
+{
+	//Alloc memory on linear ram if requested size is greater than 8KB to prevent slow down (linear alloc is slow).
+	if(size > 1024 * 8)
+		return Util_safe_linear_alloc(size);
+	else
+		return malloc(size);
+}
+
+void* stbi_realloc(void *ptr, size_t size)
+{
+	//Alloc memory on linear ram if pointer is null and requested size is greater than 8KB to prevent slow down (linear alloc is slow).
+	if(!ptr && size > 1024 * 8)
+		return Util_safe_linear_realloc(ptr, size);
+	else if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
+		return realloc(ptr, size);
+	else//or previous pointer is allocated on linear ram.
+		return Util_safe_linear_realloc(ptr, size);
+}
+
+void stbi_free(void *ptr)
+{
+	if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
+		free(ptr);
+	else
+		Util_safe_linear_free(ptr);
+}

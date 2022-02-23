@@ -205,3 +205,7 @@ u32 Util_check_free_linear_space(void);
  * @warning Thread dangerous (untested)
 */
 u32 Util_check_free_ram(void);
+
+void* stbi_malloc(size_t size);
+void* stbi_realloc(void *ptr, size_t size);
+void stbi_free(void *ptr);

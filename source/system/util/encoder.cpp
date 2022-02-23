@@ -9,6 +9,8 @@ extern "C"
 #include "libavutil/opt.h"
 }
 
+#include "stb_image/stb_image_write.h"
+
 extern "C" void memcpy_asm(u8*, u8*, int);
 
 bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS];
@@ -771,4 +773,48 @@ void Util_video_encoder_exit(int session)
 		av_frame_free(&util_video_encoder_raw_data[session]);
 	}
 	util_video_encoder_init[session] = false;
+}
+
+Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality)
+{
+	Result_with_string result;
+	if(!raw_data || width <= 0 || height <= 0 || (format == DEF_ENCODER_IMAGE_CODEC_JPG && (quality < 0 || quality > 100))
+	|| (format != DEF_ENCODER_IMAGE_CODEC_PNG && format != DEF_ENCODER_IMAGE_CODEC_JPG && format != DEF_ENCODER_IMAGE_CODEC_BMP
+	&& format != DEF_ENCODER_IMAGE_CODEC_TGA))
+		goto invalid_arg;
+
+	if(format == DEF_ENCODER_IMAGE_CODEC_PNG)
+		result.code = stbi_write_png(file_path.c_str(), width, height, 3, raw_data, 0);
+	else if(format == DEF_ENCODER_IMAGE_CODEC_JPG)
+		result.code = stbi_write_jpg(file_path.c_str(), width, height, 3, raw_data, quality);
+	else if(format == DEF_ENCODER_IMAGE_CODEC_BMP)
+		result.code = stbi_write_bmp(file_path.c_str(), width, height, 3, raw_data);
+	else if(format == DEF_ENCODER_IMAGE_CODEC_TGA)
+		result.code = stbi_write_tga(file_path.c_str(), width, height, 3, raw_data);
+
+	if(result.code == 0)
+	{
+		if(format == DEF_ENCODER_IMAGE_CODEC_PNG)
+			result.error_description = "[Error] stbi_write_png() failed. ";
+		else if(format == DEF_ENCODER_IMAGE_CODEC_JPG)
+			result.error_description = "[Error] stbi_write_jpg() failed. ";
+		else if(format == DEF_ENCODER_IMAGE_CODEC_BMP)
+			result.error_description = "[Error] stbi_write_bmp() failed. ";
+		else if(format == DEF_ENCODER_IMAGE_CODEC_TGA)
+			result.error_description = "[Error] stbi_write_tga() failed. ";
+
+		goto stbi_api_failed;
+	}
+
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	stbi_api_failed:
+	result.code = DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS;
+	result.string = DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR;
+	return result;
 }

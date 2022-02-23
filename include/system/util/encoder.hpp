@@ -81,3 +81,17 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session);
  * @warning Thread dangerous (untested)
 */
 void Util_encoder_close_output_file(int session);
+
+/**
+ * @brief Encode image file.
+ * @param file_path (in) File path.
+ * @param raw_data (in) Pointer for raw image (RGB888LE).
+ * @param width (in) Image width.
+ * @param height (in) Image height.
+ * @param format (in) Image format DEF_ENCODER_IMAGE_CODEC_*.
+ * @param quality (in) Image quality (jpg only).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality);

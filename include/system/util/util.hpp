@@ -175,6 +175,16 @@ void Util_safe_linear_alloc_exit(void);
 void* Util_safe_linear_alloc(size_t size);
 
 /**
+ * @brief Linear align.
+ * Always return NULL if safe linear alloc api is not initialized.
+ * @param alignment (in) Alignment.
+ * @param size (in) Memory size (in byte).
+ * @return On success pointer, on failure NULL.
+ * @note Thread safe
+*/
+void* Util_safe_linear_align(size_t alignment, size_t size);
+
+/**
  * @brief Linear realloc.
  * Always return NULL if safe linear alloc api is not initialized.
  * @param pointer (in) Old pointer.

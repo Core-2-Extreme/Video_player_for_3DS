@@ -658,6 +658,19 @@ void* Util_safe_linear_alloc(size_t size)
 	return pointer;
 }
 
+void* Util_safe_linear_align(size_t alignment, size_t size)
+{
+	void* pointer = NULL;
+	if(!util_safe_linear_alloc_init)
+		return NULL;
+
+	svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+	pointer = linearMemAlign(size, alignment);
+	svcReleaseMutex(util_safe_linear_alloc_mutex);
+
+	return pointer;
+}
+
 void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, size_t size)
 {
 	void* new_ptr = NULL;

@@ -80,7 +80,10 @@ int	pthread_cond_wait(pthread_cond_t *__cond, pthread_mutex_t *__mutex)
     {
         result = svcWaitSynchronization((Handle)*__cond, U64_MAX);
         if(result == 0)
+        {
+            pthread_mutex_lock(__mutex);
             return 0;
+        }
 
         if(result == 0xD8E007F7)
         {

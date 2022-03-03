@@ -1,6 +1,6 @@
 //How to build ffmpeg library for 3DS
 //Used commit : b8e58f0858116ac102fc116ce1bdf6727df1eb0c
-//*build x264 and mp3lame library first*
+//*build x264, mp3lame and dav1d library first*
 
 git clone https://github.com/FFmpeg/FFmpeg; cd FFmpeg
 
@@ -28,21 +28,14 @@ fi
 */
 
 /*
-open libavutil/mem.c and replace
+from : 
+enabled libdav1d          && require_pkg_config libdav1d "dav1d >= 0.5.0" "dav1d/dav1d.h" dav1d_version
 
-from :
-void* av_malloc(size_t size)
-void* av_realloc(void *ptr, size_t size)
-void av_free(void *ptr)
-
-to :
-void* __attribute__((weak)) av_malloc(size_t size)
-void* __attribute__((weak)) av_realloc(void *ptr, size_t size)
-void __attribute__((weak)) av_free(void *ptr)
-
+to : 
+enabled libdav1d
 */
 
-./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --disable-txtpages --disable-podpages --disable-manpages --disable-htmlpages --disable-doc --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp,subrip,subviewer*,movtext" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,vp8,vp9,wav,srt,subviewer*" --enable-encoder="aac,ac3,libmp3lame,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-libmp3lame --enable-gpl --enable-pthreads
+./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --disable-txtpages --disable-podpages --disable-manpages --disable-htmlpages --disable-doc --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,libdav1d,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp,subrip,subviewer*,movtext" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,vp8,vp9,wav,srt,subviewer*" --enable-encoder="aac,ac3,libmp3lame,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4" --enable-protocol="file" --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-gpl --enable-pthreads
 
 make -j 8
 sudo make install

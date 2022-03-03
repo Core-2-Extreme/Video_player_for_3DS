@@ -176,9 +176,6 @@
 #define DEF_DECODER_SEEK_FLAG_ANY 4
 #define DEF_DECODER_SEEK_FLAG_FRAME 8
 #define STB_IMAGE_IMPLEMENTATION
-#define STBI_MALLOC stbi_malloc
-#define STBI_REALLOC stbi_realloc
-#define STBI_FREE stbi_free
 
 //encoder
 #define DEF_ENCODER_AUDIO_CODEC_AAC 0
@@ -194,9 +191,6 @@
 #define DEF_ENCODER_IMAGE_CODEC_BMP 2
 #define DEF_ENCODER_IMAGE_CODEC_TGA 3
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBIW_MALLOC stbi_malloc
-#define STBIW_REALLOC stbi_realloc
-#define STBIW_FREE stbi_free
 
 //error num
 #define DEF_ERR_SUMMARY 0

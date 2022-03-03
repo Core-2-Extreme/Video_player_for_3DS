@@ -10,6 +10,57 @@ Watch_string util_draw_watch_string[DEF_DRAW_MAX_WATCH_STRING_VARIABLES];
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 
+extern "C" void* __real_malloc(size_t size);
+extern "C" void* __real_realloc(void* ptr, size_t size);
+extern "C" void __real_free(void* ptr);
+extern "C" void __real__free_r(struct _reent *r, void* ptr);
+extern "C" void* __real_memalign(size_t alignment, size_t size);
+
+extern "C" void* __wrap_malloc(size_t size)
+{
+	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
+	if(size > 1024 * 32)
+		return Util_safe_linear_alloc(size);
+	else
+		return __real_malloc(size);
+}
+
+extern "C" void* __wrap_realloc(void* ptr, size_t size)
+{
+	//Alloc memory on linear ram if pointer is null and requested size is greater than 32KB 
+	//or previous pointer is allocated on linear ram to prevent slow down (linear alloc is slow).
+	if(((!ptr && size > 1024 * 32) ||
+	(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))))
+		return Util_safe_linear_realloc(ptr, size);
+	else
+		return __real_realloc(ptr, size);
+}
+
+extern "C" void __wrap_free(void* ptr)
+{	
+	if(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+		Util_safe_linear_free(ptr);
+	else
+		__real_free(ptr);
+}
+
+extern "C" void __wrap__free_r(struct _reent *r, void* ptr)
+{
+	if(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+		Util_safe_linear_free(ptr);
+	else
+		__real__free_r(r, ptr);
+}
+
+extern "C" void* __wrap_memalign(size_t alignment, size_t size)
+{
+	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
+	if(size > 1024 * 32)
+		return Util_safe_linear_align(alignment, size);
+	else
+		return __real_memalign(alignment, size);
+}
+
 Result_with_string Util_init(void)
 {
 	Result_with_string result;
@@ -735,69 +786,13 @@ u32 Util_check_free_ram(void)
 
 	for (count = 0; count < 2000; count++)
 	{
-		malloc_check[count] = (u8*)malloc(0x186A0);// 100KB
+		malloc_check[count] = (u8*)__real_malloc(0x186A0);// 100KB
 		if (malloc_check[count] == NULL)
 			break;
 	}
 
 	for (u32 i = 0; i <= count; i++)
-		free(malloc_check[i]);
+		__real_free(malloc_check[i]);
 
 	return count * 100 * 1024;//return free B
-}
-
-void* av_malloc(size_t size)
-{
-	//Alloc memory on linear ram if requested size is greater than 32KB to prevent slow down (linear alloc is slow).
-	if(size > 1024 * 32)
-		return Util_safe_linear_alloc(size);
-	else
-		return malloc(size);
-}
-
-void* av_realloc(void *ptr, size_t size)
-{
-	//Alloc memory on linear ram if pointer is null and requested size is greater than 32KB to prevent slow down (linear alloc is slow).
-	if(!ptr && size > 1024 * 32)
-		return Util_safe_linear_realloc(ptr, size);
-	else if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
-		return realloc(ptr, size);
-	else//or previous pointer is allocated on linear ram.
-		return Util_safe_linear_realloc(ptr, size);
-}
-
-void av_free(void *ptr)
-{
-	if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
-		free(ptr);
-	else
-		Util_safe_linear_free(ptr);
-}
-
-void* stbi_malloc(size_t size)
-{
-	//Alloc memory on linear ram if requested size is greater than 8KB to prevent slow down (linear alloc is slow).
-	if(size > 1024 * 8)
-		return Util_safe_linear_alloc(size);
-	else
-		return malloc(size);
-}
-
-void* stbi_realloc(void *ptr, size_t size)
-{
-	//Alloc memory on linear ram if pointer is null and requested size is greater than 8KB to prevent slow down (linear alloc is slow).
-	if(!ptr && size > 1024 * 8)
-		return Util_safe_linear_realloc(ptr, size);
-	else if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
-		return realloc(ptr, size);
-	else//or previous pointer is allocated on linear ram.
-		return Util_safe_linear_realloc(ptr, size);
-}
-
-void stbi_free(void *ptr)
-{
-	if(ptr >= (void*)OS_HEAP_AREA_BEGIN && ptr <= (void*)OS_HEAP_AREA_END)
-		free(ptr);
-	else
-		Util_safe_linear_free(ptr);
 }

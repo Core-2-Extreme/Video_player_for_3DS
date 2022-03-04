@@ -27,6 +27,7 @@ extern int var_days;
 extern int var_months;
 extern int var_years;
 extern int var_battery_level_raw;
+extern int var_battery_temp;
 extern int var_afk_time;
 extern int var_free_ram;
 extern int var_free_linear_ram;

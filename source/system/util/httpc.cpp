@@ -192,13 +192,13 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 					goto out_of_memory;
 				
 				buffer_size = max_size > buffer_size + 0x40000 ? buffer_size + 0x40000 : max_size;
-				new_buffer = (u8*)realloc(*data, buffer_size);
+				new_buffer = (u8*)Util_safe_linear_realloc(*data, buffer_size);
 				remain_buffer_size = buffer_size - buffer_offset;
-				memset((*data) + buffer_offset, 0x0, remain_buffer_size);
 				if(!new_buffer)
 					goto out_of_memory;
 				
 				*data = new_buffer;
+				memset((*data) + buffer_offset, 0x0, remain_buffer_size);
 			}
 			else
 			{

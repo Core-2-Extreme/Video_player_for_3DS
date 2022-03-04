@@ -805,6 +805,8 @@ Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data
 
 		goto stbi_api_failed;
 	}
+	else
+		result.code = 0;
 
 	return result;
 

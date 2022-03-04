@@ -90,6 +90,7 @@ void Menu_init(void)
 {
 	u8* data = NULL;
 	u8 region = 0;
+	u8 dummy = 0;
 	u8 model = 0;
 	u32 read_size = 0;
 	Thread core_2, core_3;
@@ -117,8 +118,8 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "Util_safe_linear_alloc_init()...", result.code);
 
 	//create directory
-	Util_file_save_to_file(".", DEF_MAIN_DIR, NULL, 0, false);
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", NULL, 0, false);
+	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "screen_recording/", &dummy, 1, true);
 
 	if(Util_file_load_from_file("fake_model.txt", DEF_MAIN_DIR, &data, 1, &read_size).code == 0 && *data <= 5)
 	{
@@ -961,7 +962,8 @@ void Menu_get_system_info(void)
 {
 	u8 battery_level = -1;
 	u8 battery_voltage = -1;
-	char* ssid = (char*)Util_safe_linear_alloc(512);
+	u8 battery_temp = -1;
+	char* ssid = (char*)malloc(512);
 	Result_with_string result;
 
 	PTMU_GetBatteryChargeState(&var_battery_charge);//battery charge
@@ -969,8 +971,10 @@ void Menu_get_system_info(void)
 	if(result.code == 0)
 	{
 		MCUHWC_GetBatteryVoltage(&battery_voltage);
-		var_battery_voltage = 5.0 * (battery_voltage / 256); 
+		MCUHWC_ReadRegister(0x0A, &battery_temp, 1);
+		var_battery_voltage = 5.0 * (battery_voltage / 256.0); 
 		var_battery_level_raw = battery_level;
+		var_battery_temp = battery_temp;
 	}
 	else
 	{
@@ -996,7 +1000,7 @@ void Menu_get_system_info(void)
 	else
 		var_connected_ssid = "";
 
-	Util_safe_linear_free(ssid);
+	free(ssid);
 	ssid = NULL;
 
 	var_wifi_signal = osGetWifiStrength();

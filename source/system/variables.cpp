@@ -30,6 +30,7 @@ int var_days = 0;
 int var_months = 0;
 int var_years = 0;
 int var_battery_level_raw = 0;
+int var_battery_temp = 0;
 int var_afk_time = 0;
 int var_free_ram = 0;
 int var_free_linear_ram = 0;

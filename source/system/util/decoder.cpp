@@ -510,8 +510,9 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
 			else
 			{
-				util_video_decoder_context[session][i]->thread_type = 0;
-				util_video_decoder_context[session][i]->thread_count = 1;
+				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
+				//util_video_decoder_context[session][i]->thread_type = 0;
+				//util_video_decoder_context[session][i]->thread_count = 1;
 			}
 		}
 		else if(thread_type == DEF_DECODER_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
@@ -1566,7 +1567,8 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	}
 
 	ffmpeg_result = avcodec_send_packet(util_video_decoder_context[session][packet_index], util_video_decoder_packet[session][packet_index]);
-	if(ffmpeg_result != 0)
+	//dav1d decoder sometimes return EAGAIN if so, ignore it and call avcodec_receive_frame()
+	if(ffmpeg_result != 0 && ffmpeg_result != AVERROR(EAGAIN))
 	{
 		result.error_description = "[Error] avcodec_send_packet() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
@@ -1575,8 +1577,15 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] avcodec_receive_frame() failed. " + std::to_string(ffmpeg_result) + " ";
-		goto ffmpeg_api_failed;
+		//dav1d decoder sometimes doesn't return image at first call
+		if(ffmpeg_result == AVERROR(EAGAIN))
+			ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
+
+		if(ffmpeg_result != 0)
+		{
+			result.error_description = "[Error] avcodec_receive_frame() failed. " + std::to_string(ffmpeg_result) + " ";
+			goto ffmpeg_api_failed;
+		}
 	}
 
 	if(buffer_num + 1 < util_video_decoder_max_raw_image[session][packet_index])

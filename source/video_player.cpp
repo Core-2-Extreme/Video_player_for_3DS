@@ -2120,7 +2120,7 @@ void Vid_convert_thread(void* arg)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
 
-							//Adjust display size so that user won't see glitch on videos
+							//Adjust image size so that user won't see glitch on videos
 							if(vid_codec_width > 1024 && vid_codec_height > 1024)
 							{
 								vid_image[1][image_num][packet_index].subtex->width = (vid_video_info.width - 1024);

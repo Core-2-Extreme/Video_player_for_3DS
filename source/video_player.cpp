@@ -1379,32 +1379,32 @@ void Vid_decode_thread(void* arg)
 						if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						{
 							vid_tex_width[0] = 1024;
-							vid_tex_width[1] = vid_codec_width - 1024;
+							vid_tex_width[1] = vid_video_info.width - 1024;
 							vid_tex_width[2] = 1024;
-							vid_tex_width[3] = vid_codec_width - 1024;
+							vid_tex_width[3] = vid_video_info.width - 1024;
 							vid_tex_height[0] = 1024;
 							vid_tex_height[1] = 1024;
-							vid_tex_height[2] = vid_codec_height - 1024;
-							vid_tex_height[3] = vid_codec_height - 1024;
+							vid_tex_height[2] = vid_video_info.height - 1024;
+							vid_tex_height[3] = vid_video_info.height - 1024;
 						}
 						else if(vid_codec_width > 1024)
 						{
 							vid_tex_width[0] = 1024;
-							vid_tex_width[1] = vid_codec_width - 1024;
-							vid_tex_height[0] = vid_codec_height;
-							vid_tex_height[1] = vid_codec_height;
+							vid_tex_width[1] = vid_video_info.width - 1024;
+							vid_tex_height[0] = vid_video_info.height;
+							vid_tex_height[1] = vid_video_info.height;
 						}
 						else if(vid_codec_height > 1024)
 						{
-							vid_tex_width[0] = vid_codec_width;
-							vid_tex_width[1] = vid_codec_width;
+							vid_tex_width[0] = vid_video_info.width;
+							vid_tex_width[2] = vid_video_info.width;
 							vid_tex_height[0] = 1024;
-							vid_tex_height[1] = vid_codec_height - 1024;
+							vid_tex_height[2] = vid_video_info.height - 1024;
 						}
 						else
 						{
-							vid_tex_width[0] = vid_codec_width;
-							vid_tex_height[0] = vid_codec_height;
+							vid_tex_width[0] = vid_video_info.width;
+							vid_tex_height[0] = vid_video_info.height;
 						}
 					}
 				}
@@ -2118,6 +2118,44 @@ void Vid_convert_thread(void* arg)
 								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
+							}
+
+							//Adjust image size so that user won't see glitch on videos
+							if(vid_codec_width > 1024 && vid_codec_height > 1024)
+							{
+								vid_image[1][image_num][packet_index].subtex->width = (vid_video_info.width - 1024);
+								vid_image[1][image_num][packet_index].subtex->right = (vid_video_info.width - 1024) / 1024.0;
+								vid_image[2][image_num][packet_index].subtex->height = (vid_video_info.height - 1024);
+								vid_image[2][image_num][packet_index].subtex->bottom = 1 - (vid_video_info.height - 1024) / 1024.0;
+								vid_image[3][image_num][packet_index].subtex->width = (vid_video_info.width - 1024);
+								vid_image[3][image_num][packet_index].subtex->right = (vid_video_info.width - 1024) / 1024.0;
+								vid_image[3][image_num][packet_index].subtex->height = (vid_video_info.height - 1024);
+								vid_image[3][image_num][packet_index].subtex->bottom = 1 - (vid_video_info.height - 1024) / 1024.0;
+							}
+							else if(vid_codec_width > 1024)
+							{
+								vid_image[0][image_num][packet_index].subtex->height = vid_video_info.height;
+								vid_image[0][image_num][packet_index].subtex->bottom = 1 - vid_video_info.height / 1024.0;
+								vid_image[1][image_num][packet_index].subtex->width = (vid_video_info.width - 1024);
+								vid_image[1][image_num][packet_index].subtex->height = vid_video_info.height;
+								vid_image[1][image_num][packet_index].subtex->right = (vid_video_info.width - 1024) / 1024.0;
+								vid_image[1][image_num][packet_index].subtex->bottom = 1 - vid_video_info.height / 1024.0;
+							}
+							else if(vid_codec_height > 1024)
+							{
+								vid_image[0][image_num][packet_index].subtex->width = vid_video_info.width;
+								vid_image[0][image_num][packet_index].subtex->right = vid_video_info.width / 1024.0;
+								vid_image[2][image_num][packet_index].subtex->width = vid_video_info.width;
+								vid_image[2][image_num][packet_index].subtex->height = (vid_video_info.height - 1024);
+								vid_image[2][image_num][packet_index].subtex->right = vid_video_info.width / 1024.0;
+								vid_image[2][image_num][packet_index].subtex->bottom = 1 - (vid_video_info.height - 1024) / 1024.0;
+							}
+							else
+							{
+								vid_image[0][image_num][packet_index].subtex->width = vid_video_info.width;
+								vid_image[0][image_num][packet_index].subtex->height = vid_video_info.height;
+								vid_image[0][image_num][packet_index].subtex->right = vid_video_info.width / 1024.0;
+								vid_image[0][image_num][packet_index].subtex->bottom = 1 - vid_video_info.height / 1024.0;
 							}
 
 							osTickCounterUpdate(&counter[1]);

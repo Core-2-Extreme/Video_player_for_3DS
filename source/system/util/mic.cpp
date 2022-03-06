@@ -17,7 +17,8 @@ Result_with_string Util_mic_init(int buffer_size)
 
 	util_mic_last_pos = 0;
 	buffer_size -= buffer_size % 0x1000;
-	util_mic_buffer = (u8*)memalign(0x1000, buffer_size);
+	//mic module requires memory allocated on heap (precisely svcCreateMemoryBlock() requires it)
+	util_mic_buffer = (u8*)__real_memalign(0x1000, buffer_size);
 	if(!util_mic_buffer)
 		goto out_of_memory;
 	

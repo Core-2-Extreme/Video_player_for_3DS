@@ -2,6 +2,8 @@
 
 //set heap size, rest memory will be linear ram
 u32 __ctru_heap_size = 1024 * 1024 * 10;
+//Alloc memory on heap for some libctru functions (precisely svcCreateMemoryBlock())
+void* (*memalign_heap_address)(size_t align, size_t size) = __real_memalign;
 
 bool var_connect_test_succes = false;
 bool var_need_reflesh = true;

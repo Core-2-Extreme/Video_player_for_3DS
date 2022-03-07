@@ -23,8 +23,8 @@ extern "C" void* __wrap_realloc(void* ptr, size_t size)
 {
 	//Alloc memory on linear ram if pointer is null and requested size is greater than 32KB 
 	//or previous pointer is allocated on linear ram to prevent slow down (linear alloc is slow).
-	if(((!ptr && size > 1024 * 32) ||
-	(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))))
+	if(((!ptr && size > 1024 * 32) || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE))))
 		return Util_safe_linear_realloc(ptr, size);
 	else
 		return __real_realloc(ptr, size);
@@ -32,7 +32,8 @@ extern "C" void* __wrap_realloc(void* ptr, size_t size)
 
 extern "C" void __wrap_free(void* ptr)
 {	
-	if(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	if((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 		Util_safe_linear_free(ptr);
 	else
 		__real_free(ptr);
@@ -40,7 +41,8 @@ extern "C" void __wrap_free(void* ptr)
 
 extern "C" void __wrap__free_r(struct _reent *r, void* ptr)
 {
-	if(ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	if((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
+	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 		Util_safe_linear_free(ptr);
 	else
 		__real__free_r(r, ptr);

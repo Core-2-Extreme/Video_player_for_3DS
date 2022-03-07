@@ -176,6 +176,7 @@ Workaround : encode your video without using B-frames. \
 * Italian/Italiano (translated by dixy52-beep)
 * Spanish/Español (translated by Cookiee)
 * Romanian/Română (translated by Tescu48)
+* Polish/Polski (translated by JustScratchCoder)
 
 ## Supported video codec
 * Motion jpeg

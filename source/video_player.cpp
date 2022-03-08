@@ -68,6 +68,7 @@ double vid_max_time = 0;
 double vid_total_time = 0;
 double vid_recent_time[90];
 double vid_recent_total_time = 0;
+int vid_hid_wait = 0;
 int vid_move_content_mode = DEF_VID_MOVE_BOTH;
 int vid_packet_buffer[320];
 int vid_raw_video_buffer[320];
@@ -99,6 +100,7 @@ int vid_control_texture_num = -1;
 int vid_banner_texture_num = -1;
 int vid_file_index = 0;
 int vid_subtitle_index = 0;
+u64 vid_show_screen_brightness_until = 0;
 u64 vid_previous_ts = 0;
 std::string vid_file = "";
 std::string vid_dir = "";
@@ -188,6 +190,44 @@ void Vid_exit_full_screen(void)
 	var_turn_on_bottom_lcd = true;
 	var_top_lcd_brightness = var_lcd_brightness;
 	var_bottom_lcd_brightness = var_lcd_brightness;
+}
+
+void Vid_increase_screen_brightness(void)
+{
+	if(vid_hid_wait <= 0)
+	{
+		if(var_lcd_brightness + 1 <= 180)
+		{
+			var_lcd_brightness++;
+			var_top_lcd_brightness = var_lcd_brightness;
+			if(!vid_full_screen_mode)
+				var_bottom_lcd_brightness = var_lcd_brightness;
+
+			vid_show_screen_brightness_until = osGetTime() + 2500;
+		}
+		vid_hid_wait = 10;
+	}
+	else
+		vid_hid_wait--;
+}
+
+void Vid_decrease_screen_brightness(void)
+{
+	if(vid_hid_wait <= 0)
+	{
+		if(var_lcd_brightness - 1 >= 0)
+		{
+			var_lcd_brightness--;
+			var_top_lcd_brightness = var_lcd_brightness;
+			if(!vid_full_screen_mode)
+				var_bottom_lcd_brightness = var_lcd_brightness;
+
+			vid_show_screen_brightness_until = osGetTime() + 2500;
+		}
+		vid_hid_wait = 10;
+	}
+	else
+		vid_hid_wait--;
 }
 
 void Vid_control_full_screen(void)
@@ -1055,7 +1095,7 @@ void Vid_hid(Hid_info key)
 
 			vid_seek_request = true;
 		}
-		if(key.p_d_left)
+		else if(key.p_d_left)
 		{
 			if(vid_current_pos - (vid_seek_duration * 1000) < 0)
 				vid_seek_pos = 0;
@@ -1063,6 +1103,36 @@ void Vid_hid(Hid_info key)
 				vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
 			
 			vid_seek_request = true;
+		}
+		else if(key.p_d_up)
+		{
+			vid_hid_wait = 0;
+			Vid_increase_screen_brightness();
+		}
+		else if(key.h_d_up)
+		{
+			if(key.held_time > 120)
+			{
+				for(int i = 0 ; i < 5; i++)
+				Vid_increase_screen_brightness();
+			}
+			else
+				Vid_increase_screen_brightness();
+		}
+		else if(key.p_d_down)
+		{
+			vid_hid_wait = 0;
+			Vid_decrease_screen_brightness();
+		}
+		else if(key.h_d_down)
+		{
+			if(key.held_time > 120)
+			{
+				for(int i = 0 ; i < 5; i++)
+					Vid_decrease_screen_brightness();
+			}
+			else
+				Vid_decrease_screen_brightness();
 		}
 
 		if(!key.p_touch && !key.h_touch)
@@ -2333,6 +2403,7 @@ void Vid_init(void)
 	Vid_init_variable();
 	Vid_exit_full_screen();
 	vid_show_full_screen_msg = true;
+	vid_show_screen_brightness_until = 0;
 	vid_menu_mode = DEF_VID_MENU_NONE;
 	vid_file = "";
 	vid_dir = "";
@@ -2749,6 +2820,13 @@ void Vid_main(void)
 				//Exit full screen message
 				Draw(vid_msg[DEF_VID_FULL_SCREEN_MSG], 0, 20, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 400, 30,
 				DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLACK);
+			}
+
+			if(vid_show_screen_brightness_until >= osGetTime())
+			{
+				//Display current brightness
+				Draw("Brightness : " + std::to_string(var_lcd_brightness) + "/180", 0, 220, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_LEFT,
+				DEF_DRAW_Y_ALIGN_BOTTOM, 400, 20, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLACK);
 			}
 
 			if(vid_seek_request || vid_seek_adjust_request)

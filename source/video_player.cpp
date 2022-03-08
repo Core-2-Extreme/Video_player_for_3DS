@@ -866,14 +866,14 @@ void Vid_hid(Hid_info key)
 				vid_seek_request = true;
 			}
 			
-			if((key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left
-			|| key.p_d_down || key.p_d_up || key.h_d_down || key.h_d_up || key.h_d_right || key.h_d_left) && vid_move_content_mode)
+			if((key.p_c_down || key.p_c_up || key.p_c_right || key.p_c_left || key.h_c_down || key.h_c_up || key.h_c_right || key.h_c_left)
+			 && vid_move_content_mode)
 			{
 				if(vid_move_content_mode == DEF_VID_MOVE_VIDEO || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(key.p_c_down || key.p_d_down)
+					if(key.p_c_down)
 						vid_video_y_offset -= 1 * var_scroll_speed;
-					else if(key.h_c_down || key.h_d_down)
+					else if(key.h_c_down)
 					{
 						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
@@ -886,9 +886,9 @@ void Vid_hid(Hid_info key)
 						}
 					}
 
-					if(key.p_c_up || key.p_d_up)
+					if(key.p_c_up)
 						vid_video_y_offset += 1 * var_scroll_speed;
-					else if(key.h_c_up || key.h_d_up)
+					else if(key.h_c_up)
 					{
 						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
@@ -927,19 +927,19 @@ void Vid_hid(Hid_info key)
 
 					if(vid_video_x_offset > 400)
 						vid_video_x_offset = 400;
-					else if(vid_video_x_offset < -vid_codec_width * vid_video_zoom)
-						vid_video_x_offset = -vid_codec_width * vid_video_zoom;
+					else if(vid_video_x_offset < -vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom)
+						vid_video_x_offset = -vid_video_info.width * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_width : 1) * vid_video_zoom;
 
 					if(vid_video_y_offset > 480)
 						vid_video_y_offset = 480;
-					else if(vid_video_y_offset < -vid_codec_height * vid_video_zoom)
-						vid_video_y_offset = -vid_codec_height * vid_video_zoom;
+					else if(vid_video_y_offset < -vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_video_zoom)
+						vid_video_y_offset = -vid_video_info.height * (vid_correct_aspect_ratio_mode ? vid_video_info.sar_height : 1) * vid_video_zoom;
 				}
 				if(vid_move_content_mode == DEF_VID_MOVE_SUBTITLE || vid_move_content_mode == DEF_VID_MOVE_BOTH)
 				{
-					if(key.p_c_down || key.p_d_down)
+					if(key.p_c_down)
 						vid_subtitle_y_offset -= 1 * var_scroll_speed;
-					else if(key.h_c_down || key.h_d_down)
+					else if(key.h_c_down)
 					{
 						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{
@@ -952,9 +952,9 @@ void Vid_hid(Hid_info key)
 						}
 					}
 
-					if(key.p_c_up || key.p_d_up)
+					if(key.p_c_up)
 						vid_subtitle_y_offset += 1 * var_scroll_speed;
-					else if(key.h_c_up || key.h_d_up)
+					else if(key.h_c_up)
 					{
 						if(!vid_select_audio_track_request && !vid_select_subtitle_track_request)
 						{

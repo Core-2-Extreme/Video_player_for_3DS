@@ -363,24 +363,6 @@ void Vid_hid(Hid_info key)
 				else
 					vid_play_request = true;
 			}
-			else if(key.p_d_right)
-			{
-				if(vid_current_pos + (vid_seek_duration * 1000) > vid_duration)
-					vid_seek_pos = vid_duration;
-				else
-					vid_seek_pos = vid_current_pos + (vid_seek_duration * 1000);
-
-				vid_seek_request = true;
-			}
-			if(key.p_d_left)
-			{
-				if(vid_current_pos - (vid_seek_duration * 1000) < 0)
-					vid_seek_pos = 0;
-				else
-					vid_seek_pos = vid_current_pos - (vid_seek_duration * 1000);
-				
-				vid_seek_request = true;
-			}
 		}
 		else if(vid_select_audio_track_request)
 		{

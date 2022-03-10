@@ -1706,7 +1706,7 @@ void Vid_decode_thread(void* arg)
 						
 						//Get position from audio if video framerate is unknown or or file does not have video track
 						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
-							vid_current_pos = pos;
+							vid_current_pos = pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
 						
 						if(result.code == 0 && !vid_seek_adjust_request)
 						{
@@ -1794,7 +1794,10 @@ void Vid_decode_thread(void* arg)
 			if(num_of_audio_tracks > 0)
 			{
 				while(Util_speaker_is_playing(0) && vid_play_request && !vid_change_video_request)
+				{
+					vid_current_pos = vid_duration - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
 					usleep(10000);
+				}
 				
 				Util_speaker_exit();
 			}

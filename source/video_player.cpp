@@ -2963,7 +2963,7 @@ void Vid_main(void)
 			if(vid_show_screen_brightness_until >= osGetTime())
 			{
 				//Display current brightness
-				Draw("Brightness : " + std::to_string(var_lcd_brightness) + "/180", 0, 220, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_LEFT,
+				Draw(vid_msg[DEF_VID_BRIGHTNESS_MSG] + std::to_string(var_lcd_brightness) + "/180", 0, 220, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_LEFT,
 				DEF_DRAW_Y_ALIGN_BOTTOM, 400, 20, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLACK);
 			}
 
@@ -3213,7 +3213,7 @@ void Vid_main(void)
 					//disable audio
 					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw((std::string)"disable audio : " + (vid_disable_audio_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+						Draw(vid_msg[DEF_VID_DISABLE_AUDIO_MSG] + (vid_disable_audio_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 						DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_disable_audio_button, vid_disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
@@ -3226,7 +3226,7 @@ void Vid_main(void)
 					//disable video
 					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw((std::string)"disable video : " + (vid_disable_video_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+						Draw(vid_msg[DEF_VID_DISABLE_VIDEO_MSG] + (vid_disable_video_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 						DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_disable_video_button, vid_disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
@@ -3239,7 +3239,7 @@ void Vid_main(void)
 					//disable subtitle
 					if(y_offset + vid_ui_y_offset >= 50 && y_offset + vid_ui_y_offset <= 165)
 					{
-						Draw((std::string)"disable subtitle : " + (vid_disable_subtitle_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
+						Draw(vid_msg[DEF_VID_DISABLE_SUBTITLE_MSG] + (vid_disable_subtitle_mode ? "ON" : "OFF"), 12.5, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_play_request ? disabled_color : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 						DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_disable_subtitle_button, vid_disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else

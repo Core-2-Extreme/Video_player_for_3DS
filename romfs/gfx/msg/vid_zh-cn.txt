@@ -33,3 +33,7 @@
 <32>只有字幕</32>
 <33>字幕轨道选择</33>
 <34>选择字幕轨道</34>
+<35>Brightness : </35>
+<36>Disable audio : </36>
+<37>Disable video : </37>
+<38>Disable subtitle : </38>

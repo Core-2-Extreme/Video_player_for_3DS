@@ -38,3 +38,7 @@ modo pantalla completa</12>
 <32>Only subtitle</32>
 <33>Subtitle track selection</33>
 <34>Select subtitle track</34>
+<35>Brightness : </35>
+<36>Disable audio : </36>
+<37>Disable video : </37>
+<38>Disable subtitle : </38>

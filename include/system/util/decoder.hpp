@@ -169,7 +169,7 @@ Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int sess
 /**
  * @brief Skip audio packet.
  * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_AUDIO.
- * Do nothing if audio decoder is not initialized.
+ * Do nothing if file is not opened.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
@@ -179,7 +179,7 @@ void Util_decoder_skip_audio_packet(int packet_index, int session);
 /**
  * @brief Skip video packet.
  * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_VIDEO.
- * Do nothing if video decoder is not initialized.
+ * Do nothing if file is not opened.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)
@@ -189,7 +189,7 @@ void Util_decoder_skip_video_packet(int packet_index, int session);
 /**
  * @brief Skip subtitle packet.
  * Call it after Util_decoder_parse_packet() returned DEF_DECODER_PACKET_TYPE_SUBTITLE.
- * Do nothing if subtitle decoder is not initialized.
+ * Do nothing if file is not opened.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
  * @warning Thread dangerous (untested)

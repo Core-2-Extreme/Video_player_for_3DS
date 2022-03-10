@@ -1327,7 +1327,7 @@ void Util_decoder_skip_audio_packet(int packet_index, int session)
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_AUDIO_TRACKS)
 		return;
 
-	if(!util_decoder_opened_file[session] || !util_audio_decoder_init[session][packet_index])
+	if(!util_decoder_opened_file[session])
 		return;
 
 	if(!util_audio_decoder_cache_packet_ready[session][packet_index])
@@ -1345,7 +1345,7 @@ void Util_decoder_skip_video_packet(int packet_index, int session)
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
 		return;
 
-	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
+	if(!util_decoder_opened_file[session])
 		return;
 
 	if(!util_video_decoder_cache_packet_ready[session][packet_index])
@@ -1363,7 +1363,7 @@ void Util_decoder_skip_subtitle_packet(int packet_index, int session)
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_SUBTITLE_TRACKS)
 		return;
 
-	if(!util_decoder_opened_file[session] || !util_subtitle_decoder_init[session][packet_index])
+	if(!util_decoder_opened_file[session])
 		return;
 
 	if(!util_subtitle_decoder_cache_packet_ready[session][packet_index])

@@ -1098,17 +1098,30 @@ void Menu_worker_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Thread started.");
 	int count = 0;
+	u64 previous_ts = 0;
 	Result_with_string result;
 
 	while (menu_thread_run)
 	{
-		usleep(49000);
-		count++;
+		if(previous_ts + 50 <= osGetTime())
+		{
+			if(var_flash_mode)
+			{
+				var_night_mode = !var_night_mode;
+				var_need_reflesh = true;
+			}
+			count++;
 
+			if(previous_ts + 100 >= osGetTime())
+				previous_ts += 50;
+			else
+				previous_ts = osGetTime();
+		}
+		
 		if(count % 5 == 0)
 			Menu_get_system_info();
 
-		if (count >= 20)
+		if(count >= 20)
 		{
 			var_need_reflesh = true;
 			var_afk_time++;
@@ -1154,11 +1167,7 @@ void Menu_worker_thread(void* arg)
 			}
 		}
 
-		if (var_flash_mode)
-		{
-			var_night_mode = !var_night_mode;
-			var_need_reflesh = true;
-		}
+		gspWaitForVBlank();
 	}
 	Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Thread exit.");
 	threadExit(0);

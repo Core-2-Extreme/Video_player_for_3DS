@@ -1264,6 +1264,7 @@ void Vid_decode_thread(void* arg)
 	int type = DEF_DECODER_PACKET_TYPE_UNKNOWN;
 	double pos = 0;
 	double saved_pos = 0;
+	u8 dummy = 0;
 	u8* audio = NULL;
 	u8* saved_data = NULL;
 	u32 read_size = 0;
@@ -1273,7 +1274,7 @@ void Vid_decode_thread(void* arg)
 	Result_with_string result;
 	osTickCounterStart(&counter);
 	
-	Util_file_save_to_file(".", DEF_MAIN_DIR + "saved_pos/", NULL, 0, false);//create directory
+	Util_file_save_to_file(".", DEF_MAIN_DIR + "saved_pos/", &dummy, 1, true);//create directory
 
 	while (vid_thread_run)
 	{

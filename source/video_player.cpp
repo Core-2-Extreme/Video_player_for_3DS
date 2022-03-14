@@ -2161,6 +2161,11 @@ void Vid_convert_thread(void* arg)
 			pos = 0;
 			first = true;
 			vid_convert_wait_request = true;
+			if(vid_hw_color_conversion_mode || vid_hw_decoding_mode)
+				svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_HIGH - 1);//Avoid spike
+			else
+				svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_NORMAL);
+
 			while(vid_convert_request)
 			{
 				if(vid_pause_request)

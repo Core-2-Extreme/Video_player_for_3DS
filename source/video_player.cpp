@@ -1809,7 +1809,8 @@ void Vid_decode_thread(void* arg)
 						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, audio_track, 0);
 						osTickCounterUpdate(&counter);
 						vid_audio_time = osTickCounterRead(&counter);
-						
+						usleep(5000);//Avoid color conversion thread to spike
+
 						//Get position from audio if video framerate is unknown or or file does not have video track
 						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
@@ -2161,11 +2162,6 @@ void Vid_convert_thread(void* arg)
 			pos = 0;
 			first = true;
 			vid_convert_wait_request = true;
-			if(vid_hw_color_conversion_mode || vid_hw_decoding_mode)
-				svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_HIGH - 1);//Avoid spike
-			else
-				svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_NORMAL);
-
 			while(vid_convert_request)
 			{
 				if(vid_pause_request)

@@ -2357,6 +2357,8 @@ void Vid_convert_thread(void* arg)
 							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_mvd_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 						else
 							Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+						
+						usleep(5000);
 					}
 
 					Util_safe_linear_free(yuv_video);

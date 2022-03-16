@@ -1,5 +1,8 @@
 # Video player for 3DS
 
+[Discord channel](https://discord.gg/MMsAXvetpR)
+[GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
+
 ## Patch note
 ### v1.4.2
 Fixed unexpected touch in Nintendo's home menu \

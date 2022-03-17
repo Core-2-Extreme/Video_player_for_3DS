@@ -1,6 +1,6 @@
 @echo off
 :start
-make all_win
+make all
 echo Press any key to rebuild.
 pause
 goto start 

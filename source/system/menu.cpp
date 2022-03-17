@@ -157,12 +157,13 @@ void Menu_init(void)
 		osSetSpeedupEnable(false);
 
 	result = Util_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_init()..." + result.string + result.error_description, result.code);
 	
 	Sem_init();
 
 	Sem_suspend();
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode, var_3d_mode).code);
+	result = Draw_init(var_high_resolution_mode, var_3d_mode);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()..." + result.string + result.error_description, result.code);
 	Draw_frame_ready();
 	Draw_screen_ready(0, DEF_DRAW_WHITE);
 	Draw_screen_ready(1, DEF_DRAW_WHITE);
@@ -170,19 +171,19 @@ void Menu_init(void)
 	Sem_draw_init();
 
 	result = Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE);
-	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()..." + result.string + result.error_description, result.code);
 
 	result = Util_hid_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()..." + result.string + result.error_description, result.code);
 
 	result = Util_expl_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()..." + result.string + result.error_description, result.code);
 
 	result = Exfont_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()..." + result.string + result.error_description, result.code);
 
 	result = Util_err_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()..." + result.string + result.error_description, result.code);
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);

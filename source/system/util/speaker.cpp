@@ -173,8 +173,10 @@ int Util_speaker_get_available_buffer_size(int play_ch)
 
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
-		if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_PLAYING || util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_QUEUED)
+		if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_QUEUED)
 			buffer_size += util_ndsp_buffer[play_ch][i].nsamples * 2 * util_speaker_music_ch[play_ch];
+		else if(util_ndsp_buffer[play_ch][i].status == NDSP_WBUF_PLAYING)
+			buffer_size += (util_ndsp_buffer[play_ch][i].nsamples - ndspChnGetSamplePos(play_ch)) * 2 * util_speaker_music_ch[play_ch];
 	}
 
 	return buffer_size;

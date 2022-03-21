@@ -278,10 +278,14 @@ void Draw_texture_free(Image_data* image)
 	if(!image)
 		return;
 	
-	Util_safe_linear_free(image->c2d.tex->data);
+	if(image->c2d.tex)
+	{
+		Util_safe_linear_free(image->c2d.tex->data);
+		image->c2d.tex->data = NULL;
+	}
+
 	Util_safe_linear_free(image->c2d.tex);
 	Util_safe_linear_free(image->subtex);
-	image->c2d.tex->data = NULL;
 	image->c2d.tex = NULL;
 	image->c2d.subtex = NULL;
 	image->subtex = NULL;

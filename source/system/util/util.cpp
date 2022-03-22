@@ -599,33 +599,14 @@ std::string Util_convert_seconds_to_time(double input_seconds)
 	int hours = 0;
 	int minutes = 0;
 	int seconds = 0;
-	long count = 0;
 	std::string time = "";
 
 	if(std::isnan(input_seconds) || std::isinf(input_seconds))
 		input_seconds = 0;
 	
-	//to prevent (double)value evaluating as (int)value - 1 (e.g. '1.0' as '0', '5.0' as '4')
-	input_seconds += 0.000001;
-	for(count = 0; count < (int)input_seconds; count++)
-	{
-		if(seconds + 1 >= 60)
-		{
-			if(minutes + 1 >= 60)
-			{
-				seconds = 0;
-				minutes = 0;
-				hours++;
-			}
-			else
-			{
-				seconds = 0;
-				minutes++;
-			}
-		}
-		else
-			seconds++;
-	}
+	hours = (int)input_seconds / 3600;
+	minutes = ((int)input_seconds % 3600) / 60;
+	seconds = ((int)input_seconds % 60);
 
 	if(hours < 10)
 		time += "0" + std::to_string(hours) + ":";

@@ -483,15 +483,13 @@ Result_with_string Util_encoder_write_header(int session)
 	if(!util_encoder_created_file[session])
 		goto not_inited;
 	
-	if(util_encoder_format_context[session]->oformat->flags & AVFMT_GLOBALHEADER)
+
+	util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+	ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
+	if(ffmpeg_result != 0)
 	{
-		util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-		ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
-		if(ffmpeg_result != 0)
-		{
-			result.error_description = "[Error] avformat_write_header() failed. ";
-			goto ffmpeg_api_failed;
-		}
+		result.error_description = "[Error] avformat_write_header() failed. ";
+		goto ffmpeg_api_failed;
 	}
 
 	util_encoder_wrote_header[session] = true;

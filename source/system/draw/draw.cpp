@@ -866,27 +866,27 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)
 			{
-				y_offset = 3.5 * text_size_y;
+				y_offset = 4 * text_size_y;
 				font_width_factor = 1;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1;
-				font_draw_height_factor = 1;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else if(font_list[1][i] == 2)
 			{
-				y_offset = 3.5 * text_size_y;
+				y_offset = 4 * text_size_y;
 				font_width_factor = 1;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1;
-				font_draw_height_factor = 1;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else if(font_list[1][i] == 3)
 			{
-				y_offset = 5 * text_size_y;
+				y_offset = 4.5 * text_size_y;
 				font_width_factor = 1.2;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1.2;
-				font_draw_height_factor = 1.2;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else
 			{
@@ -1078,27 +1078,27 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)
 			{
-				y_offset = 3.5 * text_size_y;
+				y_offset = 4 * text_size_y;
 				font_width_factor = 1;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1;
-				font_draw_height_factor = 1;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else if(font_list[1][i] == 2)
 			{
-				y_offset = 3.5 * text_size_y;
+				y_offset = 4 * text_size_y;
 				font_width_factor = 1;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1;
-				font_draw_height_factor = 1;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else if(font_list[1][i] == 3)
 			{
-				y_offset = 5 * text_size_y;
+				y_offset = 4.5 * text_size_y;
 				font_width_factor = 1.2;
 				font_height_factor = 0.83333;
-				font_draw_width_factor = 1.2;
-				font_draw_height_factor = 1.2;
+				font_draw_width_factor = 0.83333;
+				font_draw_height_factor = 0.83333;
 			}
 			else
 			{

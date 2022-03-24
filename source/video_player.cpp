@@ -65,7 +65,9 @@ double vid_video_y_offset = 15;
 double vid_subtitle_x_offset = 0;
 double vid_subtitle_y_offset = 0;
 double vid_current_pos = 0;//in ms
+double vid_current_audio_pos = 0;//in ms
 double vid_seek_pos = 0;//in ms
+double vid_decoded_audio_pos = 0;//in ms
 double vid_min_time = 0;
 double vid_max_time = 0;
 double vid_total_time = 0;
@@ -316,6 +318,7 @@ void Vid_init_variable(void)
 	vid_too_big = false;
 	vid_num_of_audio_tracks = 0;
 	vid_selected_audio_track = 0;
+	vid_decoded_audio_pos = 0;
 	vid_audio_info.bitrate = 0;
 	vid_audio_info.sample_rate = 0;
 	vid_audio_info.ch = 0;
@@ -1718,6 +1721,10 @@ void Vid_decode_thread(void* arg)
 
 				var_afk_time = 0;
 
+				//Update audio position
+				if(num_of_audio_tracks > 0)
+					vid_current_audio_pos = vid_decoded_audio_pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
+
 				//change audio track
 				if(!vid_select_audio_track_request && audio_track != vid_selected_audio_track)
 				{
@@ -1811,10 +1818,6 @@ void Vid_decode_thread(void* arg)
 						vid_audio_time = osTickCounterRead(&counter);
 						usleep(5000);//Avoid color conversion thread to spike
 
-						//Get position from audio if video framerate is unknown or or file does not have video track
-						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
-							vid_current_pos = pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
-						
 						if(result.code == 0 && !vid_seek_adjust_request)
 						{
 							vid_too_big = false;
@@ -1846,6 +1849,13 @@ void Vid_decode_thread(void* arg)
 						}
 						else
 							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
+
+						if(!std::isnan(pos) && !std::isinf(pos))
+							vid_decoded_audio_pos = pos;
+
+						//Get position from audio if video framerate is unknown or or file does not have video track
+						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
+							vid_current_pos = vid_decoded_audio_pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
 
 						Util_safe_linear_free(audio);
 						audio = NULL;
@@ -1902,7 +1912,10 @@ void Vid_decode_thread(void* arg)
 			{
 				while(Util_speaker_is_playing(0) && vid_play_request && !vid_change_video_request)
 				{
-					vid_current_pos = vid_duration - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
+					vid_current_audio_pos = vid_duration - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
+					if(num_of_video_tracks <= 0)
+						vid_current_pos = vid_current_audio_pos;
+
 					usleep(10000);
 				}
 				
@@ -2142,6 +2155,7 @@ void Vid_convert_thread(void* arg)
 	u8* video = NULL;
 	int packet_index = 0;
 	int image_num = 0;
+	double sleep_time_ms = 0;
 	double skip = 0;
 	double pos = 0;
 	TickCounter counter[5];
@@ -2238,6 +2252,9 @@ void Vid_convert_thread(void* arg)
 						//Get position from video if video framerate is known
 						if(!std::isnan(pos) && !std::isinf(pos) && vid_frametime != 0)
 							vid_current_pos = pos;
+
+						if(vid_num_of_audio_tracks > 0)
+							vid_current_audio_pos = vid_decoded_audio_pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
 
 						osTickCounterUpdate(&counter[0]);
 						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
@@ -2368,15 +2385,37 @@ void Vid_convert_thread(void* arg)
 					osTickCounterUpdate(&counter[3]);
 					vid_time[1][319] = osTickCounterRead(&counter[3]);
 
-					if(vid_frametime - vid_time[1][319] > 0 && vid_frametime != 0)
+					sleep_time_ms = (vid_frametime - vid_time[1][319]);
+					if(vid_num_of_audio_tracks > 0 && Util_speaker_get_available_buffer_num(0) > 0)
 					{
+						//If audio is late, add extra sleep time to sync with audio
+						if((vid_current_pos - vid_frametime) - vid_current_audio_pos > 0)
+							sleep_time_ms += (vid_current_pos - vid_frametime) - vid_current_audio_pos > vid_frametime ? vid_frametime : (vid_current_pos - vid_frametime) - vid_current_audio_pos;
+						//If video is late, reduce sleep time to sync with audio
+						else if(vid_current_audio_pos - (vid_current_pos - vid_frametime) > 0)
+							sleep_time_ms -= vid_current_audio_pos - (vid_current_pos - vid_frametime) > vid_frametime ? vid_frametime : vid_current_audio_pos - (vid_current_pos - vid_frametime);
+					}
+					
+					if(sleep_time_ms > 0 && vid_frametime != 0)
+					{
+						if(skip > 0 && sleep_time_ms > skip)
+						{
+							sleep_time_ms -= skip;
+							skip = 0;
+						}
+						else if(skip > 0)
+						{
+							skip -= sleep_time_ms;
+							sleep_time_ms = 0;
+						}
+
 						osTickCounterUpdate(&counter[4]);
-						usleep((vid_frametime - vid_time[1][319]) * 1000);
+						usleep(sleep_time_ms * 1000);
 						osTickCounterUpdate(&counter[4]);
-						skip -= (vid_frametime - vid_time[1][319]) - osTickCounterRead(&counter[4]);
+						skip -= sleep_time_ms - osTickCounterRead(&counter[4]);
 					}
 					else if(vid_frametime != 0)
-						skip -= vid_frametime - vid_time[1][319];
+						skip -= sleep_time_ms;
 				}
 			}
 			vid_convert_wait_request = false;
@@ -2918,6 +2957,8 @@ void Vid_main(void)
 
 		for(int i = 1; i < 320; i++)
 			vid_raw_video_buffer[i - 1] = vid_raw_video_buffer[i];
+
+		//Util_log_save("debug", "audio : " + Util_convert_seconds_to_time(vid_current_audio_pos / 1000) + " video : " + Util_convert_seconds_to_time((vid_current_pos - vid_frametime) / 1000) + " frametime " + (vid_frametime > abs(vid_current_audio_pos - (vid_current_pos - vid_frametime)) ? ">" : "<=") + " difference " + " diff : " + std::to_string(vid_current_audio_pos - (vid_current_pos - vid_frametime)));
 	}
 
 
@@ -2946,7 +2987,7 @@ void Vid_main(void)
 
 				for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
 				{
-					if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+					if(vid_current_pos - vid_frametime >= vid_subtitle_data[i].start_time && vid_current_pos - vid_frametime <= vid_subtitle_data[i].end_time)
 					{
 						Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 195 + vid_subtitle_y_offset, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
 							DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -2998,7 +3039,7 @@ void Vid_main(void)
 
 					for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
 					{
-						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+						if(vid_current_pos - vid_frametime >= vid_subtitle_data[i].start_time && vid_current_pos - vid_frametime <= vid_subtitle_data[i].end_time)
 						{
 							Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 195 + vid_subtitle_y_offset, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
 								DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -3044,7 +3085,7 @@ void Vid_main(void)
 
 					for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_DATA; i++)//subtitle
 					{
-						if(vid_current_pos >= vid_subtitle_data[i].start_time && vid_current_pos <= vid_subtitle_data[i].end_time)
+						if(vid_current_pos - vid_frametime >= vid_subtitle_data[i].start_time && vid_current_pos - vid_frametime <= vid_subtitle_data[i].end_time)
 						{
 							Draw(vid_subtitle_data[i].text, vid_subtitle_x_offset, 195 + vid_subtitle_y_offset - 240, 0.5 * vid_subtitle_zoom, 0.5 * vid_subtitle_zoom, DEF_DRAW_WHITE, 
 								DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 320, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -3500,10 +3541,11 @@ void Vid_main(void)
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &vid_control_button, vid_control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 				//time bar
-				Draw(Util_convert_seconds_to_time(vid_current_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 192.5, 0.5, 0.5, color);
+				//Draw(Util_convert_seconds_to_time(vid_current_audio_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 182.5, 0.5, 0.5, color);
+				Draw(Util_convert_seconds_to_time((vid_current_pos - vid_frametime) / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 192.5, 0.5, 0.5, color);
 				Draw_texture(var_square_image[0], DEF_DRAW_GREEN, 5, 210, 310, 10);
 				if(vid_duration != 0)
-					Draw_texture(var_square_image[0], 0xFF800080, 5, 210, 310 * ((vid_current_pos / 1000) / (vid_duration / 1000)), 10);
+					Draw_texture(var_square_image[0], 0xFF800080, 5, 210, 310 * (((vid_current_pos - vid_frametime) / 1000) / (vid_duration / 1000)), 10);
 
 				if(vid_show_controls_request)
 				{

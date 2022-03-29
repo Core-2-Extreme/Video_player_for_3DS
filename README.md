@@ -4,11 +4,21 @@
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Patch note
+### v1.5.0
+Subtitles have been supported (*0) \
+Disable video, audio and subtitle have been added \
+Audio desync has been fixed \
+AV1 videos have been supported \
+The problem some video won't play smoothly in sw decoder has been fixed \
+Screen brightness adjustment function has been added (DPAD "↑" and "↓") \
+*0 No style support, only plain text \
+Other minor changes
+
 ### v1.4.2
-Fixed unexpected touch in Nintendo's home menu \
-Fixed multi-threaded decoding stability and it is enabled by default \
-Fixed seeking stability \
-Added repeat, in order, random playback mode \
+Unexpected touch in Nintendo's home menu has been fixed \
+Multi-threaded decoding stability has been fixed and it is enabled by default \
+Seeking stability has been fixed \
+Repeat, in order, random playback mode have been added \
 Other minor changes
 
 ### v1.4.1
@@ -78,8 +88,9 @@ Video player for 3DS \
 ## Features
 Hardware accelerated decoding(*0)✅ \
 Hardware accelerated color conversion✅ \
-Multiple video codec support(MPEG4, H.264, H.265, Motion Jpeg) ✅ \
-Multiple audio codec support(mp1, mp2, mp3, ac3, aac, ogg, pcm audio) ✅ \
+Multiple video codec support (MPEG1VIDEO, MPEG2VIDEO, MPEG4, H.261, H.262, H.263, H.264, H.265, Motion Jpeg, AV1) ✅ \
+Multiple audio codec support (mp1, mp2, mp3, ac3, aac, ogg, pcm audio) ✅ \
+Subtitle support (subrip, subviewer, movtext) ✅ \
 Seek ✅ \
 3D video(*1)✅ \
 Zoom in/out video ✅ \
@@ -89,6 +100,7 @@ File explorer ✅
 ⚠️ *0 New 3DS and New 2DS only \
 ⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
 you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
+[How to convert your 3d video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
 ## Recommended resolution
 Videos that in this resolution will be played without any problems in most of the situations.
@@ -199,6 +211,12 @@ Workaround : encode your video without using B-frames. \
 * aac (Advanced audio coding)
 * ogg (Vorbis)
 * pcm audio
+
+## Supported subtitle codec
+* subrip
+* subviewer
+* movtext
+(No style support)
 
 ## Controls
 * A : Play/Pause

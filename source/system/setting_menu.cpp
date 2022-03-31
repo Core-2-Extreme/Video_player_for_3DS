@@ -2,7 +2,7 @@
 
 #include "system/setting_menu.hpp"
 #include "system/menu.hpp"
-#ifdef DEF_ENABLE_SUB_APP0
+#ifdef DEF_ENABLE_VID
 #include "video_player.hpp"
 #endif
 
@@ -1732,7 +1732,7 @@ void Sem_worker_thread(void* arg)
 				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
 			}
 			
-			#ifdef DEF_ENABLE_SUB_APP0
+			#ifdef DEF_ENABLE_VID
 			result = Vid_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
 			if (result.code != 0)

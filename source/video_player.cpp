@@ -107,6 +107,7 @@ int vid_file_index = 0;
 int vid_subtitle_index = 0;
 u64 vid_show_screen_brightness_until = 0;
 u64 vid_previous_ts = 0;
+std::string vid_status = "";
 std::string vid_file = "";
 std::string vid_dir = "";
 std::string vid_audio_track_lang[DEF_DECODER_MAX_AUDIO_TRACKS];
@@ -115,7 +116,7 @@ std::string vid_msg[DEF_VID_NUM_OF_MSG];
 Image_data vid_image[4][DEF_VID_BUFFERS][2];
 C2D_Image vid_banner[2];
 C2D_Image vid_control[2];
-Thread vid_decode_thread, vid_decode_video_thread, vid_convert_thread, vid_read_packet_thread;
+Thread vid_init_thread, vid_exit_thread, vid_decode_thread, vid_decode_video_thread, vid_convert_thread, vid_read_packet_thread;
 Image_data vid_select_audio_track_button, vid_texture_filter_button, vid_allow_skip_frames_button, vid_allow_skip_key_frames_button,
 vid_volume_button, vid_seek_duration_button, vid_use_hw_decoding_button, vid_use_hw_color_conversion_button, vid_use_multi_threaded_decoding_button,
 vid_lower_resolution_button, vid_menu_button[3], vid_control_button, vid_ok_button, vid_audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
@@ -2502,16 +2503,17 @@ Result_with_string Vid_load_msg(std::string lang)
 	return Util_load_msg("vid_" + lang + ".txt", vid_msg, DEF_VID_NUM_OF_MSG);
 }
 
-void Vid_init(void)
+void Vid_init_thread(void* arg)
 {
-	Util_log_save(DEF_VID_INIT_STR, "Initializing...");
+	Util_log_save(DEF_VID_INIT_STR, "Thread started.");
 	bool frame_cores[4] = { false, false, false, false, };
 	bool slice_cores[4] = { false, false, false, false, };
 	u8* cache = NULL;
 	u32 read_size = 0;
 	std::string out_data[16];
 	Result_with_string result;
-
+	
+	vid_status = "Starting threads...";
 	vid_thread_run = true;
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
 	{
@@ -2551,6 +2553,7 @@ void Vid_init(void)
 		vid_read_packet_thread = threadCreate(Vid_read_packet_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 	}
 
+	vid_status += "\nInitializing variables...";
 	Vid_init_variable();
 	Vid_exit_full_screen();
 	vid_show_full_screen_msg = true;
@@ -2558,112 +2561,6 @@ void Vid_init(void)
 	vid_menu_mode = DEF_VID_MENU_NONE;
 	vid_file = "";
 	vid_dir = "";
-
-	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, &cache, 0x1000, &read_size);
-	Util_log_save(DEF_VID_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
-
-	if(result.code == 0)
-	{
-		result = Util_parse_file((char*)cache, 16, out_data);//settings file for v1.5.0
-		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-		if(result.code != 0)
-		{
-			result = Util_parse_file((char*)cache, 13, out_data);//settings file for v1.4.2
-			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-			out_data[13] = "0";
-			out_data[14] = "0";
-			out_data[15] = "0";
-		}
-		if(result.code != 0)
-		{
-			result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1
-			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-			out_data[12] = "0";
-			out_data[13] = "0";
-			out_data[14] = "0";
-			out_data[15] = "0";
-		}
-		if(result.code != 0)
-		{
-			result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
-			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-			out_data[9] = "0";
-			out_data[10] = "0";
-			out_data[11] = "1";
-			out_data[12] = "0";
-			out_data[13] = "0";
-			out_data[14] = "0";
-			out_data[15] = "0";
-		}
-		if(result.code != 0)
-		{
-			result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
-			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-			out_data[7] = "100";
-			out_data[8] = "10";
-			out_data[9] = "0";
-			out_data[10] = "0";
-			out_data[11] = "1";
-			out_data[12] = "0";
-			out_data[13] = "0";
-			out_data[14] = "0";
-			out_data[15] = "0";
-		}
-	}
-
-	if(result.code == 0)
-	{
-		vid_linear_filter = (out_data[0] == "1");
-		vid_allow_skip_frames = (out_data[1] == "1");
-		vid_allow_skip_key_frames = (out_data[2] == "1");
-		vid_use_hw_decoding_request = (out_data[3] == "1");
-		vid_use_hw_color_conversion_request = (out_data[4] == "1");
-		vid_use_multi_threaded_decoding_request = (out_data[5] == "1");
-		vid_lower_resolution = atoi((char*)out_data[6].c_str());
-		vid_volume = atoi((char*)out_data[7].c_str());
-		vid_seek_duration = atoi((char*)out_data[8].c_str());
-		vid_correct_aspect_ratio_mode = (out_data[9] == "1");
-		vid_move_content_mode = atoi((char*)out_data[10].c_str());
-		vid_remember_video_pos_mode = (out_data[11] == "1");
-		vid_playback_mode = atoi((char*)out_data[12].c_str());
-		vid_disable_audio_mode = (out_data[13] == "1");
-		vid_disable_video_mode = (out_data[14] == "1");
-		vid_disable_subtitle_mode = (out_data[15] == "1");
-	}
-
-	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL)
-		vid_use_hw_decoding_request = false;
-
-	if(!vid_allow_skip_frames)
-		vid_allow_skip_key_frames = false;
-
-	if(vid_lower_resolution > 2 || vid_lower_resolution < 0)
-		vid_lower_resolution = 0;
-
-	if(vid_volume > 999 || vid_volume < 0)
-		vid_volume = 100;
-
-	if(vid_seek_duration > 99 || vid_seek_duration < 1)
-		vid_seek_duration = 10;
-
-	if(vid_playback_mode != DEF_VID_NO_REPEAT && vid_playback_mode != DEF_VID_REPEAT 
-		&& vid_playback_mode != DEF_VID_IN_ORDER && vid_playback_mode != DEF_VID_RANDOM)
-		vid_playback_mode = DEF_VID_NO_REPEAT;
-
-	if(vid_move_content_mode != DEF_VID_MOVE_BOTH && vid_move_content_mode != DEF_VID_MOVE_VIDEO
-	&& vid_move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_move_content_mode != DEF_VID_MOVE_DISABLE)
-		vid_move_content_mode = DEF_VID_MOVE_BOTH;
-
-	Util_safe_linear_free(cache);
-	cache = NULL;
-
-	vid_banner_texture_num = Draw_get_free_sheet_num();
-	result = Draw_load_texture("romfs:/gfx/draw/video_player/banner.t3x", vid_banner_texture_num, vid_banner, 0, 2);
-	Util_log_save(DEF_VID_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
-
-	vid_control_texture_num = Draw_get_free_sheet_num();
-	result = Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x", vid_control_texture_num, vid_control, 0, 2);
-	Util_log_save(DEF_VID_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
 
 	vid_select_audio_track_button.c2d = var_square_image[0];
 	vid_texture_filter_button.c2d = var_square_image[0];
@@ -2779,14 +2676,123 @@ void Vid_init(void)
 	for(int i = 0; i < 3; i++)
 		Util_add_watch(&vid_menu_button[i].selected);
 
-	Vid_resume();
+	vid_status += "\nLoading settings...";
+	result = Util_file_load_from_file("vid_settings.txt", DEF_MAIN_DIR, &cache, 0x1000, &read_size);
+	Util_log_save(DEF_VID_INIT_STR, "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
+
+	if(result.code == 0)
+	{
+		result = Util_parse_file((char*)cache, 16, out_data);//settings file for v1.5.0
+		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 13, out_data);//settings file for v1.4.2
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[13] = "0";
+			out_data[14] = "0";
+			out_data[15] = "0";
+		}
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[12] = "0";
+			out_data[13] = "0";
+			out_data[14] = "0";
+			out_data[15] = "0";
+		}
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[9] = "0";
+			out_data[10] = "0";
+			out_data[11] = "1";
+			out_data[12] = "0";
+			out_data[13] = "0";
+			out_data[14] = "0";
+			out_data[15] = "0";
+		}
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
+			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			out_data[7] = "100";
+			out_data[8] = "10";
+			out_data[9] = "0";
+			out_data[10] = "0";
+			out_data[11] = "1";
+			out_data[12] = "0";
+			out_data[13] = "0";
+			out_data[14] = "0";
+			out_data[15] = "0";
+		}
+	}
+
+	if(result.code == 0)
+	{
+		vid_linear_filter = (out_data[0] == "1");
+		vid_allow_skip_frames = (out_data[1] == "1");
+		vid_allow_skip_key_frames = (out_data[2] == "1");
+		vid_use_hw_decoding_request = (out_data[3] == "1");
+		vid_use_hw_color_conversion_request = (out_data[4] == "1");
+		vid_use_multi_threaded_decoding_request = (out_data[5] == "1");
+		vid_lower_resolution = atoi((char*)out_data[6].c_str());
+		vid_volume = atoi((char*)out_data[7].c_str());
+		vid_seek_duration = atoi((char*)out_data[8].c_str());
+		vid_correct_aspect_ratio_mode = (out_data[9] == "1");
+		vid_move_content_mode = atoi((char*)out_data[10].c_str());
+		vid_remember_video_pos_mode = (out_data[11] == "1");
+		vid_playback_mode = atoi((char*)out_data[12].c_str());
+		vid_disable_audio_mode = (out_data[13] == "1");
+		vid_disable_video_mode = (out_data[14] == "1");
+		vid_disable_subtitle_mode = (out_data[15] == "1");
+	}
+
+	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_3DS || var_model == CFG_MODEL_3DSXL)
+		vid_use_hw_decoding_request = false;
+
+	if(!vid_allow_skip_frames)
+		vid_allow_skip_key_frames = false;
+
+	if(vid_lower_resolution > 2 || vid_lower_resolution < 0)
+		vid_lower_resolution = 0;
+
+	if(vid_volume > 999 || vid_volume < 0)
+		vid_volume = 100;
+
+	if(vid_seek_duration > 99 || vid_seek_duration < 1)
+		vid_seek_duration = 10;
+
+	if(vid_playback_mode != DEF_VID_NO_REPEAT && vid_playback_mode != DEF_VID_REPEAT 
+		&& vid_playback_mode != DEF_VID_IN_ORDER && vid_playback_mode != DEF_VID_RANDOM)
+		vid_playback_mode = DEF_VID_NO_REPEAT;
+
+	if(vid_move_content_mode != DEF_VID_MOVE_BOTH && vid_move_content_mode != DEF_VID_MOVE_VIDEO
+	&& vid_move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_move_content_mode != DEF_VID_MOVE_DISABLE)
+		vid_move_content_mode = DEF_VID_MOVE_BOTH;
+
+	Util_safe_linear_free(cache);
+	cache = NULL;
+
+	vid_status += "\nLoading textures...";
+	vid_banner_texture_num = Draw_get_free_sheet_num();
+	result = Draw_load_texture("romfs:/gfx/draw/video_player/banner.t3x", vid_banner_texture_num, vid_banner, 0, 2);
+	Util_log_save(DEF_VID_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+
+	vid_control_texture_num = Draw_get_free_sheet_num();
+	result = Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x", vid_control_texture_num, vid_control, 0, 2);
+	Util_log_save(DEF_VID_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+
 	vid_already_init = true;
-	Util_log_save(DEF_VID_INIT_STR, "Initialized.");
+
+	Util_log_save(DEF_VID_INIT_STR, "Thread exit.");
+	threadExit(0);
 }
 
-void Vid_exit(void)
+void Vid_exit_thread(void* arg)
 {
-	Util_log_save(DEF_VID_EXIT_STR, "Exiting...");
+	Util_log_save(DEF_VID_EXIT_STR, "Thread started.");
 	std::string data = "";
 	Result_with_string result;
 
@@ -2799,6 +2805,7 @@ void Vid_exit(void)
 	vid_select_audio_track_request = false;
 	vid_select_subtitle_track_request = false;
 
+	vid_status = "Saving settings...";
 	data = "<0>" + std::to_string(vid_linear_filter) + "</0><1>" + std::to_string(vid_allow_skip_frames) + "</1><2>"
 	+ std::to_string(vid_allow_skip_key_frames) + "</2><3>" + std::to_string(vid_use_hw_decoding_request) + "</3><4>"
 	+ std::to_string(vid_use_hw_color_conversion_request) + "</4><5>" + std::to_string(vid_use_multi_threaded_decoding_request) + "</5><6>"
@@ -2809,10 +2816,13 @@ void Vid_exit(void)
 	+ std::to_string(vid_disable_video_mode) + "</14><15>" + std::to_string(vid_disable_subtitle_mode) + "</15>";
 	Util_file_save_to_file("vid_settings.txt", DEF_MAIN_DIR, (u8*)data.c_str(), data.length(), true);
 
+	vid_status += "\nExiting threads...";
 	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_decode_video_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_convert_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_read_packet_thread, DEF_THREAD_WAIT_TIME));
+
+	vid_status += "\nCleaning up...";
 	threadFree(vid_decode_thread);
 	threadFree(vid_decode_video_thread);
 	threadFree(vid_convert_thread);
@@ -2897,6 +2907,108 @@ void Vid_exit(void)
 	for(int i = 0; i < 3; i++)
 		Util_remove_watch(&vid_menu_button[i].selected);
 	
+	vid_already_init = false;
+
+	Util_log_save(DEF_VID_EXIT_STR, "Thread exit.");
+	threadExit(0);
+}
+
+void Vid_init(bool draw)
+{
+	Util_log_save(DEF_VID_INIT_STR, "Initializing...");
+	int color = DEF_DRAW_BLACK;
+	int back_color = DEF_DRAW_WHITE;
+
+	Util_add_watch(&vid_status);
+	vid_status = "";
+
+	if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) && var_core_2_available)
+		vid_init_thread = threadCreate(Vid_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+	else
+	{
+		APT_SetAppCpuTimeLimit(80);
+		vid_init_thread = threadCreate(Vid_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	}
+
+	while(!vid_already_init)
+	{
+		if(draw)
+		{
+			if (var_night_mode)
+			{
+				color = DEF_DRAW_WHITE;
+				back_color = DEF_DRAW_BLACK;
+			}
+
+			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+			{
+				var_need_reflesh = false;
+				Draw_frame_ready();
+				Draw_screen_ready(0, back_color);
+				Draw_top_ui();
+				Draw(vid_status, 0, 20, 0.65, 0.65, color);
+
+				Draw_apply_draw();
+			}
+			else
+				gspWaitForVBlank();
+		}
+		else
+			usleep(20000);
+	}
+
+	if(!(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_3DSXL) || !var_core_2_available)
+		APT_SetAppCpuTimeLimit(10);
+
+	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_init_thread, DEF_THREAD_WAIT_TIME));	
+	threadFree(vid_init_thread);
+	Vid_resume();
+
+	Util_log_save(DEF_VID_INIT_STR, "Initialized.");
+}
+
+void Vid_exit(bool draw)
+{
+	Util_log_save(DEF_VID_EXIT_STR, "Exiting...");
+
+	int color = DEF_DRAW_BLACK;
+	int back_color = DEF_DRAW_WHITE;
+
+	vid_status = "";
+	vid_exit_thread = threadCreate(Vid_exit_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+
+	while(vid_already_init)
+	{
+		if(draw)
+		{
+			if (var_night_mode)
+			{
+				color = DEF_DRAW_WHITE;
+				back_color = DEF_DRAW_BLACK;
+			}
+
+			if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
+			{
+				var_need_reflesh = false;
+				Draw_frame_ready();
+				Draw_screen_ready(0, back_color);
+				Draw_top_ui();
+				Draw(vid_status, 0, 20, 0.65, 0.65, color);
+
+				Draw_apply_draw();
+			}
+			else
+				gspWaitForVBlank();
+		}
+		else
+			usleep(20000);
+	}
+
+	Util_log_save(DEF_VID_EXIT_STR, "threadJoin()...", threadJoin(vid_exit_thread, DEF_THREAD_WAIT_TIME));	
+	threadFree(vid_exit_thread);
+	Util_remove_watch(&vid_status);
+	var_need_reflesh = true;
+
 	Util_log_save(DEF_VID_EXIT_STR, "Exited.");
 }
 

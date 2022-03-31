@@ -13,8 +13,8 @@ void Vid_suspend(void);
 
 Result_with_string Vid_load_msg(std::string lang);
 
-void Vid_init(void);
+void Vid_init(bool draw);
 
-void Vid_exit(void);
+void Vid_exit(bool draw);
 
 void Vid_main(void);

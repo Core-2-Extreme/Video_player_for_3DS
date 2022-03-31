@@ -2,7 +2,7 @@
 
 #include "system/setting_menu.hpp"
 
-#ifdef DEF_ENABLE_SUB_APP0
+#ifdef DEF_ENABLE_VID
 #include "video_player.hpp"
 #endif
 
@@ -89,8 +89,8 @@ void Menu_check_core_thread(void* arg)
 void Menu_init(void)
 {
 	u8* data = NULL;
-	u8 region = 0;
 	u8 dummy = 0;
+	u8 region = 0;
 	u8 model = 0;
 	u32 read_size = 0;
 	Thread core_2, core_3;
@@ -157,13 +157,12 @@ void Menu_init(void)
 		osSetSpeedupEnable(false);
 
 	result = Util_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_init()...", result.code);
 	
 	Sem_init();
 
 	Sem_suspend();
-	result = Draw_init(var_high_resolution_mode, var_3d_mode);
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode, var_3d_mode).code);
 	Draw_frame_ready();
 	Draw_screen_ready(0, DEF_DRAW_WHITE);
 	Draw_screen_ready(1, DEF_DRAW_WHITE);
@@ -171,19 +170,19 @@ void Menu_init(void)
 	Sem_draw_init();
 
 	result = Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE);
-	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()...", result.code);
 
 	result = Util_hid_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()...", result.code);
 
 	result = Util_expl_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
 
 	result = Exfont_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
 
 	result = Util_err_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()..." + result.string + result.error_description, result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
@@ -197,7 +196,7 @@ void Menu_init(void)
 	menu_thread_run = true;
 	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 	menu_check_connectivity_thread = threadCreate(Menu_check_connectivity_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
-	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
+	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
 	menu_hid_thread = threadCreate(Menu_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
 
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
@@ -311,41 +310,42 @@ void Menu_init(void)
 void Menu_exit(void)
 {
 	Util_log_save(DEF_MENU_EXIT_STR, "Exiting...");
+	bool draw = !aptShouldClose();
 	Result_with_string result;
 
 	menu_thread_run = false;
 
-	#ifdef DEF_ENABLE_SUB_APP0
+	#ifdef DEF_ENABLE_VID
 	if (Vid_query_init_flag())
-		Vid_exit();
+		Vid_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP1
 	if (Sapp1_query_init_flag())
-		Sapp1_exit();
+		Sapp1_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP2
 	if (Sapp2_query_init_flag())
-		Sapp2_exit();
+		Sapp2_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP3
 	if (Sapp3_query_init_flag())
-		Sapp3_exit();
+		Sapp3_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP4
 	if (Sapp4_query_init_flag())
-		Sapp4_exit();
+		Sapp4_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP5
 	if (Sapp5_query_init_flag())
-		Sapp5_exit();
+		Sapp5_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP6
 	if (Sapp6_query_init_flag())
-		Sapp6_exit();
+		Sapp6_exit(draw);
 	#endif
 	#ifdef DEF_ENABLE_SUB_APP7
 	if (Sapp7_query_init_flag())
-		Sapp7_exit();
+		Sapp7_exit(draw);
 	#endif
 	if (Sem_query_init_flag())
 		Sem_exit();
@@ -366,8 +366,6 @@ void Menu_exit(void)
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_hid_thread, DEF_THREAD_WAIT_TIME));
 	threadFree(menu_worker_thread);
 	threadFree(menu_check_connectivity_thread);
-	threadFree(menu_send_app_info_thread);
-	threadFree(menu_update_thread);
 	threadFree(menu_hid_thread);
 
 	Util_remove_watch(&menu_must_exit);
@@ -445,14 +443,14 @@ void Menu_main(void)
 
 			Draw_screen_ready(1, back_color);
 
-			#ifdef DEF_ENABLE_SUB_APP0
+			#ifdef DEF_ENABLE_VID
 			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 60, 60);
 
 			#ifdef DEF_VID_ENABLE_ICON
 			Draw_texture(menu_icon_image[0], 0, 0, 60, 60);
 			#endif
 			#ifdef DEF_VID_ENABLE_NAME
-			Draw(DEF_VID_NAME, 0, 0, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_VID_NAME, 0, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Vid_query_init_flag())
@@ -468,7 +466,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[1], 80, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw(DEF_SAPP1_NAME, 80, 0, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp1_query_init_flag())
@@ -484,7 +482,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[2], 160, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP2_ENABLE_NAME
-			Draw(DEF_SAPP2_NAME, 160, 0, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp2_query_init_flag())
@@ -500,7 +498,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[3], 240, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP3_ENABLE_NAME
-			Draw(DEF_SAPP3_NAME, 240, 0, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp3_query_init_flag())
@@ -516,7 +514,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[4], 0, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP4_ENABLE_NAME
-			Draw(DEF_SAPP4_NAME, 0, 80, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp4_query_init_flag())
@@ -532,7 +530,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[5], 80, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP5_ENABLE_NAME
-			Draw(DEF_SAPP5_NAME, 80, 80, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp5_query_init_flag())
@@ -548,7 +546,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[6], 160, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP6_ENABLE_NAME
-			Draw(DEF_SAPP6_NAME, 160, 80, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp6_query_init_flag())
@@ -564,7 +562,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[7], 240, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP7_ENABLE_NAME
-			Draw(DEF_SAPP7_NAME, 240, 80, 0.425, 0.425, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp7_query_init_flag())
@@ -580,7 +578,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[8 + var_night_mode], 260, 170, 60, 60);
 			#endif
 			#ifdef DEF_SEM_ENABLE_NAME
-			Draw(DEF_SEM_NAME, 270, 205, 0.425, 0.425, color);
+			Draw(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
 			#endif
 
 			if(Util_err_query_error_show_flag())
@@ -593,99 +591,99 @@ void Menu_main(void)
 		else
 			gspWaitForVBlank();
 
-		#ifdef DEF_ENABLE_SUB_APP0
+		#ifdef DEF_ENABLE_VID
 		if(menu_init_request[0])
 		{
-			Vid_init();
+			Vid_init(true);
 			menu_init_request[0] = false;
 		}
 		else if(menu_exit_request[0])
 		{
-			Vid_exit();
+			Vid_exit(true);
 			menu_exit_request[0] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP1
 		if(menu_init_request[1])
 		{
-			Sapp1_init();
+			Sapp1_init(true);
 			menu_init_request[1] = false;
 		}
 		else if(menu_exit_request[1])
 		{
-			Sapp1_exit();
+			Sapp1_exit(true);
 			menu_exit_request[1] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP2
 		if(menu_init_request[2])
 		{
-			Sapp2_init();
+			Sapp2_init(true);
 			menu_init_request[2] = false;
 		}
 		else if(menu_exit_request[2])
 		{
-			Sapp2_exit();
+			Sapp2_exit(true);
 			menu_exit_request[2] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP3
 		if(menu_init_request[3])
 		{
-			Sapp3_init();
+			Sapp3_init(true);
 			menu_init_request[3] = false;
 		}
 		else if(menu_exit_request[3])
 		{
-			Sapp3_exit();
+			Sapp3_exit(true);
 			menu_exit_request[3] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP4
 		if(menu_init_request[4])
 		{
-			Sapp4_init();
+			Sapp4_init(true);
 			menu_init_request[4] = false;
 		}
 		else if(menu_exit_request[4])
 		{
-			Sapp4_exit();
+			Sapp4_exit(true);
 			menu_exit_request[4] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP5
 		if(menu_init_request[5])
 		{
-			Sapp5_init();
+			Sapp5_init(true);
 			menu_init_request[5] = false;
 		}
 		else if(menu_exit_request[5])
 		{
-			Sapp5_exit();
+			Sapp5_exit(true);
 			menu_exit_request[5] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP6
 		if(menu_init_request[6])
 		{
-			Sapp6_init();
+			Sapp6_init(true);
 			menu_init_request[6] = false;
 		}
 		else if(menu_exit_request[6])
 		{
-			Sapp6_exit();
+			Sapp6_exit(true);
 			menu_exit_request[6] = false;
 		}
 		#endif
 		#ifdef DEF_ENABLE_SUB_APP7
 		if(menu_init_request[7])
 		{
-			Sapp7_init();
+			Sapp7_init(true);
 			menu_init_request[7] = false;
 		}
 		else if(menu_exit_request[7])
 		{
-			Sapp7_exit();
+			Sapp7_exit(true);
 			menu_exit_request[7] = false;
 		}
 		#endif
@@ -695,7 +693,7 @@ void Menu_main(void)
 			menu_init_request[8] = false;
 		}
 	}
-	#ifdef DEF_ENABLE_SUB_APP0
+	#ifdef DEF_ENABLE_VID
 	else if (Vid_query_running_flag())
 		Vid_main();
 	#endif
@@ -767,17 +765,25 @@ void Menu_hid_thread(void* arg)
 								menu_check_exit_request = true;
 							else if (key.p_select)
 								Util_log_set_log_show_flag(!Util_log_query_log_show_flag());
-							#ifdef DEF_ENABLE_SUB_APP0
+							#ifdef DEF_ENABLE_VID
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[0]) && Vid_query_init_flag())
 								menu_sapp_close_button[0].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[0]) && Vid_query_init_flag() && menu_sapp_close_button[0].selected)
+							{
 								menu_exit_request[0] = true;
+								while(menu_exit_request[0])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
 								menu_sapp_button[0].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[0]) && menu_sapp_button[0].selected)
 							{
 								if (!Vid_query_init_flag())
+								{
 									menu_init_request[0] = true;
+									while(menu_init_request[0])
+										usleep(20000);
+								}
 								else
 									Vid_resume();
 							}
@@ -786,13 +792,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag())
 								menu_sapp_close_button[1].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[1]) && Sapp1_query_init_flag() && menu_sapp_close_button[1].selected)
+							{
 								menu_exit_request[1] = true;
+								while(menu_exit_request[1])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
 								menu_sapp_button[1].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[1]) && menu_sapp_button[1].selected)
 							{
 								if (!Sapp1_query_init_flag())
+								{
 									menu_init_request[1] = true;
+									while(menu_init_request[1])
+										usleep(20000);
+								}
 								else
 									Sapp1_resume();
 							}
@@ -801,13 +815,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag())
 								menu_sapp_close_button[2].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[2]) && Sapp2_query_init_flag() && menu_sapp_close_button[2].selected)
+							{
 								menu_exit_request[2] = true;
+								while(menu_exit_request[2])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
 								menu_sapp_button[2].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[2]) && menu_sapp_button[2].selected)
 							{
 								if (!Sapp2_query_init_flag())
+								{
 									menu_init_request[2] = true;
+									while(menu_init_request[2])
+										usleep(20000);
+								}
 								else
 									Sapp2_resume();
 							}
@@ -816,13 +838,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag())
 								menu_sapp_close_button[3].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[3]) && Sapp3_query_init_flag() && menu_sapp_close_button[3].selected)
+							{
 								menu_exit_request[3] = true;
+								while(menu_exit_request[3])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
 								menu_sapp_button[3].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[3]) && menu_sapp_button[3].selected)
 							{
 								if (!Sapp3_query_init_flag())
+								{
 									menu_init_request[3] = true;
+									while(menu_init_request[3])
+										usleep(20000);
+								}
 								else
 									Sapp3_resume();
 							}
@@ -831,13 +861,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag())
 								menu_sapp_close_button[4].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[4]) && Sapp4_query_init_flag() && menu_sapp_close_button[4].selected)
+							{
 								menu_exit_request[4] = true;
+								while(menu_exit_request[4])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
 								menu_sapp_button[4].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[4]) && menu_sapp_button[4].selected)
 							{
 								if (!Sapp4_query_init_flag())
+								{
 									menu_init_request[4] = true;
+									while(menu_init_request[4])
+										usleep(20000);
+								}
 								else
 									Sapp4_resume();
 							}
@@ -846,13 +884,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag())
 								menu_sapp_close_button[5].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[5]) && Sapp5_query_init_flag() && menu_sapp_close_button[5].selected)
+							{
 								menu_exit_request[5] = true;
+								while(menu_exit_request[5])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
 								menu_sapp_button[5].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[5]) && menu_sapp_button[5].selected)
 							{
 								if (!Sapp5_query_init_flag())
+								{
 									menu_init_request[5] = true;
+									while(menu_init_request[5])
+										usleep(20000);
+								}
 								else
 									Sapp5_resume();
 							}
@@ -861,13 +907,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag())
 								menu_sapp_close_button[6].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[6]) && Sapp6_query_init_flag() && menu_sapp_close_button[6].selected)
+							{
 								menu_exit_request[6] = true;
+								while(menu_exit_request[6])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
 								menu_sapp_button[6].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[6]) && menu_sapp_button[6].selected)
 							{
 								if (!Sapp6_query_init_flag())
+								{
 									menu_init_request[6] = true;
+									while(menu_init_request[6])
+										usleep(20000);
+								}
 								else
 									Sapp6_resume();
 							}
@@ -876,13 +930,21 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_pressed(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag())
 								menu_sapp_close_button[7].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_close_button[7]) && Sapp7_query_init_flag() && menu_sapp_close_button[7].selected)
+							{
 								menu_exit_request[7] = true;
+								while(menu_exit_request[7])
+									usleep(20000);
+							}
 							else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
 								menu_sapp_button[7].selected = true;
 							else if (Util_hid_is_released(key, menu_sapp_button[7]) && menu_sapp_button[7].selected)
 							{
 								if (!Sapp7_query_init_flag())
+								{
 									menu_init_request[7] = true;
+									while(menu_init_request[7])
+										usleep(20000);
+								}
 								else
 									Sapp7_resume();
 							}
@@ -892,7 +954,11 @@ void Menu_hid_thread(void* arg)
 							else if (Util_hid_is_released(key, menu_sem_button) && menu_sem_button.selected)
 							{
 								if (!Sem_query_init_flag())
+								{
 									menu_init_request[8] = true;
+									while(menu_init_request[8])
+										usleep(20000);
+								}
 								else
 									Sem_resume();
 							}
@@ -914,7 +980,7 @@ void Menu_hid_thread(void* arg)
 						Util_log_main(key);
 				}
 			}
-			#ifdef DEF_ENABLE_SUB_APP0
+			#ifdef DEF_ENABLE_VID
 			else if (Vid_query_running_flag())
 				Vid_hid(key);
 			#endif

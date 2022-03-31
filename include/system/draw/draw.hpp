@@ -294,6 +294,23 @@ void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size)
  * @param y (in) Y position.
  * @param x_size (in) Texture size for X direction.
  * @param y_size (in) Texture size for Y direction.
+ * @param angle (in) Texture angle.
+ * @param center_x (in) Center of texture for X direction (used to rotate texture).
+ * @param center_y (in) Center of texture for Y direction (used to rotate texture).
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
+
+/**
+ * @brief Draw texture.
+ * Do nothing if draw api is not initialized.
+ * @param image (in) C2D Texture data.
+ * @param abgr8888 (in) Texture color.
+ * @param x (in) X position.
+ * @param y (in) Y position.
+ * @param x_size (in) Texture size for X direction.
+ * @param y_size (in) Texture size for Y direction.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
@@ -325,6 +342,23 @@ void Draw_texture(Image_data* image, float x, float y, float x_size, float y_siz
  * @warning Call it from only drawing thread.
 */
 void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size);
+
+/**
+ * @brief Draw texture.
+ * Do nothing if draw api is not initialized.
+ * @param image (in&out) Texture data.
+ * @param abgr8888 (in) Texture color.
+ * @param x (in) X position.
+ * @param y (in) Y position.
+ * @param x_size (in) Texture size for X direction.
+ * @param y_size (in) Texture size for Y direction.
+ * @param angle (in) Texture angle.
+ * @param center_x (in) Center of texture for X direction (used to rotate texture).
+ * @param center_y (in) Center of texture for Y direction (used to rotate texture).
+ * @warning Thread dangerous (untested)
+ * @warning Call it from only drawing thread.
+*/
+void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
 
 /**
  * @brief Draw line.

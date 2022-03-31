@@ -73,6 +73,17 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
 Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height);
 
 /**
+ * @brief Convert RGB8888BE to RGB8888LE.
+ * @param rgb8888 (in&out) Pointer for rgb888 data.
+ * @param width (in) Picture width.
+ * @param height (in) Picture height.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int width, int height);
+
+/**
  * @brief Convert RGB888BE to RGB888LE.
  * @param rgb888 (in&out) Pointer for rgb888 data.
  * @param width (in) Picture width.

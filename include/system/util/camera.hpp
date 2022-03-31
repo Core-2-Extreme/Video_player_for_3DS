@@ -33,6 +33,69 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 Result_with_string Util_cam_set_resolution(int width, int height);
 
 /**
+ * @brief Set framerate.
+ * @param fps_mode (in) Framerate mode (DEF_CAM_FPS_*).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_fps(int fps_mode);
+
+/**
+ * @brief Set contrast.
+ * @param contrast_mode (in) Contrast mode (DEF_CAM_CONTRAST_*).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_contrast(int contrast_mode);
+
+/**
+ * @brief Set white balance.
+ * @param white_balance_mode (in) White balance mode (DEF_CAM_WHITE_BALANCE_*).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_white_balance(int white_balance_mode);
+
+/**
+ * @brief Set lens correction.
+ * @param lens_correction_mode (in) Lens correction mode (DEF_CAM_LENS_CORRECTION_*).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_lens_correction(int lens_correction_mode);
+
+/**
+ * @brief Set camera.
+ * @param camera_mode (in) Camera mode (DEF_CAM_*).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_camera(int camera_mode);
+
+/**
+ * @brief Set exposure.
+ * @param exposure_mode (in) Exposure mode (0 ~ 5).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_exposure(int exposure_mode);
+
+/**
+ * @brief Set noise filter.
+ * @param noise_filter_mode (in) When true, noise filter will be turned on otherwise off.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_* or Nintendo API's error.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_cam_set_noise_filter(bool noise_filter_mode);
+
+/**
  * @brief Uninitialize a camera.
  * Do nothing if camera api is not initialized.
  * @warning Thread dangerous (untested)

@@ -157,6 +157,23 @@ std::string Util_encode_to_escape(std::string in_data);
 Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], int num_of_msg);
 
 /**
+ * @brief Encode to base64.
+ * @param source (in) Source data.
+ * @param size (in) Source data size.
+ * @return Encoded string,
+ * @note Thread safe
+*/
+std::string Util_encode_to_base64(char* source, int size);
+
+/**
+ * @brief Decode from base64.
+ * @param source (in) Source string.
+ * @return Decoded string,
+ * @note Thread safe
+*/
+std::string Util_decode_from_base64(std::string source);
+
+/**
  * @brief Initialize a safe linear alloc API.
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_* or Nintendo API's error.

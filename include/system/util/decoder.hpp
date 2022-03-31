@@ -389,11 +389,26 @@ void Util_decoder_close_file(int session);
 /**
  * @brief Decode image file.
  * @param file_path (in) File path.
- * @param raw_data (out) Pointer for raw image (RGB888LE), the pointer will be allocated inside of function.
+ * @param raw_data (out) Pointer for raw image (RGB888BE or RGBA8888BE), the pointer will be allocated inside of function.
  * @param width (out) Image width.
  * @param height (out) Image height.
+ * @param alpha (in) When true, raw_data will be RGBA8888BE otherwise RGB888BE.
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_decoder_decode(std::string file_path, u8** raw_data, int* width, int* height);
+Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_data, int* width, int* height, bool alpha);
+
+/**
+ * @brief Decode image file.
+ * @param compressed_data (in) Compressed data (.png, .jpg etc...).
+ * @param compressed_buffer_size (in) Compressed data size.
+ * @param raw_data (out) Pointer for raw image (RGB888BE or RGBA8888BE), the pointer will be allocated inside of function.
+ * @param width (out) Image width.
+ * @param height (out) Image height.
+ * @param alpha (in) When true, raw_data will be RGBA8888BE otherwise RGB888BE.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_image_decoder_decode(u8* compressed_data, int compressed_buffer_size, u8** raw_data, int* width, int* height, bool alpha);

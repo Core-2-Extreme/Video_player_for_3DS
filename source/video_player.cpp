@@ -1647,26 +1647,19 @@ void Vid_decode_thread(void* arg)
 						//(+ raw_picture_size * num_of_thread if hw decoding is not enabled)
 						free_ram -= (vid_codec_width * vid_codec_height * 1.5 * (vid_video_info.thread_type != DEF_DECODER_THREAD_TYPE_NONE ? vid_num_of_threads : 1));
 						max_buffer = free_ram / (vid_codec_width * vid_codec_height * 1.5) / vid_num_of_video_tracks;
+						if(vid_num_of_video_tracks >= 2)
+							max_buffer /= 2;
 					}
 
 					if(max_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 						max_buffer = DEF_DECODER_MAX_RAW_IMAGE;
-					if(max_buffer < 3)
+					if(max_buffer < 1)
 					{
 						result.code = DEF_ERR_OUT_OF_LINEAR_MEMORY;
 						result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
 						vid_play_request = false;
 					}
-					else
-					{
-						if(vid_hw_decoding_mode)
-							Util_mvd_video_decoder_set_raw_image_buffer_size(max_buffer, 0);
-						else
-						{
-							for(int i = 0; i < vid_num_of_video_tracks; i++)
-								Util_video_decoder_set_raw_image_buffer_size(max_buffer, i, 0);
-						}
-					}
+
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "max raw buffer(per track) : " + std::to_string(max_buffer));
 				}
 
@@ -2070,9 +2063,19 @@ void Vid_decode_video_thread(void* arg)
 							{
 								osTickCounterUpdate(&counter);
 								if(vid_hw_decoding_mode)
-									result = Util_mvd_video_decoder_decode(0);
+								{
+									if((int)Util_check_free_linear_space() > (1024 * 1024 * 6) + (vid_video_info.width * vid_video_info.height * 2 * 2) || Util_mvd_video_decoder_get_available_raw_image_num(0) == 0)
+										result = Util_mvd_video_decoder_decode(0);
+									else
+										result.code = DEF_ERR_TRY_AGAIN;
+								}
 								else
-									result = Util_video_decoder_decode(packet_index, 0);
+								{
+									if((int)Util_check_free_linear_space() > (1024 * 1024 * 6) + (vid_video_info.width * vid_video_info.height * 1.5 * 2) || Util_video_decoder_get_available_raw_image_num(packet_index, 0) == 0)
+										result = Util_video_decoder_decode(packet_index, 0);
+									else
+										result.code = DEF_ERR_TRY_AGAIN;
+								}
 								osTickCounterUpdate(&counter);
 
 								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || vid_clear_raw_buffer_request[1])

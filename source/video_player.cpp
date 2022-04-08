@@ -1702,6 +1702,14 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 
+				//Allow sleep if headset is not connected
+				if(!osIsHeadsetConnected() && !aptIsSleepAllowed())
+					aptSetSleepAllowed(true);
+
+				//Disallow sleep if headset is connected
+				if(osIsHeadsetConnected() && aptIsSleepAllowed())
+					aptSetSleepAllowed(false);
+
 				if(num_of_video_tracks < 1 && vid_pause_request)
 				{
 					Util_speaker_pause(0);

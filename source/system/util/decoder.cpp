@@ -1733,7 +1733,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		if(source_offset + size > util_video_decoder_packet[session][0]->size || size < 0)
 		{
 			Util_log_save("debug", "unexpected nal size : " + std::to_string(size));
-			break;
+			goto ffmpeg_api_failed;
 		}
 		
 		//set nal prefix 0x0 0x0 0x1

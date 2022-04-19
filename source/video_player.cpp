@@ -1766,6 +1766,8 @@ void Vid_decode_thread(void* arg)
 				{
 					Util_speaker_clear_buffer(0);
 
+					vid_eof = false;
+					vid_read_packet_request = true;
 					vid_clear_cache_packet_request = true;
 					while (vid_clear_cache_packet_request && vid_play_request && !vid_change_video_request)
 						usleep(10000);
@@ -1776,15 +1778,10 @@ void Vid_decode_thread(void* arg)
 						while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
 							usleep(10000);
 					}
-										
-					if(result.code == 0)
-					{
-						vid_eof = false;
-						vid_read_packet_request = true;
-						vid_seek_adjust_request = true;
-						//sometimes cached previous frames so ignore first 4 (+ num_of_threads if frame threading is used) frames
-						wait_count = 4 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
-					}
+
+					vid_seek_adjust_request = true;
+					//sometimes cached previous frames so ignore first 4 (+ num_of_threads if frame threading is used) frames
+					wait_count = 4 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
 
 					vid_seek_request = false;
 				}

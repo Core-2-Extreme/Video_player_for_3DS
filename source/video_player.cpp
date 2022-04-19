@@ -1601,7 +1601,7 @@ void Vid_decode_thread(void* arg)
 			}
 
 			//Enter full screen mode if file has video track
-			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag())
+			if(num_of_video_tracks > 0 && !Util_err_query_error_show_flag() && !Util_expl_query_show_flag())
 			{
 				Vid_fit_to_screen(400, 240);
 				if(!vid_full_screen_mode)

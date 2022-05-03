@@ -1274,6 +1274,7 @@ void Vid_decode_thread(void* arg)
 	u32 read_size = 0;
 	std::string cache_file_name = "";
 	std::string cache = "";
+	std::string bar_pos = "";
 	TickCounter counter;
 	Result_with_string result;
 	osTickCounterStart(&counter);
@@ -1304,6 +1305,7 @@ void Vid_decode_thread(void* arg)
 			read_size = 0;
 			cache_file_name = "";
 			cache = vid_dir + vid_file;
+			bar_pos = "";
 			
 			Vid_init_variable();
 			vid_change_video_request = false;
@@ -1678,6 +1680,9 @@ void Vid_decode_thread(void* arg)
 			if(vid_num_of_video_tracks > 0)
 				Util_speaker_pause(0);
 			
+			if(num_of_video_tracks == 0 || vid_frametime == 0)
+				Util_add_watch(&bar_pos);
+
 			if(result.code != 0)
 			{
 				Util_err_set_error_message(result.string, result.error_description, DEF_VID_DECODE_THREAD_STR, result.code);
@@ -1854,7 +1859,10 @@ void Vid_decode_thread(void* arg)
 
 						//Get position from audio if video framerate is unknown or or file does not have video track
 						if((num_of_video_tracks == 0 || vid_frametime == 0) && !std::isnan(pos) && !std::isinf(pos))
+						{
 							vid_current_pos = vid_decoded_audio_pos - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
+							bar_pos = Util_convert_seconds_to_time((vid_current_pos - vid_frametime) / 1000);
+						}
 
 						Util_safe_linear_free(audio);
 						audio = NULL;
@@ -1912,8 +1920,11 @@ void Vid_decode_thread(void* arg)
 				while(Util_speaker_is_playing(0) && vid_play_request && !vid_change_video_request)
 				{
 					vid_current_audio_pos = vid_duration - (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_audio_info.ch / vid_audio_info.sample_rate * 1000);
-					if(num_of_video_tracks <= 0)
+					if(num_of_video_tracks == 0 || vid_frametime == 0)
+					{
 						vid_current_pos = vid_current_audio_pos;
+						bar_pos = Util_convert_seconds_to_time((vid_current_pos - vid_frametime) / 1000);
+					}
 
 					usleep(10000);
 				}
@@ -1960,6 +1971,9 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 			}
+
+			if(num_of_video_tracks == 0 || vid_frametime == 0)
+				Util_remove_watch(&bar_pos);
 
 			vid_pause_request = false;
 			vid_seek_adjust_request = false;

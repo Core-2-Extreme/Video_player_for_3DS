@@ -1715,7 +1715,8 @@ void Vid_decode_thread(void* arg)
 				if(osIsHeadsetConnected() && aptIsSleepAllowed())
 					aptSetSleepAllowed(false);
 
-				if(num_of_video_tracks < 1 && vid_pause_request)
+				//Handle pause request here if video framerate is unknown or file doesn't have video track
+				if((num_of_video_tracks < 1 || vid_frametime == 0) && vid_pause_request)
 				{
 					Util_speaker_pause(0);
 					aptSetSleepAllowed(true);

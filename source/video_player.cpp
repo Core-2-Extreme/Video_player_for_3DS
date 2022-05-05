@@ -1530,7 +1530,11 @@ void Vid_decode_thread(void* arg)
 								for(int s = 0; s < DEF_VID_BUFFERS; s++)
 								{
 									if(vid_image_enabled[i][s][k])
+									{
 										Draw_set_texture_filter(&vid_image[i][s][k], vid_linear_filter);
+										//Init texture buffer
+										memset(vid_image[i][s][k].c2d.tex->data, 0, vid_image[i][s][k].c2d.tex->width * vid_image[i][s][k].c2d.tex->height * 2);
+									}
 								}
 							}
 						}

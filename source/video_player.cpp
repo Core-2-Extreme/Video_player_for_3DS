@@ -1790,15 +1790,6 @@ void Vid_decode_thread(void* arg)
 				{
 					if(result.code != 0)
 						Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_decoder_parse_packet()..." + result.error_description, result.code);
-					//if remember video pos is set, save playback position
-					if((!vid_play_request || vid_change_video_request) && vid_remember_video_pos_mode)
-					{
-						saved_pos = vid_current_pos;
-						Util_log_save(DEF_VID_DECODE_THREAD_STR, "last pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
-						Util_file_save_to_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), true);
-					}
-					else if(vid_eof && vid_remember_video_pos_mode)//if playback end due to read packet error(EOF), remove saved time
-						Util_file_delete_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/");
 
 					break;
 				}
@@ -1895,7 +1886,17 @@ void Vid_decode_thread(void* arg)
 				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO)
 					Util_decoder_skip_video_packet(packet_index, 0);
 			}
-			
+
+			//if remember video pos is set, save playback position
+			if((!vid_play_request || vid_change_video_request) && vid_remember_video_pos_mode)
+			{
+				saved_pos = vid_current_pos;
+				Util_log_save(DEF_VID_DECODE_THREAD_STR, "last pos : " + Util_convert_seconds_to_time(saved_pos / 1000));
+				Util_file_save_to_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/", (u8*)(&saved_pos), sizeof(double), true);
+			}
+			else if(vid_eof && vid_remember_video_pos_mode)//if playback end due to read packet error(EOF), remove saved time
+				Util_file_delete_file(cache_file_name, DEF_MAIN_DIR + "saved_pos/");
+
 			//wait for read packet thread
 			vid_read_packet_request = false;
 			while(vid_read_packet_wait_request)

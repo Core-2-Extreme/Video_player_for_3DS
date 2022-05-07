@@ -2545,13 +2545,13 @@ void Vid_init_thread(void* arg)
 	vid_thread_run = true;
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
 	{
-		vid_num_of_threads = 1;
-		frame_cores[0] = false;
+		vid_num_of_threads = 2;
+		frame_cores[0] = true;
 		frame_cores[1] = true;
 		frame_cores[2] = var_core_2_available;
 		frame_cores[3] = var_core_3_available;
 
-		slice_cores[0] = false;
+		slice_cores[0] = true;
 		slice_cores[1] = true;
 		slice_cores[2] = false;
 		slice_cores[3] = var_core_3_available;

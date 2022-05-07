@@ -298,6 +298,13 @@ int tex_size_x, int tex_size_y, int color_format)
 	int tex_offset = 0;
 	int buffer_offset = 0;
 	Result_with_string result;
+#ifdef DEF_DRAW_USE_DMA
+	bool dma_result[4] = { false, false, false, false, };
+	int dma_count = 0;
+	Handle dma_handle[4] = { 0, 0, 0, 0, };
+	DmaConfig dma_config;
+#endif
+
 	if(!util_draw_init)
 		goto not_inited;
 
@@ -319,12 +326,46 @@ int tex_size_x, int tex_size_y, int color_format)
 	image->subtex->bottom = 1.0 - pic_height / (float)tex_size_y;
 	image->c2d.subtex = image->subtex;
 
-	for(int i = 0; i < pic_height / 8; i++)
+#ifdef DEF_DRAW_USE_DMA
+	dmaConfigInitDefault(&dma_config);
+#endif
+	for(int i = 0; i < pic_height / 8; i ++)
 	{
+#ifdef DEF_DRAW_USE_DMA
+		dma_result[dma_count] = svcStartInterProcessDma(&dma_handle[dma_count], CUR_PROCESS_HANDLE, (u32)((u8*)image->c2d.tex->data + tex_offset),
+		CUR_PROCESS_HANDLE, (u32)buf + buffer_offset, pic_width * 8 * pixel_size, &dma_config);
+		dma_count++;
+#else
 		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
+#endif
 		tex_offset += tex_size_x * pixel_size * 8;
 		buffer_offset += pic_width * pixel_size * 8;
+
+#ifdef DEF_DRAW_USE_DMA
+		if(dma_count > 3)
+		{
+			for(int k = 0; k < 4; k++)
+			{
+				if(dma_result[k] == 0)
+					svcWaitSynchronization(dma_handle[k], INT64_MAX);
+
+				svcCloseHandle(dma_handle[k]);
+				dma_result[k] = -1;
+			}
+			dma_count = 0;
+		}
+#endif
 	}
+
+#ifdef DEF_DRAW_USE_DMA
+	for(int k = 0; k < 4; k++)
+	{
+		if(dma_result[k] == 0)
+			svcWaitSynchronization(dma_handle[k], INT64_MAX);
+
+		svcCloseHandle(dma_handle[k]);
+	}
+#endif
 
 	C3D_TexFlush(image->c2d.tex);
 

@@ -2057,6 +2057,12 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	double current_frame = 0;
 	double timebase = 0;
 	Result_with_string result;
+#ifdef DEF_DECODER_USE_DMA
+	int dma_result[3] = { 0, 0, 0, };
+	Handle dma_handle[3] = { 0, 0, 0, };
+	DmaConfig dma_config;
+#endif
+
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
@@ -2093,9 +2099,26 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	else if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
+#ifdef DEF_DECODER_USE_DMA
+	dmaConfigInitDefault(&dma_config);
+
+	dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0], &dma_config);
+	dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (u32)*raw_data + (width * height), CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1], &dma_config);
+	dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (u32)*raw_data + (width * height) + (width * height / 4), CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], cpy_size[1], &dma_config);
+
+	for(int i = 0; i < 3; i++)
+	{
+		if(dma_result[i] == 0)
+			svcWaitSynchronization(dma_handle[i], INT64_MAX);
+	}
+
+	for(int i = 0; i < 3; i++)
+		svcCloseHandle(dma_handle[i]);
+#else
 	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0]);
 	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1]);
 	memcpy_asm(*raw_data + (width * height) + (width * height / 4), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], cpy_size[1]);
+#endif
 
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
 
@@ -2141,6 +2164,12 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	double current_frame = 0;
 	double timebase = 0;
 	Result_with_string result;
+#ifdef DEF_DECODER_USE_DMA
+	int dma_result = 0;
+	Handle dma_handle = 0;
+	DmaConfig dma_config;
+#endif
+
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
@@ -2201,10 +2230,32 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 				break;
 		}
 
+#ifdef DEF_DECODER_USE_DMA
+		dmaConfigInitDefault(&dma_config);
+		dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
+
+		if(dma_result == 0)
+			svcWaitSynchronization(dma_handle, INT64_MAX);
+
+		svcCloseHandle(dma_handle);
+#else
 		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
+#endif
 	}
 	else
+	{
+#ifdef DEF_DECODER_USE_DMA
+		dmaConfigInitDefault(&dma_config);
+		dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
+
+		if(dma_result == 0)
+			svcWaitSynchronization(dma_handle, INT64_MAX);
+
+		svcCloseHandle(dma_handle);
+#else
 		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
+#endif
+	}
 
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 

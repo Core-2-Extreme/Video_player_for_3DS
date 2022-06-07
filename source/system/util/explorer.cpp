@@ -416,6 +416,7 @@ void Util_expl_read_dir_thread(void* arg)
 	std::string name_of_dir[DEF_EXPL_MAX_FILES];
 	std::string name_of_file[DEF_EXPL_MAX_FILES];
 	std::string name_of_unknown[DEF_EXPL_MAX_FILES];
+	std::string name_cache[DEF_EXPL_MAX_FILES];
 	Result_with_string result;
 
 	for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
@@ -452,6 +453,7 @@ void Util_expl_read_dir_thread(void* arg)
 					name_of_dir[i] = "";
 					name_of_file[i] = "";
 					name_of_unknown[i] = "";
+					name_cache[i] = "";
 					dir_type[DEF_EXPL_MAX_FILES] = DEF_EXPL_TYPE_UNKNOWN;
 					file_type[DEF_EXPL_MAX_FILES] = DEF_EXPL_TYPE_UNKNOWN;
 				}
@@ -487,10 +489,6 @@ void Util_expl_read_dir_thread(void* arg)
 					}
 				}
 
-				std::sort(begin(name_of_dir), begin(name_of_dir) + num_of_dir);
-				std::sort(begin(name_of_file), begin(name_of_file) + num_of_file);
-				std::sort(begin(name_of_unknown), begin(name_of_unknown) + num_of_unknown);
-
 				for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
 				{
 					util_expl_files[i] = "";
@@ -507,23 +505,54 @@ void Util_expl_read_dir_thread(void* arg)
 				else
 					num_offset = 0;
 
+				//Directories
+				for(int i = 0; i < num_of_dir; i++)
+					name_cache[i] = name_of_dir[i];
+
+				std::sort(begin(name_of_dir), begin(name_of_dir) + num_of_dir);
 				for (int i = 0; i < num_of_dir; i++)
 				{
 					index = i + num_offset;
-					util_expl_type[index] = dir_type[i];
 					util_expl_files[index] = name_of_dir[i];
+					for(int k = 0; k < num_of_dir; k++)
+					{
+						if(name_of_dir[i] == name_cache[k])
+						{
+							util_expl_type[index] = dir_type[k];
+							break;
+						}
+					}
 				}
+
+				//Files
+				for(int i = 0; i < num_of_file; i++)
+					name_cache[i] = name_of_file[i];
+
+				std::sort(begin(name_of_file), begin(name_of_file) + num_of_file);
 				for (int i = 0; i < num_of_file; i++)
 				{
 					index = i + num_of_dir + num_offset;
-					util_expl_type[index] = file_type[i];
 					util_expl_files[index] = name_of_file[i];
+					for(int k = 0; k < num_of_file; k++)
+					{
+						if(name_of_file[i] == name_cache[k])
+						{
+							util_expl_type[index] = file_type[k];
+							break;
+						}
+					}
 				}
+
+				//Unknowns
+				for(int i = 0; i < num_of_unknown; i++)
+					name_cache[i] = name_of_unknown[i];
+
+				std::sort(begin(name_of_unknown), begin(name_of_unknown) + num_of_unknown);
 				for (int i = 0; i < num_of_unknown; i++)
 				{
 					index = i + num_of_dir + num_of_file + num_offset;
-					util_expl_type[index] = DEF_EXPL_TYPE_UNKNOWN;
 					util_expl_files[index] = name_of_unknown[i];
+					util_expl_type[index] = DEF_EXPL_TYPE_UNKNOWN;
 				}
 			}
 			else

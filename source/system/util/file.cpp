@@ -532,13 +532,13 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 		file_name[count] = utf8_file_name;
 
 		type[count] = 0;
-		if (fs_entry.attributes == FS_ATTRIBUTE_HIDDEN)
+		if (fs_entry.attributes & FS_ATTRIBUTE_HIDDEN)
 			type[count] |= DEF_FILE_TYPE_HIDDEN;
-		else if (fs_entry.attributes == FS_ATTRIBUTE_DIRECTORY)
+		if (fs_entry.attributes & FS_ATTRIBUTE_DIRECTORY)
 			type[count] |= DEF_FILE_TYPE_DIR;
-		else if (fs_entry.attributes == FS_ATTRIBUTE_ARCHIVE)
+		if (fs_entry.attributes & FS_ATTRIBUTE_ARCHIVE)
 			type[count] |= DEF_FILE_TYPE_FILE;
-		else if (fs_entry.attributes == FS_ATTRIBUTE_READ_ONLY)
+		if (fs_entry.attributes & FS_ATTRIBUTE_READ_ONLY)
 			type[count] |= DEF_FILE_TYPE_READ_ONLY;
 
 		count++;

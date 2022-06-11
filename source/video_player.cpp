@@ -2241,7 +2241,15 @@ void Vid_convert_thread(void* arg)
 						if(vid_hw_decoding_mode)
 							Util_mvd_video_decoder_skip_image(&pos, 0);
 						else
-							Util_video_decoder_skip_image(&pos, packet_index, 0);
+						{
+							if(vid_num_of_video_tracks == 2)
+							{
+								Util_video_decoder_skip_image(&pos, 0, 0);
+								Util_video_decoder_skip_image(&pos, 1, 0);
+							}
+							else
+								Util_video_decoder_skip_image(&pos, packet_index, 0);
+						}
 
 						if(!std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos;
@@ -2414,37 +2422,40 @@ void Vid_convert_thread(void* arg)
 					osTickCounterUpdate(&counter[3]);
 					vid_time[1][319] = osTickCounterRead(&counter[3]);
 
-					sleep_time_ms = (vid_frametime - vid_time[1][319]);
-					if(vid_num_of_audio_tracks > 0 && Util_speaker_get_available_buffer_num(0) > 0)
+					if(packet_index == 0)
 					{
-						//If audio is late, add extra sleep time to sync with audio
-						if((vid_current_pos - vid_frametime) - vid_current_audio_pos > 0)
-							sleep_time_ms += (vid_current_pos - vid_frametime) - vid_current_audio_pos > vid_frametime ? vid_frametime : (vid_current_pos - vid_frametime) - vid_current_audio_pos;
-						//If video is late, reduce sleep time to sync with audio
-						else if(vid_current_audio_pos - (vid_current_pos - vid_frametime) > 0)
-							sleep_time_ms -= vid_current_audio_pos - (vid_current_pos - vid_frametime) > vid_frametime ? vid_frametime : vid_current_audio_pos - (vid_current_pos - vid_frametime);
-					}
-					
-					if(sleep_time_ms > 0 && vid_frametime != 0)
-					{
-						if(skip > 0 && sleep_time_ms > skip)
+						sleep_time_ms = (vid_frametime - vid_time[1][319]);
+						if(vid_num_of_audio_tracks > 0 && Util_speaker_get_available_buffer_num(0) > 0)
 						{
-							sleep_time_ms -= skip;
-							skip = 0;
+							//If audio is late, add extra sleep time to sync with audio
+							if((vid_current_pos - vid_frametime) - vid_current_audio_pos > 0)
+								sleep_time_ms += (vid_current_pos - vid_frametime) - vid_current_audio_pos > vid_frametime ? vid_frametime : (vid_current_pos - vid_frametime) - vid_current_audio_pos;
+							//If video is late, reduce sleep time to sync with audio
+							else if(vid_current_audio_pos - (vid_current_pos - vid_frametime) > 0)
+								sleep_time_ms -= vid_current_audio_pos - (vid_current_pos - vid_frametime) > vid_frametime ? vid_frametime : vid_current_audio_pos - (vid_current_pos - vid_frametime);
 						}
-						else if(skip > 0)
+						
+						if(sleep_time_ms > 0 && vid_frametime != 0)
 						{
-							skip -= sleep_time_ms;
-							sleep_time_ms = 0;
-						}
+							if(skip > 0 && sleep_time_ms > skip)
+							{
+								sleep_time_ms -= skip;
+								skip = 0;
+							}
+							else if(skip > 0)
+							{
+								skip -= sleep_time_ms;
+								sleep_time_ms = 0;
+							}
 
-						osTickCounterUpdate(&counter[4]);
-						usleep(sleep_time_ms * 1000);
-						osTickCounterUpdate(&counter[4]);
-						skip -= sleep_time_ms - osTickCounterRead(&counter[4]);
+							osTickCounterUpdate(&counter[4]);
+							usleep(sleep_time_ms * 1000);
+							osTickCounterUpdate(&counter[4]);
+							skip -= sleep_time_ms - osTickCounterRead(&counter[4]);
+						}
+						else if(vid_frametime != 0)
+							skip -= sleep_time_ms;
 					}
-					else if(vid_frametime != 0)
-						skip -= sleep_time_ms;
 				}
 			}
 			vid_convert_wait_request = false;

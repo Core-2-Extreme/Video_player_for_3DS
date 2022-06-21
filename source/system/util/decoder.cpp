@@ -2119,6 +2119,8 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 
 	for(int i = 0; i < 3; i++)
 		svcCloseHandle(dma_handle[i]);
+
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size[0] + (cpy_size[1] * 2));
 #else
 	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0]);
 	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1]);
@@ -2243,6 +2245,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 			svcWaitSynchronization(dma_handle, INT64_MAX);
 
 		svcCloseHandle(dma_handle);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
 #else
 		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 #endif
@@ -2257,6 +2260,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 			svcWaitSynchronization(dma_handle, INT64_MAX);
 
 		svcCloseHandle(dma_handle);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
 #else
 		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 #endif

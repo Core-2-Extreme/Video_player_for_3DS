@@ -55,6 +55,32 @@ void Menu_check_connectivity_thread(void* arg);
 void Menu_worker_thread(void* arg);
 void Menu_update_thread(void* arg);
 
+Result_with_string Menu_update_main_directory(void)
+{
+	std::string old_main_dir = "/Video_player";
+	std::string new_main_dir = (DEF_MAIN_DIR).substr(0, (DEF_MAIN_DIR).length() - 1);
+	Handle fs_handle = 0;
+	FS_Archive archive = 0;
+	Result_with_string result;
+
+	FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if(FSUSER_OpenDirectory(&fs_handle, archive, fsMakePath(PATH_ASCII, old_main_dir.c_str())) == 0)
+	{
+		FSDIR_Close(fs_handle);
+		result.code = FSUSER_RenameDirectory(archive, fsMakePath(PATH_ASCII, old_main_dir.c_str()), archive, fsMakePath(PATH_ASCII, new_main_dir.c_str()));
+	}
+	FSUSER_CloseArchive(archive);
+
+	if(result.code != 0)
+	{
+		result.code = DEF_ERR_OTHER;
+		result.string = "[Error] Failed to move app data directory.";
+		result.error_description = old_main_dir + " -> " + new_main_dir + "\nThis may be because destination directory is already exist.";
+	}
+
+	return result;
+}
+
 bool Menu_query_must_exit_flag(void)
 {
 	return menu_must_exit;
@@ -94,7 +120,7 @@ void Menu_init(void)
 	u8 model = 0;
 	u32 read_size = 0;
 	Thread core_2, core_3;
-	Result_with_string result;
+	Result_with_string result, update_main_dir_result;
 
 	result = Util_log_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_log_init()...", result.code);
@@ -116,6 +142,9 @@ void Menu_init(void)
 
 	result = Util_safe_linear_alloc_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_safe_linear_alloc_init()...", result.code);
+
+	//Move data directory.
+	update_main_dir_result = Menu_update_main_directory();
 
 	//create directory
 	Util_file_save_to_file(".", DEF_MAIN_DIR, &dummy, 1, true);
@@ -183,6 +212,13 @@ void Menu_init(void)
 
 	result = Util_err_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
+
+	if(update_main_dir_result.code != 0)
+	{
+		//We need to call error api after calling Util_err_init().
+		Util_err_set_error_message(update_main_dir_result.string, update_main_dir_result.error_description, DEF_MENU_INIT_STR, update_main_dir_result.code);
+		Util_err_set_error_show_flag(true);
+	}
 
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);

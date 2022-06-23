@@ -2,7 +2,10 @@
 
 bool util_draw_init = false;
 bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
-double util_draw_frametime[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
+double util_draw_frametime = 0;
+int util_draw_rendered_frames = 0;
+int util_draw_rendered_frames_cache = 0;
+u64 util_draw_reset_fps_counter_time = 0;
 std::string util_draw_part_text[2][1024];
 C2D_Font util_draw_system_fonts[4];
 C3D_RenderTarget* util_draw_screen[3];
@@ -94,6 +97,7 @@ Result_with_string Draw_init(bool wide, bool _3d)
 		goto api_failed;
 
 	util_draw_bot_ui.c2d = var_square_image[0];
+	util_draw_reset_fps_counter_time = osGetTime() + 1000;
 	util_draw_init = true;
 	return result;
 
@@ -194,19 +198,15 @@ double Draw_query_frametime(void)
 	if(!util_draw_init)
 		return 0;
 	else
-		return util_draw_frametime[9];
+		return util_draw_frametime;
 }
 
 double Draw_query_fps(void)
 {
-	double cache = 0;
 	if(!util_draw_init)
 		return 0;
-	
-	for(int i = 0; i < 10; i++)
-		cache += util_draw_frametime[i];
-	
-	return 1000.0 / (cache / 10);
+	else
+		return util_draw_rendered_frames;
 }
 
 int Draw_convert_to_pos(int height, int width, int img_height, int img_width, int pixel_size)
@@ -1365,7 +1365,7 @@ void Draw_debug_info(void)
 	Draw("touch x: " + std::to_string(key.touch_x) + ", y: " + std::to_string(key.touch_y), 0, 140, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0, 150, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0, 160, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Frametime: " + std::to_string(util_draw_frametime[9]).substr(0, 6) + "ms", 0, 170, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Frametime: " + std::to_string(util_draw_frametime).substr(0, 6) + "ms", 0, 170, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("RAM: " + std::to_string(var_free_ram / 1024.0 / 1024.0).substr(0, 5) + " MB", 0, 180, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1024.0 / 1024.0).substr(0, 5) +" MB", 0, 190, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("Watch(bool): " + std::to_string(Util_get_watch_bool_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_BOOL_VARIABLES) + "(" + std::to_string((double)Util_get_watch_bool_usage() / DEF_DRAW_MAX_WATCH_BOOL_VARIABLES * 100).substr(0, 4)+ "%)", 0, 200, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
@@ -1485,7 +1485,13 @@ void Draw_apply_draw(void)
 
 	C3D_FrameEnd(0);
 	osTickCounterUpdate(&util_draw_frame_time_stopwatch);
-	util_draw_frametime[9] = osTickCounterRead(&util_draw_frame_time_stopwatch);
-	for(int i = 0; i < 9; i++)
-		util_draw_frametime[i] = util_draw_frametime[i + 1];
+	util_draw_frametime = osTickCounterRead(&util_draw_frame_time_stopwatch);
+
+	util_draw_rendered_frames_cache++;
+	if(osGetTime() >= util_draw_reset_fps_counter_time)
+	{
+		util_draw_rendered_frames = util_draw_rendered_frames_cache;
+		util_draw_rendered_frames_cache = 0;
+		util_draw_reset_fps_counter_time = osGetTime() + 1000;
+	}
 }

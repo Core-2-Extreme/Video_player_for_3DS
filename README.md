@@ -1,6 +1,6 @@
 # Video player for 3DS
 
-[Discord channel](https://discord.gg/MMsAXvetpR)
+[Discord channel](https://discord.gg/MMsAXvetpR) \
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Patch note
@@ -103,6 +103,7 @@ you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 [How to convert your 3d video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
 ## Recommended resolution
+On NEW 3(2)DS, it is recommended to use [patched Luma3DS](https://github.com/Core-2-Extreme/Luma3DS/releases/) for better performance. \
 Videos that in this resolution will be played without any problems in most of the situations.
 |  Recommended resolution  | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
 | ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |

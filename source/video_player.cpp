@@ -33,7 +33,7 @@ bool vid_key_frame = false;
 bool vid_full_screen_mode = false;
 bool vid_hw_decoding_mode = false;
 bool vid_hw_color_conversion_mode = false;
-bool vid_correct_aspect_ratio_mode = false;
+bool vid_correct_aspect_ratio_mode = true;
 bool vid_remember_video_pos_mode = false;
 bool vid_show_decode_graph_mode = true;
 bool vid_show_color_conversion_graph_mode = true;
@@ -2744,7 +2744,7 @@ void Vid_init_thread(void* arg)
 		{
 			result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
-			out_data[9] = "0";
+			out_data[9] = "1";
 			out_data[10] = "0";
 			out_data[11] = "1";
 			out_data[12] = "0";
@@ -2758,7 +2758,7 @@ void Vid_init_thread(void* arg)
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[7] = "100";
 			out_data[8] = "10";
-			out_data[9] = "0";
+			out_data[9] = "1";
 			out_data[10] = "0";
 			out_data[11] = "1";
 			out_data[12] = "0";

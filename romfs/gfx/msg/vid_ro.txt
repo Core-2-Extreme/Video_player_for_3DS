@@ -40,3 +40,5 @@ modul ecran mare</12>
 <36>Disable audio : </36>
 <37>Disable video : </37>
 <38>Disable subtitle : </38>
+<39>Restart playback threshold : %d</39>
+<40>Processing video...</40>

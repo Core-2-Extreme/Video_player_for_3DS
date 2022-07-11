@@ -37,3 +37,5 @@
 <36>关闭音频 : </36>
 <37>关闭视频 : </37>
 <38>关闭字幕 : </38>
+<39>Restart playback threshold : %d</39>
+<40>Processing video...</40>

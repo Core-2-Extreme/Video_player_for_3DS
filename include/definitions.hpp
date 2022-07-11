@@ -38,7 +38,7 @@
 #define DEF_DRAW_USE_DMA
 
 //video player
-#define DEF_VID_NUM_OF_MSG 39
+#define DEF_VID_NUM_OF_MSG 41
 #define DEF_VID_ENABLE_ICON
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
@@ -84,6 +84,8 @@
 #define DEF_VID_DISABLE_AUDIO_MSG 36
 #define DEF_VID_DISABLE_VIDEO_MSG 37
 #define DEF_VID_DISABLE_SUBTITLE_MSG 38
+#define DEF_VID_RESTART_PLAYBACK_THRESHOLD_MSG 39
+#define DEF_VID_PROCESSING_VIDEO_MSG 40
 
 #define DEF_VID_MENU_NONE -1
 #define DEF_VID_MENU_SETTINGS_0 0

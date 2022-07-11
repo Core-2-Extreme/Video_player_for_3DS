@@ -1832,7 +1832,9 @@ void Vid_decode_thread(void* arg)
 						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, audio_track, 0);
 						osTickCounterUpdate(&counter);
 						vid_audio_time = osTickCounterRead(&counter);
-						usleep(5000);//Avoid color conversion thread to spike
+
+						if(!vid_out_of_raw_buffer && !vid_seek_request && !vid_seek_adjust_request && vid_num_of_video_tracks > 0 && vid_frametime != 0)
+							usleep(5000);//Avoid color conversion thread to spike
 
 						if(result.code == 0 && !vid_seek_adjust_request)
 						{
@@ -1863,7 +1865,7 @@ void Vid_decode_thread(void* arg)
 								usleep(2000);
 							}
 						}
-						else
+						else if(result.code != 0)
 							Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_decode()..." + result.string + result.error_description, result.code);
 
 						if(!std::isnan(pos) && !std::isinf(pos))

@@ -2285,7 +2285,7 @@ void Vid_convert_thread(void* arg)
 				}
 				else if((vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) == 0
 				: Util_video_decoder_get_available_raw_image_num(0, 0) == 0)
-				&& !(Util_decoder_get_available_packet_num(0) <= 0 && vid_eof))
+				&& !(Util_decoder_get_available_packet_num(0) <= 0 && vid_eof) && vid_num_of_video_tracks > 0 && vid_frametime != 0)
 				{
 					//We run out of raw buffer, pause video and wait for decoding.
 					vid_out_of_raw_buffer = true;
@@ -2310,7 +2310,7 @@ void Vid_convert_thread(void* arg)
 					osTickCounterUpdate(&counter[3]);
 					vid_out_of_raw_buffer = false;
 				}
-				else
+				else if(vid_num_of_video_tracks > 0)
 				{
 					while(true)
 					{

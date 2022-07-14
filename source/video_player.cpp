@@ -3481,6 +3481,7 @@ void Vid_main(void)
 					{
 						snprintf(msg_cache, 128, vid_msg[DEF_VID_RESTART_PLAYBACK_THRESHOLD_MSG].c_str(), vid_restart_playback_threshold);
 						Draw(msg_cache, 12.5, y_offset + vid_ui_y_offset - 15, 0.5, 0.5, color);
+						Draw_texture(var_square_image[0], DEF_DRAW_WEAK_BLACK, 12.5, y_offset + vid_ui_y_offset + 7.5, 300, 5);
 						Draw_texture(&vid_restart_playback_threshold_bar, vid_restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED,
 						((double)vid_restart_playback_threshold / (DEF_DECODER_MAX_RAW_IMAGE - 1) * 290) + 12.5, y_offset + vid_ui_y_offset, 10, 20);
 					}

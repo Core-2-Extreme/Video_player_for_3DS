@@ -4,6 +4,34 @@
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Patch note
+### v1.5.1
+#### Added features
+Screen update frequency in audio only files have been increased \
+Performance has been improved by adding DMA \
+Video playback is automatically paused when runs out of buffer \
+(You can change threshold by changing 'Restart playback threshold' settings) \
+Seeking speed has been improved
+
+### Changes
+Disallow sleep when only headset is connected \
+(allow sleep if headset is disconnected during playback) \
+App directory has been changed from sdmc:/Video_player/ to sdmc:/3ds/Video_player/ \
+(App will automatically move folder) \
+Simplified Chinese(简体中文) translation has been updated \
+Enabled 'correct aspect ratio option' by default
+
+#### Fixed bugs
+Crashes in hw decoder in some videos have been fixed \
+Automatically enter full screen mode even file explorer is opened has been fixed \
+App will freeze if you seek after EOF has been fixed \
+Unable to pause/resume in tagged mp3 has been fixed \
+Video position won't be saved in some cases have been fixed \
+Glitch on video in full screen mode has been fixed \
+Some directories can't be entered have been fixed \
+Some videos won't be played at correct speed has been fixed \
+Frame desync in some 3D videos have been fixed
+
+
 ### v1.5.0
 Subtitles have been supported (*0) \
 Disable video, audio and subtitle have been added \

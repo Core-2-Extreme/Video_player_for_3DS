@@ -12,7 +12,7 @@ Video playback is automatically paused when runs out of buffer \
 (You can change threshold by changing 'Restart playback threshold' settings) \
 Seeking speed has been improved
 
-### Changes
+#### Changes
 Disallow sleep when only headset is connected \
 (allow sleep if headset is disconnected during playback) \
 App directory has been changed from sdmc:/Video_player/ to sdmc:/3ds/Video_player/ \

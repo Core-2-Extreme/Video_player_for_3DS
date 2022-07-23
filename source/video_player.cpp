@@ -3606,37 +3606,41 @@ void Vid_main(void)
 					if(vid_show_color_conversion_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_time[1][i] + vid_ui_y_offset, DEF_DRAW_BLUE, i + 1, y_offset - vid_time[1][i + 1] + vid_ui_y_offset, DEF_DRAW_BLUE, 1);//Thread 1
+							Draw_line(i, y_offset - vid_time[1][i] + vid_ui_y_offset, DEF_DRAW_BLUE, i + 1, y_offset - vid_time[1][i + 1] + vid_ui_y_offset, DEF_DRAW_BLUE, 2);//Thread 1
 					}
 					//decoding time
 					if(vid_show_decode_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_time[0][i] + vid_ui_y_offset, DEF_DRAW_RED, i + 1, y_offset - vid_time[0][i + 1] + vid_ui_y_offset, DEF_DRAW_RED, 1);//Thread 0		
+							Draw_line(i, y_offset - vid_time[0][i] + vid_ui_y_offset, DEF_DRAW_RED, i + 1, y_offset - vid_time[0][i + 1] + vid_ui_y_offset, DEF_DRAW_RED, 2);//Thread 0		
+
+						Draw_line(320 - (vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)),
+						y_offset + vid_ui_y_offset - 110, DEF_DRAW_WEAK_RED, 320 - (vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)),
+						y_offset + vid_ui_y_offset + 8, DEF_DRAW_WEAK_RED, 2);
 					}
 					//compressed buffer
 					if(vid_show_packet_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_packet_buffer[i] / 4 + vid_ui_y_offset, 0xFFFF00FF, i + 1, y_offset - vid_packet_buffer[i + 1] / 4 + vid_ui_y_offset, 0xFFFF00FF, 1);//Packet buffer
+							Draw_line(i, y_offset - vid_packet_buffer[i] / 4 + vid_ui_y_offset, 0xFFFF00FF, i + 1, y_offset - vid_packet_buffer[i + 1] / 4 + vid_ui_y_offset, 0xFFFF00FF, 2);//Packet buffer
 					}
 					//raw video buffer
 					if(vid_show_raw_video_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_raw_video_buffer[i] / 2 + vid_ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_raw_video_buffer[i + 1] / 2 + vid_ui_y_offset, 0xFF2060FF, 1);//Raw image buffer
+							Draw_line(i, y_offset - vid_raw_video_buffer[i] / 2 + vid_ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_raw_video_buffer[i + 1] / 2 + vid_ui_y_offset, 0xFF2060FF, 2);//Raw image buffer
 					}
 					//raw audio buffer
 					if(vid_show_raw_audio_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
+							Draw_line(i, y_offset - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 2);//Raw audio buffer
 					}
 
 					//bottom line
-					Draw_line(0, y_offset + vid_ui_y_offset, color, 320, y_offset + vid_ui_y_offset, color, 1);
+					Draw_line(0, y_offset + vid_ui_y_offset, color, 320, y_offset + vid_ui_y_offset, color, 2);
 					//deadline
-					Draw_line(0, y_offset + vid_ui_y_offset - vid_frametime, 0xFFD0D000, 320, y_offset - vid_frametime + vid_ui_y_offset, 0xFFD0D000, 1);
+					Draw_line(0, y_offset + vid_ui_y_offset - vid_frametime, 0xFFD0D000, 320, y_offset - vid_frametime + vid_ui_y_offset, 0xFFD0D000, 2);
 
 					//key frame
 					if(vid_show_decode_graph_mode)
@@ -3676,6 +3680,8 @@ void Vid_main(void)
 							Draw("Raw video buffer : " + std::to_string(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)), 
 							0, y_offset + vid_ui_y_offset, 0.425, 0.425, vid_show_raw_video_buffer_graph_mode ? 0xFF2060FF : color);
 						}
+						Draw("frames : " + std::to_string(vid_total_frames), 160, y_offset + vid_ui_y_offset, 0.425, 0.425, color,
+						DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 160, 10);
 					}
 					else
 					{

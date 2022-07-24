@@ -10,6 +10,7 @@ extern bool var_flash_mode;
 extern bool var_wifi_enabled;
 extern bool var_high_resolution_mode;
 extern bool var_3d_mode;
+extern bool var_monitor_cpu_usage;
 extern bool var_turn_on_top_lcd;
 extern bool var_turn_on_bottom_lcd;
 extern bool var_core_2_available;

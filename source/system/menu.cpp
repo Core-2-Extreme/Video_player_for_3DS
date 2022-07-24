@@ -394,6 +394,7 @@ void Menu_exit(void)
 	Exfont_exit();
 	Util_err_exit();
 	Util_exit();
+	Util_cpu_usage_monitor_exit();
 
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME));
@@ -476,6 +477,9 @@ void Menu_main(void)
 				Util_log_draw();
 	
 			Draw_top_ui();
+
+			if(var_monitor_cpu_usage)
+				Draw_cpu_usage_info();
 
 			Draw_screen_ready(1, back_color);
 

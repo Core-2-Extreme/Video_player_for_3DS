@@ -2,6 +2,7 @@
 
 bool util_safe_linear_alloc_init = false, util_init = false;
 int util_draw_num_of_watch_bool = 0, util_draw_num_of_watch_int = 0, util_draw_num_of_watch_double = 0, util_draw_num_of_watch_string = 0;
+u32 util_max_core_1 = 0;
 Handle util_safe_linear_alloc_mutex = -1, util_watch_variables_mutex = -1;
 Watch_bool util_draw_watch_bool[DEF_DRAW_MAX_WATCH_BOOL_VARIABLES];
 Watch_int util_draw_watch_int[DEF_DRAW_MAX_WATCH_INT_VARIABLES];
@@ -99,6 +100,24 @@ extern "C" void* __wrap_memalign(size_t alignment, size_t size)
 			ptr = Util_safe_linear_align(alignment, size);
 	}
 	return ptr;
+}
+
+extern "C" Result __wrap_APT_SetAppCpuTimeLimit(u32 percent)
+{
+	Result code = __real_APT_SetAppCpuTimeLimit(percent);
+	if(code == 0)
+		util_max_core_1 = percent;
+	
+	return code;
+}
+
+extern "C" Result __wrap_APT_GetAppCpuTimeLimit(u32* percent)
+{
+	Result code = __real_APT_GetAppCpuTimeLimit(percent);
+	if(percent && code == 0)
+		util_max_core_1 = *percent;
+	
+	return code;
 }
 
 Result_with_string Util_init(void)
@@ -816,4 +835,9 @@ u32 Util_check_free_ram(void)
 		__real_free(malloc_check[i]);
 
 	return count * 100 * 1024;//return free B
+}
+
+u32 Util_get_core_1_max(void)
+{
+	return util_max_core_1;
 }

@@ -79,7 +79,7 @@ sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button, sem_wifi_of
 sem_deny_send_info_button, sem_debug_mode_on_button, sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,
 sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_select_edtion_button,
 sem_close_updater_button, sem_3dsx_button, sem_cia_button, sem_dl_install_button, sem_back_to_patch_note_button, 
-sem_close_app_button, sem_use_fake_model_button;
+sem_close_app_button, sem_use_fake_model_button, sem_monitor_cpu_usage_on_button, sem_monitor_cpu_usage_off_button;
 
 void Sem_encode_thread(void* arg);
 void Sem_record_thread(void* arg);
@@ -279,6 +279,8 @@ void Sem_init(void)
 	Util_add_watch(&sem_debug_mode_on_button.selected);
 	Util_add_watch(&sem_debug_mode_off_button.selected);
 	Util_add_watch(&sem_use_fake_model_button.selected);
+	Util_add_watch(&sem_monitor_cpu_usage_on_button.selected);
+	Util_add_watch(&sem_monitor_cpu_usage_off_button.selected);
 
 	//Battery
 	Util_add_watch(&var_eco_mode);
@@ -331,6 +333,8 @@ void Sem_draw_init(void)
 	sem_allow_send_info_button.c2d = var_square_image[0];
 	sem_deny_send_info_button.c2d = var_square_image[0];
 	sem_debug_mode_on_button.c2d = var_square_image[0];
+	sem_monitor_cpu_usage_on_button.c2d = var_square_image[0];
+	sem_monitor_cpu_usage_off_button.c2d = var_square_image[0];
 	sem_debug_mode_off_button.c2d = var_square_image[0];
 	sem_eco_mode_on_button.c2d = var_square_image[0];
 	sem_eco_mode_off_button.c2d = var_square_image[0];
@@ -480,6 +484,8 @@ void Sem_exit(void)
 	Util_remove_watch(&sem_debug_mode_on_button.selected);
 	Util_remove_watch(&sem_debug_mode_off_button.selected);
 	Util_remove_watch(&sem_use_fake_model_button.selected);
+	Util_remove_watch(&sem_monitor_cpu_usage_on_button.selected);
+	Util_remove_watch(&sem_monitor_cpu_usage_off_button.selected);
 
 	//Battery
 	Util_remove_watch(&var_eco_mode);
@@ -524,6 +530,9 @@ void Sem_main(void)
 			Util_log_draw();
 	
 		Draw_top_ui();
+
+		if(var_monitor_cpu_usage)
+			Draw_cpu_usage_info();
 
 		Draw_screen_ready(1, back_color);
 
@@ -910,6 +919,16 @@ void Sem_main(void)
 				Draw(sem_msg[DEF_SEM_OFF_MSG], 10, 135, 0.65, 0.65, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 190, 20,
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
+
+			//CPU usage monitor
+			Draw(sem_msg[DEF_SEM_CPU_USAGE_MONITOR_MSG], 0, 160, 0.5, 0.5, color);
+			//ON
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 175, 0.55, 0.55, var_monitor_cpu_usage ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_on_button, sem_monitor_cpu_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+			//OFF
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 175, 0.55, 0.55, var_monitor_cpu_usage ? color : DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_off_button, sem_monitor_cpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 		{
@@ -1333,6 +1352,14 @@ void Sem_hid(Hid_info key)
 					sem_debug_mode_on_button.selected = true;
 				else if (Util_hid_is_released(key, sem_debug_mode_on_button) && sem_debug_mode_on_button.selected)
 					var_debug_mode = true;
+				else if (Util_hid_is_pressed(key, sem_monitor_cpu_usage_on_button))
+					sem_monitor_cpu_usage_on_button.selected = true;
+				else if (Util_hid_is_released(key, sem_monitor_cpu_usage_on_button) && sem_monitor_cpu_usage_on_button.selected)
+					var_monitor_cpu_usage = true;
+				else if (Util_hid_is_pressed(key, sem_monitor_cpu_usage_off_button))
+					sem_monitor_cpu_usage_off_button.selected = true;
+				else if (Util_hid_is_released(key, sem_monitor_cpu_usage_off_button) && sem_monitor_cpu_usage_off_button.selected)
+					var_monitor_cpu_usage = false;
 				else if (Util_hid_is_pressed(key, sem_debug_mode_off_button))
 					sem_debug_mode_off_button.selected = true;
 				else if (Util_hid_is_released(key, sem_debug_mode_off_button) && sem_debug_mode_off_button.selected)
@@ -1432,7 +1459,7 @@ void Sem_hid(Hid_info key)
 			= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
 			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
 			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
-			= sem_use_fake_model_button.selected = false;
+			= sem_use_fake_model_button.selected = sem_monitor_cpu_usage_on_button.selected = sem_monitor_cpu_usage_off_button.selected = false;
 
 			if(!sem_draw_reinit_request)
 				Draw_get_bot_ui_button()->selected = false;
@@ -1710,6 +1737,7 @@ void Sem_record_thread(void* arg)
 void Sem_worker_thread(void* arg)
 {
 	Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Thread started.");
+	bool cpu_usage_monitor_running = false;
 	Result_with_string result;
 
 	while (sem_thread_run)
@@ -1820,6 +1848,27 @@ void Sem_worker_thread(void* arg)
 			result = Util_cset_set_screen_brightness(true, true, var_lcd_brightness);
 			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
 			sem_change_brightness_request = false;
+		}
+		else if(cpu_usage_monitor_running != var_monitor_cpu_usage)
+		{
+			if(var_monitor_cpu_usage)
+			{
+				result = Util_cpu_usage_monitor_init();
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Util_cpu_usage_monitor_init()..." + result.string + result.error_description, result.code);
+				if(result.code == 0)
+					cpu_usage_monitor_running = true;
+				else
+				{
+					Util_err_set_error_message(result.string, result.error_description, DEF_SEM_WORKER_THREAD_STR, result.code);
+					Util_err_set_error_show_flag(true);
+					var_monitor_cpu_usage = false;
+				}
+			}
+			else
+			{
+				Util_cpu_usage_monitor_exit();
+				cpu_usage_monitor_running = false;
+			}
 		}
 		else
 			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);

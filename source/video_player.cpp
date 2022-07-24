@@ -3056,6 +3056,9 @@ void Vid_init(bool draw)
 				Draw_frame_ready();
 				Draw_screen_ready(0, back_color);
 				Draw_top_ui();
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
+
 				Draw(vid_status, 0, 20, 0.65, 0.65, color);
 
 				Draw_apply_draw();
@@ -3103,6 +3106,9 @@ void Vid_exit(bool draw)
 				Draw_frame_ready();
 				Draw_screen_ready(0, back_color);
 				Draw_top_ui();
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
+
 				Draw(vid_status, 0, 20, 0.65, 0.65, color);
 
 				Draw_apply_draw();
@@ -3249,6 +3255,9 @@ void Vid_main(void)
 				DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLACK);
 			}
 
+			if(var_monitor_cpu_usage)
+				Draw_cpu_usage_info();
+
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
@@ -3279,6 +3288,9 @@ void Vid_main(void)
 				}
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
+
+				if(var_monitor_cpu_usage)
+					Draw_cpu_usage_info();
 
 				if(Util_log_query_log_show_flag())
 					Util_log_draw();

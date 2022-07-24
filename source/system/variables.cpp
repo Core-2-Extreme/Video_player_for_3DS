@@ -15,6 +15,7 @@ bool var_flash_mode = false;
 bool var_wifi_enabled = false;
 bool var_high_resolution_mode = true;
 bool var_3d_mode = false;
+bool var_monitor_cpu_usage = false;
 bool var_turn_on_top_lcd = true;
 bool var_turn_on_bottom_lcd = true;
 bool var_core_2_available = false;

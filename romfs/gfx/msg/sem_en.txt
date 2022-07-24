@@ -67,3 +67,4 @@ some function may not work)</62>
 <63>Español</63>
 <64>Română</64>
 <65>Polski</65>
+<66>CPU usage monitor (may not accurate)</66>

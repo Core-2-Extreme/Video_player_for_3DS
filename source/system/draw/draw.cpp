@@ -1341,6 +1341,23 @@ void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int a
 	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
 }
 
+void Draw_cpu_usage_info(void)
+{
+	int char_length = 0;
+	char msg_cache[128];
+	if(!util_draw_init)
+		return;
+
+	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", Util_cpu_usage_monitor_get_cpu_usage(-1));
+	for(int i = 0; i < 4; i++)
+		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%d : %.1f%%", i, Util_cpu_usage_monitor_get_cpu_usage(i));
+
+	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %ld%%)", Util_get_core_1_max());
+
+	Draw(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DEF_DRAW_X_ALIGN_RIGHT, DEF_DRAW_Y_ALIGN_CENTER, 100, 60,
+	DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0x80FFFFFF);
+}
+
 void Draw_debug_info(void)
 {
 	int color = DEF_DRAW_BLACK;

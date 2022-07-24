@@ -18,7 +18,7 @@
 #define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 66
+#define DEF_SEM_NUM_OF_MSG 67
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -116,6 +116,7 @@
 #define DEF_SEM_SPANISH_MSG 63
 #define DEF_SEM_ROMANIAN_MSG 64
 #define DEF_SEM_POLISH_MSG 65
+#define DEF_SEM_CPU_USAGE_MONITOR_MSG 66
 
 
 //camera
@@ -162,6 +163,10 @@
 #define DEF_CAM_WHITE_BALANCE_5200K 3
 #define DEF_CAM_WHITE_BALANCE_6000K 4
 #define DEF_CAM_WHITE_BALANCE_7000K 5
+
+//CPU usage monitor
+#define DEF_CPU_CALCULATE_THREAD_STR (std::string)"CPU/Calculate thread"
+#define DEF_CPU_COUNTER_THREAD_STR (std::string)"CPU/Counter thread"
 
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF

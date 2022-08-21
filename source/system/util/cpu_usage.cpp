@@ -1,6 +1,7 @@
 #include "system/headers.hpp"
 
 bool util_cpu_usage_monitor_init = false;
+bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
 u8 util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
 u16 util_cpu_usage_counter_cache[4] = { 0, 0, 0, 0, };
 u32 util_cpu_usage_max_core_1 = 0;
@@ -104,6 +105,12 @@ void Util_cpu_usage_counter_thread(void* arg)
 		usleep(1000);
 		//In ideal condition (CPU usage is 0%), it should be 1000 in 1000ms.
 		util_cpu_usage_counter_cache[core_id]++;
+
+		if(util_cpu_usage_reset_counter_request[core_id])
+		{
+			util_cpu_usage_counter_cache[core_id] = 0;
+			util_cpu_usage_reset_counter_request[core_id] = false;
+		}
 	}
 
 	Util_log_save(DEF_CPU_COUNTER_THREAD_STR + "#" + std::to_string(core_id), "Thread exit.");
@@ -131,12 +138,16 @@ void Util_cpu_usage_calculate_thread(void* arg)
 
 		for(int i = 0; i < 4; i++)
 		{
-			//Estimated CPU usage (%) = (1000 - util_cpu_usage_counter_cache) / 10.0
+			//Core is not available
 			if(!util_cpu_usage_thread_handle[i])
 				util_cpu_usage_per_core[i] = NAN;
 			else
 			{
-				cpu_usage_cache = util_cpu_usage_per_core[i] = (1000 - (util_cpu_usage_counter_cache[i] > 1000 ? 1000 : util_cpu_usage_counter_cache[i])) / 10.0;
+				//If this flag is not cleared here, it means core usage is kept 100% for a second so that it couldn't reset counter.
+				if(util_cpu_usage_reset_counter_request[i])
+					cpu_usage_cache = 100;
+				else//Estimated CPU usage (%) = (1000 - util_cpu_usage_counter_cache) / 10.0
+					cpu_usage_cache = util_cpu_usage_per_core[i] = (1000 - (util_cpu_usage_counter_cache[i] > 1000 ? 1000 : util_cpu_usage_counter_cache[i])) / 10.0;
 
 				if(i == 1)
 				{
@@ -150,8 +161,8 @@ void Util_cpu_usage_calculate_thread(void* arg)
 
 				total_cpu_usage += util_cpu_usage_per_core[i];
 				div++;
+				util_cpu_usage_reset_counter_request[i] = true;
 			}
-			util_cpu_usage_counter_cache[i] = 0;
 		}
 
 		if(div != 0)

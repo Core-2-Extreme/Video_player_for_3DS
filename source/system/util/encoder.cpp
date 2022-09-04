@@ -217,7 +217,7 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	util_audio_increase_pts[session] = util_audio_encoder_context[session]->frame_size;
 	util_audio_encoder_packet[session] = av_packet_alloc();
 	util_audio_encoder_raw_data[session] = av_frame_alloc();
-	if(!util_audio_encoder_raw_data[session] || !util_audio_encoder_packet)
+	if(!util_audio_encoder_raw_data[session] || !util_audio_encoder_packet[session])
 	{
 		result.error_description = "[Error] av_packet_alloc() / av_frame_alloc() failed. ";
 		goto ffmpeg_api_failed;

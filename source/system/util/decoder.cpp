@@ -45,13 +45,16 @@ const AVCodec* util_video_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MA
 bool util_mvd_video_decoder_init = false;
 bool util_mvd_video_decoder_changeable_buffer_size = false;
 bool util_mvd_video_decoder_first = false;
-bool util_mvd_video_decoder_workarounds = false;
+bool util_mvd_video_decoder_should_skip_process_nal_unit = false;
 int util_mvd_video_decoder_available_raw_image[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_raw_image_ready_index[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_raw_image_current_index[DEF_DECODER_MAX_SESSIONS];
 int util_mvd_video_decoder_packet_size = 0;
 int util_mvd_video_decoder_max_raw_image[DEF_DECODER_MAX_SESSIONS];
 u8* util_mvd_video_decoder_packet = NULL;
+u8 util_mvd_video_decoder_current_cached_pts_index = 0;
+u8 util_mvd_video_decoder_next_cached_pts_index = 0;
+s64 util_mvd_video_decoder_cached_pts[32];
 Handle util_mvd_video_decoder_raw_image_mutex[DEF_DECODER_MAX_SESSIONS];
 AVFrame* util_mvd_video_decoder_raw_image[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_RAW_IMAGE];
 
@@ -87,7 +90,7 @@ int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *f
 	int height = 0;
 	if(avctx->codec_type == AVMEDIA_TYPE_VIDEO)
 	{
-	    for (int i = 0; i < AV_NUM_DATA_POINTERS; i++) 
+		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++) 
 		{
 			frame->data[i] = NULL;
 			frame->linesize[i] = 0;
@@ -209,7 +212,7 @@ void Util_decoder_init_variables(void)
 	util_mvd_video_decoder_init = false;
 	util_mvd_video_decoder_changeable_buffer_size = false;
 	util_mvd_video_decoder_first = false;
-	util_mvd_video_decoder_workarounds = false;
+	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 	util_mvd_video_decoder_packet_size = 0;
 	util_mvd_video_decoder_packet = NULL;
 
@@ -627,10 +630,16 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	width = util_video_decoder_context[session][0]->width;
 	height = util_video_decoder_context[session][0]->height;
 
+	for(int i = 0; i < 32; i++)
+		util_mvd_video_decoder_cached_pts[i] = 0;
+
+	util_mvd_video_decoder_current_cached_pts_index = 0;
+	util_mvd_video_decoder_next_cached_pts_index = 0;
+
 	util_mvd_video_decoder_raw_image_current_index[session] = 0;
 	util_mvd_video_decoder_raw_image_ready_index[session] = 0;
 	util_mvd_video_decoder_available_raw_image[session] = 0;
-	util_mvd_video_decoder_workarounds = false;
+	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 
 	util_mvd_video_decoder_packet_size = 1024 * 256;
 	util_mvd_video_decoder_packet = (u8*)Util_safe_linear_alloc(util_mvd_video_decoder_packet_size);
@@ -656,11 +665,6 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 		result.error_description = "[Error] svcCreateMutex() failed. ";
 		goto nintendo_api_failed;
 	}
-
-	//Util_log_save("debug", util_video_decoder_context[session][0]->has_b_frames ? "has_b_frames" : "does_not_have_b_frames");
-
-	if(util_video_decoder_context[session][0]->has_b_frames)
-		util_mvd_video_decoder_workarounds = true;
 
 	util_mvd_video_decoder_max_raw_image[session] = DEF_DECODER_MAX_RAW_IMAGE;
 	util_mvd_video_decoder_first = true;
@@ -1627,6 +1631,8 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 
 Result_with_string Util_mvd_video_decoder_decode(int session)
 {
+	bool got_a_frame = false;
+	bool got_a_frame_after_processing_nal_unit = false;
 	int offset = 0;
 	int source_offset = 0;
 	int size = 0;
@@ -1634,6 +1640,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	int width = 0;
 	int height = 0;
 	Result_with_string result;
+
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
@@ -1688,12 +1695,6 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		}
 	}
 
-	if(util_mvd_video_decoder_workarounds)
-	{
-		//to detect all blue image if mvd service won't write anything to the buffer, fill the buffer by 0x8
-		memset((util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * (height / 2)) * 2), 0x8, width * 2);
-	}
-	
 	if(util_mvd_video_decoder_first)
 	{
 		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, width, height, width, height, NULL, NULL, NULL);
@@ -1748,30 +1749,116 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		source_offset += size;
 	}
 
-	result.code = mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
+	//Set 0x11 to top-left, top-right, bottom-left and bottom-right then check them later
+	//For more information, see : https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-20#post-9915780
+	*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = 0x11;
+	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) = 0x11;
+	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) = 0x11;
+	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) = 0x11;
 
-	if(util_mvd_video_decoder_first)
+	// Util_log_save("debug", "-------------------------------");
+
+	MVDSTD_SetConfig(&util_decoder_mvd_config);
+
+	if(!util_mvd_video_decoder_should_skip_process_nal_unit)
 	{
-		//Do I need to send same nal data at first frame?
+		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is not set, so call mvdstdProcessVideoFrame()");
 		result.code = mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
-		util_mvd_video_decoder_first = false;
+
+		//Save pts
+		util_mvd_video_decoder_cached_pts[util_mvd_video_decoder_next_cached_pts_index] = util_video_decoder_packet[session][0]->dts;
+		if(util_mvd_video_decoder_next_cached_pts_index + 1 < 32)
+			util_mvd_video_decoder_next_cached_pts_index++;
+		else
+			util_mvd_video_decoder_next_cached_pts_index = 0;
+
+
+		if(util_mvd_video_decoder_first)
+		{
+			//Do I need to send same nal data at first frame?
+			result.code = mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
+			util_mvd_video_decoder_first = false;
+		}
+
+		//If any of them got changed, it means mvd service wrote the frame data to the buffer.
+		if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
+		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
+		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
+		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
+		{
+			// Util_log_save("debug", "got a frame after mvdstdProcessVideoFrame()");
+			got_a_frame = true;
+			util_mvd_video_decoder_should_skip_process_nal_unit = true;
+			got_a_frame_after_processing_nal_unit = true;
+		}
+		// else
+		// 	Util_log_save("debug", "no frames after mvdstdProcessVideoFrame()");
+
+		if(result.code != MVD_STATUS_FRAMEREADY && result.code != MVD_STATUS_PARAMSET)
+		{
+			result.error_description = "[Error] mvdstdProcessVideoFrame() failed. ";
+			goto nintendo_api_failed;
+		}
+	}
+	// else
+	// 	Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, so skip mvdstdProcessVideoFrame()");
+
+	if(!got_a_frame)
+	{
+		// Util_log_save("debug", "got_a_frame is not set, so call mvdstdRenderVideoFrame()");
+		while(true)
+		{
+			//You need to use a custom libctru to use NULL here. https://github.com/Core-2-Extreme/libctru/tree/master
+			result.code = mvdstdRenderVideoFrame(NULL, false);
+
+			//If any of them got changed, it means mvd service wrote the frame data to the buffer.
+			if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
+			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
+			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
+			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
+			{
+				// Util_log_save("debug", "got a frame after mvdstdRenderVideoFrame()");
+				result.code = MVD_STATUS_OK;
+				got_a_frame = true;
+			}
+			// else
+			// 	Util_log_save("debug", "no frames after mvdstdRenderVideoFrame()");
+
+			if(result.code != MVD_STATUS_BUSY || got_a_frame)
+				break;
+			// else
+			// 	Util_log_save("debug", "mvdstdRenderVideoFrame() returned MVD_STATUS_BUSY, so try again");
+		}
+
+		if(result.code != MVD_STATUS_OK)
+		{
+			result.error_description = "[Error] mvdstdRenderVideoFrame() failed. ";
+			goto nintendo_api_failed;
+		}
+	}
+	// else
+	// 	Util_log_save("debug", "got_a_frame is set, so skip mvdstdRenderVideoFrame()");
+
+	if(!got_a_frame && util_mvd_video_decoder_should_skip_process_nal_unit)
+	{
+		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, and got no frames");
+		util_mvd_video_decoder_should_skip_process_nal_unit = false;
+		goto try_again_no_output;
+	}
+	else if(!got_a_frame)
+	{
+		// Util_log_save("debug", "Got no frames");
+		goto need_more_packet;
 	}
 
-	if(result.code != MVD_STATUS_FRAMEREADY)
-	{
-		result.error_description = "[Error] mvdstdProcessVideoFrame() failed. ";
-		goto nintendo_api_failed;
-	}
-	result.code = mvdstdRenderVideoFrame(&util_decoder_mvd_config, true);
-	
-	if(result.code != MVD_STATUS_OK)
-	{
-		result.error_description = "[Error] mvdstdRenderVideoFrame() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	util_mvd_video_decoder_raw_image[session][buffer_num]->pts = util_video_decoder_packet[session][0]->pts;
+	//Restore cached pts
+	util_mvd_video_decoder_raw_image[session][buffer_num]->pts = util_mvd_video_decoder_cached_pts[util_mvd_video_decoder_current_cached_pts_index];
 	util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration = util_video_decoder_packet[session][0]->duration;
+	if(util_mvd_video_decoder_current_cached_pts_index + 1 < 32)
+		util_mvd_video_decoder_current_cached_pts_index++;
+	else
+		util_mvd_video_decoder_current_cached_pts_index = 0;
+
 	result.code = 0;
 
 	if(buffer_num + 1 < util_mvd_video_decoder_max_raw_image[session])
@@ -1782,6 +1869,12 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	svcWaitSynchronization(util_mvd_video_decoder_raw_image_mutex[session], U64_MAX);
 	util_mvd_video_decoder_available_raw_image[session]++;
 	svcReleaseMutex(util_mvd_video_decoder_raw_image_mutex[session]);
+
+	if(util_mvd_video_decoder_should_skip_process_nal_unit && !got_a_frame_after_processing_nal_unit)
+	{
+		// Util_log_save("debug", "util_mvd_video_decoder_should_skip_process_nal_unit is set, and got a frame");
+		goto try_again_with_output;
+	}
 
 	util_video_decoder_packet_ready[session][0] = false;
 	av_packet_free(&util_video_decoder_packet[session][0]);
@@ -1800,6 +1893,29 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	try_again:
 	result.code = DEF_ERR_TRY_AGAIN;
 	result.string = DEF_ERR_TRY_AGAIN_STR;
+	return result;
+
+	try_again_no_output:
+	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
+	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
+	result.code = DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT;
+	result.string = DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT_STR;
+	return result;
+
+	try_again_with_output:
+	result.code = DEF_ERR_MVD_TRY_AGAIN;
+	result.string = DEF_ERR_MVD_TRY_AGAIN_STR;
+	return result;
+
+	need_more_packet:
+	util_video_decoder_packet_ready[session][0] = false;
+	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
+	av_packet_free(&util_video_decoder_packet[session][0]);
+	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
+	result.code = DEF_ERR_NEED_MORE_INPUT;
+	result.string = DEF_ERR_NEED_MORE_INPUT_STR;
 	return result;
 
 	out_of_linear_memory:
@@ -2163,10 +2279,8 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 
 Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int session)
 {
-	bool all_blue = true;
 	int cpy_size = 0;
 	int buffer_num = 0;
-	int available_raw_image = 0;
 	double framerate = 0;
 	double current_frame = 0;
 	double timebase = 0;
@@ -2200,7 +2314,6 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
-	available_raw_image = util_mvd_video_decoder_available_raw_image[session];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
 	if(util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration != 0)
 		current_frame = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts / util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration;
@@ -2213,58 +2326,18 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 
 	cpy_size = (width * height * 2);
 
-	if(util_mvd_video_decoder_workarounds)
-	{
-		for(int s = 0; s < available_raw_image; s++)
-		{
-			for(int i = 0; i + 4 < width; i+= 4)//scan for 0x0808 color horizontally
-			{
-				if(*(u16*)(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * (height / 2) * 2) + i) != 0x0808)
-				{
-					all_blue = false;
-					break;
-				}
-			}
-
-			if(all_blue && s + 1 < available_raw_image)
-			{
-				if(buffer_num + 1 < util_mvd_video_decoder_max_raw_image[session])
-					buffer_num++;
-				else
-					buffer_num = 0;
-			}
-			else
-				break;
-		}
-
 #ifdef DEF_DECODER_USE_DMA
-		dmaConfigInitDefault(&dma_config);
-		dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
+	dmaConfigInitDefault(&dma_config);
+	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
 
-		if(dma_result == 0)
-			svcWaitSynchronization(dma_handle, INT64_MAX);
+	if(dma_result == 0)
+		svcWaitSynchronization(dma_handle, INT64_MAX);
 
-		svcCloseHandle(dma_handle);
-		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+	svcCloseHandle(dma_handle);
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
 #else
-		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
+	memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
 #endif
-	}
-	else
-	{
-#ifdef DEF_DECODER_USE_DMA
-		dmaConfigInitDefault(&dma_config);
-		dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
-
-		if(dma_result == 0)
-			svcWaitSynchronization(dma_handle, INT64_MAX);
-
-		svcCloseHandle(dma_handle);
-		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
-#else
-		memcpy_asm(*raw_data, util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
-#endif
-	}
 
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 

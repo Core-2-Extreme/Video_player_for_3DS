@@ -2125,7 +2125,16 @@ void Vid_decode_video_thread(void* arg)
 								if(result.code == DEF_ERR_TRY_AGAIN)
 									vid_out_of_raw_buffer = false;
 
-								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_change_video_request || vid_clear_raw_buffer_request[1])
+								if(!vid_play_request || vid_change_video_request || vid_clear_raw_buffer_request[1])
+									break;
+								else if(result.code == DEF_ERR_MVD_TRY_AGAIN || result.code == DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT)
+								{
+									if(result.code == DEF_ERR_MVD_TRY_AGAIN && !vid_convert_request)
+										vid_convert_request = true;
+
+									continue;
+								}
+								else if(result.code != DEF_ERR_TRY_AGAIN)
 									break;
 								else
 									usleep(1000);
@@ -2138,7 +2147,7 @@ void Vid_decode_video_thread(void* arg)
 								if(!vid_convert_request)
 									vid_convert_request = true;
 							}
-							else
+							else if(result.code != DEF_ERR_NEED_MORE_INPUT)
 							{
 								if(vid_hw_decoding_mode)
 									Util_log_save(DEF_VID_DECODE_VIDEO_THREAD_STR, "Util_mvd_video_decoder_decode()..." + result.string + result.error_description, result.code);

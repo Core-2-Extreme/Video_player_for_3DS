@@ -35,7 +35,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/system source/system/util source/system/draw library/base64
 DATA		:=	data
-INCLUDES	:=	include library library/ffmpeg/include library/libctru/include
+INCLUDES	:=	include library library/ffmpeg/include library/libctru/include library/curl/include library/portlibs/include
 GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
@@ -51,6 +51,7 @@ BANNER_AUDIO				:= resource/banner.wav
 BANNER_IMAGE				:= resource/banner.png
 ICON        				:= resource/icon.png
 RSF_PATH				:= resource/app.rsf
+
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
@@ -70,13 +71,13 @@ ASFLAGS	:= $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign
 LDFLAGS	+=  -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
 
-LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lctru -lm -lx264 -lmp3lame -ldav1d
+LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lm -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib  library/mp3lame/lib library/dav1d/lib
+LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/mp3lame/lib library/dav1d/lib library/portlibs/lib
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

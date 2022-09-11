@@ -259,10 +259,14 @@
 #define DEF_ERR_ALREADY_INITIALIZED 0xFFFFFFF6
 #define DEF_ERR_NOT_INITIALIZED 0xFFFFFFF5
 #define DEF_ERR_NEED_MORE_INPUT 0xFFFFFFF4
+#define DEF_ERR_CURL_RETURNED_NOT_SUCCESS 0xFFFFFFF4
+#define DEF_ERR_NEED_MORE_INPUT 0xFFFFFFF3
 //This is different from DEF_ERR_MVD_TRY_AGAIN_, No video output was made at this call, try again without calling Util_decoder_ready_video_packet().
 #define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT 0xFFFFFFF3
+#define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT 0xFFFFFFF2
 //This is different from DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT, Video output was made at this call, try again without calling Util_decoder_ready_video_packet().
 #define DEF_ERR_MVD_TRY_AGAIN 0xFFFFFFF2
+#define DEF_ERR_MVD_TRY_AGAIN 0xFFFFFFF1
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -276,6 +280,7 @@
 #define DEF_ERR_ALREADY_INITIALIZED_STR (std::string)"[Error] Already initialized. "
 #define DEF_ERR_NOT_INITIALIZED_STR (std::string)"[Error] Not initialized. "
 #define DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] Nintendo api returned NOT success. "
+#define DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR (std::string)"[Error] curl returned NOT success. "
 #define DEF_ERR_NEED_MORE_INPUT_STR (std::string)"[Error] Need more input to produce the output. "
 #define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT_STR (std::string)"[Error] Try again (video output was made). "
 #define DEF_ERR_MVD_TRY_AGAIN_STR (std::string)"[Error] Try again. "

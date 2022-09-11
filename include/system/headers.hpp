@@ -17,6 +17,7 @@
 #include "system/draw/external_font.hpp"
 #include "system/util/change_setting.hpp"
 #include "system/util/cpu_usage.hpp"
+#include "system/util/curl.hpp"
 #include "system/util/error.hpp"
 #include "system/util/explorer.hpp"
 #include "system/util/fake_pthread.hpp"

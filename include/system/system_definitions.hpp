@@ -168,6 +168,10 @@
 #define DEF_CPU_CALCULATE_THREAD_STR (std::string)"CPU/Calculate thread"
 #define DEF_CPU_COUNTER_THREAD_STR (std::string)"CPU/Counter thread"
 
+//Change setting (contorl hardware)
+#define DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON (1 << 2)
+#define DEF_CSET_WAKE_UP_OPEN_SHELL (1 << 5)
+
 //abgr8888 color
 #define DEF_DRAW_RED 0xFF0000FF
 #define DEF_DRAW_GREEN 0xFF00FF00

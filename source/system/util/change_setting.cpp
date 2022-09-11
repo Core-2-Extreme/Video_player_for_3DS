@@ -130,3 +130,33 @@ Result_with_string Util_cset_set_screen_state(bool top_screen, bool bottom_scree
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
+
+Result_with_string Util_cset_sleep_system(int wake_up_event)
+{
+	PtmWakeEvents wake_up_event_mask;
+	Result_with_string result;
+
+	if(!(wake_up_event & DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON) && !(wake_up_event & DEF_CSET_WAKE_UP_OPEN_SHELL)) 
+		goto invalid_arg;
+
+	wake_up_event_mask.mcu_interupt_mask = wake_up_event;
+	wake_up_event_mask.pdn_wake_events = 0;
+
+	result.code = APT_SleepSystem(&wake_up_event_mask);
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] APT_SleepSystem() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+}

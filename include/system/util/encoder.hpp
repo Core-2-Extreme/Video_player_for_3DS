@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+
 extern "C" 
 {
 #include "libavcodec/avcodec.h"
@@ -82,6 +84,20 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session);
 */
 void Util_encoder_close_output_file(int session);
 
+#else
+
+#define Util_encoder_create_output_file(...) Util_return_result_with_string(var_disabled_result)
+#define Util_audio_encoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_encoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_encoder_write_header(...) Util_return_result_with_string(var_disabled_result)
+#define Util_audio_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_encoder_close_output_file(...)
+
+#endif
+
+#if DEF_ENABLE_IMAGE_ENCODER_API
+
 /**
  * @brief Encode image file.
  * @param file_path (in) File path.
@@ -95,3 +111,9 @@ void Util_encoder_close_output_file(int session);
  * @warning Thread dangerous (untested)
 */
 Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality);
+
+#else
+
+#define Util_image_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
+
+#endif

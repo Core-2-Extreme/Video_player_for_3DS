@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_HTTPC_API
+
 bool util_httpc_init = false;
 
 Result_with_string Util_httpc_init(int buffer_size)
@@ -41,6 +43,7 @@ void Util_httpc_exit()
 	if(!util_httpc_init)
 		return;
 
+	util_httpc_init = false;
 	httpcExit();
 }
 
@@ -755,3 +758,5 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 	api_failed:
 	return result;
 }
+
+#endif

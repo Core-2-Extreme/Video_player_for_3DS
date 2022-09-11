@@ -28,14 +28,33 @@
 #define DEF_DECODER_MAX_SESSIONS 2
 #define DEF_ENCODER_MAX_SESSIONS 2
 #define DEF_EXPL_MAX_FILES 1024
-#define DEF_HTTP_POST_BUFFER_SIZE 0x100000
+#define DEF_HTTP_POST_BUFFER_SIZE 0x80000
+#define DEF_SOCKET_BUFFER_SIZE 0x40000
 #define DEF_LOG_BUFFER_LINES 512
 #define DEF_LOG_COLOR 0xFFBBBB00
 #define DEF_MUXER_MAX_SESSIONS 2
 #define DEF_SPEAKER_MAX_BUFFERS 192
 #define DEF_SWKBD_MAX_DIC_WORDS 128
-#define DEF_DECODER_USE_DMA
-#define DEF_DRAW_USE_DMA
+
+#define DEF_DECODER_USE_DMA                 1 //Enable DMA in video decoder module for faster processing.
+#define DEF_DRAW_USE_DMA                    1 //Enable DMA in draw module for faster processing.
+
+#define DEF_ENABLE_CAM_API                  1 //Enable camera API. You can still use libctru functions if you disable this API.
+#define DEF_ENABLE_HW_CONVERTER_API         1 //Enable hardware color converter API. You can still use libctru functions if you disable this API.
+#define DEF_ENABLE_SW_ASM_CONVERTER_API     1 //Enable assembly optimized software color converter API.
+#define DEF_ENABLE_SW_CONVERTER_API         1 //Enable software color converter API. This will uses ffmpeg functions.
+#define DEF_ENABLE_CPU_MONITOR_API          1 //Enable CPU usage monitor API.
+#define DEF_ENABLE_CURL_API                 1 //Enable curl API. This will uses curl functions. This API supports TLS 1.2.
+#define DEF_ENABLE_VIDEO_AUDIO_DECODER_API  1 //Enable video/audio decoder API. This will uses ffmpeg functions.
+#define DEF_ENABLE_IMAGE_DECODER_API        1 //Enable image decoder API. This will uses stb_image functions.
+#define DEF_ENABLE_VIDEO_AUDIO_ENCODER_API  1 //Enable video/audio encoder API. This will uses ffmpeg functions.
+#define DEF_ENABLE_IMAGE_ENCODER_API        1 //Enable image encoder API. This will uses stb_image functions.
+#define DEF_ENABLE_EXPL_API                 1 //Enable file explorer API.
+#define DEF_ENABLE_HTTPC_API                1 //Enable httpc API. This API only supports up to TLS 1.1. You can still use libctru functions if you disable this API.
+#define DEF_ENABLE_MIC_API                  1 //Enable mic API. You can still use libctru functions if you disable this API.
+#define DEF_ENABLE_MUXER_API                1 //Enable muxer API. This will uses ffmpeg functions.
+#define DEF_ENABLE_SPEAKER_API              1 //Enable speaker API. You can still use libctru functions if you disable this API.
+#define DEF_ENABLE_SWKBD_API                1 //Enable software keyboard API. You can still use libctru functions if you disable this API.
 
 //video player
 #define DEF_VID_NUM_OF_MSG 41

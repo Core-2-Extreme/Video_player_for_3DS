@@ -43,17 +43,28 @@ bool menu_init_request[9] = { false, false, false, false, false, false, false, f
 bool menu_exit_request[8] = { false, false, false, false, false, false, false, false, };
 int menu_icon_texture_num[9] = { -1, -1, -1, -1, -1, -1, -1, -1, -1, };
 std::string menu_msg[DEF_MENU_NUM_OF_MSG];
-Thread menu_worker_thread, menu_send_app_info_thread, menu_check_connectivity_thread, menu_update_thread, menu_hid_thread;
+Thread menu_worker_thread, menu_hid_thread;
 C2D_Image menu_icon_image[10];
 Image_data menu_sapp_button[8], menu_sapp_close_button[8], menu_sem_button;
+
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
+
+Thread menu_check_connectivity_thread, menu_send_app_info_thread, menu_update_thread;
+
+#endif
 
 int Menu_check_free_ram(void);
 void Menu_get_system_info(void);
 void Menu_hid_thread(void* arg);
+void Menu_worker_thread(void* arg);
+
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
+
 void Menu_send_app_info_thread(void* arg);
 void Menu_check_connectivity_thread(void* arg);
-void Menu_worker_thread(void* arg);
 void Menu_update_thread(void* arg);
+
+#endif
 
 Result_with_string Menu_update_main_directory(void)
 {
@@ -121,6 +132,10 @@ void Menu_init(void)
 	u32 read_size = 0;
 	Thread core_2, core_3;
 	Result_with_string result, update_main_dir_result;
+
+	var_disabled_result.string = "";
+	var_disabled_result.error_description = DEF_ERR_DISABLED_STR;
+	var_disabled_result.code = DEF_ERR_DISABLED;
 
 	result = Util_log_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_log_init()...", result.code);
@@ -201,6 +216,9 @@ void Menu_init(void)
 	result = Util_httpc_init(DEF_HTTP_POST_BUFFER_SIZE);
 	Util_log_save(DEF_MENU_INIT_STR, "Util_httpc_init()...", result.code);
 
+	result = Util_curl_init(DEF_SOCKET_BUFFER_SIZE);
+	Util_log_save(DEF_MENU_INIT_STR, "Util_curl_init()...", result.code);
+
 	result = Util_hid_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_hid_init()...", result.code);
 
@@ -231,9 +249,12 @@ void Menu_init(void)
 
 	menu_thread_run = true;
 	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
+	menu_hid_thread = threadCreate(Menu_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 	menu_check_connectivity_thread = threadCreate(Menu_check_connectivity_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	menu_update_thread = threadCreate(Menu_update_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, true);
-	menu_hid_thread = threadCreate(Menu_hid_thread, (void*)(""), 1024 * 4, DEF_THREAD_PRIORITY_REALTIME, 0, false);
+#endif
 
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DSXL || var_model == CFG_MODEL_N3DS)
 	{
@@ -259,8 +280,10 @@ void Menu_init(void)
 		threadFree(core_3);
 	}
 
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)	
 	if (var_allow_send_app_info)
 		menu_send_app_info_thread = threadCreate(Menu_send_app_info_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_LOW, 1, true);
+#endif
 
 	#ifdef DEF_VID_ENABLE_ICON
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
@@ -397,13 +420,18 @@ void Menu_exit(void)
 	Util_cpu_usage_monitor_exit();
 
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME));
+	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_hid_thread, DEF_THREAD_WAIT_TIME));
+
+	threadFree(menu_worker_thread);
+	threadFree(menu_hid_thread);
+
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_check_connectivity_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_send_app_info_thread, DEF_THREAD_WAIT_TIME));
 	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_update_thread, DEF_THREAD_WAIT_TIME));
-	Util_log_save(DEF_MENU_EXIT_STR, "threadJoin()...", threadJoin(menu_hid_thread, DEF_THREAD_WAIT_TIME));
-	threadFree(menu_worker_thread);
+
 	threadFree(menu_check_connectivity_thread);
-	threadFree(menu_hid_thread);
+#endif
 
 	Util_remove_watch(&menu_must_exit);
 	Util_remove_watch(&menu_check_exit_request);
@@ -421,6 +449,7 @@ void Menu_exit(void)
 
 	Util_log_exit();
 	Util_httpc_exit();
+	Util_curl_exit();
 
 	Util_safe_linear_alloc_exit();
 	fsExit();
@@ -1115,8 +1144,10 @@ void Menu_get_system_info(void)
 	var_wifi_state = *(u8*)0x1FF81067;
 	if(var_wifi_state == 2)
 	{
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 		if (!var_connect_test_succes)
 			var_wifi_signal += 4;
+#endif
 	}
 	else
 	{
@@ -1144,13 +1175,20 @@ void Menu_get_system_info(void)
 	sprintf(var_status, "%02dfps %04d/%02d/%02d %02d:%02d:%02d ", (int)Draw_query_fps(), var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
 }
 
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_send_app_info_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_SEND_APP_INFO_THREAD_STR, "Thread started.");
 	OS_VersionBin os_ver;
 	bool is_new3ds = false;
 	u8* dl_data = NULL;
+
+#if DEF_ENABLE_CURL_API
+	int downloaded_size = 0;
+	int uploaded_size = 0;
+#else
 	u32 downloaded_size = 0;
+#endif
 	char system_ver_char[0x50] = " ";
 	std::string new3ds;
 
@@ -1161,20 +1199,33 @@ void Menu_send_app_info_thread(void* arg)
 	new3ds = is_new3ds ? "yes" : "no";
 
 	std::string send_data = "{ \"app_ver\": \"" + DEF_CURRENT_APP_VER + "\",\"system_ver\" : \"" + system_ver + "\",\"start_num_of_app\" : \"" + std::to_string(var_num_of_app_start) + "\",\"language\" : \"" + var_lang + "\",\"new3ds\" : \"" + new3ds + "\",\"time_to_enter_sleep\" : \"" + std::to_string(var_time_to_turn_off_lcd) + "\",\"scroll_speed\" : \"" + std::to_string(var_scroll_speed) + "\" }";
+
+#if DEF_ENABLE_CURL_API
+	Util_curl_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, &uploaded_size, true, 5);
+#else
 	Util_httpc_post_and_dl_data(DEF_SEND_APP_INFO_URL, (u8*)send_data.c_str(), send_data.length(), &dl_data, 0x10000, &downloaded_size, true, 5);
+#endif
+
 	Util_safe_linear_free(dl_data);
 	dl_data = NULL;
 
 	Util_log_save(DEF_MENU_SEND_APP_INFO_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
+#endif
 
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_check_connectivity_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_CHECK_INTERNET_THREAD_STR, "Thread started.");
 	u8* http_buffer = NULL;
+#if DEF_ENABLE_CURL_API
+	int status_code = 0;
+	int dl_size = 0;
+#else
 	u32 status_code = 0;
 	u32 dl_size = 0;
+#endif
 	int count = 100;
 
 	while (menu_thread_run)
@@ -1182,7 +1233,11 @@ void Menu_check_connectivity_thread(void* arg)
 		if (count >= 100)
 		{
 			count = 0;
+#if DEF_ENABLE_CURL_API
+			Util_curl_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+#else
 			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+#endif
 			Util_safe_linear_free(http_buffer);
 			http_buffer = NULL;
 
@@ -1200,6 +1255,7 @@ void Menu_check_connectivity_thread(void* arg)
 	Util_log_save(DEF_MENU_CHECK_INTERNET_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
+#endif
 
 void Menu_worker_thread(void* arg)
 {
@@ -1280,18 +1336,28 @@ void Menu_worker_thread(void* arg)
 	threadExit(0);
 }
 
+#if (DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API)
 void Menu_update_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread started.");
 	u8* http_buffer = NULL;
-	u32 status_code = 0;
+#if DEF_ENABLE_CURL_API
+	int dl_size = 0;
+#else
 	u32 dl_size = 0;
+#endif
 	size_t pos[2] = { 0, 0, };
 	std::string data = "";
 	Result_with_string result;
 
-	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, &status_code, true, 3);
+#if DEF_ENABLE_CURL_API
+	result = Util_curl_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3);
+	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_curl_dl_data()..." + result.string + result.error_description, result.code);
+#else
+	result = Util_httpc_dl_data(DEF_CHECK_UPDATE_URL, &http_buffer, 0x1000, &dl_size, true, 3);
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Util_httpc_dl_data()..." + result.string + result.error_description, result.code);
+#endif
+
 	if(result.code == 0)
 	{
 		data = (char*)http_buffer;
@@ -1311,3 +1377,4 @@ void Menu_update_thread(void* arg)
 	Util_log_save(DEF_MENU_UPDATE_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
+#endif

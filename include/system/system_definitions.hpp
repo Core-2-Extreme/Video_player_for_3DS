@@ -118,6 +118,10 @@
 #define DEF_SEM_POLISH_MSG 65
 #define DEF_SEM_CPU_USAGE_MONITOR_MSG 66
 
+//You need to enable DEF_ENABLE_SW_CONVERTER_API **and** DEF_ENABLE_VIDEO_AUDIO_ENCODER_API as well to use screen recorder
+#define DEF_SEM_ENABLE_SCREEN_RECORDER 0
+//You need to enable DEF_ENABLE_HTTPC_API **or** DEF_ENABLE_CURL_API as well to use updater
+#define DEF_SEM_ENABLE_UPDATER 1
 
 //camera
 #define DEF_CAM_OUT_YUV422 0
@@ -262,15 +266,13 @@
 #define DEF_ERR_TRY_AGAIN 0xFFFFFFF7
 #define DEF_ERR_ALREADY_INITIALIZED 0xFFFFFFF6
 #define DEF_ERR_NOT_INITIALIZED 0xFFFFFFF5
-#define DEF_ERR_NEED_MORE_INPUT 0xFFFFFFF4
 #define DEF_ERR_CURL_RETURNED_NOT_SUCCESS 0xFFFFFFF4
 #define DEF_ERR_NEED_MORE_INPUT 0xFFFFFFF3
 //This is different from DEF_ERR_MVD_TRY_AGAIN_, No video output was made at this call, try again without calling Util_decoder_ready_video_packet().
-#define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT 0xFFFFFFF3
 #define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT 0xFFFFFFF2
 //This is different from DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT, Video output was made at this call, try again without calling Util_decoder_ready_video_packet().
-#define DEF_ERR_MVD_TRY_AGAIN 0xFFFFFFF2
 #define DEF_ERR_MVD_TRY_AGAIN 0xFFFFFFF1
+#define DEF_ERR_DISABLED 0xFFFFFFF0
 
 #define DEF_ERR_OTHER_STR (std::string)"[Error] Something went wrong. "
 #define DEF_ERR_OUT_OF_MEMORY_STR (std::string)"[Error] Out of memory. "
@@ -288,6 +290,7 @@
 #define DEF_ERR_NEED_MORE_INPUT_STR (std::string)"[Error] Need more input to produce the output. "
 #define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT_STR (std::string)"[Error] Try again (video output was made). "
 #define DEF_ERR_MVD_TRY_AGAIN_STR (std::string)"[Error] Try again. "
+#define DEF_ERR_DISABLED_STR (std::string)"[Error] This function is disabled. "
 
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"

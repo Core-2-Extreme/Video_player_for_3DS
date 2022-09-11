@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_CPU_MONITOR_API
+
 bool util_cpu_usage_monitor_init = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
 u8 util_cpu_usage_core_id[4] = { 0, 1, 2, 3, };
@@ -175,3 +177,5 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	Util_log_save(DEF_CPU_CALCULATE_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
+
+#endif

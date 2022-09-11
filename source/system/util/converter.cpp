@@ -1,8 +1,13 @@
 #include "system/headers.hpp"
 
-extern "C" void memcpy_asm(u8*, u8*, int);
+#if DEF_ENABLE_SW_ASM_CONVERTER_API
+
 extern "C" void yuv420p_to_rgb565le_asm(u8* yuv420p, u8* rgb565, int width, int height);
 extern "C" void yuv420p_to_rgb888le_asm(u8* yuv420p, u8* rgb888, int width, int height);
+
+#endif
+
+#if DEF_ENABLE_SW_CONVERTER_API
 
 extern "C" 
 {
@@ -19,7 +24,15 @@ extern "C"
 #define YUV2G(Y, U, V) CLIP(( 298 * C(Y) - 100 * D(U) - 208 * E(V) + 128) >> 8)
 #define YUV2B(Y, U) CLIP(( 298 * C(Y) + 516 * D(U)              + 128) >> 8)
 
+#endif
+
+#if DEF_ENABLE_HW_CONVERTER_API
+
 bool util_y2r_init = false;
+
+#endif
+
+#if DEF_ENABLE_SW_CONVERTER_API
 
 Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, int width, int height)
 {
@@ -190,32 +203,6 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, 
 	return result;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height)
-{
-	Result_with_string result;
-
-	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
-		goto invalid_arg;
-
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
-	if(!*rgb565)
-		goto out_of_memory;
-
-	yuv420p_to_rgb565le_asm(yuv420p, *rgb565, width, height);
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
-}
-
 Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, int width, int height)
 {
     int index = 0;
@@ -260,29 +247,35 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
 	return result;
 }
 
-Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height)
+Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int width, int height)
 {
+	int offset = 0;
 	Result_with_string result;
 
-	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+	if(!rgba8888 || width <= 0 || height <= 0)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb888);
-	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
-	if(!*rgb888)
-		goto out_of_memory;
+	for (int x = 0; x < width; x++) 
+	{
+		for (int y = 0; y < height; y++) 
+		{
+			u8 r = *(u8*)(rgba8888 + offset);
+			u8 g = *(u8*)(rgba8888 + offset + 1);
+			u8 b = *(u8*)(rgba8888 + offset + 2);
+			u8 a = *(u8*)(rgba8888 + offset + 3);
 
-	yuv420p_to_rgb888le_asm(yuv420p, *rgb888, width, height);
+			*(rgba8888 + offset) = a;
+			*(rgba8888 + offset + 1) = b;
+			*(rgba8888 + offset + 2) = g;
+			*(rgba8888 + offset + 3) = r;
+			offset += 4;
+		}
+	}
 	return result;
 
 	invalid_arg:
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 	return result;
 }
 
@@ -483,6 +476,66 @@ Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, 
 	return result;
 }
 
+#endif
+
+#if DEF_ENABLE_SW_ASM_CONVERTER_API
+
+Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height)
+{
+	Result_with_string result;
+
+	if(!yuv420p || !rgb565 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+		goto invalid_arg;
+
+	Util_safe_linear_free(*rgb565);
+	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
+	if(!*rgb565)
+		goto out_of_memory;
+
+	yuv420p_to_rgb565le_asm(yuv420p, *rgb565, width, height);
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	out_of_memory:
+	result.code = DEF_ERR_OUT_OF_MEMORY;
+	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+	return result;
+}
+
+Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height)
+{
+	Result_with_string result;
+
+	if(!yuv420p || !rgb888 || width <= 0 || height <= 0 || width % 2 != 0 || height % 2 != 0)
+		goto invalid_arg;
+
+	Util_safe_linear_free(*rgb888);
+	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
+	if(!*rgb888)
+		goto out_of_memory;
+
+	yuv420p_to_rgb888le_asm(yuv420p, *rgb888, width, height);
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	out_of_memory:
+	result.code = DEF_ERR_OUT_OF_MEMORY;
+	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
+	return result;
+}
+
+#endif
+
+#if DEF_ENABLE_HW_CONVERTER_API
+
 Result_with_string Util_converter_y2r_init(void)
 {
 	Result_with_string result;
@@ -618,3 +671,5 @@ void Util_converter_y2r_exit(void)
 	
 	util_y2r_init = false;
 }
+
+#endif

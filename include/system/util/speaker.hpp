@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_SPEAKER_API
+
 /**
  * @brief Initialize a speaker.
  * Run dsp1(https://github.com/zoogie/DSP1/releases) first if 0xd880A7FA is returned.
@@ -97,3 +99,19 @@ bool Util_speaker_is_playing(int play_ch);
  * @warning Thread dangerous (untested)
 */
 void Util_speaker_exit(void);
+
+#else
+
+#define Util_speaker_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_speaker_set_audio_info(...) Util_return_result_with_string(var_disabled_result)
+#define Util_speaker_add_buffer(...) Util_return_result_with_string(var_disabled_result)
+#define Util_speaker_get_available_buffer_num(...) Util_return_int(0)
+#define Util_speaker_get_available_buffer_size(...) Util_return_int(0)
+#define Util_speaker_clear_buffer(...)
+#define Util_speaker_pause(...)
+#define Util_speaker_resume(...)
+#define Util_speaker_is_paused(...) Util_return_bool(false)
+#define Util_speaker_is_playing(...) Util_return_bool(false)
+#define Util_speaker_exit(...)
+
+#endif

@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_MIC_API
+
 bool util_mic_init = false;
 u8* util_mic_buffer = NULL;
 int util_mic_last_pos = 0;
@@ -235,3 +237,5 @@ void Util_mic_exit(void)
 	util_mic_buffer = NULL;
 	util_mic_init = false;
 }
+
+#endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
+
 /**
  * @brief Open media file.
  * @param file_path (in) File path.
@@ -386,6 +388,50 @@ Result_with_string Util_decoder_seek(u64 seek_pos, int flag, int session);
 */
 void Util_decoder_close_file(int session);
 
+#else
+
+#define Util_decoder_open_file(...) Util_return_result_with_string(var_disabled_result)
+#define Util_audio_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_set_enabled_cores(...) 
+#define Util_video_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mvd_video_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_subtitle_decoder_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_audio_decoder_get_info(...) 
+#define Util_video_decoder_get_info(...) 
+#define Util_subtitle_decoder_get_info(...) 
+#define Util_decoder_clear_cache_packet(...) 
+#define Util_decoder_get_available_packet_num(...) Util_return_int(0)
+#define Util_decoder_read_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_parse_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_ready_audio_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_ready_video_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_ready_subtitle_packet(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_skip_audio_packet(...) 
+#define Util_decoder_skip_video_packet(...) 
+#define Util_decoder_skip_subtitle_packet(...) 
+#define Util_video_decoder_set_raw_image_buffer_size(...) Util_return_int(0)
+#define Util_mvd_video_decoder_set_raw_image_buffer_size(...) 
+#define Util_video_decoder_get_raw_image_buffer_size(...) Util_return_int(0)
+#define Util_mvd_video_decoder_get_raw_image_buffer_size(...) Util_return_int(0)
+#define Util_audio_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mvd_video_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_subtitle_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_clear_raw_image(...) 
+#define Util_mvd_video_decoder_clear_raw_image(...) 
+#define Util_video_decoder_get_available_raw_image_num(...) Util_return_int(0)
+#define Util_mvd_video_decoder_get_available_raw_image_num(...) Util_return_int(0)
+#define Util_video_decoder_get_image(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mvd_video_decoder_get_image(...) Util_return_result_with_string(var_disabled_result)
+#define Util_video_decoder_skip_image(...) 
+#define Util_mvd_video_decoder_skip_image(...) 
+#define Util_decoder_seek(...) Util_return_result_with_string(var_disabled_result)
+#define Util_decoder_close_file(...) 
+
+#endif
+
+#if DEF_ENABLE_IMAGE_DECODER_API
+
 /**
  * @brief Decode image file.
  * @param file_path (in) File path.
@@ -412,3 +458,9 @@ Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_dat
  * @warning Thread dangerous (untested)
 */
 Result_with_string Util_image_decoder_decode(u8* compressed_data, int compressed_buffer_size, u8** raw_data, int* width, int* height, bool alpha);
+
+#else
+
+#define Util_image_decoder_decode(...) Util_return_result_with_string(var_disabled_result)
+
+#endif

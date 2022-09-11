@@ -1,5 +1,8 @@
 #include "system/headers.hpp"
 
+
+#if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
+
 extern "C" 
 {
 #include "libswscale/swscale.h"
@@ -9,9 +12,15 @@ extern "C"
 #include "libavutil/opt.h"
 }
 
+#endif
+
+#if DEF_ENABLE_IMAGE_ENCODER_API
+
 #include "stb_image/stb_image_write.h"
 
-extern "C" void memcpy_asm(u8*, u8*, int);
+#endif
+
+#if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
 bool util_audio_encoder_init[DEF_ENCODER_MAX_SESSIONS];
 int util_audio_stream_index[DEF_ENCODER_MAX_SESSIONS];
@@ -773,6 +782,10 @@ void Util_video_encoder_exit(int session)
 	util_video_encoder_init[session] = false;
 }
 
+#endif
+
+#if DEF_ENABLE_IMAGE_ENCODER_API
+
 Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality)
 {
 	Result_with_string result;
@@ -818,3 +831,5 @@ Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data
 	result.string = DEF_ERR_STB_IMG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
+
+#endif

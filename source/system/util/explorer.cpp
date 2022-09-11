@@ -1,5 +1,7 @@
 ﻿#include "system/headers.hpp"
 
+#if DEF_ENABLE_EXPL_API
+
 void (*util_expl_callback)(std::string, std::string) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
 bool util_expl_thread_run = false;
@@ -589,3 +591,5 @@ void Util_expl_read_dir_thread(void* arg)
 	Util_log_save(DEF_EXPL_READ_DIR_THREAD_STR, "Thread exit.");
 	threadExit(0);
 }
+
+#endif

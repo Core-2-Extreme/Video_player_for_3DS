@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_SPEAKER_API
+
 bool util_speaker_init = false;
 int util_speaker_music_ch[24];
 ndspWaveBuf util_ndsp_buffer[24][DEF_SPEAKER_MAX_BUFFERS];
@@ -250,3 +252,5 @@ void Util_speaker_exit(void)
 	for(int i = 0; i < 24; i++)
 		util_speaker_music_ch[i] = -1;
 }
+
+#endif

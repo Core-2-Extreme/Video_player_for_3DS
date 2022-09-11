@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_CAM_API
+
 /**
  * @brief Initialize a camera.
  * @param color_format (in) Output color format (DEF_CAM_OUT_*).
@@ -101,3 +103,19 @@ Result_with_string Util_cam_set_noise_filter(bool noise_filter_mode);
  * @warning Thread dangerous (untested)
 */
 void Util_cam_exit(void);
+
+#else
+
+#define Util_cam_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_take_a_picture(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_resolution(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_fps(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_contrast(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_white_balance(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_lens_correction(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_camera(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_exposure(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_set_noise_filter(...) Util_return_result_with_string(var_disabled_result)
+#define Util_cam_exit(...)
+
+#endif

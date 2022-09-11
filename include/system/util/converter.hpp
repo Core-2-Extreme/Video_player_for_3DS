@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_SW_CONVERTER_API
+
 /**
  * @brief Convert YUV422 to RGB565LE.
  * @param yuv422 (in) Pointer for yuv422 data.
@@ -37,18 +39,6 @@ Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, in
 Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height);
 
 /**
- * @brief Convert YUV420P to RGB565LE (assembly optimized).
- * @param yuv420p (in) Pointer for yuv420p data.
- * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height);
-
-/**
  * @brief Convert YUV420P to RGB888LE.
  * @param yuv420p (in) Pointer for yuv420p data.
  * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
@@ -59,18 +49,6 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb5
  * @note Thread safe
 */
 Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, int width, int height);
-
-/**
- * @brief Convert YUV420P to RGB888LE (assembly optimized).
- * @param yuv420p (in) Pointer for yuv420p data.
- * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height);
 
 /**
  * @brief Convert RGB8888BE to RGB8888LE.
@@ -132,6 +110,55 @@ Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, 
 */
 Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, int width, int height);
 
+#else
+
+#define Util_converter_yuv422_to_rgb565le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_yuv422_to_yuv420p(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_yuv420p_to_rgb565le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_yuv420p_to_rgb888le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_rgba8888be_to_rgba8888le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_rgb888be_to_rgb888le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_rgb888_rotate_90_degree(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_rgb888le_to_yuv420p(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_rgb565le_to_rgb888le(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
+
+#if DEF_ENABLE_SW_ASM_CONVERTER_API
+
+/**
+ * @brief Convert YUV420P to RGB888LE (assembly optimized).
+ * @param yuv420p (in) Pointer for yuv420p data.
+ * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
+ * @param width (in) Picture width.
+ * @param height (in) Picture height.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb888, int width, int height);
+
+/**
+ * @brief Convert YUV420P to RGB565LE (assembly optimized).
+ * @param yuv420p (in) Pointer for yuv420p data.
+ * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
+ * @param width (in) Picture width.
+ * @param height (in) Picture height.
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb565, int width, int height);
+
+#else
+
+#define Util_converter_yuv420p_to_rgb888le_asm(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_yuv420p_to_rgb565le_asm(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
+
+#if DEF_ENABLE_HW_CONVERTER_API
+
 /**
  * @brief Initialize a y2r(hardware color converter).
  * @return On success DEF_SUCCESS, 
@@ -160,3 +187,11 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb5
  * @warning Thread dangerous (untested)
 */
 void Util_converter_y2r_exit(void);
+
+#else
+
+#define Util_converter_y2r_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_y2r_yuv420p_to_rgb565le(...) Util_return_result_with_string(var_disabled_result)
+#define Util_converter_y2r_exit(...)
+
+#endif

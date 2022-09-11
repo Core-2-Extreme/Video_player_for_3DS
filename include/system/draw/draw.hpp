@@ -375,6 +375,8 @@ void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_siz
 */
 void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int abgr8888_1, float width);
 
+#if DEF_ENABLE_CPU_MONITOR_API
+
 /**
  * @brief Draw cpu usage.
  * Do nothing if draw api is not initialized.
@@ -382,6 +384,12 @@ void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int a
  * @warning Call it from only drawing thread.
 */
 void Draw_cpu_usage_info(void);
+
+#else
+
+#define Draw_cpu_usage_info(...)
+
+#endif
 
 /**
  * @brief Load system font.

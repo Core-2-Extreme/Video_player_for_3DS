@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#if DEF_ENABLE_EXPL_API
+
 /**
  * @brief Initialize a explorer api.
  * @return On success DEF_SUCCESS, 
@@ -119,3 +121,23 @@ void Util_expl_draw(void);
  * @warning Thread dangerous (untested)
 */
 void Util_expl_main(Hid_info key);
+
+#else
+
+#define Util_expl_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_expl_exit(...) 
+#define Util_expl_query_current_dir(...) Util_return_string("")
+#define Util_expl_query_num_of_file(...) Util_return_int(0)
+#define Util_expl_query_current_file_index(...) Util_return_int(-1)
+#define Util_expl_query_file_name(...) Util_return_string("")
+#define Util_expl_query_size(...) Util_return_int(0)
+#define Util_expl_query_type(...) Util_return_int(DEF_EXPL_TYPE_UNKNOWN)
+#define Util_expl_query_show_flag(...) Util_return_bool(false)
+#define Util_expl_set_callback(...) 
+#define Util_expl_set_cancel_callback(...) 
+#define Util_expl_set_current_dir(...) 
+#define Util_expl_set_show_flag(...) 
+#define Util_expl_draw(...) 
+#define Util_expl_main(...) 
+
+#endif

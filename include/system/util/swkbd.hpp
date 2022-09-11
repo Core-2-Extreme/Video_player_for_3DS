@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_SWKBD_API
+
 /**
  * @brief Initialize a software keyboard.
  * @param type (in) Software keyboard type.
@@ -101,3 +103,12 @@ Result_with_string Util_swkbd_launch(std::string* out_data, int* pressed_button)
  * @warning Thread dangerous (untested)
 */
 void Util_swkbd_exit(void);
+
+#else
+
+#define Util_swkbd_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_swkbd_set_dic_word(...) Util_return_result_with_string(var_disabled_result)
+#define Util_swkbd_launch(...) Util_return_result_with_string(var_disabled_result)
+#define Util_swkbd_exit(...)
+
+#endif

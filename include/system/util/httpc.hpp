@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_HTTPC_API
+
 /**
  * @brief Initialize a httpc api.
  * @param buffer_size Internal buffer size used by post request.
@@ -303,3 +305,14 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, 
 */
 Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
 u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name);
+
+#else
+
+#define Util_httpc_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_httpc_exit(...)
+#define Util_httpc_dl_data(...) Util_return_result_with_string(var_disabled_result)
+#define Util_httpc_save_data(...) Util_return_result_with_string(var_disabled_result)
+#define Util_httpc_post_and_dl_data(...) Util_return_result_with_string(var_disabled_result)
+#define Util_httpc_post_and_save_data(...) Util_return_result_with_string(var_disabled_result)
+
+#endif

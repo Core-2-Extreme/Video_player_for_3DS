@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_MIC_API
+
 /**
  * @brief Initialize a mic.
  * @param buffer_size (in) Internal mic buffer size.
@@ -38,7 +40,7 @@ bool Util_mic_is_recording(void);
  * @brief Query remaining (approximately) time.
  * Call Util_mic_get_audio_data() at least before it gets less than 300,
  * otherwise audio data might be overwritten.
- * Always return false 0 mic api is not initialized.
+ * Always return 0 mic api is not initialized.
  * @return Remaining time (in ms).
  * @warning Thread dangerous (untested)
 */
@@ -60,3 +62,15 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size);
  * @warning Thread dangerous (untested)
 */
 void Util_mic_exit(void);
+
+#else
+
+#define Util_mic_init(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mic_start_recording(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mic_stop_recording(...)
+#define Util_mic_is_recording(...) Util_return_bool(false)
+#define Util_mic_query_remaining_buffer_time(...) Util_return_int(0)
+#define Util_mic_get_audio_data(...) Util_return_result_with_string(var_disabled_result)
+#define Util_mic_exit(...)
+
+#endif

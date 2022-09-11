@@ -1,4 +1,5 @@
 #include "system/headers.hpp"
+#include "base64/base64.h"
 
 bool util_safe_linear_alloc_init = false, util_init = false;
 int util_draw_num_of_watch_bool = 0, util_draw_num_of_watch_int = 0, util_draw_num_of_watch_double = 0, util_draw_num_of_watch_string = 0;
@@ -146,12 +147,12 @@ Result_with_string Util_init(void)
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
 	{
 		util_draw_watch_int[i].address = NULL;
-		util_draw_watch_int[i].previous_value = INT_MAX;
+		util_draw_watch_int[i].previous_value = INT32_MAX;
 	}
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
 	{
 		util_draw_watch_double[i].address = NULL;
-		util_draw_watch_double[i].previous_value = INT_MAX;
+		util_draw_watch_double[i].previous_value = INT32_MAX;
 	}
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_STRING_VARIABLES; i++)
 	{
@@ -190,7 +191,7 @@ void Util_exit(void)
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_INT_VARIABLES; i++)
 	{
 		util_draw_watch_int[i].address = NULL;
-		util_draw_watch_int[i].previous_value = INT_MAX;
+		util_draw_watch_int[i].previous_value = INT32_MAX;
 	}
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES; i++)
 	{
@@ -366,7 +367,7 @@ void Util_remove_watch(int* variable)
 		if(util_draw_watch_int[i].address == variable)
 		{
 			util_draw_watch_int[i].address = NULL;
-			util_draw_watch_int[i].previous_value = INT_MAX;
+			util_draw_watch_int[i].previous_value = INT32_MAX;
 			util_draw_num_of_watch_int--;
 			break;
 		}
@@ -701,6 +702,16 @@ Result_with_string Util_load_msg(std::string file_name, std::string out_msg[], i
 	return result;
 }
 
+std::string Util_encode_to_base64(char* source, int size)
+{
+	return base64_encode((const unsigned char*)source, size);
+}
+
+std::string Util_decode_from_base64(std::string source)
+{
+	return base64_decode(source);
+}
+
 Result_with_string Util_safe_linear_alloc_init(void)
 {
 	Result_with_string result;
@@ -840,4 +851,29 @@ u32 Util_check_free_ram(void)
 u32 Util_get_core_1_max(void)
 {
 	return util_max_core_1;
+}
+
+bool Util_return_bool(bool value)
+{
+	return value;
+}
+
+int Util_return_int(int value)
+{
+	return value;
+}
+
+double Util_return_double(double value)
+{
+	return value;
+}
+
+std::string Util_return_string(std::string string)
+{
+	return string;
+}
+
+Result_with_string Util_return_result_with_string(Result_with_string value)
+{
+	return value;
 }

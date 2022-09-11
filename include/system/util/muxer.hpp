@@ -1,5 +1,7 @@
 #pragma once
 
+#if DEF_ENABLE_MUXER_API
+
 /**
  * @brief Open the audio file.
  * @param file_name (in) File path.
@@ -38,3 +40,12 @@ Result_with_string Util_muxer_mux(std::string file_path, int session);
  * @warning Thread dangerous (untested)
 */
 void Util_muxer_close(int session);
+
+#else
+
+#define Util_muxer_open_audio_file(...) Util_return_result_with_string(var_disabled_result)
+#define Util_muxer_open_video_file(...) Util_return_result_with_string(var_disabled_result)
+#define Util_muxer_mux(...) Util_return_result_with_string(var_disabled_result)
+#define Util_muxer_close(...) 
+
+#endif

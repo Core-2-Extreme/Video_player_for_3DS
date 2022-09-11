@@ -55,3 +55,4 @@ std::string var_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "NEW 3DS", "OLD 2DS",
 std::string var_debug_string[8] = { "", "", "", "", "", "", "", "", };
 C2D_Image var_square_image[1];
 C2D_Image var_null_image;
+Result_with_string var_disabled_result;

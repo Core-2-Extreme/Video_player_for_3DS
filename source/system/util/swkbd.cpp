@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_SWKBD_API
+
 bool util_swkbd_init = false;
 int util_swkbd_max_length = 0;
 std::string util_swkbd_hint_text = "";
@@ -167,3 +169,5 @@ void Util_swkbd_exit(void)
 	swkbdSetFeatures(&util_swkbd, 0);
 	swkbdSetDictionary(&util_swkbd, util_swkbd_user_words, 0);
 }
+
+#endif

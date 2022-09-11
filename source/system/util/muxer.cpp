@@ -1,5 +1,7 @@
 #include "system/headers.hpp"
 
+#if DEF_ENABLE_MUXER_API
+
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
@@ -374,3 +376,5 @@ void Util_muxer_close(int session)
 	util_audio_muxer_init[session] = false;
 	util_video_muxer_init[session] = false;
 }
+
+#endif

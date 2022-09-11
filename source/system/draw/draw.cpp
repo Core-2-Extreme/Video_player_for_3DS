@@ -227,10 +227,12 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
 		goto not_inited;
 
 	if(!image || tex_size_x <= 0 || tex_size_y <= 0
-	|| (color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
 		goto invalid_arg;
 
-	if(color_format == DEF_DRAW_FORMAT_RGB888)
+	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+		color = GPU_RGBA8;
+	else if(color_format == DEF_DRAW_FORMAT_RGB888)
 		color = GPU_RGB8;
 	else if(color_format == DEF_DRAW_FORMAT_RGB565)
 		color = GPU_RGB565;
@@ -298,7 +300,7 @@ int tex_size_x, int tex_size_y, int color_format)
 	int tex_offset = 0;
 	int buffer_offset = 0;
 	Result_with_string result;
-#ifdef DEF_DRAW_USE_DMA
+#if DEF_DRAW_USE_DMA
 	bool dma_result[4] = { false, false, false, false, };
 	int dma_count = 0;
 	Handle dma_handle[4] = { 0, 0, 0, 0, };
@@ -310,10 +312,12 @@ int tex_size_x, int tex_size_y, int color_format)
 
 	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > 1024 || pic_width <= 0 
 	|| pic_height > 1024 || pic_height <= 0 || pic_width > tex_size_x || pic_height > tex_size_y
-	|| (color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
 		goto invalid_arg;
 	
-	if(color_format == DEF_DRAW_FORMAT_RGB888)
+	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+		pixel_size = 4;
+	else if(color_format == DEF_DRAW_FORMAT_RGB888)
 		pixel_size = 3;
 	else if(color_format == DEF_DRAW_FORMAT_RGB565)
 		pixel_size = 2;
@@ -326,12 +330,12 @@ int tex_size_x, int tex_size_y, int color_format)
 	image->subtex->bottom = 1.0 - pic_height / (float)tex_size_y;
 	image->c2d.subtex = image->subtex;
 
-#ifdef DEF_DRAW_USE_DMA
+#if DEF_DRAW_USE_DMA
 	dmaConfigInitDefault(&dma_config);
 #endif
 	for(int i = 0; i < pic_height / 8; i ++)
 	{
-#ifdef DEF_DRAW_USE_DMA
+#if DEF_DRAW_USE_DMA
 		dma_result[dma_count] = svcStartInterProcessDma(&dma_handle[dma_count], CUR_PROCESS_HANDLE, (u32)((u8*)image->c2d.tex->data + tex_offset),
 		CUR_PROCESS_HANDLE, (u32)buf + buffer_offset, pic_width * 8 * pixel_size, &dma_config);
 		dma_count++;
@@ -341,7 +345,7 @@ int tex_size_x, int tex_size_y, int color_format)
 		tex_offset += tex_size_x * pixel_size * 8;
 		buffer_offset += pic_width * pixel_size * 8;
 
-#ifdef DEF_DRAW_USE_DMA
+#if DEF_DRAW_USE_DMA
 		if(dma_count > 3)
 		{
 			for(int k = 0; k < 4; k++)
@@ -357,7 +361,7 @@ int tex_size_x, int tex_size_y, int color_format)
 #endif
 	}
 
-#ifdef DEF_DRAW_USE_DMA
+#if DEF_DRAW_USE_DMA
 	for(int k = 0; k < 4; k++)
 	{
 		if(dma_result[k] == 0)
@@ -406,10 +410,12 @@ int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_f
 
 	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width <= 0 || pic_height <= 0
 	|| width_offset > pic_width || height_offset > pic_height || tex_size_x <= 0 || tex_size_y <= 0
-	|| (color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
 		goto invalid_arg;
 
-	if(color_format == DEF_DRAW_FORMAT_RGB888)
+	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+		pixel_size = 4;
+	else if(color_format == DEF_DRAW_FORMAT_RGB888)
 		pixel_size = 3;
 	else if(color_format == DEF_DRAW_FORMAT_RGB565)
 		pixel_size = 2;
@@ -472,6 +478,23 @@ int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_f
 			{
 				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
 				memcpy(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
+				c3d_pos += increase_list_x[count[0]];
+				count[0]++;
+			}
+			count[0] = 0;
+			c3d_pos = 0;
+			c3d_offset += increase_list_y[count[1]];
+			count[1]++;
+		}
+	}
+	else if(pixel_size == 4)
+	{
+		for(int k = 0; k < y_max; k++)
+		{
+			for(int i = 0; i < x_max; i += 2)
+			{
+				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
+				memcpy_asm_4b(&(((u8*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(((u8*)buf)[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
 				c3d_pos += increase_list_x[count[0]];
 				count[0]++;
 			}
@@ -1280,6 +1303,14 @@ void Draw_texture(C2D_Image image, float x, float y, float x_size, float y_size)
 
 void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size, float y_size)
 {
+	Draw_texture(image, abgr8888, x, y, x_size, y_size, 0, 0, 0);
+}
+
+void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y)
+{
+	if(!image.tex || !image.subtex || x_size <= 0 || y_size <= 0)
+		return;
+
 	C2D_ImageTint tint;
 	C2D_DrawParams c2d_parameter =
 	{
@@ -1290,11 +1321,11 @@ void Draw_texture(C2D_Image image, int abgr8888, float x, float y, float x_size,
 			y_size
 		},
 		{
-			0,
-			0
+			center_x,
+			center_y
 		},
 		0.0f,
-		0.0f
+		angle
 	};
 	if(!util_draw_init)
 		return;
@@ -1318,6 +1349,11 @@ void Draw_texture(Image_data* image, float x, float y, float x_size, float y_siz
 
 void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size)
 {
+	Draw_texture(image, abgr8888, x, y, x_size, y_size, 0, 0, 0);
+}
+
+void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y)
+{
 	if(!util_draw_init)
 		return;
 
@@ -1328,7 +1364,7 @@ void Draw_texture(Image_data* image, int abgr8888, float x, float y, float x_siz
 	image->y = y;
 	image->x_size = x_size;
 	image->y_size = y_size;
-	Draw_texture(image->c2d, abgr8888, x, y, x_size, y_size);
+	Draw_texture(image->c2d, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
 }
 
 void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int abgr8888_1, float width)
@@ -1341,6 +1377,7 @@ void Draw_line(float x_0, float y_0, int abgr8888_0, float x_1, float y_1, int a
 	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
 }
 
+#if DEF_ENABLE_CPU_MONITOR_API
 void Draw_cpu_usage_info(void)
 {
 	int char_length = 0;
@@ -1357,6 +1394,7 @@ void Draw_cpu_usage_info(void)
 	Draw(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DEF_DRAW_X_ALIGN_RIGHT, DEF_DRAW_Y_ALIGN_CENTER, 100, 60,
 	DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0x80FFFFFF);
 }
+#endif
 
 void Draw_debug_info(void)
 {

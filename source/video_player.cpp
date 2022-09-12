@@ -1345,17 +1345,19 @@ void Vid_decode_thread(void* arg)
 			{
 				//Overwirte number of tracks if disable flag is set
 				if(vid_disable_audio_mode)
-					num_of_audio_tracks = 0;
-				if(vid_disable_video_mode)
-					num_of_video_tracks = 0;
-				if(vid_disable_subtitle_mode)
-					num_of_subtitle_tracks = 0;
-
-				//Can't play subtitle alone
-				if(num_of_audio_tracks == 0 && num_of_video_tracks == 0)
 				{
-					Util_err_set_error_message(DEF_ERR_OTHER_STR, "No playable media. ", DEF_VID_DECODE_THREAD_STR, DEF_ERR_OTHER);
-					Util_err_set_error_show_flag(true);
+					num_of_audio_tracks = 0;
+					vid_audio_info.format_name = "disabled";
+				}
+				if(vid_disable_video_mode)
+				{
+					num_of_video_tracks = 0;
+					vid_video_info.format_name = "disabled";
+				}
+				if(vid_disable_subtitle_mode)
+				{
+					num_of_subtitle_tracks = 0;
+					vid_subtitle_info.format_name = "disabled";
 				}
 			}
 
@@ -1372,10 +1374,8 @@ void Vid_decode_thread(void* arg)
 				vid_num_of_audio_tracks = num_of_audio_tracks;
 				result = Util_audio_decoder_init(num_of_audio_tracks, 0);
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_audio_decoder_init()..." + result.string + result.error_description, result.code);
-				if(result.code != 0)
-					vid_play_request = false;
 				
-				if(vid_play_request)
+				if(result.code == 0)
 				{
 					for(int i = 0; i < num_of_audio_tracks; i++)
 					{
@@ -1398,22 +1398,31 @@ void Vid_decode_thread(void* arg)
 					vid_duration *= 1000;
 					result = Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
 					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_set_audio_info()..." + result.string + result.error_description, result.code);
+
+					//TODO : If audio channel is not supported, downscale audio so that 3DS can play it.
 					if(result.code == DEF_ERR_INVALID_ARG)
 					{
-						Util_err_set_error_message(result.string, "Unsupported audio.", DEF_VID_DECODE_THREAD_STR, result.code);
-						Util_err_set_error_show_flag(true);
 					}
 				}
+
+				if(result.code != 0)//If audio format is not supported, disable audio so that video can play without audio.
+				{
+					Util_speaker_exit();
+					num_of_audio_tracks = 0;
+					vid_num_of_audio_tracks = num_of_audio_tracks;
+					vid_audio_info.format_name = "Unsupported format";
+					//Ignore the error.
+					result.code = 0;
+				}
 			}
+
 			if(num_of_video_tracks > 0 && vid_play_request)
 			{
 				vid_num_of_video_tracks = num_of_video_tracks;
 				result = Util_video_decoder_init(vid_lower_resolution, num_of_video_tracks, vid_use_multi_threaded_decoding_request ? vid_num_of_threads : 1, vid_use_multi_threaded_decoding_request ? vid_request_thread_mode : 0, 0);
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_video_decoder_init()..." + result.string + result.error_description, result.code);
-				if(result.code != 0)
-					vid_play_request = false;
-				
-				if(vid_play_request)
+
+				if(result.code == 0)
 				{
 					Util_video_decoder_get_info(&vid_video_info, 0, 0);
 					vid_duration = vid_video_info.duration;
@@ -1473,8 +1482,16 @@ void Vid_decode_thread(void* arg)
 						}
 					}
 				}
+				else//If video format is not supported, disable video so that audio can play without video.
+				{
+					num_of_video_tracks = 0;
+					vid_num_of_video_tracks = num_of_video_tracks;
+					vid_video_info.format_name = "Unsupported format";
+					//Ignore the error.
+					result.code = 0;
+				}
 
-				if(vid_play_request)
+				if(vid_play_request && num_of_video_tracks > 0)
 				{
 					for(int k = 0; k < num_of_video_tracks; k++)
 					{
@@ -1593,15 +1610,14 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 			}
+
 			if(num_of_subtitle_tracks > 0 && vid_play_request)
 			{
 				vid_num_of_subtitle_tracks = num_of_subtitle_tracks;
 				result = Util_subtitle_decoder_init(num_of_subtitle_tracks, 0);
 				Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_subtitle_decoder_init()..." + result.string + result.error_description, result.code);
-				if(result.code != 0)
-					vid_play_request = false;
 
-				if(vid_play_request)
+				if(result.code == 0)
 				{
 					for(int i = 0; i < num_of_subtitle_tracks; i++)
 					{
@@ -1620,6 +1636,22 @@ void Vid_decode_thread(void* arg)
 
 					subtitle_track = vid_selected_subtitle_track;
 				}
+				else//If subtitle format is not supported, disable subtitle so that audio or video can play without subtitle.
+				{
+					num_of_subtitle_tracks = 0;
+					vid_num_of_subtitle_tracks = num_of_subtitle_tracks;
+					vid_subtitle_info.format_name = "Unsupported format";
+					//Ignore the error.
+					result.code = 0;
+				}
+			}
+
+			//Can't play subtitle alone
+			if(num_of_audio_tracks == 0 && num_of_video_tracks == 0)
+			{
+				vid_play_request = false;
+				Util_err_set_error_message(DEF_ERR_OTHER_STR, "No playable media. ", DEF_VID_DECODE_THREAD_STR, DEF_ERR_OTHER);
+				Util_err_set_error_show_flag(true);
 			}
 
 			//Enter full screen mode if file has video track
@@ -1823,7 +1855,7 @@ void Vid_decode_thread(void* arg)
 				if(type == DEF_DECODER_PACKET_TYPE_UNKNOWN)
 					Util_log_save("debug", "unknown packet!!!!!");
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track 
-				&& (!vid_seek_adjust_request || num_of_video_tracks == 0 || vid_frametime == 0) && !vid_disable_audio_mode)//Always decode audio if video framerate is unknown or file does not have video track
+				&& (!vid_seek_adjust_request || num_of_video_tracks == 0 || vid_frametime == 0) && num_of_audio_tracks != 0)//Always decode audio if video framerate is unknown or file does not have video track
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -1886,7 +1918,7 @@ void Vid_decode_thread(void* arg)
 				}
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO)
 					Util_decoder_skip_audio_packet(packet_index, 0);
-				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE && packet_index == subtitle_track && !vid_seek_adjust_request && !vid_disable_subtitle_mode)
+				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE && packet_index == subtitle_track && !vid_seek_adjust_request && num_of_subtitle_tracks != 0)
 				{
 					result = Util_decoder_ready_subtitle_packet(packet_index, 0);
 					if(result.code == 0)
@@ -1908,7 +1940,7 @@ void Vid_decode_thread(void* arg)
 				}
 				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE)
 					Util_decoder_skip_subtitle_packet(packet_index, 0);
-				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)) && !vid_disable_video_mode)
+				else if(type == DEF_DECODER_PACKET_TYPE_VIDEO && (!vid_hw_decoding_mode || (vid_hw_decoding_mode && packet_index == 0)) && num_of_video_tracks != 0)
 				{
 					vid_packet_index = packet_index;
 					vid_key_frame = key_frame;
@@ -3319,9 +3351,10 @@ void Vid_main(void)
 				Draw(DEF_VID_VER, 0, 0, 0.425, 0.425, DEF_DRAW_GREEN);
 
 				//codec info
-				Draw(vid_video_info.format_name, 0, 10, 0.5, 0.5, color);
-				Draw(vid_audio_info.format_name, 0, 20, 0.5, 0.5, color);
-				Draw(std::to_string(vid_video_info.width) + "x" + std::to_string(vid_video_info.height) + "(" + std::to_string(vid_codec_width) + "x" + std::to_string(vid_codec_height) + ")" + "@" + std::to_string(vid_video_info.framerate).substr(0, 5) + "fps", 0, 30, 0.5, 0.5, color);
+				Draw("A : " + vid_audio_info.format_name, 0, 10, 0.45, 0.45, color);
+				Draw("V : " + vid_video_info.format_name, 0, 19, 0.45, 0.45, color);
+				Draw("S : " + vid_subtitle_info.format_name, 0, 28, 0.45, 0.45, color);
+				Draw(std::to_string(vid_video_info.width) + "x" + std::to_string(vid_video_info.height) + "(" + std::to_string(vid_codec_width) + "x" + std::to_string(vid_codec_height) + ")" + "@" + std::to_string(vid_video_info.framerate).substr(0, 5) + "fps", 0, 37, 0.45, 0.45, color);
 
 				if(vid_play_request)
 				{

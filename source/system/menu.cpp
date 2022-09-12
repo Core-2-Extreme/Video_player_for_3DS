@@ -1219,12 +1219,12 @@ void Menu_check_connectivity_thread(void* arg)
 {
 	Util_log_save(DEF_MENU_CHECK_INTERNET_THREAD_STR, "Thread started.");
 	u8* http_buffer = NULL;
-#if DEF_ENABLE_CURL_API
-	int status_code = 0;
-	int dl_size = 0;
-#else
+#if DEF_ENABLE_HTTPC_API
 	u32 status_code = 0;
 	u32 dl_size = 0;
+#else
+	int status_code = 0;
+	int dl_size = 0;
 #endif
 	int count = 100;
 
@@ -1233,10 +1233,10 @@ void Menu_check_connectivity_thread(void* arg)
 		if (count >= 100)
 		{
 			count = 0;
-#if DEF_ENABLE_CURL_API
-			Util_curl_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
-#else
+#if DEF_ENABLE_HTTPC_API//Curl uses more CPU so prefer to use httpc module here.
 			Util_httpc_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
+#else
+			Util_curl_dl_data(DEF_CHECK_INTERNET_URL, &http_buffer, 0x1000, &dl_size, &status_code, false, 0);
 #endif
 			Util_safe_linear_free(http_buffer);
 			http_buffer = NULL;

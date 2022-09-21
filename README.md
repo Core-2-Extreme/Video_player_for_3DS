@@ -226,23 +226,23 @@ ffmpeg -i {input_file_name} -acodec copy -vcodec libx265 -s {width}x{height} -r 
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
 
 ### v1.5.2
-**Changes**
+**Changes** \
 Ignore unsupported codec so that you can play supported codec only \
 (e.g. You can now play videos that contain unsupported subtitles/audio)
 
-**Fixed bugs**
+**Fixed bugs** \
 Hardware decoder won't play videos that contain B-frames smoothly has been fixed \
 (It means you don't have to care about B-frames when encoding to H.264 videos)
 
 ### v1.5.1
-**Added features**
+**Added features** \
 Screen update frequency in audio only files have been increased \
 Performance has been improved by adding DMA \
 Video playback is automatically paused when runs out of buffer \
 (You can change threshold by changing 'Restart playback threshold' settings) \
 Seeking speed has been improved
 
-**Changes**
+**Changes** \
 Disallow sleep when only headset is connected \
 (allow sleep if headset is disconnected during playback) \
 App directory has been changed from sdmc:/Video_player/ to sdmc:/3ds/Video_player/ \
@@ -250,7 +250,7 @@ App directory has been changed from sdmc:/Video_player/ to sdmc:/3ds/Video_playe
 Simplified Chinese(简体中文) translation has been updated \
 Enabled 'correct aspect ratio option' by default
 
-**Fixed bugs**
+**Fixed bugs** \
 Crashes in hw decoder in some videos have been fixed \
 Automatically enter full screen mode even file explorer is opened has been fixed \
 App will freeze if you seek after EOF has been fixed \

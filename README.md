@@ -209,21 +209,21 @@ ffmpeg -i {input_file_name} -acodec copy -vcodec libx265 -s {width}x{height} -r 
 | NEW3DS Software decoding |    136.8fps    |     55.7fps    |     26.4fps    | 30.9fps |     15.3fps    |
 
 ## Patch note
-* [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.5.2)
-* [v1.5.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.5.1)
-* [v1.5.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.5.0)
-* [v1.4.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.4.2)
-* [v1.4.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.4.1)
-* [v1.4.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.4.0)
-* [v1.3.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.3.3)
-* [v1.3.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.3.2)
-* [v1.3.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.3.1)
-* [v1.3.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.3.0)
-* [v1.2.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.2.0)
-* [v1.1.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.1.1)
-* [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.1.0)
-* [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.0.1)
-* [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v1.0.0)
+* [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v152)
+* [v1.5.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v151)
+* [v1.5.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v150)
+* [v1.4.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v142)
+* [v1.4.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v141)
+* [v1.4.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v140)
+* [v1.3.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v133)
+* [v1.3.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v132)
+* [v1.3.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v131)
+* [v1.3.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v130)
+* [v1.2.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v120)
+* [v1.1.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v111)
+* [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
+* [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
+* [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
 
 ### v1.5.2
 **Changes**

@@ -40,7 +40,7 @@ Result_with_string Draw_init(bool wide, bool _3d)
 	else if(_3d)
 		gfxSet3D(_3d);
 
-	if(!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
+	if(!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 1.5))
 	{
 		result.error_description = "[Error] C3D_Init() failed. ";
 		goto other;
@@ -138,7 +138,7 @@ Result_with_string Draw_reinit(bool wide, bool _3d)
 	else if(_3d)
 		gfxSet3D(_3d);
 
-	if(!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
+	if(!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 1.5))
 	{
 		result.error_description = "[Error] C3D_Init() failed. ";
 		goto other;
@@ -708,7 +708,7 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 		if(!Exfont_is_loaded_external_font(0) || (font_list[1][i] >= 0 && font_list[1][i] <= 3))
 		{
 			if(!Exfont_is_loaded_external_font(0))
-				util_draw_system_fonts[font_list[1][i]] = 0;
+				font_list[1][i] = 0;
 
 			if(font_list[1][i] == 1)
 			{
@@ -826,7 +826,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			if(!Exfont_is_loaded_external_font(0) || (font_list[1][i] >= 0 && font_list[1][i] <= 3))
 			{
 				if(!Exfont_is_loaded_external_font(0))
-					util_draw_system_fonts[font_list[1][i]] = 0;
+					font_list[1][i] = 0;
 
 				if(font_list[1][i] == 1)
 				{
@@ -925,7 +925,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 		if(!Exfont_is_loaded_external_font(0) || (font_list[1][i] >= 0 && font_list[1][i] <= 3))
 		{
 			if(!Exfont_is_loaded_external_font(0))
-				util_draw_system_fonts[font_list[1][i]] = 0;
+				font_list[1][i] = 0;
 
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)
@@ -1038,7 +1038,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 			if(!Exfont_is_loaded_external_font(0) || (font_list[1][i] >= 0 && font_list[1][i] <= 3))
 			{
 				if(!Exfont_is_loaded_external_font(0))
-					util_draw_system_fonts[font_list[1][i]] = 0;
+					font_list[1][i] = 0;
 
 				if(font_list[1][i] == 1)
 				{
@@ -1137,7 +1137,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
 		if(!Exfont_is_loaded_external_font(0) || (font_list[1][i] >= 0 && font_list[1][i] <= 3))
 		{
 			if(!Exfont_is_loaded_external_font(0))
-				util_draw_system_fonts[font_list[1][i]] = 0;
+				font_list[1][i] = 0;
 
 			C2D_TextBufClear(c2d_buf);
 			if(font_list[1][i] == 1)

@@ -324,7 +324,7 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session);
 /**
  * @brief Get raw image.
  * Call it after calling Util_video_decoder_decode().
- * @param raw_data (out) Pointer for raw image (YUV420P), the pointer will be allocated inside of function.
+ * @param raw_data (out) Pointer for raw image, the pointer will be allocated inside of function.
  * @param current_pos (out) Current video pos (in ms).
  * @param width (in) Image width.
  * @param height (in) Image height.

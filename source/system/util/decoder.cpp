@@ -88,6 +88,217 @@ MVDSTD_Config util_decoder_mvd_config;
 AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS];
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS];
 
+//Pixel format translation table AV_PIX_FMT_* -> DEF_CONVERTER_PIXEL_FORMAT_*.
+int util_video_decoder_pixel_format_table[] = 
+{
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUYV422,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB888,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR888,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV410P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV411P,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY8,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVJ420P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVJ422P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVJ444P,
+	DEF_CONVERTER_PIXEL_FORMAT_UYVY422,
+	DEF_CONVERTER_PIXEL_FORMAT_UYYVYY411,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR332,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR121,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR121_BYTE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB332,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB121,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB121_BYTE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_ARGB8888,
+	DEF_CONVERTER_PIXEL_FORMAT_RGBA8888,
+	DEF_CONVERTER_PIXEL_FORMAT_ABGR8888,
+	DEF_CONVERTER_PIXEL_FORMAT_BGRA8888,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV440P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVJ440P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB161616BE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB161616LE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB565BE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB565LE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB555BE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB555LE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR565BE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR565LE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR555BE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR555LE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB444LE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGB444BE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR444LE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR444BE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAYALPHA88,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR161616BE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGR161616LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR888P,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR999PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR999PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR101010PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR101010PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR161616PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR161616PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P9BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P9LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA420P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA422P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P16BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVA444P16LE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGBA16161616BE,
+	DEF_CONVERTER_PIXEL_FORMAT_RGBA16161616LE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGRA16161616BE,
+	DEF_CONVERTER_PIXEL_FORMAT_BGRA16161616LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YVYU422,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAYALPHA1616BE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAYALPHA1616LE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA8888P,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA16161616PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA16161616PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P12BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P12LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P14BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV420P14LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P12BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P12LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P14BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV422P14LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P12BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P12LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P14BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV444P14LE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR121212PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR121212PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR141414PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBR141414PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUVJ411P,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV440P10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV440P10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV440P12LE,
+	DEF_CONVERTER_PIXEL_FORMAT_YUV440P12BE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA12121212PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA12121212PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA10101010PBE,
+	DEF_CONVERTER_PIXEL_FORMAT_GBRA10101010PLE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY12BE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY12LE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY10BE,
+	DEF_CONVERTER_PIXEL_FORMAT_GRAY10LE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+	DEF_CONVERTER_PIXEL_FORMAT_NONE,
+};
 
 //Sample format translation table AV_SAMPLE_FMT_* -> DEF_CONVERTER_SAMPLE_FORMAT_*.
 int util_audio_decoder_sample_format_table[] = 
@@ -127,10 +338,13 @@ void Util_video_decoder_free(void *opaque, uint8_t *data)
 	Util_safe_linear_free(data);
 }
 
-int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
+int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, int flags)
 {
 	int width = 0;
 	int height = 0;
+	int buffer_size = 0;
+	u8* buffer = NULL;
+
 	if(avctx->codec_type == AVMEDIA_TYPE_VIDEO)
 	{
 		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++) 
@@ -157,17 +371,38 @@ int Util_video_decoder_allocate_yuv420p_buffer(AVCodecContext *avctx, AVFrame *f
 				height += 16 - height % 16;
 		}
 
-		frame->linesize[0] = width;
-		frame->linesize[1] = width / 2;
-		frame->linesize[2] = width / 2;
-		
-        frame->data[0] = (u8*)Util_safe_linear_alloc(width * height);
-        frame->data[1] = (u8*)Util_safe_linear_alloc(width * height / 4);
-        frame->data[2] = (u8*)Util_safe_linear_alloc(width * height / 4);
+		buffer_size = av_image_get_buffer_size(avctx->pix_fmt, width, height, 1);
+		if(buffer_size <= 0)
+			return -1;
 
-        frame->buf[0] = av_buffer_create(frame->data[0], frame->linesize[0] * frame->height, Util_video_decoder_free, NULL, 0);
-        frame->buf[1] = av_buffer_create(frame->data[1], frame->linesize[1] * frame->height / 4, Util_video_decoder_free, NULL, 0);
-        frame->buf[2] = av_buffer_create(frame->data[2], frame->linesize[2] * frame->height / 4, Util_video_decoder_free, NULL, 0);
+		buffer = (u8*)Util_safe_linear_alloc(buffer_size);
+		if(!buffer)
+			return -1;
+
+		if(av_image_fill_arrays(frame->data, frame->linesize, buffer, avctx->pix_fmt, width, height, 1) <= 0)
+		{
+			Util_safe_linear_free(buffer);
+			buffer = NULL;
+			return -1;
+		}
+
+		for(int i = 0; i < AV_NUM_DATA_POINTERS; i++)
+		{
+			if(frame->data[i])
+			{
+				frame->buf[i] = av_buffer_create(frame->data[i], 0, Util_video_decoder_free, NULL, 0);
+				if(!frame->buf[i])
+				{
+					for(int k = 0; k < AV_NUM_DATA_POINTERS; k++)
+						frame->buf[k] = NULL;
+
+					Util_safe_linear_free(buffer);
+					buffer = NULL;
+					return -1;
+				}
+			}
+		}
+
 		return 0;
 	}
 	else
@@ -211,8 +446,6 @@ void Util_decoder_init_variables(void)
 			util_video_decoder_changeable_buffer_size[i][k] = false;
 			util_video_decoder_cache_packet_ready[i][k] = false;
 			util_video_decoder_packet_ready[i][k] = false;
-			//util_video_decoder_previous_pts[i][k] = 0;
-			//util_video_decoder_increase_per_pts[i][k] = 0;
 			util_video_decoder_available_raw_image[i][k] = 0;
 			util_video_decoder_raw_image_ready_index[i][k] = 0;
 			util_video_decoder_raw_image_current_index[i][k] = 0;
@@ -538,11 +771,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			else if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
 			else
-			{
 				util_video_decoder_context[session][i]->thread_type = FF_THREAD_FRAME;
-				//util_video_decoder_context[session][i]->thread_type = 0;
-				//util_video_decoder_context[session][i]->thread_count = 1;
-			}
 		}
 		else if(thread_type == DEF_DECODER_THREAD_TYPE_SLICE && util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_SLICE_THREADS)
 			util_video_decoder_context[session][i]->thread_type = FF_THREAD_SLICE;
@@ -560,13 +789,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			Util_fake_pthread_set_enabled_core(util_video_decoder_slice_cores);
 
 		util_video_decoder_context[session][i]->thread_safe_callbacks = 1;
-		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_yuv420p_buffer;
-
-		if(util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUV420P && util_video_decoder_context[session][i]->pix_fmt != AV_PIX_FMT_YUVJ420P)
-		{
-			result.error_description = "[Error] Unsupported pixel format. ";
-			goto other;
-		}
+		util_video_decoder_context[session][i]->get_buffer2 = Util_video_decoder_allocate_buffer;
 
 		ffmpeg_result = avcodec_open2(util_video_decoder_context[session][i], util_video_decoder_codec[session][i], NULL);
 		if(ffmpeg_result != 0)
@@ -585,8 +808,6 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		util_video_decoder_max_raw_image[session][i] = DEF_DECODER_MAX_RAW_IMAGE;
 		util_video_decoder_changeable_buffer_size[session][i] = true;
 		util_video_decoder_init[session][i] = true;
-		//util_video_decoder_previous_pts[session][i] = 0;
-		//util_video_decoder_increase_per_pts[session][i] = 0;
 	}
 
 	return result;
@@ -623,16 +844,6 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
 	}
 	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	other:
-	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-	{
-		avcodec_free_context(&util_video_decoder_context[session][i]);
-		svcCloseHandle(util_video_decoder_raw_image_mutex[session][i]);
-	}
-	result.code = DEF_ERR_OTHER;
-	result.string = DEF_ERR_OTHER_STR;
 	return result;
 }
 
@@ -850,9 +1061,7 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][video_index])
 		return;
 
-	//Util_log_save("debug", std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.num) + ":" + std::to_string(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->sample_aspect_ratio.den));
 	sar = av_guess_sample_aspect_ratio(util_decoder_format_context[session], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]], NULL);
-	//Util_log_save("debug", std::to_string(sar.num) + ":" + std::to_string(sar.den));
 	if(sar.num == 0 && sar.den == 1)
 	{
 		video_info->sar_width = 1;
@@ -879,6 +1088,11 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 		video_info->thread_type = DEF_DECODER_THREAD_TYPE_SLICE;
 	else
 		video_info->thread_type = DEF_DECODER_THREAD_TYPE_NONE;
+
+	if(util_video_decoder_context[session][video_index]->pix_fmt < 0 || util_video_decoder_context[session][video_index]->pix_fmt >= AV_PIX_FMT_NB)
+		video_info->pixel_format = DEF_CONVERTER_PIXEL_FORMAT_NONE;
+	else
+		video_info->pixel_format = util_video_decoder_pixel_format_table[util_video_decoder_context[session][video_index]->pix_fmt];
 }
 
 void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_index, int session)
@@ -2026,7 +2240,6 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 		goto ffmpeg_api_failed;
 	}
 
-	//Util_log_save("debug", "decoded " + std::to_string(decoded));
 	if(decoded > 0)
 	{
 		timebase = av_q2d(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][packet_index]]->time_base);
@@ -2036,32 +2249,18 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 			subtitle_data->end_time = subtitle_data->start_time + (util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000);
 		}
 
-		//Util_log_save("debug", "duration : " + std::to_string(util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000));
-		
-		//Util_log_save("debug", "dts : " + std::to_string(util_subtitle_decoder_packet[session][packet_index]->dts));
 		for(uint i = 0; i < util_subtitle_decoder_raw_data[session][packet_index]->num_rects; i++)
 		{
-			//Util_log_save("debug", "from : " + std::to_string(subtitle_data->start_time) + " to : " + std::to_string(subtitle_data->end_time));
-
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_NONE)
 			{
-				//Util_log_save("debug", "type : NONE");
 			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_BITMAP)
 			{
-				//Util_log_save("debug", "type : BITMAP");
 			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_TEXT)
-			{
-				//Util_log_save("debug", "type : TEXT");
-				//Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text);
 				subtitle_data->text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text;
-			}
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_ASS)
 			{
-				//Util_log_save("debug", "type : ASS");
-				//Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass);
-
 				text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass;
 				cut_pos = 0;
 				for(int i = 0; i < 8; i++)
@@ -2086,13 +2285,9 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 						}
 					}
 				}
-				/*text_length = text.length();
-					for(int i = 1; i <= text_length / 20; i++)
-						text.insert(i * 20 + i, "\n");*/
 
 				subtitle_data->text = text;
 			}
-			//Util_log_save("debug", util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text);
 		}
 	}
 
@@ -2204,15 +2399,15 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session)
 
 Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int packet_index, int session)
 {
-	int cpy_size[2] = { 0, 0, };
+	int cpy_size = 0;
 	int buffer_num = 0;
 	double framerate = 0;
 	double current_frame = 0;
 	double timebase = 0;
 	Result_with_string result;
 #if DEF_DECODER_USE_DMA
-	int dma_result[3] = { 0, 0, 0, };
-	Handle dma_handle[3] = { 0, 0, 0, };
+	int dma_result = 0;
+	Handle dma_handle = 0;
 	DmaConfig dma_config;
 #endif
 
@@ -2232,15 +2427,14 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 		goto try_again;
 	}
 
+	cpy_size = av_image_get_buffer_size(util_video_decoder_context[session][packet_index]->pix_fmt, width, height, 1);
 	*current_pos = 0;
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 1.5);
+	*raw_data = (u8*)Util_safe_linear_alloc(cpy_size);
 	if(!*raw_data)
 		goto out_of_memory;
 
-	cpy_size[0] = (width * height);
-	cpy_size[1] = cpy_size[0] / 4;
 	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
 	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration != 0)
@@ -2258,26 +2452,19 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
 #if DEF_DECODER_USE_DMA
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size);
+
 	dmaConfigInitDefault(&dma_config);
+	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size, &dma_config);
 
-	dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0], &dma_config);
-	dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (u32)*raw_data + (width * height), CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1], &dma_config);
-	dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (u32)*raw_data + (width * height) + (width * height / 4), CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], cpy_size[1], &dma_config);
+	if(dma_result == 0)
+		svcWaitSynchronization(dma_handle, INT64_MAX);
 
-	for(int i = 0; i < 3; i++)
-	{
-		if(dma_result[i] == 0)
-			svcWaitSynchronization(dma_handle[i], INT64_MAX);
-	}
+	svcCloseHandle(dma_handle);
 
-	for(int i = 0; i < 3; i++)
-		svcCloseHandle(dma_handle[i]);
-
-	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size[0] + (cpy_size[1] * 2));
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
 #else
-	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size[0]);
-	memcpy_asm(*raw_data + (width * height), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], cpy_size[1]);
-	memcpy_asm(*raw_data + (width * height) + (width * height / 4), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], cpy_size[1]);
+	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size);
 #endif
 
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
@@ -2364,6 +2551,8 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	cpy_size = (width * height * 2);
 
 #if DEF_DECODER_USE_DMA
+	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size);
+
 	dmaConfigInitDefault(&dma_config);
 	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_mvd_video_decoder_raw_image[session][buffer_num]->data[0], cpy_size, &dma_config);
 

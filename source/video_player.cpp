@@ -1458,7 +1458,9 @@ void Vid_decode_thread(void* arg)
 							vid_codec_height += 16 - vid_codec_height % 16;
 					}
 
-					if(vid_use_hw_decoding_request && vid_video_info.format_name == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10")
+					if(vid_use_hw_decoding_request && vid_video_info.format_name == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"
+					&& (vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P || vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P10LE
+					|| vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P10BE))
 					{
 						vid_hw_decoding_mode = true;
 						result = Util_mvd_video_decoder_init(0);
@@ -1469,7 +1471,7 @@ void Vid_decode_thread(void* arg)
 
 					if(!vid_hw_decoding_mode && vid_use_hw_color_conversion_request)
 					{
-						if(vid_codec_width <= 1024 && vid_codec_height <= 1024)
+						if(vid_codec_width <= 1024 && vid_codec_height <= 1024 && (vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P || vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUVJ420P))
 						{
 							vid_hw_color_conversion_mode = true;
 							result = Util_converter_y2r_init();
@@ -2394,7 +2396,7 @@ void Vid_convert_thread(void* arg)
 						else//if framerate is unknown just sleep 10ms
 							usleep(10000);
 					}
-					
+
 					vid_copy_time[0] = osTickCounterRead(&counter[2]);
 
 					if(result.code == 0)
@@ -2410,7 +2412,19 @@ void Vid_convert_thread(void* arg)
 						if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
 							result = Util_converter_y2r_yuv420p_to_rgb565le(yuv_video, &video, vid_codec_width, vid_codec_height, true);
 						else if(!vid_hw_decoding_mode)
-							result = Util_converter_yuv420p_to_rgb565le_asm(yuv_video, &video, vid_codec_width, vid_codec_height);
+						{
+							Color_converter_parameters color_converter_parameters;
+							color_converter_parameters.source = yuv_video;
+							color_converter_parameters.converted = NULL;
+							color_converter_parameters.in_width = vid_codec_width;
+							color_converter_parameters.in_height = vid_codec_height;
+							color_converter_parameters.in_color_format = vid_video_info.pixel_format;
+							color_converter_parameters.out_width = vid_codec_width;
+							color_converter_parameters.out_height = vid_codec_height;
+							color_converter_parameters.out_color_format = DEF_CONVERTER_PIXEL_FORMAT_RGB565LE;
+							result = Util_converter_convert_color(&color_converter_parameters);
+							video = color_converter_parameters.converted;
+						}
 						osTickCounterUpdate(&counter[0]);
 						vid_convert_time = osTickCounterRead(&counter[0]);
 

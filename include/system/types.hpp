@@ -45,14 +45,27 @@ struct Audio_info
 
 struct Video_info
 {
-	int width = 0;
-	int height = 0;
-	double framerate = 0;
-	std::string format_name = "";
-	double duration = 0;
-	int thread_type = DEF_DECODER_THREAD_TYPE_NONE;
-	int sar_width = 1;
-	int sar_height = 1;
+	int width = 0;					//Video width.
+	int height = 0;					//Video height.
+	double framerate = 0;			//Video framerate.
+	std::string format_name = "";	//Video codec name.
+	double duration = 0;			//Video track duration in seconds.
+	int thread_type = DEF_DECODER_THREAD_TYPE_NONE;	//Threading method (DEF_DECODER_THREAD_TYPE_*).
+	int sar_width = 1;				//Sample aspect ratio for width.
+	int sar_height = 1;				//Sample aspect ratio for height.
+	int pixel_format = DEF_CONVERTER_PIXEL_FORMAT_NONE;	//Video pixel format (DEF_CONVERTER_PIXEL_FORMAT_*).
+};
+
+struct Color_converter_parameters
+{
+	u8* source = NULL;			//(in)  Source raw image data, user must allocate the buffer.
+	u8* converted = NULL;		//(out) Converted raw image data, this buffer will be allocated inside of function.
+	int in_width = 0;			//(in)  Source image width.
+	int in_height = 0;			//(in)  Source image height.
+	int out_width = 0;			//(in)  Converted image width.
+	int out_height = 0;			//(in)  Converted image height.
+	int in_color_format = DEF_CONVERTER_PIXEL_FORMAT_NONE;	//(in) Source image pixel format (DEF_CONVERTER_PIXEL_FORMAT_*).
+	int out_color_format = DEF_CONVERTER_PIXEL_FORMAT_NONE;	//(in) Converted image pixel format (DEF_CONVERTER_PIXEL_FORMAT_*).
 };
 
 struct Audio_converter_parameters

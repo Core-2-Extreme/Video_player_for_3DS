@@ -76,15 +76,11 @@ void Draw_texture_free(Image_data* image);
  * @param buf (in) Pointer for raw image data (must be texture format).
  * @param pic_width (in) Raw image width (up to 1024).
  * @param pic_height (in) Raw image height (up to 1024).
- * @param tex_size_x (in) Texture width.
- * @param tex_size_y (in) Texture height.
- * @param color_format (in) Color format (DEF_DRAW_FORMAT_*).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height,
-int tex_size_x, int tex_size_y, int color_format);
+Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
@@ -92,15 +88,11 @@ int tex_size_x, int tex_size_y, int color_format);
  * @param buf (in) Pointer for raw image data.
  * @param pic_width (in) Raw image width.
  * @param pic_height (in) Raw image height.
- * @param tex_size_x (in) Texture width.
- * @param tex_size_y (in) Texture height.
- * @param color_format (in) Color format (DEF_DRAW_FORMAT_*).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height,
-int tex_size_x, int tex_size_y, int color_format);
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
@@ -110,15 +102,11 @@ int tex_size_x, int tex_size_y, int color_format);
  * @param pic_height (in) Raw image height.
  * @param width_offset (in) Width offset.
  * @param height_offset (in) Height offset.
- * @param tex_size_x (in) Texture width.
- * @param tex_size_y (in) Texture height.
- * @param color_format (in) Color format (DEF_DRAW_FORMAT_*).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height,
-int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_format);
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int width_offset, int height_offset);
 
 /**
  * @brief Set texture filter.

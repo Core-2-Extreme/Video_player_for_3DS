@@ -2401,27 +2401,27 @@ void Vid_convert_thread(void* arg)
 								image_num = vid_image_num_3d;
 
 							if(!vid_hw_decoding_mode && vid_hw_color_conversion_mode)
-								result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
+								result = Draw_set_texture_data_direct(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height);
 							else
-								result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
+								result = Draw_set_texture_data(&vid_image[0][image_num][packet_index], video, vid_codec_width, vid_codec_height);
 							if(result.code != 0)
 								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 
 							if(vid_codec_width > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
+								result = Draw_set_texture_data(&vid_image[1][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 0);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
 							if(vid_codec_height > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
+								result = Draw_set_texture_data(&vid_image[2][image_num][packet_index], video, vid_codec_width, vid_codec_height, 0, 1024);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}
 							if(vid_codec_width > 1024 && vid_codec_height > 1024)
 							{
-								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024, 1024, 1024, DEF_DRAW_FORMAT_RGB565);
+								result = Draw_set_texture_data(&vid_image[3][image_num][packet_index], video, vid_codec_width, vid_codec_height, 1024, 1024);
 								if(result.code != 0)
 									Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Draw_set_texture_data()..." + result.string + result.error_description, result.code);
 							}

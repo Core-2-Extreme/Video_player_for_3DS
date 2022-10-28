@@ -293,8 +293,7 @@ void Draw_texture_free(Image_data* image)
 	image->subtex = NULL;
 }
 
-Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height,
-int tex_size_x, int tex_size_y, int color_format)
+Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height)
 {
 	int pixel_size = 0;
 	int tex_offset = 0;
@@ -311,23 +310,23 @@ int tex_size_x, int tex_size_y, int color_format)
 		goto not_inited;
 
 	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > 1024 || pic_width <= 0 
-	|| pic_height > 1024 || pic_height <= 0 || pic_width > tex_size_x || pic_height > tex_size_y
-	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| pic_height > 1024 || pic_height <= 0 || pic_width > image->c2d.tex->width || pic_height > image->c2d.tex->height
+	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
 	
-	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+	if(image->c2d.tex->fmt == GPU_RGBA8)
 		pixel_size = 4;
-	else if(color_format == DEF_DRAW_FORMAT_RGB888)
+	else if(image->c2d.tex->fmt == GPU_RGB8)
 		pixel_size = 3;
-	else if(color_format == DEF_DRAW_FORMAT_RGB565)
+	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
 	
 	image->subtex->width = (u16)pic_width;
 	image->subtex->height = (u16)pic_height;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
-	image->subtex->right = pic_width / (float)tex_size_x;
-	image->subtex->bottom = 1.0 - pic_height / (float)tex_size_y;
+	image->subtex->right = pic_width / (float)image->c2d.tex->width;
+	image->subtex->bottom = 1.0 - pic_height / (float)image->c2d.tex->height;
 	image->c2d.subtex = image->subtex;
 
 #if DEF_DRAW_USE_DMA
@@ -342,7 +341,7 @@ int tex_size_x, int tex_size_y, int color_format)
 #else
 		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
 #endif
-		tex_offset += tex_size_x * pixel_size * 8;
+		tex_offset += image->c2d.tex->width * pixel_size * 8;
 		buffer_offset += pic_width * pixel_size * 8;
 
 #if DEF_DRAW_USE_DMA
@@ -386,14 +385,12 @@ int tex_size_x, int tex_size_y, int color_format)
 	return result;
 }
 
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int tex_size_x,
-int tex_size_y, int color_format)
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height)
 {
-	return Draw_set_texture_data(image, buf, pic_width, pic_height, 0, 0, tex_size_x, tex_size_y, color_format);
+	return Draw_set_texture_data(image, buf, pic_width, pic_height, 0, 0);
 }
 
-Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height,
-int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_format)
+Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_width, int pic_height, int width_offset, int height_offset)
 {
 	int x_max = 0;
 	int y_max = 0;
@@ -409,25 +406,25 @@ int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_f
 		goto not_inited;
 
 	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width <= 0 || pic_height <= 0
-	|| width_offset > pic_width || height_offset > pic_height || tex_size_x <= 0 || tex_size_y <= 0
-	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| width_offset > pic_width || height_offset > pic_height || image->c2d.tex->width <= 0 || image->c2d.tex->height <= 0
+	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
 
-	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+	if(image->c2d.tex->fmt == GPU_RGBA8)
 		pixel_size = 4;
-	else if(color_format == DEF_DRAW_FORMAT_RGB888)
+	else if(image->c2d.tex->fmt == GPU_RGB8)
 		pixel_size = 3;
-	else if(color_format == DEF_DRAW_FORMAT_RGB565)
+	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
 
-	for(int i = 0; i <= tex_size_x; i+=4)
+	for(int i = 0; i <= image->c2d.tex->width; i+=4)
 	{
 		increase_list_x[i] = 4 * pixel_size;
 		increase_list_x[i + 1] = 12 * pixel_size;
 		increase_list_x[i + 2] = 4 * pixel_size;
 		increase_list_x[i + 3] = 44 * pixel_size;
 	}
-	for(int i = 0; i <= tex_size_y; i+=8)
+	for(int i = 0; i <= image->c2d.tex->height; i+=8)
 	{
 		increase_list_y[i] = 2 * pixel_size;
 		increase_list_y[i + 1] = 6 * pixel_size;
@@ -436,22 +433,22 @@ int width_offset, int height_offset, int tex_size_x, int tex_size_y, int color_f
 		increase_list_y[i + 4] = 2 * pixel_size;
 		increase_list_y[i + 5] = 6 * pixel_size;
 		increase_list_y[i + 6] = 2 * pixel_size;
-		increase_list_y[i + 7] = (tex_size_x * 8 - 42) * pixel_size;
+		increase_list_y[i + 7] = (image->c2d.tex->width * 8 - 42) * pixel_size;
 	}
 	
 	y_max = pic_height - (u32)height_offset;
 	x_max = pic_width - (u32)width_offset;
-	if (tex_size_y < y_max)
-		y_max = tex_size_y;
-	if (tex_size_x < x_max)
-		x_max = tex_size_x;
+	if (image->c2d.tex->height < y_max)
+		y_max = image->c2d.tex->height;
+	if (image->c2d.tex->width < x_max)
+		x_max = image->c2d.tex->width;
 
 	image->subtex->width = (u16)x_max;
 	image->subtex->height = (u16)y_max;
 	image->subtex->left = 0.0;
 	image->subtex->top = 1.0;
-	image->subtex->right = x_max / (float)tex_size_x;
-	image->subtex->bottom = 1.0 - y_max / (float)tex_size_y;
+	image->subtex->right = x_max / (float)image->c2d.tex->width;
+	image->subtex->bottom = 1.0 - y_max / (float)image->c2d.tex->height;
 	image->c2d.subtex = image->subtex;
 
 	if(pixel_size == 2)

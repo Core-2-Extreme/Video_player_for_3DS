@@ -1,18 +1,210 @@
 #include "system/headers.hpp"
 
-#if DEF_ENABLE_SW_ASM_CONVERTER_API
-
-extern "C" void yuv420p_to_rgb565le_asm(u8* yuv420p, u8* rgb565, int width, int height);
-extern "C" void yuv420p_to_rgb888le_asm(u8* yuv420p, u8* rgb888, int width, int height);
-
-#endif
-
-#if DEF_ENABLE_SW_CONVERTER_API
+#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 
 extern "C" 
 {
 #include "libswscale/swscale.h"
+#include "libavutil/imgutils.h"
 }
+
+//Pixel format translation table DEF_CONVERTER_PIXEL_FORMAT_* -> AV_PIX_FMT_*.
+AVPixelFormat util_converter_pixel_format_table[] = 
+{
+	//YUV*
+	AV_PIX_FMT_YUV410P,
+	AV_PIX_FMT_YUV411P,
+	AV_PIX_FMT_YUV420P,
+	AV_PIX_FMT_YUV420P9BE,
+	AV_PIX_FMT_YUV420P9LE,
+	AV_PIX_FMT_YUV420P10BE,
+	AV_PIX_FMT_YUV420P10LE,
+	AV_PIX_FMT_YUV420P12BE,
+	AV_PIX_FMT_YUV420P12LE,
+	AV_PIX_FMT_YUV420P14BE,
+	AV_PIX_FMT_YUV420P14LE,
+	AV_PIX_FMT_YUV420P16BE,
+	AV_PIX_FMT_YUV420P16LE,
+	AV_PIX_FMT_YUV422P,
+	AV_PIX_FMT_YUV422P9BE,
+	AV_PIX_FMT_YUV422P9LE,
+	AV_PIX_FMT_YUV422P10BE,
+	AV_PIX_FMT_YUV422P10LE,
+	AV_PIX_FMT_YUV422P12BE,
+	AV_PIX_FMT_YUV422P12LE,
+	AV_PIX_FMT_YUV422P14BE,
+	AV_PIX_FMT_YUV422P14LE,
+	AV_PIX_FMT_YUV422P16BE,
+	AV_PIX_FMT_YUV422P16LE,
+	AV_PIX_FMT_YUV440P,
+	AV_PIX_FMT_YUV440P10BE,
+	AV_PIX_FMT_YUV440P10LE,
+	AV_PIX_FMT_YUV440P12BE,
+	AV_PIX_FMT_YUV440P12LE,
+	AV_PIX_FMT_YUV444P,
+	AV_PIX_FMT_YUV444P9BE,
+	AV_PIX_FMT_YUV444P9LE,
+	AV_PIX_FMT_YUV444P10BE,
+	AV_PIX_FMT_YUV444P10LE,
+	AV_PIX_FMT_YUV444P12BE,
+	AV_PIX_FMT_YUV444P12LE,
+	AV_PIX_FMT_YUV444P14BE,
+	AV_PIX_FMT_YUV444P14LE,
+	AV_PIX_FMT_YUV444P16BE,
+	AV_PIX_FMT_YUV444P16LE,
+	//YUVJ*
+	AV_PIX_FMT_YUVJ411P,
+	AV_PIX_FMT_YUVJ420P,
+	AV_PIX_FMT_YUVJ422P,
+	AV_PIX_FMT_YUVJ440P,
+	AV_PIX_FMT_YUVJ444P,
+	//YUVA*
+	AV_PIX_FMT_YUVA420P,
+	AV_PIX_FMT_YUVA420P9BE,
+	AV_PIX_FMT_YUVA420P9LE,
+	AV_PIX_FMT_YUVA420P10BE,
+	AV_PIX_FMT_YUVA420P10LE,
+	AV_PIX_FMT_YUVA420P16BE,
+	AV_PIX_FMT_YUVA420P16LE,
+	AV_PIX_FMT_YUVA422P,
+	AV_PIX_FMT_YUVA422P9BE,
+	AV_PIX_FMT_YUVA422P9LE,
+	AV_PIX_FMT_YUVA422P10BE,
+	AV_PIX_FMT_YUVA422P10LE,
+	AV_PIX_FMT_YUVA422P16BE,
+	AV_PIX_FMT_YUVA422P16LE,
+	AV_PIX_FMT_YUVA444P,
+	AV_PIX_FMT_YUVA444P9BE,
+	AV_PIX_FMT_YUVA444P9LE,
+	AV_PIX_FMT_YUVA444P10BE,
+	AV_PIX_FMT_YUVA444P10LE,
+	AV_PIX_FMT_YUVA444P16BE,
+	AV_PIX_FMT_YUVA444P16LE,
+	//UYVY*
+	AV_PIX_FMT_UYVY422,
+	//YUYV*
+	AV_PIX_FMT_YUYV422,
+	//YVYU*
+	AV_PIX_FMT_YVYU422,
+	//UYYVYY*
+	AV_PIX_FMT_UYYVYY411,
+	//RGB* (exclude RGBA)
+	AV_PIX_FMT_RGB4,
+	AV_PIX_FMT_RGB4_BYTE,
+	AV_PIX_FMT_RGB8,
+	AV_PIX_FMT_RGB444BE,
+	AV_PIX_FMT_RGB444LE,
+	AV_PIX_FMT_RGB555BE,
+	AV_PIX_FMT_RGB555LE,
+	AV_PIX_FMT_RGB565BE,
+	AV_PIX_FMT_RGB565LE,
+	AV_PIX_FMT_RGB24,
+	AV_PIX_FMT_RGB48BE,
+	AV_PIX_FMT_RGB48LE,
+	//BGR* (exclude BGRA)
+	AV_PIX_FMT_BGR4,
+	AV_PIX_FMT_BGR4_BYTE,
+	AV_PIX_FMT_BGR8,
+	AV_PIX_FMT_BGR444BE,
+	AV_PIX_FMT_BGR444LE,
+	AV_PIX_FMT_BGR555BE,
+	AV_PIX_FMT_BGR555LE,
+	AV_PIX_FMT_BGR565BE,
+	AV_PIX_FMT_BGR565LE,
+	AV_PIX_FMT_BGR24,
+	AV_PIX_FMT_BGR48BE,
+	AV_PIX_FMT_BGR48LE,
+	//GRB* (exclude GRBA)
+	AV_PIX_FMT_GBRP,
+	AV_PIX_FMT_GBRP9BE,
+	AV_PIX_FMT_GBRP9LE,
+	AV_PIX_FMT_GBRP10BE,
+	AV_PIX_FMT_GBRP10LE,
+	AV_PIX_FMT_GBRP12BE,
+	AV_PIX_FMT_GBRP12LE,
+	AV_PIX_FMT_GBRP14BE,
+	AV_PIX_FMT_GBRP14LE,
+	AV_PIX_FMT_GBRP16BE,
+	AV_PIX_FMT_GBRP16LE,
+	//ARGB*
+	AV_PIX_FMT_ARGB,
+	//ABGR*
+	AV_PIX_FMT_ABGR,
+	//RGBA*
+	AV_PIX_FMT_RGBA,
+	AV_PIX_FMT_RGBA64BE,
+	AV_PIX_FMT_RGBA64LE,
+	//BGRA*
+	AV_PIX_FMT_BGRA,
+	AV_PIX_FMT_BGRA64BE,
+	AV_PIX_FMT_BGRA64LE,
+	//GBRA*
+	AV_PIX_FMT_GBRAP,
+	AV_PIX_FMT_GBRAP10BE,
+	AV_PIX_FMT_GBRAP10LE,
+	AV_PIX_FMT_GBRAP12BE,
+	AV_PIX_FMT_GBRAP12LE,
+	AV_PIX_FMT_GBRAP16BE,
+	AV_PIX_FMT_GBRAP16LE,
+	//GRAY*
+	AV_PIX_FMT_GRAY8,
+	AV_PIX_FMT_GRAY10BE,
+	AV_PIX_FMT_GRAY10LE,
+	AV_PIX_FMT_GRAY12BE,
+	AV_PIX_FMT_GRAY12LE,
+	AV_PIX_FMT_GRAY16BE,
+	AV_PIX_FMT_GRAY16LE,
+	//GRAYALPHA*
+	AV_PIX_FMT_YA8,
+	AV_PIX_FMT_YA16BE,
+	AV_PIX_FMT_YA16LE,
+};
+
+#endif
+
+#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+
+extern "C" 
+{
+#include "libswresample/swresample.h"
+}
+
+//Sample format translation table DEF_CONVERTER_SAMPLE_FORMAT_* -> AV_SAMPLE_FMT_*.
+AVSampleFormat util_converter_sample_format_table[] = 
+{
+    AV_SAMPLE_FMT_U8,
+    AV_SAMPLE_FMT_U8P,
+    AV_SAMPLE_FMT_S16,
+    AV_SAMPLE_FMT_S16P,
+    AV_SAMPLE_FMT_S32,
+    AV_SAMPLE_FMT_S32P,
+    AV_SAMPLE_FMT_S64,
+    AV_SAMPLE_FMT_S64P,
+    AV_SAMPLE_FMT_FLT,
+    AV_SAMPLE_FMT_FLTP,
+    AV_SAMPLE_FMT_DBL,
+    AV_SAMPLE_FMT_DBLP,
+};
+
+u8 util_converter_sample_format_size_table[] = 
+{
+    sizeof(u8),
+    sizeof(u8),
+    sizeof(s16),
+    sizeof(s16),
+    sizeof(s32),
+    sizeof(s32),
+    sizeof(s64),
+    sizeof(s64),
+    sizeof(float),
+    sizeof(float),
+    sizeof(double),
+    sizeof(double),
+};
+
+#endif
+
+#if DEF_ENABLE_SW_CONVERTER_API
 
 #define CLIP(X) ( (X) > 255 ? 255 : (X) < 0 ? 0 : X)
 // YUV -> RGB
@@ -26,46 +218,73 @@ extern "C"
 
 #endif
 
+#if DEF_ENABLE_SW_ASM_CONVERTER_API
+
+extern "C" void yuv420p_to_rgb565le_asm(u8* yuv420p, u8* rgb565, int width, int height);
+extern "C" void yuv420p_to_rgb888le_asm(u8* yuv420p, u8* rgb888, int width, int height);
+
+#endif
+
 #if DEF_ENABLE_HW_CONVERTER_API
 
 bool util_y2r_init = false;
 
 #endif
 
-#if DEF_ENABLE_SW_CONVERTER_API
+#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
 
-Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, int width, int height)
+Result_with_string Util_converter_convert_color(Color_converter_parameters* parameters)
 {
 	int src_line_size[4] = { 0, 0, 0, 0, };
 	int dst_line_size[4] = { 0, 0, 0, 0, };
+	int converted_image_size = 0;
 	int ffmpeg_result = 0;
 	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
 	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
 	Result_with_string result;
 	SwsContext* sws_context = NULL;
 
-	if(!yuv422 || !rgb565 || width <= 0 || height <= 0)
+	if(!parameters || !parameters->source || parameters->in_width <= 0 || parameters->in_height <= 0 || parameters->out_width <= 0 || parameters->out_height <= 0
+	|| parameters->in_color_format < 0 || parameters->in_color_format > DEF_CONVERTER_PIXEL_FORMAT_MAX || parameters->out_color_format < 0 || parameters->out_color_format > DEF_CONVERTER_PIXEL_FORMAT_MAX)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = (u8*)Util_safe_linear_alloc(width * height * 2);
-	if(!*rgb565)
-		goto out_of_memory;
+	//Get required buffer size for output data.
+	converted_image_size = av_image_get_buffer_size(util_converter_pixel_format_table[parameters->out_color_format], parameters->out_width, parameters->out_height, 1);
+	if(converted_image_size <= 0)
+	{
+		result.error_description = "[Error] av_image_get_buffer_size() failed. " + std::to_string(converted_image_size) + " ";
+		goto ffmpeg_api_failed;
+	}
 
-	sws_context = sws_getContext(width, height, AV_PIX_FMT_YUYV422,
-	width, height, AV_PIX_FMT_RGB565LE, 0, 0, 0, 0);
+	Util_safe_linear_free(parameters->converted);
+	parameters->converted = (u8*)Util_safe_linear_alloc(converted_image_size);
+	if(!parameters->converted)
+		goto out_of_memory;
+	
+	sws_context = sws_getContext(parameters->in_width, parameters->in_height, util_converter_pixel_format_table[parameters->in_color_format],
+	parameters->out_width, parameters->out_height, util_converter_pixel_format_table[parameters->out_color_format], 0, 0, 0, 0);
 	if(!sws_context)
 	{
 		result.error_description = "[Error] sws_getContext() failed. ";
 		goto ffmpeg_api_failed;
 	}
 
-	src_data[0] = yuv422;
-	src_line_size[0] = width * 2;
-	dst_data[0] = *rgb565;
-	dst_line_size[0] = width * 2;
-	
-	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, height, dst_data, dst_line_size);
+	//Set linesizes and pointers.
+	ffmpeg_result = av_image_fill_arrays(src_data, src_line_size, parameters->source, util_converter_pixel_format_table[parameters->in_color_format], parameters->in_width, parameters->in_height, 1);
+	if(ffmpeg_result <= 0)
+	{
+		result.error_description = "[Error] av_image_fill_arrays() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
+	}
+
+	ffmpeg_result = av_image_fill_arrays(dst_data, dst_line_size, parameters->converted, util_converter_pixel_format_table[parameters->out_color_format], parameters->out_width, parameters->out_height, 1);
+	if(ffmpeg_result <= 0)
+	{
+		result.error_description = "[Error] av_image_fill_arrays() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
+	}
+
+	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, parameters->in_height, dst_data, dst_line_size);
 	if(ffmpeg_result < 0)
 	{
 		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
@@ -73,6 +292,7 @@ Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, in
 	}
 
 	sws_freeContext(sws_context);
+
 	return result;
 
 	invalid_arg:
@@ -86,54 +306,84 @@ Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, in
 	return result;
 
 	ffmpeg_api_failed:
-	Util_safe_linear_free(*rgb565);
-	*rgb565 = NULL;
+	Util_safe_linear_free(parameters->converted);
+	parameters->converted = NULL;
 	sws_freeContext(sws_context);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
-Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, int width, int height)
-{
-	int src_line_size[4] = { 0, 0, 0, 0, };
-	int dst_line_size[4] = { 0, 0, 0, 0, };
-	int ffmpeg_result = 0;
-	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
-	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
-	Result_with_string result;
-	SwsContext* sws_context = NULL;
+#endif
 
-	if(!yuv422 || !yuv420p || width <= 0 || height <= 0)
+#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+
+Result_with_string Util_converter_convert_audio(Audio_converter_parameters* parameters)
+{
+	u8* src_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	u8* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	int ffmpeg_result = 0;
+	Result_with_string result;
+	SwrContext* swr_context = NULL;
+
+	if(!parameters || !parameters->source || parameters->in_ch <= 0 || parameters->in_ch > 8 || parameters->in_sample_rate <= 0 || parameters->in_samples <= 0
+	|| parameters->in_sample_format < 0 || parameters->in_sample_format > DEF_CONVERTER_SAMPLE_FORMAT_MAX || parameters->out_ch <= 0 || parameters->out_ch > 8
+	|| parameters->out_sample_rate <= 0 || parameters->out_sample_format < 0 || parameters->out_sample_format > DEF_CONVERTER_SAMPLE_FORMAT_MAX)
 		goto invalid_arg;
 
-	Util_safe_linear_free(*yuv420p);
-	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
-	if(!*yuv420p)
-		goto out_of_memory;
-		
-	sws_context = sws_getContext(width, height, AV_PIX_FMT_YUYV422,
-	width, height, AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
-	if(!sws_context)
-		goto ffmpeg_api_failed;
+	parameters->out_samples = 0;
 
-	src_data[0] = yuv422;
-	src_line_size[0] = width * 2;
-	dst_data[0] = *yuv420p;
-	dst_data[1] = *yuv420p + (width * height);
-	dst_data[2] = *yuv420p + (width * height) + (width * height / 4);
-	dst_line_size[0] = width;
-	dst_line_size[1] = width / 2;
-	dst_line_size[2] = width / 2;
-	
-	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, height, dst_data, dst_line_size);
-	if(ffmpeg_result < 0)
+	Util_safe_linear_free(parameters->converted);
+	parameters->converted = NULL;
+	parameters->converted = (u8*)Util_safe_linear_alloc(parameters->in_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * parameters->out_ch);
+	if(!parameters->converted)
+		goto out_of_memory;
+
+	parameters->out_samples = parameters->in_samples;
+
+	swr_context = swr_alloc_set_opts(NULL, av_get_default_channel_layout(parameters->out_ch), util_converter_sample_format_table[parameters->out_sample_format], parameters->out_sample_rate,
+	av_get_default_channel_layout(parameters->in_ch), util_converter_sample_format_table[parameters->in_sample_format], parameters->out_sample_rate, 0, NULL);
+	if(!swr_context)
 	{
-		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
+		result.error_description = "[Error] swr_alloc_set_opts() failed. ";
 		goto ffmpeg_api_failed;
 	}
 
-	sws_freeContext(sws_context);
+	ffmpeg_result = swr_init(swr_context);
+	if(ffmpeg_result != 0)
+	{
+		result.error_description = "[Error] swr_init() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
+	}
+
+	src_data[0] = parameters->source;
+	dst_data[0] = parameters->converted;
+
+	if(parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_U8P || parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S16P
+	|| parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S32P || parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S64P
+	|| parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_FLOAT32P || parameters->in_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_DOUBLE64P)
+	{
+		for(int i = 1; i < parameters->in_ch; i++)
+			src_data[i] = parameters->source + (parameters->in_samples * util_converter_sample_format_size_table[parameters->in_sample_format] * i);
+	}
+	if(parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_U8P || parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S16P
+	|| parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S32P || parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_S64P
+	|| parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_FLOAT32P || parameters->out_sample_format == DEF_CONVERTER_SAMPLE_FORMAT_DOUBLE64P)
+	{
+		for(int i = 1; i < parameters->out_ch; i++)
+			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
+	}
+
+	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const u8**)src_data, parameters->in_samples);
+	if(ffmpeg_result <= 0)
+	{
+		result.error_description = "[Error] swr_convert() failed. " + std::to_string(ffmpeg_result) + " ";
+		goto ffmpeg_api_failed;
+	}
+	parameters->out_samples = ffmpeg_result;
+
+	swr_free(&swr_context);
+
 	return result;
 
 	invalid_arg:
@@ -147,13 +397,17 @@ Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, in
 	return result;
 
 	ffmpeg_api_failed:
-	Util_safe_linear_free(*yuv420p);
-	*yuv420p = NULL;
-	sws_freeContext(sws_context);
+	Util_safe_linear_free(parameters->converted);
+	parameters->converted = NULL;
+	swr_free(&swr_context);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
+
+#endif
+
+#if DEF_ENABLE_SW_CONVERTER_API
 
 Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height)
 {
@@ -347,132 +601,6 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
 	out_of_memory:
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
-}
-
-Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, int width, int height)
-{
-	int src_line_size[4] = { 0, 0, 0, 0, };
-	int dst_line_size[4] = { 0, 0, 0, 0, };
-	int ffmpeg_result = 0;
-	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
-	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
-	Result_with_string result;
-	SwsContext* sws_context = NULL;
-
-	if(!rgb888 || !yuv420p || width <= 0 || height <= 0)
-		goto invalid_arg;
-
-	Util_safe_linear_free(*yuv420p);
-	*yuv420p = (u8*)Util_safe_linear_alloc(width * height * 1.5);
-	if(!*yuv420p)
-		goto out_of_memory;
-	
-	sws_context = sws_getContext(width, height, AV_PIX_FMT_BGR24,
-	width, height, AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
-	if(!sws_context)
-	{
-		result.error_description = "[Error] sws_getContext() failed. ";
-		goto ffmpeg_api_failed;
-	}
-
-	src_data[0] = rgb888;
-	src_line_size[0] = width * 3;
-	dst_data[0] = *yuv420p;
-	dst_data[1] = *yuv420p + (width * height);
-	dst_data[2] = *yuv420p + (width * height) + (width * height / 4);
-	dst_line_size[0] = width;
-	dst_line_size[1] = width / 2;
-	dst_line_size[2] = width / 2;
-	
-	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, height, dst_data, dst_line_size);
-	if(ffmpeg_result < 0)
-	{
-		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
-		goto ffmpeg_api_failed;
-	}
-
-	sws_freeContext(sws_context);
-
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
-
-	ffmpeg_api_failed:
-	Util_safe_linear_free(*yuv420p);
-	*yuv420p = NULL;
-	sws_freeContext(sws_context);
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
-	return result;
-}
-
-Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, int width, int height)
-{
-	int src_line_size[4] = { 0, 0, 0, 0, };
-	int dst_line_size[4] = { 0, 0, 0, 0, };
-	int ffmpeg_result = 0;
-	u8* src_data[4] = { NULL, NULL, NULL, NULL, };
-	u8* dst_data[4] = { NULL, NULL, NULL, NULL, };
-	Result_with_string result;
-	SwsContext* sws_context = NULL;
-
-	if(!rgb565 || !rgb888 || width <= 0 || height <= 0)
-		goto invalid_arg;
-
-	Util_safe_linear_free(*rgb888);
-	*rgb888 = (u8*)Util_safe_linear_alloc(width * height * 3);
-	if(!*rgb888)
-		goto out_of_memory;
-	
-	sws_context = sws_getContext(width, height, AV_PIX_FMT_BGR565LE,
-	width, height, AV_PIX_FMT_BGR24, 0, 0, 0, 0);
-	if(!sws_context)
-	{
-		result.error_description = "[Error] sws_getContext() failed. ";
-		goto ffmpeg_api_failed;
-	}
-
-	src_data[0] = rgb565;
-	src_line_size[0] = width * 2;
-	dst_data[0] = *rgb888;
-	dst_line_size[0] = width * 3;
-	
-	ffmpeg_result = sws_scale(sws_context, src_data, src_line_size, 0, height, dst_data, dst_line_size);
-	if(ffmpeg_result < 0)
-	{
-		result.error_description = "[Error] sws_scale() failed. " + std::to_string(ffmpeg_result) + " ";
-		goto ffmpeg_api_failed;
-	}
-
-	sws_freeContext(sws_context);
-
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	out_of_memory:
-	result.code = DEF_ERR_OUT_OF_MEMORY;
-	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
-	return result;
-
-	ffmpeg_api_failed:
-	Util_safe_linear_free(*rgb888);
-	*rgb888 = NULL;
-	sws_freeContext(sws_context);
-	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
-	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 

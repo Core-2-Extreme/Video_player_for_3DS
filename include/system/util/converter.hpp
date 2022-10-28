@@ -1,30 +1,40 @@
 #pragma once
 
+#if DEF_ENABLE_SW_FFMPEG_COLOR_CONVERTER_API
+
+/**
+ * @brief Convert color format and/or size.
+ * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_convert_color(Color_converter_parameters* paraeters);
+
+#else
+
+#define Util_converter_convert_color(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
+
+#if DEF_ENABLE_SW_FFMPEG_AUDIO_CONVERTER_API
+
+/**
+ * @brief Convert audio format and/or sample rate.
+ * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
+ * @return On success DEF_SUCCESS, 
+ * on failure DEF_ERR_*.
+ * @note Thread safe
+*/
+Result_with_string Util_converter_convert_audio(Audio_converter_parameters* parameters);
+
+#else
+
+#define Util_converter_convert_audio(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
+
 #if DEF_ENABLE_SW_CONVERTER_API
-
-/**
- * @brief Convert YUV422 to RGB565LE.
- * @param yuv422 (in) Pointer for yuv422 data.
- * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_yuv422_to_rgb565le(u8* yuv422, u8** rgb565, int width, int height);
-
-/**
- * @brief Convert YUV422 to YUV420P.
- * @param yuv422 (in) Pointer for yuv422 data.
- * @param yuv420p (out) Pointer for yuv420p data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_yuv422_to_yuv420p(u8* yuv422, u8** yuv420p, int width, int height);
 
 /**
  * @brief Convert YUV420P to RGB565LE.
@@ -85,30 +95,6 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, in
  * @note Thread safe
 */
 Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotated_rgb888, int width, int height, int* rotated_width, int* rotated_height);
-
-/**
- * @brief Convert RGB888LE to YUV420P.
- * @param rgb888 (in) Pointer for rgb888 data.
- * @param yuv420p (out) Pointer for yuv420p data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_rgb888le_to_yuv420p(u8* rgb888, u8** yuv420p, int width, int height);
-
-/**
- * @brief Convert RGB565LE to RGB888LE.
- * @param rgb565 (in) Pointer for rgb565 data.
- * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
- * @param width (in) Picture width.
- * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
- * on failure DEF_ERR_*.
- * @note Thread safe
-*/
-Result_with_string Util_converter_rgb565le_to_rgb888le(u8* rgb565, u8** rgb888, int width, int height);
 
 #else
 

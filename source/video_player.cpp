@@ -1459,8 +1459,7 @@ void Vid_decode_thread(void* arg)
 					}
 
 					if(vid_use_hw_decoding_request && vid_video_info.format_name == "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"
-					&& (vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P || vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P10LE
-					|| vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P10BE))
+					&& vid_video_info.pixel_format == DEF_CONVERTER_PIXEL_FORMAT_YUV420P)
 					{
 						vid_hw_decoding_mode = true;
 						result = Util_mvd_video_decoder_init(0);

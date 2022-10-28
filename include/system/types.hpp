@@ -34,12 +34,13 @@ struct Watch_string
 
 struct Audio_info
 {
-	int bitrate = 0;
-	int sample_rate = 0;
-	int ch = 0;
-	std::string format_name = "";
-	double duration = 0;
-	std::string track_lang = "";
+	int bitrate = 0;				//Audio bitrate in Bps.
+	int sample_rate = 0;			//Audio smaple rate in Hz.
+	int ch = 0;						//Number of audio channels.
+	std::string format_name = "";	//Audio codec name.
+	double duration = 0;			//Audio track duration in seconds.
+	std::string track_lang = "";	//Track languages
+	int sample_format = DEF_CONVERTER_SAMPLE_FORMAT_NONE;	//Audio sample format (DEF_CONVERTER_SAMPLE_FORMAT_*).
 };
 
 struct Video_info
@@ -52,6 +53,20 @@ struct Video_info
 	int thread_type = DEF_DECODER_THREAD_TYPE_NONE;
 	int sar_width = 1;
 	int sar_height = 1;
+};
+
+struct Audio_converter_parameters
+{
+	u8* source = NULL;			//(in)  Source raw audio data, user must allocate the buffer.
+	u8* converted = NULL;		//(out) Converted raw audio data, this buffer will be allocated inside of function.
+	int in_samples = 0;			//(in)  Number of source audio samples per channel.
+	int in_ch = 0;				//(in)  Source audio ch.
+	int in_sample_rate = 0;		//(in)  Source audio saple rate in Hz.
+	int out_samples = 0;		//(out)  Number of converted audio samples per channel.
+	int out_ch = 0;				//(in)  Converted audio ch.
+	int out_sample_rate = 0;	//(in)  Converted audio saple rate in Hz.
+	int in_sample_format = DEF_CONVERTER_SAMPLE_FORMAT_NONE;	//(in) Source audio sample format (DEF_CONVERTER_SAMPLE_FORMAT_*).
+	int out_sample_format = DEF_CONVERTER_SAMPLE_FORMAT_NONE;	//(in) Converted audio sample format (DEF_CONVERTER_SAMPLE_FORMAT_*).
 };
 
 struct Subtitle_info

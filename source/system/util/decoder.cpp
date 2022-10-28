@@ -6,7 +6,7 @@ extern "C"
 {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
-#include "libswresample/swresample.h"
+#include "libavutil/imgutils.h"
 }
 
 #endif
@@ -30,7 +30,6 @@ AVPacket* util_audio_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_
 AVFrame* util_audio_decoder_raw_data[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 AVCodecContext* util_audio_decoder_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 const AVCodec* util_audio_decoder_codec[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
-SwrContext* util_audio_decoder_swr_context[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_AUDIO_TRACKS];
 
 bool util_video_decoder_init[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_VIDEO_TRACKS];
 bool util_video_decoder_frame_cores[4] = { true, true, false, false, };
@@ -88,6 +87,40 @@ Handle util_decoder_cache_packet_mutex[DEF_DECODER_MAX_SESSIONS];
 MVDSTD_Config util_decoder_mvd_config;
 AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CACHE_PACKETS];
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS];
+
+
+//Sample format translation table AV_SAMPLE_FMT_* -> DEF_CONVERTER_SAMPLE_FORMAT_*.
+int util_audio_decoder_sample_format_table[] = 
+{
+	DEF_CONVERTER_SAMPLE_FORMAT_U8,
+	DEF_CONVERTER_SAMPLE_FORMAT_S16,
+	DEF_CONVERTER_SAMPLE_FORMAT_S32,
+	DEF_CONVERTER_SAMPLE_FORMAT_FLOAT32,
+	DEF_CONVERTER_SAMPLE_FORMAT_DOUBLE64,
+	DEF_CONVERTER_SAMPLE_FORMAT_U8P,
+	DEF_CONVERTER_SAMPLE_FORMAT_S16P,
+	DEF_CONVERTER_SAMPLE_FORMAT_S32P,
+	DEF_CONVERTER_SAMPLE_FORMAT_FLOAT32P,
+	DEF_CONVERTER_SAMPLE_FORMAT_DOUBLE64P,
+	DEF_CONVERTER_SAMPLE_FORMAT_S64,
+	DEF_CONVERTER_SAMPLE_FORMAT_S64P,
+};
+
+u8 util_audio_decoder_sample_format_size_table[] = 
+{
+    sizeof(u8),
+    sizeof(s16),
+    sizeof(s32),
+    sizeof(float),
+    sizeof(double),
+    sizeof(u8),
+    sizeof(s16),
+    sizeof(s32),
+    sizeof(float),
+    sizeof(double),
+    sizeof(s64),
+    sizeof(s64),
+};
 
 void Util_video_decoder_free(void *opaque, uint8_t *data)
 {
@@ -170,7 +203,6 @@ void Util_decoder_init_variables(void)
 			util_audio_decoder_raw_data[i][k] = NULL;
 			util_audio_decoder_context[i][k] = NULL;
 			util_audio_decoder_codec[i][k] = NULL;
-			util_audio_decoder_swr_context[i][k] = NULL;
 		}
 
 		for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
@@ -398,21 +430,6 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 			goto ffmpeg_api_failed;
 		}
 
-		util_audio_decoder_swr_context[session][i] = swr_alloc_set_opts(NULL, av_get_default_channel_layout(util_audio_decoder_context[session][i]->channels), AV_SAMPLE_FMT_S16, util_audio_decoder_context[session][i]->sample_rate,
-			av_get_default_channel_layout(util_audio_decoder_context[session][i]->channels), util_audio_decoder_context[session][i]->sample_fmt, util_audio_decoder_context[session][i]->sample_rate, 0, NULL);
-		if(!util_audio_decoder_swr_context[session][i])
-		{
-			result.error_description = "[Error] swr_alloc_set_opts() failed. " + std::to_string(ffmpeg_result) + " ";
-			goto ffmpeg_api_failed;
-		}
-
-		ffmpeg_result = swr_init(util_audio_decoder_swr_context[session][i]);
-		if(ffmpeg_result != 0)
-		{
-			result.error_description = "[Error] swr_init() failed. " + std::to_string(ffmpeg_result) + " ";
-			goto ffmpeg_api_failed;
-		}
-
 		util_audio_decoder_init[session][i] = true;
 	}
 
@@ -438,7 +455,6 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 	{
 		util_audio_decoder_init[session][i] = false;
 		avcodec_free_context(&util_audio_decoder_context[session][i]);
-		swr_free(&util_audio_decoder_swr_context[session][i]);
 	}
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
@@ -809,12 +825,17 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
 		if(data)
 			audio_info->track_lang = (std::string)data->key + ":" + data->value;
 	}
-		
+
 	audio_info->bitrate = util_audio_decoder_context[session][audio_index]->bit_rate;
 	audio_info->sample_rate = util_audio_decoder_context[session][audio_index]->sample_rate;
 	audio_info->ch = util_audio_decoder_context[session][audio_index]->channels;
 	audio_info->format_name = util_audio_decoder_codec[session][audio_index]->long_name;
 	audio_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
+
+	if(util_audio_decoder_context[session][audio_index]->sample_fmt < 0 || util_audio_decoder_context[session][audio_index]->sample_fmt >= AV_SAMPLE_FMT_NB)
+		audio_info->sample_format = DEF_CONVERTER_SAMPLE_FORMAT_NONE;
+	else
+		audio_info->sample_format = util_audio_decoder_sample_format_table[util_audio_decoder_context[session][audio_index]->sample_fmt];
 }
 
 void Util_video_decoder_get_info(Video_info* video_info, int video_index, int session)
@@ -1446,10 +1467,10 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session)
 	return util_mvd_video_decoder_max_raw_image[session];
 }
 
-Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* current_pos, int packet_index, int session)
+Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double* current_pos, int packet_index, int session)
 {
 	int ffmpeg_result = 0;
-	int swr_size = 0;
+	int copy_size_per_ch = 0;
 	double current_frame = 0;
 	double timebase = 0;
 	Result_with_string result;
@@ -1457,7 +1478,7 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 		Util_decoder_init_variables();
 
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_AUDIO_TRACKS
-	|| !size || !raw_data || !current_pos)
+	|| !samples || !raw_data || !current_pos)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_audio_decoder_init[session][packet_index])
@@ -1472,7 +1493,7 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 	if(util_audio_decoder_packet[session][packet_index]->duration != 0)
 		current_frame = (double)util_audio_decoder_packet[session][packet_index]->dts / util_audio_decoder_packet[session][packet_index]->duration;
 
-	*size = 0;
+	*samples = 0;
 	*current_pos = 0;
 	
 	util_audio_decoder_raw_data[session][packet_index] = av_frame_alloc();
@@ -1502,16 +1523,22 @@ Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* c
 	else
 		*current_pos = current_frame * ((1000.0 / util_audio_decoder_raw_data[session][packet_index]->sample_rate) * util_audio_decoder_raw_data[session][packet_index]->nb_samples);//calc pos
 
+	copy_size_per_ch = util_audio_decoder_raw_data[session][packet_index]->nb_samples * util_audio_decoder_sample_format_size_table[util_audio_decoder_context[session][packet_index]->sample_fmt];
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(util_audio_decoder_raw_data[session][packet_index]->nb_samples * 2 * util_audio_decoder_context[session][packet_index]->channels);
-	swr_size = swr_convert(util_audio_decoder_swr_context[session][packet_index], raw_data, util_audio_decoder_raw_data[session][packet_index]->nb_samples, (const uint8_t**)util_audio_decoder_raw_data[session][packet_index]->data, util_audio_decoder_raw_data[session][packet_index]->nb_samples);
-	if(swr_size <= 0)
+	*raw_data = (u8*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->channels);
+
+	if(util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_U8P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S16P
+	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S32P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S64P
+	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_FLTP || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_DBLP)
 	{
-		result.error_description = "[Error] swr_convert() failed. " + std::to_string(swr_size) + " ";
-		goto ffmpeg_api_failed;
+		for(int i = 0; i < util_audio_decoder_context[session][packet_index]->channels; i++)
+			memcpy(((*raw_data) + (copy_size_per_ch * i)), util_audio_decoder_raw_data[session][packet_index]->data[i], copy_size_per_ch);
 	}
-	*size = swr_size * 2 * util_audio_decoder_context[session][packet_index]->channels;
+	else
+		memcpy(*raw_data, util_audio_decoder_raw_data[session][packet_index]->data[0], copy_size_per_ch * util_audio_decoder_context[session][packet_index]->channels);
+
+	*samples = util_audio_decoder_raw_data[session][packet_index]->nb_samples;
 
 	util_audio_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
@@ -2548,7 +2575,6 @@ void Util_audio_decoder_exit(int session)
 			av_packet_free(&util_audio_decoder_packet[session][i]);
 			av_packet_free(&util_audio_decoder_cache_packet[session][i]);
 			av_frame_free(&util_audio_decoder_raw_data[session][i]);
-			swr_free(&util_audio_decoder_swr_context[session][i]);
 		}
 	}
 }

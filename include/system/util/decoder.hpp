@@ -241,8 +241,8 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
 /**
  * @brief Decode audio.
  * Call it after calling Util_decoder_ready_audio_packet().
- * @param size (out) Pointer for raw audio size.
- * @param raw_data (out) Pointer for raw audio data (PCM_S16LE), the pointer will be allocated inside of function.
+ * @param samples (out) Pointer for number of raw audio samples per channel.
+ * @param raw_data (out) Pointer for raw audio data, the pointer will be allocated inside of function.
  * @param current_pos (out) Current audio pos (in ms).
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
@@ -250,7 +250,7 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_decoder_decode(int* size, u8** raw_data, double* current_pos, int packet_index, int session);
+Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double* current_pos, int packet_index, int session);
 
 /**
  * @brief Decode video.

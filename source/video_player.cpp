@@ -1274,7 +1274,7 @@ void Vid_decode_thread(void* arg)
 	int wait_count = 0;
 	int audio_track = 0;
 	int subtitle_track = 0;
-	int audio_size = 0;
+	int audio_samples = 0;
 	int packet_index = 0;
 	int num_of_audio_tracks = 0;
 	int num_of_video_tracks = 0;
@@ -1306,7 +1306,7 @@ void Vid_decode_thread(void* arg)
 			wait_count = 0;
 			audio_track = 0;
 			subtitle_track = 0;
-			audio_size = 0;
+			audio_samples = 0;
 			packet_index = 0;
 			num_of_audio_tracks = 0;
 			num_of_video_tracks = 0;
@@ -1396,13 +1396,10 @@ void Vid_decode_thread(void* arg)
 					audio_track = vid_selected_audio_track;
 					Util_audio_decoder_get_info(&vid_audio_info, audio_track, 0);
 					vid_duration *= 1000;
-					result = Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
-					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_set_audio_info()..." + result.string + result.error_description, result.code);
 
-					//TODO : If audio channel is not supported, downscale audio so that 3DS can play it.
-					if(result.code == DEF_ERR_INVALID_ARG)
-					{
-					}
+					//3DS only supports up to 2ch.
+					result = Util_speaker_set_audio_info(0, (vid_audio_info.ch > 2 ? 2 : vid_audio_info.ch), vid_audio_info.sample_rate);
+					Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_speaker_set_audio_info()..." + result.string + result.error_description, result.code);
 				}
 
 				if(result.code != 0)//If audio format is not supported, disable audio so that video can play without audio.
@@ -1792,7 +1789,8 @@ void Vid_decode_thread(void* arg)
 					Util_speaker_clear_buffer(0);
 					Util_audio_decoder_get_info(&vid_audio_info, audio_track, 0);
 					vid_duration = vid_audio_info.duration * 1000;
-					Util_speaker_set_audio_info(0, vid_audio_info.ch, vid_audio_info.sample_rate);
+					//3DS only supports up to 2ch.
+					Util_speaker_set_audio_info(0, (vid_audio_info.ch > 2 ? 2 : vid_audio_info.ch), vid_audio_info.sample_rate);
 				}
 
 				//change subtitle track
@@ -1860,8 +1858,11 @@ void Vid_decode_thread(void* arg)
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
 					{
+						Audio_converter_parameters parameters;
+						parameters.converted = NULL;
+
 						osTickCounterUpdate(&counter);
-						result = Util_audio_decoder_decode(&audio_size, &audio, &pos, audio_track, 0);
+						result = Util_audio_decoder_decode(&audio_samples, &audio, &pos, audio_track, 0);
 						osTickCounterUpdate(&counter);
 						vid_audio_time = osTickCounterRead(&counter);
 
@@ -1870,31 +1871,51 @@ void Vid_decode_thread(void* arg)
 
 						if(result.code == 0 && !vid_seek_adjust_request)
 						{
-							vid_too_big = false;
-							if(vid_volume != 100)
+							if(vid_audio_info.sample_format != DEF_CONVERTER_SAMPLE_FORMAT_S16 || vid_audio_info.ch > 2 || vid_audio_info.sample_rate > 32000)
 							{
-								for(int i = 0; i < audio_size; i += 2)
-								{
- 									if(*(s16*)(audio + i) * ((double)vid_volume / 100) > INT16_MAX)
-									{
-										*(s16*)(audio + i) = INT16_MAX;
-										vid_too_big = true;
-									}
-									else
-										*(s16*)(audio + i) = *(s16*)(audio + i) * ((double)vid_volume / 100);
-								}
+								parameters.source = audio;
+								parameters.in_ch = vid_audio_info.ch;
+								parameters.in_sample_rate = vid_audio_info.sample_rate;
+								parameters.in_sample_format = vid_audio_info.sample_format;
+								parameters.in_samples = audio_samples;
+								parameters.converted = NULL;
+								parameters.out_ch = (vid_audio_info.ch > 2 ? 2 : vid_audio_info.ch);
+								parameters.out_sample_rate = vid_audio_info.sample_rate;
+								parameters.out_sample_format = DEF_CONVERTER_SAMPLE_FORMAT_S16;
 
-								if(vid_too_big)
-									Util_log_save(DEF_VID_DECODE_THREAD_STR, "Volume is too big!!!");
+								result = Util_converter_convert_audio(&parameters);
+								if(result.code != 0)
+									Util_log_save(DEF_VID_DECODE_THREAD_STR, "Util_converter_convert_audio()..." + result.string + result.error_description, result.code);
 							}
 
-							while(true)
+							if(parameters.converted)
 							{
-								result = Util_speaker_add_buffer(0, audio, audio_size);
-								if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_seek_request || vid_change_video_request)
-									break;
-								
-								usleep(2000);
+								vid_too_big = false;
+								if(vid_volume != 100)
+								{
+									for(int i = 0; i < (parameters.out_samples * parameters.out_ch * 2); i += 2)
+									{
+										if(*(s16*)(parameters.converted + i) * ((double)vid_volume / 100) > INT16_MAX)
+										{
+											*(s16*)(parameters.converted + i) = INT16_MAX;
+											vid_too_big = true;
+										}
+										else
+											*(s16*)(parameters.converted + i) = *(s16*)(parameters.converted + i) * ((double)vid_volume / 100);
+									}
+
+									if(vid_too_big)
+										Util_log_save(DEF_VID_DECODE_THREAD_STR, "Volume is too big!!!");
+								}
+
+								while(true)
+								{
+									result = Util_speaker_add_buffer(0, parameters.converted, (parameters.out_samples * parameters.out_ch * 2));
+									if(result.code != DEF_ERR_TRY_AGAIN || !vid_play_request || vid_seek_request || vid_change_video_request)
+										break;
+									
+									usleep(2000);
+								}
 							}
 						}
 						else if(result.code != 0)
@@ -1910,7 +1931,9 @@ void Vid_decode_thread(void* arg)
 							bar_pos = Util_convert_seconds_to_time((vid_current_pos - vid_frametime) / 1000);
 						}
 
+						Util_safe_linear_free(parameters.converted);
 						Util_safe_linear_free(audio);
+						parameters.converted = NULL;
 						audio = NULL;
 					}
 					else

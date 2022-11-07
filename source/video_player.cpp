@@ -1573,7 +1573,7 @@ void Vid_decode_thread(void* arg)
 						if((var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL) && (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_NONE || vid_hw_decoding_mode))
 							APT_SetAppCpuTimeLimit(20);
 						else
-							APT_SetAppCpuTimeLimit(80);
+							APT_SetAppCpuTimeLimit(70);
 
 						if(vid_codec_width > 1024 && vid_codec_height > 1024)
 						{
@@ -3113,7 +3113,7 @@ void Vid_init(bool draw)
 		vid_init_thread = threadCreate(Vid_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
-		APT_SetAppCpuTimeLimit(80);
+		APT_SetAppCpuTimeLimit(70);
 		vid_init_thread = threadCreate(Vid_init_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 

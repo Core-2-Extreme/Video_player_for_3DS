@@ -1668,7 +1668,11 @@ void Sem_record_thread(void* arg)
 	{
 		if (sem_record_request)
 		{
-			APT_SetAppCpuTimeLimit(70);
+			if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
+				APT_SetAppCpuTimeLimit(80);
+			else
+				APT_SetAppCpuTimeLimit(70);
+
 			mode = sem_selected_recording_mode;
 			if(mode == DEF_SEM_RECORD_BOTH)
 			{

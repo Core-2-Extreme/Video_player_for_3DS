@@ -64,7 +64,7 @@
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH (std::string)"romfs:/gfx/draw/icon/vid_icon.t3x"
 #define DEF_VID_NAME (std::string)"Video\nplayer"
-#define DEF_VID_VER (std::string)"v1.5.2"
+#define DEF_VID_VER (std::string)"v1.5.3-d"
 #define DEF_VID_MAIN_STR (std::string)"Vid/Main"
 #define DEF_VID_INIT_STR (std::string)"Vid/Init"
 #define DEF_VID_EXIT_STR (std::string)"Vid/Exit"

@@ -13,15 +13,12 @@ C2D_Image util_draw_wifi_icon_image[9];
 C2D_Image util_draw_battery_level_icon_image[21];
 C2D_Image util_draw_battery_charge_icon_image[1];
 C2D_Image util_draw_eco_image[2];
-std::string util_draw_japanese_kanji[3000];
-std::string util_draw_simple_chinese[6300];
 TickCounter util_draw_frame_time_stopwatch;
 Image_data util_draw_bot_ui;
 
 extern "C" void memcpy_asm(u8*, u8*, int);
 extern "C" void memcpy_asm_4b(u8*, u8*);
 
-Result_with_string Draw_load_kanji_samples(void);
 void Draw_debug_info(void);
 
 Result_with_string Draw_init(bool wide, bool _3d)
@@ -88,10 +85,6 @@ Result_with_string Draw_init(bool wide, bool _3d)
 		goto api_failed;
 
 	result = Draw_load_texture("romfs:/gfx/draw/square.t3x", 4, var_square_image, 0, 1);
-	if(result.code != 0)
-		goto api_failed;
-
-	result = Draw_load_kanji_samples();
 	if(result.code != 0)
 		goto api_failed;
 
@@ -1045,32 +1038,6 @@ void Draw_debug_info(void)
 	Draw("Watch(int): " + std::to_string(Util_get_watch_int_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_INT_VARIABLES) + "(" + std::to_string((double)Util_get_watch_int_usage() / DEF_DRAW_MAX_WATCH_INT_VARIABLES * 100).substr(0, 4) + "%)", 0, 210, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("Watch(double): " + std::to_string(Util_get_watch_double_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES) + "(" + std::to_string((double)Util_get_watch_double_usage() / DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES * 100).substr(0, 4) + "%)", 0, 220, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 	Draw("Watch(string): " + std::to_string(Util_get_watch_string_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_STRING_VARIABLES) + "(" + std::to_string((double)Util_get_watch_string_usage() / DEF_DRAW_MAX_WATCH_STRING_VARIABLES * 100).substr(0, 4) + "%)", 0, 230, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-}
-
-Result_with_string Draw_load_kanji_samples(void)
-{
-	int characters = 0;
-	u8* fs_buffer = NULL;
-	u32 read_size = 0;
-	Result_with_string result;
-
-	result = Util_file_load_from_rom("kanji.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
-	if(result.code == 0)
-	{
-		Exfont_text_parse((char*)fs_buffer, util_draw_japanese_kanji, 3000, &characters);
-		Util_safe_linear_free(fs_buffer);
-		fs_buffer = NULL;
-	}
-
-	result = Util_file_load_from_rom("hanyu_s.txt", "romfs:/gfx/font/sample/", &fs_buffer, 0x8000, &read_size);
-	if(result.code == 0)
-	{
-		Exfont_text_parse((char*)fs_buffer, util_draw_simple_chinese, 6300, &characters);
-		Util_safe_linear_free(fs_buffer);
-		fs_buffer = NULL;
-	}
-
-	return result;
 }
 
 Result_with_string Draw_load_system_font(int system_font_num)

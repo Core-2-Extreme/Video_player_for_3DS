@@ -285,6 +285,12 @@ void Menu_init(void)
 	menu_icon_texture_num[0] = Draw_get_free_sheet_num();
 	result = Draw_load_texture(DEF_VID_ICON_PATH, menu_icon_texture_num[0], menu_icon_image, 0, 1);
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_load_texture()..." + result.string + result.error_description, result.code);
+	if(result.code == 0)
+	{
+		Image_data texture_data;
+		texture_data.c2d = menu_icon_image[0];
+		Draw_set_texture_filter(&texture_data, true);
+	}
 	#endif
 
 	#ifdef DEF_SAPP1_ENABLE_ICON
@@ -509,19 +515,19 @@ void Menu_main(void)
 			Draw_screen_ready(1, back_color);
 
 			#ifdef DEF_ENABLE_VID
-			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 60, 60);
+			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 60, 100, 100);
 
 			#ifdef DEF_VID_ENABLE_ICON
-			Draw_texture(menu_icon_image[0], 0, 0, 60, 60);
+			Draw_texture(menu_icon_image[0], 110, 60, 100, 100);
 			#endif
 			#ifdef DEF_VID_ENABLE_NAME
-			Draw(DEF_VID_NAME, 0, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_VID_NAME, 110, 60, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 100, 100);
 			#endif
 
 			if(Vid_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 0, 15, 15);
-				Draw("X", 47.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw("X", 195, 60, 0.5, 0.5, DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 15, 15,
+				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1

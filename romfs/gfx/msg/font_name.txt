@@ -44,9 +44,11 @@
 <43>hiragana</43>
 <44>katakana</44>
 <45>cjk_compatibility</45>
-<46>yi_syllables</46>
-<47>yi_radicals</47>
-<48>cjk_compatibility_forms</48>
-<49>halfwidth_and_fullwidth_forms</49>
-<50>miscellaneous_symbols_and_pictographs</50>
-<51>emoticons</51>
+<46>cjk_unified_ideographs</46>
+<47>yi_syllables</47>
+<48>yi_radicals</48>
+<49>hangul_syllables</49>
+<50>cjk_compatibility_forms</50>
+<51>halfwidth_and_fullwidth_forms</51>
+<52>miscellaneous_symbols_and_pictographs</52>
+<53>emoticons</53>

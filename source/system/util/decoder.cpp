@@ -883,18 +883,19 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	if(!util_mvd_video_decoder_packet)
 		goto out_of_linear_memory;
 
-	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, MVD_DEFAULT_WORKBUF_SIZE * 1.5, NULL);
-	//result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, (MVDSTD_InputFormat)0x00180001, MVD_OUTPUT_BGR565, width * height * 9, NULL);
+	if(width % 16 != 0)
+		width += 16 - width % 16;
+	if(height % 16 != 0)
+		height += 16 - height % 16;
+
+	//NEW3DS Internet browser uses MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes) and supports up to 854*480.(864*480)
+	//864*480*23 = (9538560 Bytes) > MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes).
+	result.code = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 23, NULL);
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] mvdstdInit() failed. ";
 		goto nintendo_api_failed;
 	}
-
-	if(width % 16 != 0)
-		width += 16 - width % 16;
-	if(height % 16 != 0)
-		height += 16 - height % 16;
 
 	result.code = svcCreateMutex(&util_mvd_video_decoder_raw_image_mutex[session], false);
 	if(result.code != 0)

@@ -241,11 +241,7 @@ void Menu_init(void)
 	for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Exfont_set_external_font_request_state(i, true);
 
-	for(int i = 0; i < 4; i++)
-		Exfont_set_system_font_request_state(i, true);
-
 	Exfont_request_load_external_font();
-	Exfont_request_load_system_font();
 
 	menu_thread_run = true;
 	menu_worker_thread = threadCreate(Menu_worker_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);

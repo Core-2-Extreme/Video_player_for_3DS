@@ -50,31 +50,6 @@ bool Exfont_is_loading_external_font(void);
 bool Exfont_is_unloading_external_font(void);
 
 /**
- * @brief Check whether system font is loaded (ready).
- * Always return false if external font api is not initialized.
- * @param system_font_num (in) System font index.
- * @return True if system font is loaded, otherwise false. 
- * @warning Thread dangerous (untested)
-*/
-bool Exfont_is_loaded_system_font(int system_font_num);
-
-/**
- * @brief Check whether system font is loading.
- * Always return false if external font api is not initialized.
- * @return True if system font is loading right now, otherwise false. 
- * @warning Thread dangerous (untested)
-*/
-bool Exfont_is_loading_system_font(void);
-
-/**
- * @brief Check whether system font is unloading.
- * Always return false if external font api is not initialized.
- * @return True if system font is unloading right now, otherwise false. 
- * @warning Thread dangerous (untested)
-*/
-bool Exfont_is_unloading_system_font(void);
-
-/**
  * @brief Set external font request state.
  * Do nothing if external font api is not initialized.
  * Actuall loading/unloading won't happen until you call 
@@ -100,43 +75,18 @@ void Exfont_request_load_external_font(void);
 void Exfont_request_unload_external_font(void);
 
 /**
- * @brief Set system font request state.
- * Do nothing if external font api is not initialized.
- * Actuall loading/unloading won't happen until you call 
- * Exfont_request_load_system_font()/Exfont_request_unload_system_font().
- * @param system_font_num (in) System font index.
- * @param flag (in) When true, system font request state will be set to true, otherwise set to false.
- * @warning Thread dangerous (untested)
-*/
-void Exfont_set_system_font_request_state(int system_font_num, bool flag);
-
-/**
- * @brief Load system font.
- * Do nothing if external font api is not initialized.
- * @warning Thread dangerous (untested)
-*/
-void Exfont_request_load_system_font(void);
-
-/**
- * @brief Unload system font.
- * Do nothing if external font api is not initialized.
- * @warning Thread dangerous (untested)
-*/
-void Exfont_request_unload_system_font(void);
-
-/**
- * @brief Sort right-to-left text data (partial support).
- * Always return empty string if external font api is not initialized.
- * @param sorce_part_string (in) Array for unsorted text.
- * @param max_loop (in) Number of array.
- * @return Sorted text data.
+ * @brief Parse text data, this function won't sort for RTL characters.
+ * @param sorce_string (in) Text.
+ * @param part_string (out) Array for parsed text.
+ * @param max_loop (in) Number of array for part_string.
+ * @param out_element (out) Parsed number of characters.
  * @note Thread safe
 */
-std::string Exfont_text_sort(std::string sorce_part_string[], int max_loop);
+void Exfont_text_parse_ignore_rtl(std::string sorce_string, std::string part_string[], int max_loop, int* out_element);
 
 /**
  * @brief Parse text data.
- * @param sorce_string (in) Array for text.
+ * @param sorce_string (in) Text.
  * @param part_string (out) Array for parsed text.
  * @param max_loop (in) Number of array for part_string.
  * @param out_element (out) Parsed number of characters.
@@ -147,7 +97,8 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
 /**
  * @brief Draw external font.
  * Do nothing if external font api is not initialized.
- * @param in_string (in) Text.
+ * @param in_string (in) Array for parsed text (returned by Exfont_text_parse_*()).
+ * @param num_of_characters (in) Number of text elements (returned by Exfont_text_parse_*()).
  * @param texture_x (in) X position (in px).
  * @param texture_y (in) Y position (in px).
  * @param texture_size_x (in) Font size for X direction.
@@ -159,13 +110,14 @@ void Exfont_text_parse(std::string sorce_string, std::string part_string[], int 
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Exfont_draw_external_fonts(std::string in_string, float texture_x, float texture_y, float texture_size_x,
- float texture_size_y, int abgr8888, float* out_width, float* out_height);
+void Exfont_draw_external_fonts(std::string* in_part_string, int num_of_characters, float texture_x, float texture_y, float texture_size_x,
+float texture_size_y, int abgr8888, float* out_width, float* out_height);
 
 /**
  * @brief Get text size.
  * Do nothing if external font api is not initialized.
- * @param in_string (in) Text.
+ * @param in_string (in) Array for parsed text (returned by Exfont_text_parse_*()).
+ * @param num_of_characters (in) Number of text elements (returned by Exfont_text_parse_*()).
  * @param texture_size_x (in) Font size for X direction.
  * @param texture_size_y (in) Font size for Y direction.
  * @param out_width (out) Text width (in px).
@@ -173,4 +125,4 @@ void Exfont_draw_external_fonts(std::string in_string, float texture_x, float te
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Exfont_draw_get_text_size(std::string in_string, float texture_size_x, float texture_size_y, float* out_width, float* out_height);
+void Exfont_draw_get_text_size(std::string* in_part_string, int num_of_characters, float texture_size_x, float texture_size_y, float* out_width, float* out_height);

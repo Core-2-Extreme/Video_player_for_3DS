@@ -55,10 +55,10 @@ Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_english_butt
 sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_polish_button, sem_night_mode_on_button,
 sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
 sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
-sem_scroll_speed_bar, sem_system_font_button[4], sem_load_all_ex_font_button, sem_unload_all_ex_font_button,
-sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME], sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button,
-sem_deny_send_info_button, sem_debug_mode_on_button, sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,
-sem_record_both_lcd_button, sem_record_top_lcd_button, sem_record_bottom_lcd_button, sem_use_fake_model_button;
+sem_scroll_speed_bar, sem_load_all_ex_font_button, sem_unload_all_ex_font_button, sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME],
+sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button, sem_deny_send_info_button, sem_debug_mode_on_button,
+sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,sem_record_both_lcd_button, sem_record_top_lcd_button,
+sem_record_bottom_lcd_button, sem_use_fake_model_button;
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
 
@@ -296,9 +296,6 @@ void Sem_init(void)
 	//Font
 	Util_add_watch(&sem_load_all_ex_font_button.selected);
 	Util_add_watch(&sem_unload_all_ex_font_button.selected);
-	for(int i = 0; i < 4; i++)
-		Util_add_watch(&sem_system_font_button[i].selected);
-
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Util_add_watch(&sem_ex_font_button[i].selected);
 	
@@ -401,8 +398,6 @@ void Sem_draw_init(void)
 
 	for(int i = 0; i < 9; i++)
 		sem_menu_button[i].c2d = var_square_image[0];
-	for(int i = 0; i < 4; i++)
-		sem_system_font_button[i].c2d = var_square_image[0];
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		sem_ex_font_button[i].c2d = var_square_image[0];
 }
@@ -523,12 +518,9 @@ void Sem_exit(void)
 	//Font
 	Util_remove_watch(&sem_load_all_ex_font_button.selected);
 	Util_remove_watch(&sem_unload_all_ex_font_button.selected);
-	for(int i = 0; i < 4; i++)
-		Util_remove_watch(&sem_system_font_button[i].selected);
-
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Util_remove_watch(&sem_ex_font_button[i].selected);
-	
+
 	//Wireless
 	Util_remove_watch(&var_wifi_enabled);
 
@@ -865,41 +857,7 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 		{
 			//Font
-			if (30 + sem_y_offset >= -70 && 30 + sem_y_offset <= 240)
-			{
-				for (int i = 0; i < 4; i++)
-				{
-					if (Exfont_is_loaded_system_font(i) || i == var_system_region)
-					{
-						if (Exfont_is_loading_system_font() || Exfont_is_unloading_system_font())
-							cache_color[i] = DEF_DRAW_WEAK_RED;
-						else
-							cache_color[i] = DEF_DRAW_RED;
-					}
-					else if ((Exfont_is_loading_system_font() || Exfont_is_unloading_system_font()) && var_night_mode)
-						cache_color[i] = DEF_DRAW_WEAK_WHITE;
-					else if (Exfont_is_loading_system_font() || Exfont_is_unloading_system_font())
-						cache_color[i] = DEF_DRAW_WEAK_BLACK;
-				}
-
-				//JPN
-				Draw(sem_msg[DEF_SEM_JAPANESE_FONT_MSG], 10, 30 + sem_y_offset, 0.75, 0.75, cache_color[0], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 200, 20,
-				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_system_font_button[0], sem_system_font_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-
-				//CHN
-				Draw(sem_msg[DEF_SEM_CHINESE_FONT_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, cache_color[1], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 200, 20,
-				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_system_font_button[1], sem_system_font_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-
-				//KOR
-				Draw(sem_msg[DEF_SEM_KOREAN_FONT_MSG], 10, 70 + sem_y_offset, 0.75, 0.75, cache_color[2], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 200, 20,
-				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_system_font_button[2], sem_system_font_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-
-				//TWN
-				Draw(sem_msg[DEF_SEM_TAIWANESE_FONT_MSG], 10, 90 + sem_y_offset, 0.75, 0.75, cache_color[3], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 200, 20,
-				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_system_font_button[3], sem_system_font_button[3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-			}
-
-			if (130 + sem_y_offset >= -30 && 130 + sem_y_offset <= 240)
+			if (30 + sem_y_offset >= -30 && 30 + sem_y_offset <= 240)
 			{
 				cache_color[0] = color;
 				if ((Exfont_is_unloading_external_font() || Exfont_is_loading_external_font()) && var_night_mode)
@@ -908,16 +866,16 @@ void Sem_main(void)
 					cache_color[0] = DEF_DRAW_WEAK_BLACK;
 
 				//Load all
-				Draw(sem_msg[DEF_SEM_LOAD_ALL_FONT_MSG], 10, 130 + sem_y_offset, 0.65, 0.65, cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 100, 20,
+				Draw(sem_msg[DEF_SEM_LOAD_ALL_FONT_MSG], 10, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 150, 20,
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_load_all_ex_font_button, sem_load_all_ex_font_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 
 				//Unload all
-				Draw(sem_msg[DEF_SEM_UNLOAD_ALL_FONT_MSG], 110, 130 + sem_y_offset, 0.65, 0.65, cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 100, 20,
+				Draw(sem_msg[DEF_SEM_UNLOAD_ALL_FONT_MSG], 160, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 150, 20,
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_unload_all_ex_font_button, sem_unload_all_ex_font_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
 			}
 
 			draw_x = 10.0;
-			draw_y = 150.0;
+			draw_y = 50.0;
 			for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				cache_color[i] = color;
 
@@ -937,7 +895,7 @@ void Sem_main(void)
 
 				if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 				{
-					Draw(Exfont_query_external_font_name(i), draw_x, draw_y + sem_y_offset, 0.45, 0.45, cache_color[i], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 200, 20,
+					Draw(Exfont_query_external_font_name(i), draw_x, draw_y + sem_y_offset, 0.45, 0.45, cache_color[i], DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 20,
 					DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_ex_font_button[i], sem_ex_font_button[i].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 				}
 				draw_y += 20.0;
@@ -1091,7 +1049,7 @@ void Sem_hid(Hid_info key)
 					sem_y_offset = 0.0;
 					sem_selected_menu_mode = menu_button_list[i];
 					if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
-						sem_y_max = -1000.0;
+						sem_y_max = -950.0;
 				}
 			}
 		}
@@ -1325,32 +1283,6 @@ void Sem_hid(Hid_info key)
 				}
 				else
 				{
-					for (int i = 0; i < 4; i++)
-					{
-						if (Util_hid_is_pressed(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font())
-						{
-							sem_system_font_button[i].selected = true;
-							break;
-						}
-						else if (Util_hid_is_released(key, sem_system_font_button[i]) && !Exfont_is_loading_system_font() && !Exfont_is_unloading_system_font() && sem_system_font_button[i].selected)
-						{
-							if(i != var_system_region)
-							{
-								if (Exfont_is_loaded_system_font(i))
-								{
-									Exfont_set_system_font_request_state(i, false);
-									Exfont_request_unload_system_font();
-								}
-								else
-								{
-									Exfont_set_system_font_request_state(i, true);
-									Exfont_request_load_system_font();
-								}
-							}
-							break;
-						}
-					}
-
 					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 					{
 						if (Util_hid_is_pressed(key, sem_ex_font_button[i]) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
@@ -1375,18 +1307,14 @@ void Sem_hid(Hid_info key)
 							}
 							break;
 						}
+						else if(sem_ex_font_button[i].selected && !Util_hid_is_held(key, sem_ex_font_button[i]))
+							sem_ex_font_button[i].selected = false;
 					}
 				}
 
 				sem_scroll_mode = true;
 				if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || (!sem_draw_reinit_request && Draw_get_bot_ui_button()->selected))
 					sem_scroll_mode = false;
-
-				for (int i = 0; i < 4; i++)
-				{
-					if(sem_system_font_button[i].selected)
-						sem_scroll_mode = false;
-				}
 
 				for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				{
@@ -1569,9 +1497,6 @@ void Sem_hid(Hid_info key)
 
 			for (int i = 0; i < 9; i++)
 				sem_menu_button[i].selected = false;
-
-			for (int i = 0; i < 4; i++)
-				sem_system_font_button[i].selected = false;
 
 			for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				sem_ex_font_button[i].selected = false;

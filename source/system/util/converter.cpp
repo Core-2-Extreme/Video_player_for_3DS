@@ -342,7 +342,7 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	parameters->out_samples = parameters->in_samples;
 
 	swr_context = swr_alloc_set_opts(NULL, av_get_default_channel_layout(parameters->out_ch), util_converter_sample_format_table[parameters->out_sample_format], parameters->out_sample_rate,
-	av_get_default_channel_layout(parameters->in_ch), util_converter_sample_format_table[parameters->in_sample_format], parameters->out_sample_rate, 0, NULL);
+	av_get_default_channel_layout(parameters->in_ch), util_converter_sample_format_table[parameters->in_sample_format], parameters->in_sample_rate, 0, NULL);
 	if(!swr_context)
 	{
 		result.error_description = "[Error] swr_alloc_set_opts() failed. ";

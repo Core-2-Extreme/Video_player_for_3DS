@@ -184,7 +184,7 @@ void Util_err_draw(void)
 void Util_err_save_thread(void* args)
 {
 	Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Thread started.");
-	char file_name[128];
+	char file_name[64];
 	std::string save_data = "";
 	Result_with_string result;
 
@@ -192,11 +192,14 @@ void Util_err_save_thread(void* args)
 	{
 		if (util_err_save_request)
 		{
-			memset(file_name, 0x0, 128);
 			sprintf(file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
-			save_data = util_err_summary + "\n" + util_err_description + "\n" + util_err_place + "\n" + util_err_code;
+			save_data = "\n\n##ERROR MESSAGE##\n" + util_err_summary + "\n" + util_err_description + "\n" + util_err_place + "\n" + util_err_code + "\n";
 
-			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (u8*)save_data.c_str() , save_data.length(), true);
+			result = Util_log_dump(file_name, DEF_MAIN_DIR + "error/");
+			if(result.code != 0)
+				Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Util_log_dump()..." + result.string + result.error_description, result.code);
+
+			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (u8*)save_data.c_str() , save_data.length(), false);
 			if(result.code != 0)
 				Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Util_file_save_to_file()..." + result.string + result.error_description, result.code);
 

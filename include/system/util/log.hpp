@@ -16,6 +16,12 @@ Result_with_string Util_log_init(void);
 void Util_log_exit(void);
 
 /**
+ * @brief Dump log data to a file.
+ * @warning Thread dangerous (untested)
+*/
+Result_with_string Util_log_dump(std::string file_name, std::string dir_path);
+
+/**
  * @brief Query log show flag.
  * Always return false if log api is not initialized.
  * @return Internal log show flag.

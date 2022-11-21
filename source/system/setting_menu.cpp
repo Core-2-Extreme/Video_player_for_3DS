@@ -42,6 +42,7 @@ bool sem_reload_msg_request = false;
 bool sem_change_brightness_request = false;
 bool sem_scroll_mode = false;
 bool sem_draw_reinit_request = false;
+bool sem_dump_log_request = false;
 u8 sem_fake_model_num = 255;
 int sem_selected_menu_mode = DEF_SEM_MENU_TOP;
 double sem_y_offset = 0.0;
@@ -58,7 +59,7 @@ sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mo
 sem_scroll_speed_bar, sem_load_all_ex_font_button, sem_unload_all_ex_font_button, sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME],
 sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button, sem_deny_send_info_button, sem_debug_mode_on_button,
 sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,sem_record_both_lcd_button, sem_record_top_lcd_button,
-sem_record_bottom_lcd_button, sem_use_fake_model_button;
+sem_record_bottom_lcd_button, sem_use_fake_model_button, sem_dump_log_button;
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
 
@@ -314,6 +315,7 @@ void Sem_init(void)
 	Util_add_watch(&sem_debug_mode_on_button.selected);
 	Util_add_watch(&sem_debug_mode_off_button.selected);
 	Util_add_watch(&sem_use_fake_model_button.selected);
+	Util_add_watch(&sem_dump_log_button.selected);
 
 #if DEF_ENABLE_CPU_MONITOR_API
 	Util_add_watch(&sem_monitor_cpu_usage_on_button.selected);
@@ -379,6 +381,7 @@ void Sem_draw_init(void)
 	sem_record_top_lcd_button.c2d = var_square_image[0];
 	sem_record_bottom_lcd_button.c2d = var_square_image[0];
 	sem_use_fake_model_button.c2d = var_square_image[0];
+	sem_dump_log_button.c2d = var_square_image[0];
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
 	sem_check_update_button.c2d = var_square_image[0];
@@ -536,6 +539,7 @@ void Sem_exit(void)
 	Util_remove_watch(&sem_debug_mode_on_button.selected);
 	Util_remove_watch(&sem_debug_mode_off_button.selected);
 	Util_remove_watch(&sem_use_fake_model_button.selected);
+	Util_remove_watch(&sem_dump_log_button.selected);
 
 #if DEF_ENABLE_CPU_MONITOR_API
 	Util_remove_watch(&sem_monitor_cpu_usage_on_button.selected);
@@ -950,15 +954,18 @@ void Sem_main(void)
 				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
 
+			Draw(sem_msg[DEF_SEM_DUMP_LOGS_MSG], 10, 165, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 190, 20,
+			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, sem_dump_log_button.selected  ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 #if DEF_ENABLE_CPU_MONITOR_API
 			//CPU usage monitor
-			Draw(sem_msg[DEF_SEM_CPU_USAGE_MONITOR_MSG], 0, 160, 0.5, 0.5, color);
+			Draw(sem_msg[DEF_SEM_CPU_USAGE_MONITOR_MSG], 0, 185, 0.5, 0.5, color);
 			//ON
-			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 175, 0.55, 0.55, var_monitor_cpu_usage ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			Draw(sem_msg[DEF_SEM_ON_MSG], 10, 200, 0.55, 0.55, var_monitor_cpu_usage ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_on_button, sem_monitor_cpu_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//OFF
-			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 175, 0.55, 0.55, var_monitor_cpu_usage ? color : DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			Draw(sem_msg[DEF_SEM_OFF_MSG], 110, 200, 0.55, 0.55, var_monitor_cpu_usage ? color : DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_off_button, sem_monitor_cpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 #endif
 		}
@@ -1396,6 +1403,10 @@ void Sem_hid(Hid_info key)
 					
 					var_need_reflesh = true;
 				}
+				else if(Util_hid_is_pressed(key, sem_dump_log_button) && !sem_dump_log_request)
+					sem_dump_log_button.selected = true;
+				else if(Util_hid_is_released(key, sem_dump_log_button) && sem_dump_log_button.selected && !sem_dump_log_request)
+					sem_dump_log_request = true;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)//Battery
 			{
@@ -1480,7 +1491,7 @@ void Sem_hid(Hid_info key)
 			= sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
 			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
 			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
-			= sem_use_fake_model_button.selected = false;
+			= sem_use_fake_model_button.selected = sem_dump_log_button.selected = false;
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
 			sem_check_update_button.selected = sem_close_updater_button.selected = sem_select_edtion_button.selected
@@ -1912,6 +1923,18 @@ void Sem_worker_thread(void* arg)
 			}
 		}
 #endif
+		else if(sem_dump_log_request)
+		{
+			char file_name[64];
+			sprintf(file_name, "%04d_%02d_%02d_%02d_%02d_%02d.txt", var_years, var_months, var_days, var_hours, var_minutes, var_seconds);
+
+			result = Util_log_dump(file_name, DEF_MAIN_DIR + "logs/");
+			Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Util_log_dump()..." + result.string + result.error_description, result.code);
+			if(result.code == 0)
+				Util_log_save(DEF_SEM_WORKER_THREAD_STR, "Log file was dumped at : " + DEF_MAIN_DIR + "logs/" + file_name);
+
+			sem_dump_log_request = false;
+		}
 		else
 			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}

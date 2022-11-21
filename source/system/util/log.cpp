@@ -56,6 +56,29 @@ void Util_log_exit(void)
 	svcCloseHandle(util_log_mutex);
 }
 
+Result_with_string Util_log_dump(std::string file_name, std::string dir_path)
+{
+	Result_with_string result;
+	std::string log = "";
+	if(!util_log_init)
+		goto not_inited;
+
+	for(int i = 0; i < DEF_LOG_BUFFER_LINES; i++)
+	{
+		if(util_log_logs[i] == "")
+			continue;
+
+		log += util_log_logs[i] + "\n";
+	}
+
+	return Util_file_save_to_file(file_name, dir_path, (u8*)log.c_str(), log.length(), true);
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+}
+
 bool Util_log_query_log_show_flag(void)
 {
 	if(!util_log_init)

@@ -18,6 +18,7 @@ bool vid_use_multi_threaded_decoding_request = true;
 bool vid_pause_request = false;
 bool vid_seek_request = false;
 bool vid_seek_adjust_request = false;
+bool vid_seek_backward_wait_mode = false;
 bool vid_read_packet_request = false;
 bool vid_read_packet_wait_request = false;
 bool vid_pause_for_home_menu_request = false;
@@ -67,7 +68,9 @@ double vid_subtitle_x_offset = 0;
 double vid_subtitle_y_offset = 0;
 double vid_current_pos = 0;//in ms
 double vid_current_audio_pos = 0;//in ms
+double vid_seek_start_pos = 0;//in ms
 double vid_seek_pos = 0;//in ms
+double vid_seek_pos_cache = 0;//in ms
 double vid_decoded_audio_pos = 0;//in ms
 double vid_min_time = 0;
 double vid_max_time = 0;
@@ -284,6 +287,7 @@ void Vid_init_variable(void)
 	vid_request_thread_mode = DEF_DECODER_THREAD_TYPE_AUTO;
 	vid_hw_decoding_mode = false;
 	vid_hw_color_conversion_mode = false;
+	vid_seek_backward_wait_mode = false;
 
 	//video
 	vid_out_of_raw_buffer = false;
@@ -347,6 +351,10 @@ void Vid_init_variable(void)
 	}
 	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		vid_subtitle_track_lang[i] = "";
+
+	//ui
+	vid_show_screen_brightness_until = 0;
+	vid_show_current_pos_until = 0;
 
 	//debug
 	vid_previous_ts = 0;
@@ -971,12 +979,15 @@ void Vid_hid(Hid_info key)
 				vid_seek_bar.selected = true;
 			else if(key.h_touch && vid_seek_bar.selected && vid_play_request)
 			{
-				vid_seek_pos = vid_duration * (((double)key.touch_x - 5) / 310);
+				vid_seek_pos_cache = vid_duration * (((double)key.touch_x - 5) / 310);
 				var_need_reflesh = true;
 			}
 			else if(key.r_touch && vid_seek_bar.selected && vid_play_request)
 			{
 				vid_seek_pos = vid_duration * (((double)key.touch_x - 5) / 310);
+				vid_seek_start_pos = vid_current_pos;
+				vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
+				vid_seek_adjust_request = false;
 				vid_seek_request = true;
 			}
 			
@@ -1213,6 +1224,9 @@ void Vid_hid(Hid_info key)
 			else
 				vid_seek_pos = current_bar_pos + (vid_seek_duration * 1000);
 
+			vid_seek_start_pos = vid_current_pos;
+			vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
+			vid_seek_adjust_request = false;
 			vid_seek_request = true;
 		}
 		else if(key.p_d_left && !vid_seek_bar.selected && vid_play_request)
@@ -1228,6 +1242,9 @@ void Vid_hid(Hid_info key)
 			else
 				vid_seek_pos = current_bar_pos - (vid_seek_duration * 1000);
 			
+			vid_seek_start_pos = vid_current_pos;
+			vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
+			vid_seek_adjust_request = false;
 			vid_seek_request = true;
 		}
 		else if(key.p_d_up)
@@ -1877,18 +1894,23 @@ void Vid_decode_thread(void* arg)
 				//Handle seek adjust request
 				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO || vid_frametime == 0))
 				{
-					if(wait_count <= 0)
-					{
-						if(vid_current_pos >= vid_seek_pos)
-						{
-							vid_show_current_pos_until = osGetTime() + 4000;
-							vid_seek_adjust_request = false;
+					//Make sure we went back.
+					if(vid_seek_backward_wait_mode && vid_current_pos < vid_seek_start_pos)
+						vid_seek_backward_wait_mode = false;
 
-							//Buffer some data before starting play a video.
-							if(num_of_video_tracks > 0)
-								vid_out_of_raw_buffer = true;
-						}
+					if(!vid_seek_backward_wait_mode && vid_current_pos >= vid_seek_pos)
+					{
+						//Seek finished.
+						vid_show_current_pos_until = osGetTime() + 4000;
+						vid_seek_adjust_request = false;
+
+						//Buffer some data before starting play a video.
+						if(num_of_video_tracks > 0)
+							vid_out_of_raw_buffer = true;
 					}
+
+					if(wait_count <= 0)//Timeout.
+						vid_seek_backward_wait_mode = false;
 					else
 						wait_count--;
 				}
@@ -1913,8 +1935,9 @@ void Vid_decode_thread(void* arg)
 					}
 
 					vid_seek_adjust_request = true;
-					//sometimes cached previous frames so ignore first 4 (+ num_of_threads if frame threading is used) frames
-					wait_count = 4 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
+					//Sometimes cached previous frames so ignore first 20 (+ num_of_threads if frame threading is used) frames.
+					//This is now used for timeout detection.
+					wait_count = 20 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
 
 					vid_seek_request = false;
 				}
@@ -3385,7 +3408,9 @@ void Vid_main(void)
 				if(bottom_left_msg != "")
 					bottom_left_msg += "\n";
 
-				if(vid_seek_bar.selected || vid_seek_request || vid_seek_adjust_request)
+				if(vid_seek_bar.selected)
+					current_bar_pos = vid_seek_pos_cache / 1000;
+				else if(vid_seek_request || vid_seek_adjust_request || vid_seek_backward_wait_mode)
 					current_bar_pos = vid_seek_pos / 1000;
 				else
 					current_bar_pos = (vid_current_pos - vid_frametime) / 1000;
@@ -3980,7 +4005,9 @@ void Vid_main(void)
 
 				//time bar
 				//Draw(Util_convert_seconds_to_time(vid_current_audio_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 182.5, 0.5, 0.5, color);
-				if(vid_seek_bar.selected || vid_seek_request || vid_seek_adjust_request)
+				if(vid_seek_bar.selected)
+					current_bar_pos = vid_seek_pos_cache / 1000;
+				else if(vid_seek_request || vid_seek_adjust_request || vid_seek_backward_wait_mode)
 					current_bar_pos = vid_seek_pos / 1000;
 				else
 					current_bar_pos = (vid_current_pos - vid_frametime) / 1000;

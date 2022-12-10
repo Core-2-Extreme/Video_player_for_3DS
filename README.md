@@ -4,6 +4,7 @@
 * [Screenshots](https://github.com/Core-2-Extreme/Video_player_for_3DS#Screenshots)
 * [Features](https://github.com/Core-2-Extreme/Video_player_for_3DS#Features)
 * [Prepare videos](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos)
+* [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos-\(advanced-users\))
 * [Controls](https://github.com/Core-2-Extreme/Video_player_for_3DS#Controls)
 * [Supported languages](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-languages)
 * [Supported codecs](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-codecs)
@@ -40,12 +41,15 @@ Fullscreen mode ✅
 ⚠️ *0 New 3DS and New 2DS only \
 ⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
 you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
-[How to convert your 3d video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
 ## Prepare videos
-If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark).
+If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos-\(advanced-users\)).
 
-If not,
+If not, you can use these tools :
+* [Nintendo Video Convertor (by T0biasCZe)](https://gbatemp.net/threads/nintendo-video-convertor-video-convertor-for-3ds-and-wii.622972/)
+* [VideoPlayer3DS DS Assistant (by JustScratchCoder)](https://github.com/JustScratchCoder/VideoPlayer3DS-DS-Assistant)
+
+## Prepare videos (advanced users)
 * Download [ffmpeg](https://ffmpeg.org/download.html)
   * For NEW3DS and NEW2DS type :
   * `ffmpeg -i {input_file_name} -acodec aac -vcodec libx264 -s 800x240 -preset medium -crf 25 {output_file_name}`
@@ -56,7 +60,7 @@ If not,
 Replace `{input_file_name}` with your input file name and `{output_file_name}` with your output file name. \
 e.g. : `ffmpeg -i original_video.mp4 -acodec aac -vcodec libx264 -s 800x240 -preset medium -crf 25 converted_video.mp4`
 
-If you still don't understand, you can use [VideoPlayer3DS DS Assistant](https://github.com/JustScratchCoder/VideoPlayer3DS-DS-Assistant) to convert your video (by JustScratchCoder).
+for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
 ## Controls
 * In normal mode

@@ -4,7 +4,7 @@
 * [Screenshots](https://github.com/Core-2-Extreme/Video_player_for_3DS#Screenshots)
 * [Features](https://github.com/Core-2-Extreme/Video_player_for_3DS#Features)
 * [Prepare videos](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos)
-* [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos-\(advanced-users\))
+* [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users)
 * [Controls](https://github.com/Core-2-Extreme/Video_player_for_3DS#Controls)
 * [Supported languages](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-languages)
 * [Supported codecs](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-codecs)
@@ -43,7 +43,7 @@ Fullscreen mode ✅
 you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 
 ## Prepare videos
-If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#Prepare-videos-\(advanced-users\)).
+If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users).
 
 If not, you can use these tools :
 * [Nintendo Video Convertor (by T0biasCZe)](https://gbatemp.net/threads/nintendo-video-convertor-video-convertor-for-3ds-and-wii.622972/)

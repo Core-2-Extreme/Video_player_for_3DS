@@ -324,6 +324,8 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	u8* dst_data[AV_NUM_DATA_POINTERS] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	int ffmpeg_result = 0;
 	Result_with_string result;
+	AVChannelLayout out_ch_layout = AV_CHANNEL_LAYOUT_MONO;
+	AVChannelLayout in_ch_layout = AV_CHANNEL_LAYOUT_MONO;
 	SwrContext* swr_context = NULL;
 
 	if(!parameters || !parameters->source || parameters->in_ch <= 0 || parameters->in_ch > 8 || parameters->in_sample_rate <= 0 || parameters->in_samples <= 0
@@ -341,11 +343,14 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 
 	parameters->out_samples = parameters->in_samples;
 
-	swr_context = swr_alloc_set_opts(NULL, av_get_default_channel_layout(parameters->out_ch), util_converter_sample_format_table[parameters->out_sample_format], parameters->out_sample_rate,
-	av_get_default_channel_layout(parameters->in_ch), util_converter_sample_format_table[parameters->in_sample_format], parameters->in_sample_rate, 0, NULL);
-	if(!swr_context)
+	av_channel_layout_default(&out_ch_layout, parameters->out_ch);
+	av_channel_layout_default(&in_ch_layout, parameters->in_ch);
+
+	ffmpeg_result = swr_alloc_set_opts2(&swr_context, &out_ch_layout, util_converter_sample_format_table[parameters->out_sample_format], parameters->out_sample_rate,
+	&in_ch_layout, util_converter_sample_format_table[parameters->in_sample_format], parameters->in_sample_rate, 0, NULL);
+	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_alloc_set_opts() failed. ";
+		result.error_description = "[Error] swr_alloc_set_opts2() failed. ";
 		goto ffmpeg_api_failed;
 	}
 
@@ -382,6 +387,8 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	}
 	parameters->out_samples = ffmpeg_result;
 
+	av_channel_layout_uninit(&out_ch_layout);
+	av_channel_layout_uninit(&in_ch_layout);
 	swr_free(&swr_context);
 
 	return result;
@@ -400,6 +407,8 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
 	Util_safe_linear_free(parameters->converted);
 	parameters->converted = NULL;
 	swr_free(&swr_context);
+	av_channel_layout_uninit(&out_ch_layout);
+	av_channel_layout_uninit(&in_ch_layout);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
 	return result;

@@ -30,6 +30,7 @@
 
 #include "avutil.h"
 #include "buffer.h"
+#include "channel_layout.h"
 #include "dict.h"
 #include "rational.h"
 #include "samplefmt.h"
@@ -201,6 +202,18 @@ enum AVFrameSideDataType {
      * libavutil/dovi_meta.h.
      */
     AV_FRAME_DATA_DOVI_METADATA,
+
+    /**
+     * HDR Vivid dynamic metadata associated with a video frame. The payload is
+     * an AVDynamicHDRVivid type and contains information for color
+     * volume transform - CUVA 005.1-2021.
+     */
+    AV_FRAME_DATA_DYNAMIC_HDR_VIVID,
+
+    /**
+     * Ambient viewing environment metadata, as defined by H.274.
+     */
+    AV_FRAME_DATA_AMBIENT_VIEWING_ENVIRONMENT,
 };
 
 enum AVActiveFormatDescription {
@@ -493,10 +506,14 @@ typedef struct AVFrame {
      */
     int sample_rate;
 
+#if FF_API_OLD_CHANNEL_LAYOUT
     /**
      * Channel layout of the audio data.
+     * @deprecated use ch_layout instead
      */
+    attribute_deprecated
     uint64_t channel_layout;
+#endif
 
     /**
      * AVBuffer references backing the data for this frame. All the pointers in
@@ -592,13 +609,18 @@ typedef struct AVFrame {
      */
     int64_t pkt_pos;
 
+#if FF_API_PKT_DURATION
     /**
      * duration of the corresponding packet, expressed in
      * AVStream->time_base units, 0 if unknown.
      * - encoding: unused
      * - decoding: Read by user.
+     *
+     * @deprecated use duration instead
      */
+    attribute_deprecated
     int64_t pkt_duration;
+#endif
 
     /**
      * metadata.
@@ -620,12 +642,16 @@ typedef struct AVFrame {
 #define FF_DECODE_ERROR_CONCEALMENT_ACTIVE  4
 #define FF_DECODE_ERROR_DECODE_SLICES       8
 
+#if FF_API_OLD_CHANNEL_LAYOUT
     /**
      * number of audio channels, only used for audio.
      * - encoding: unused
      * - decoding: Read by user.
+     * @deprecated use ch_layout instead
      */
+    attribute_deprecated
     int channels;
+#endif
 
     /**
      * size of the corresponding packet containing the compressed
@@ -681,6 +707,16 @@ typedef struct AVFrame {
      * for the target frame's private_ref field.
      */
     AVBufferRef *private_ref;
+
+    /**
+     * Channel layout of the audio data.
+     */
+    AVChannelLayout ch_layout;
+
+    /**
+     * Duration of the frame, in the same units as pts. 0 if unknown.
+     */
+    int64_t duration;
 } AVFrame;
 
 
@@ -760,7 +796,7 @@ void av_frame_move_ref(AVFrame *dst, AVFrame *src);
  * The following fields must be set on frame before calling this function:
  * - format (pixel format for video, sample format for audio)
  * - width and height for video
- * - nb_samples and channel_layout for audio
+ * - nb_samples and ch_layout for audio
  *
  * This function will fill AVFrame.data and AVFrame.buf arrays and, if
  * necessary, allocate and fill AVFrame.extended_data and AVFrame.extended_buf.
@@ -797,7 +833,8 @@ int av_frame_is_writable(AVFrame *frame);
  * Ensure that the frame data is writable, avoiding data copy if possible.
  *
  * Do nothing if the frame is writable, allocate new buffers and copy the data
- * if it is not.
+ * if it is not. Non-refcounted frames behave as non-writable, i.e. a copy
+ * is always made.
  *
  * @return 0 on success, a negative AVERROR on error.
  *
@@ -832,6 +869,7 @@ int av_frame_copy_props(AVFrame *dst, const AVFrame *src);
 /**
  * Get the buffer reference a given data plane is stored in.
  *
+ * @param frame the frame to get the plane's buffer from
  * @param plane index of the data plane of interest in frame->extended_data.
  *
  * @return the buffer reference that contains the plane or NULL if the input

@@ -27,12 +27,13 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 
-#include "libavutil/common.h"
+#include "libavutil/attributes.h"
 #include "libavutil/dict.h"
 #include "libavutil/log.h"
 
-#include "libavformat/version.h"
+#include "libavformat/version_major.h"
 
 /**
  * Seeking works like for a local file.
@@ -100,9 +101,13 @@ typedef struct AVIODirEntry {
     int64_t filemode;                     /**< Unix file mode, -1 if unknown. */
 } AVIODirEntry;
 
+#if FF_API_AVIODIRCONTEXT
 typedef struct AVIODirContext {
     struct URLContext *url_context;
 } AVIODirContext;
+#else
+typedef struct AVIODirContext AVIODirContext;
+#endif
 
 /**
  * Different data types that can be returned via the AVIO
@@ -463,6 +468,7 @@ int avio_put_str16be(AVIOContext *s, const char *str);
  *
  * Zero-length ranges are omitted from the output.
  *
+ * @param s    the AVIOContext
  * @param time the stream time the current bytestream pos corresponds to
  *             (in AV_TIME_BASE units), or AV_NOPTS_VALUE if unknown or not
  *             applicable
@@ -517,6 +523,12 @@ int64_t avio_size(AVIOContext *s);
  * @return non zero if and only if at end of file or a read error happened when reading.
  */
 int avio_feof(AVIOContext *s);
+
+/**
+ * Writes a formatted string to the context taking a va_list.
+ * @return number of bytes written, < 0 on error.
+ */
+int avio_vprintf(AVIOContext *s, const char *fmt, va_list ap);
 
 /**
  * Writes a formatted string to the context.

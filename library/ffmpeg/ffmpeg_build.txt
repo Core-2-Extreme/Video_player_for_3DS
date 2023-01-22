@@ -1,12 +1,48 @@
 //How to build ffmpeg library for 3DS
-//Used commit : b8e58f0858116ac102fc116ce1bdf6727df1eb0c
+//Note : This step is optional
 //*build x264, mp3lame and dav1d library first*
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/FFmpeg/FFmpeg; cd FFmpeg
+//There are 2 options
+//1. use FFmpeg_for_3DS (recommended)
+//2. use official FFmpeg and apply modifications to it.
+
+//1. use FFmpeg_for_3DS (recommended)
+git clone https://github.com/Core-2-Extreme/FFmpeg_for_3DS; cd FFmpeg_for_3DS
+
+./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --disable-txtpages --disable-podpages --disable-manpages --disable-htmlpages --disable-doc --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,libdav1d,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,opus,*pcm*,vorbis,webp,subrip,subviewer*,movtext" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,vp8,vp9,wav,srt,subviewer*" --enable-encoder="aac,ac3,libmp3lame,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4,mp3,mp2,ac3" --enable-protocol="file" --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-gpl --enable-pthreads
+
+make -j
+sudo make install
 
 /*
-open configure and replace
-from :
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libav*.a
+/opt/devkitpro/extra_lib/lib/libsw*.a
+/opt/devkitpro/extra_lib/include/libav*/*
+/opt/devkitpro/extra_lib/include/libsw*/*
+
+to : 
+
+{project_folder}/library/ffmpeg/lib/libav*.a
+{project_folder}/library/ffmpeg/lib/libsw*.a
+{project_folder}/library/ffmpeg/include/libav*/*
+{project_folder}/library/ffmpeg/include/libsw*/*
+*/
+
+
+
+
+
+
+
+//2. use official FFmpeg and apply modifications to it.
+git clone https://github.com/FFmpeg/FFmpeg; cd FFmpeg; git reset --hard ab8cde6efa84e547ea07a0c47146091a0066c73c
+
+/*
+in configure,
+replace : 
 
 # check for some common methods of building with pthread support
 # do this before the optional library checks as some of them require pthreads
@@ -18,24 +54,96 @@ if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
     fi
 fi
 
-to :
+with :
 
 # check for some common methods of building with pthread support
 # do this before the optional library checks as some of them require pthreads
 if ! disabled pthreads && ! enabled w32threads && ! enabled os2threads; then
     enable pthreads
 fi
+
+replace : 
+
+enabled libdav1d          && require_pkg_config libdav1d "dav1d >= 0.5.0" "dav1d/dav1d.h" dav1d_version
+
+with : 
+
+enabled libdav1d
+
+replace : 
+
+enabled libx264           && require_pkg_config libx264 x264 "stdint.h x264.h" x264_encoder_encode &&
+                             require_cpp_condition libx264 x264.h "X264_BUILD >= 122" && {
+                             [ "$toolchain" != "msvc" ] ||
+                             require_cpp_condition libx264 x264.h "X264_BUILD >= 158"; } &&
+                             check_cpp_condition libx262 x264.h "X264_MPEG2"
+
+with : 
+
+enabled libx264
+
 */
 
 /*
-from : 
-enabled libdav1d          && require_pkg_config libdav1d "dav1d >= 0.5.0" "dav1d/dav1d.h" dav1d_version
+in libavcodec/pthread_frame.c,
+replace : 
 
-to : 
-enabled libdav1d
+/**
+ * Codec worker thread.
+ *
+ * Automatically calls ff_thread_finish_setup() if the codec does
+ * not provide an update_thread_context method, or if the codec returns
+ * before calling it.
+ */
+static attribute_align_arg void *frame_worker_thread(void *arg)
+
+with : 
+
+/**
+ * Codec worker thread.
+ *
+ * Automatically calls ff_thread_finish_setup() if the codec does
+ * not provide an update_thread_context method, or if the codec returns
+ * before calling it.
+ */
+attribute_align_arg void *frame_worker_thread(void *arg);
+attribute_align_arg void *frame_worker_thread(void *arg)
+
 */
 
-./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --disable-txtpages --disable-podpages --disable-manpages --disable-htmlpages --disable-doc --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,libdav1d,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,*pcm*,vorbis,webp,subrip,subviewer*,movtext" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,vp8,vp9,wav,srt,subviewer*" --enable-encoder="aac,ac3,libmp3lame,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4,mp3,mp2,ac3" --enable-protocol="file" --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-gpl --enable-pthreads
+/*
+in libavutil/slicethread.c,
+replcae : 
 
-make -j 8
+static void *attribute_align_arg thread_worker(void *v)
+{
+
+with : 
+
+void *attribute_align_arg thread_worker(void *v);
+void *attribute_align_arg thread_worker(void *v)
+{
+
+*/
+
+./configure --enable-cross-compile --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --cpu=armv6k --arch=arm --target-os=linux --extra-cflags="-mfloat-abi=hard -mtune=mpcore -mtp=cp15 -D_POSIX_THREADS -I/opt/devkitpro/extra_lib/include" --extra-ldflags="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib" --disable-filters --disable-devices --disable-bsfs --disable-parsers --disable-hwaccels --disable-debug --disable-stripping --disable-programs --disable-avdevice --disable-postproc --disable-avfilter --disable-decoders --disable-demuxers --disable-encoders --disable-muxers --disable-asm --disable-protocols --disable-txtpages --disable-podpages --disable-manpages --disable-htmlpages --disable-doc --enable-inline-asm --enable-vfp --enable-armv5te --enable-armv6 --enable-decoder="aac,ac3,h261,h262,h263,h264,hevc,jpeg,jpeg2000,libdav1d,mjpeg,mp1,mp2,mp3,mpeg1video,mpeg2video,mpeg4,msmpeg4*,opus,*pcm*,vorbis,webp,subrip,subviewer*,movtext" --enable-demuxer="aac,ac3,avi,h261,h262,h263,h264,hevc,matroska,m4v,mjpeg,mjpeg_2000,mpegvideo,mpjpeg,mp3,mov,*pcm*,ogg,vp8,vp9,wav,srt,subviewer*" --enable-encoder="aac,ac3,libmp3lame,mp2,mpeg4,mjpeg,mpeg2video,libx264" --enable-muxer="mp4,mp3,mp2,ac3" --enable-protocol="file" --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-gpl --enable-pthreads
+
+make -j
 sudo make install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libav*.a
+/opt/devkitpro/extra_lib/lib/libsw*.a
+/opt/devkitpro/extra_lib/include/libav*/*
+/opt/devkitpro/extra_lib/include/libsw*/*
+
+to : 
+
+{project_folder}/library/ffmpeg/lib/libav*.a
+{project_folder}/library/ffmpeg/lib/libsw*.a
+{project_folder}/library/ffmpeg/include/libav*/*
+{project_folder}/library/ffmpeg/include/libsw*/*
+*/
+

@@ -1040,7 +1040,7 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
 
 	audio_info->bitrate = util_audio_decoder_context[session][audio_index]->bit_rate;
 	audio_info->sample_rate = util_audio_decoder_context[session][audio_index]->sample_rate;
-	audio_info->ch = util_audio_decoder_context[session][audio_index]->channels;
+	audio_info->ch = util_audio_decoder_context[session][audio_index]->ch_layout.nb_channels;
 	audio_info->format_name = util_audio_decoder_codec[session][audio_index]->long_name;
 	audio_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 
@@ -1741,17 +1741,17 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 	copy_size_per_ch = util_audio_decoder_raw_data[session][packet_index]->nb_samples * util_audio_decoder_sample_format_size_table[util_audio_decoder_context[session][packet_index]->sample_fmt];
 	Util_safe_linear_free(*raw_data);
 	*raw_data = NULL;
-	*raw_data = (u8*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->channels);
+	*raw_data = (u8*)Util_safe_linear_alloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
 
 	if(util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_U8P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S16P
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S32P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S64P
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_FLTP || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_DBLP)
 	{
-		for(int i = 0; i < util_audio_decoder_context[session][packet_index]->channels; i++)
+		for(int i = 0; i < util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels; i++)
 			memcpy(((*raw_data) + (copy_size_per_ch * i)), util_audio_decoder_raw_data[session][packet_index]->data[i], copy_size_per_ch);
 	}
 	else
-		memcpy(*raw_data, util_audio_decoder_raw_data[session][packet_index]->data[0], copy_size_per_ch * util_audio_decoder_context[session][packet_index]->channels);
+		memcpy(*raw_data, util_audio_decoder_raw_data[session][packet_index]->data[0], copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
 
 	*samples = util_audio_decoder_raw_data[session][packet_index]->nb_samples;
 
@@ -2105,7 +2105,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 
 	//Restore cached pts
 	util_mvd_video_decoder_raw_image[session][buffer_num]->pts = util_mvd_video_decoder_cached_pts[util_mvd_video_decoder_current_cached_pts_index];
-	util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration = util_video_decoder_packet[session][0]->duration;
+	util_mvd_video_decoder_raw_image[session][buffer_num]->duration = util_video_decoder_packet[session][0]->duration;
 	if(util_mvd_video_decoder_current_cached_pts_index + 1 < 32)
 		util_mvd_video_decoder_current_cached_pts_index++;
 	else
@@ -2438,8 +2438,8 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 
 	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
-	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration != 0)
-		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration;
+	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->duration != 0)
+		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->duration;
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->time_base);
 	if(timebase != 0)
@@ -2540,8 +2540,8 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
-	if(util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration != 0)
-		current_frame = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts / util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration;
+	if(util_mvd_video_decoder_raw_image[session][buffer_num]->duration != 0)
+		current_frame = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts / util_mvd_video_decoder_raw_image[session][buffer_num]->duration;
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->time_base);
 	if(timebase != 0)
@@ -2630,8 +2630,8 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
 	*current_pos = 0;
 	buffer_num = util_video_decoder_raw_image_ready_index[session][packet_index];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->avg_frame_rate.den;
-	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration != 0)
-		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->pkt_duration;
+	if(util_video_decoder_raw_image[session][packet_index][buffer_num]->duration != 0)
+		current_frame = (double)util_video_decoder_raw_image[session][packet_index][buffer_num]->pts / util_video_decoder_raw_image[session][packet_index][buffer_num]->duration;
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][packet_index]]->time_base);
 	if(timebase != 0)
@@ -2677,8 +2677,8 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
-	if(util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration != 0)
-		current_frame = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts / util_mvd_video_decoder_raw_image[session][buffer_num]->pkt_duration;
+	if(util_mvd_video_decoder_raw_image[session][buffer_num]->duration != 0)
+		current_frame = (double)util_mvd_video_decoder_raw_image[session][buffer_num]->pts / util_mvd_video_decoder_raw_image[session][buffer_num]->duration;
 
 	timebase = av_q2d(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->time_base);
 	if(timebase != 0)

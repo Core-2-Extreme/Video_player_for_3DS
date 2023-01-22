@@ -1,7 +1,9 @@
 //How to install devkitpro
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-sudo apt-get install gdebi-core; curl -L https://github.com/devkitPro/pacman/releases/download/v1.0.2/devkitpro-pacman.amd64.deb -o devkitpro.deb; sudo gdebi devkitpro.deb
+wget https://apt.devkitpro.org/install-devkitpro-pacman; chmod +x ./install-devkitpro-pacman; sudo ./install-devkitpro-pacman
 
-export DEVKITPRO=/opt/devkitpro; export DEVKITARM=${DEVKITPRO}/devkitARM; export DEVKITARM=${DEVKITPRO}/devkitPPC; export PATH=${DEVKITPRO}/tools/bin:$PATH
+export DEVKITPRO=/opt/devkitpro; export DEVKITARM=${DEVKITPRO}/devkitARM; export PATH=${DEVKITPRO}/tools/bin:$PATH
 
+//Continue with default settings (install all)
 sudo dkp-pacman -S 3ds-dev

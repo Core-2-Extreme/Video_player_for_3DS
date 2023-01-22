@@ -1,10 +1,25 @@
 //How to build x264 library for 3DS
-//Used commit : 5585eafe31c2299163dcb206e05e18be7dd93098
+//Note : This step is optional
 //*install devkitpro (libctru) first*
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/mirror/x264; cd x264
+git clone https://github.com/mirror/x264; cd x264; git reset --hard 941cae6d1d6d6344c9a1d27440eaf2872b18ca9a
 
 ./configure --host=arm-linux --cross-prefix=/opt/devkitpro/devkitARM/bin/arm-none-eabi- --prefix=/opt/devkitpro/extra_lib --disable-asm --disable-thread --disable-opencl --extra-cflags="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" --extra-ldflags="-mfloat-abi=hard" --bit-depth=8 --chroma-format=420 --disable-avs --enable-static --disable-cli
 
-make -j 8
+make -j
 sudo make install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libx264.a
+/opt/devkitpro/extra_lib/include/x264_config.h
+/opt/devkitpro/extra_lib/include/x264.h
+
+to : 
+
+{project_folder}/library/x264/lib/libx264.a
+{project_folder}/library/x264/include/x264_config.h
+{project_folder}/library/x264/include/x264.h
+*/

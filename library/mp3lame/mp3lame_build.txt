@@ -1,10 +1,23 @@
 //How to build mp3lame library for 3DS
-//Used commit : f416c19b3140a8610507ebb60ac7cd06e94472b8
+//Note : This step is optional
 //*install devkitpro (libctru) first*
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/gypified/libmp3lame; cd libmp3lame
+git clone https://github.com/gypified/libmp3lame; cd libmp3lame; git reset --hard f416c19b3140a8610507ebb60ac7cd06e94472b8
 
 ./configure --host=arm-linux CC=/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc --prefix=/opt/devkitpro/extra_lib CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15" LDFLAGS="-mfloat-abi=hard" --enable-shared=no --disable-frontend --disable-decoder --disable-analyzer-hooks
 
-make -j 8
+make -j
 sudo make install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libmp3lame.a
+/opt/devkitpro/extra_lib/include/lame/lame.h
+
+to : 
+
+{project_folder}/library/mp3lame/lib/libmp3lame.a
+{project_folder}/library/mp3lame/include/lame/lame.h
+*/

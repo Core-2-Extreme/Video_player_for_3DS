@@ -1,14 +1,42 @@
 //How to build dav1d library for 3DS
-//Used commit : d821d88035aee149a3b6e4d1b1876f080ad8adab
+//Note : This step is optional
 //*install devkitpro (libctru) first*
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/videolan/dav1d; cd dav1d; mkdir build
+//There are 2 options
+//1. use dav1d_for_3DS (recommended)
+//2. use official dav1d and apply modifications to it.
+
+//1. use dav1d_for_3DS (recommended)
+git clone https://github.com/Core-2-Extreme/dav1d_for_3DS; cd dav1d_for_3DS; mkdir build; cd build
+
+meson --cross-file=../package/crossfiles/arm-3ds.meson --default-library=static
+
+ninja
+sudo meson install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libdav1d.a
+/opt/devkitpro/extra_lib/include/dav1d/*
+
+to : 
+
+{project_folder}/library/dav1d/lib/libdav1d.a
+{project_folder}/library/dav1d/include/dav1d/*
+*/
+
+
+
+
+//2. use official dav1d and apply modifications to it.
+git clone https://github.com/videolan/dav1d; cd dav1d; git reset --hard 0d6a31f275dc73dabf9fd8742a4adaa9ecc13da6; mkdir build
 
 in meson.build, replace
 /*
 from :
-project('dav1d', ['c'],
-    version: '0.9.2',
+
     default_options: ['c_std=c99',
                       'warning_level=2',
                       'buildtype=release',
@@ -16,8 +44,7 @@ project('dav1d', ['c'],
     meson_version: '>= 0.49.0')
 
 to :
-project('dav1d', ['c'],
-    version: '0.9.2',
+
     default_options: ['c_std=c99',
                       'warning_level=2',
                       'buildtype=release',
@@ -26,6 +53,20 @@ project('dav1d', ['c'],
     meson_version: '>= 0.49.0')
 add_project_link_arguments('-mfloat-abi=hard', language : 'c')
 add_project_arguments('-mfloat-abi=hard', '-mtune=mpcore', '-mtp=cp15', '-D_POSIX_THREADS', '-march=armv6k', language : 'c')
+
+from : 
+
+else
+    thread_dependency = dependency('threads')
+    thread_compat_dep = []
+
+
+to : 
+
+else
+    thread_dependency = []
+    thread_compat_dep = []
+
 */
 
 create arm-3ds.meson file in package/crossfiles then paste
@@ -53,7 +94,18 @@ change bitdepths to ['8'] and disable enable_asm, enable_tools, enable_tests and
 
 cd build; meson --cross-file=../package/crossfiles/arm-3ds.meson --default-library=static
 
-open build/build.ninja and remove all of '-pthread'
-
 ninja
-meson install
+sudo meson install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libdav1d.a
+/opt/devkitpro/extra_lib/include/dav1d/*
+
+to : 
+
+{project_folder}/library/dav1d/lib/libdav1d.a
+{project_folder}/library/dav1d/include/dav1d/*
+*/
+

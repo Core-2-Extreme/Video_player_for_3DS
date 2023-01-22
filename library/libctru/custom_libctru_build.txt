@@ -1,4 +1,20 @@
 //How to build a custom libctru
+//Note : This step is optional
 //You need to use a custom libctru to use some features.
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/Core-2-Extreme/libctru/tree/master; cd libctru/libctru; make -j
+git clone https://github.com/Core-2-Extreme/libctru; cd libctru/libctru; make -j
+
+/*
+After installing library, copy these files : 
+
+lib/libctru.a
+lib/libctrud.a
+include/*
+
+to : 
+
+{project_folder}/library/libctru/lib/libctru.a
+{project_folder}/library/libctru/lib/libctrud.a
+{project_folder}/library/libctru/include/*
+*/

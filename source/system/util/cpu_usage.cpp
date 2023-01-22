@@ -31,10 +31,10 @@ Result_with_string Util_cpu_usage_monitor_init(void)
 			continue;
 
 		//This may fail depending on core availability.
-		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, 0x3F, i, false);
+		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_SYSTEM_THREAD_PRIORITY_IDLE, i, false);
 	}
 
-	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, 0x18, 0, false);
+	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_SYSTEM_THREAD_PRIORITY_REALTIME, 0, false);
 	if(!util_cpu_usage_thread_handle[4])
 	{
 		result.code = DEF_ERR_OTHER;

@@ -573,9 +573,15 @@
 #define DEF_INACTIVE_THREAD_SLEEP_TIME 100000
 #define DEF_ACTIVE_THREAD_SLEEP_TIME 50000
 #define DEF_THREAD_WAIT_TIME 10000000000//10s
+
 //0x18~0x3F
-#define DEF_THREAD_PRIORITY_IDLE 0x36
-#define DEF_THREAD_PRIORITY_LOW 0x25
-#define DEF_THREAD_PRIORITY_NORMAL 0x24
-#define DEF_THREAD_PRIORITY_HIGH 0x23
-#define DEF_THREAD_PRIORITY_REALTIME 0x18
+#define DEF_THREAD_PRIORITY_IDLE            0x36//Lowest priority for user thread.
+#define DEF_THREAD_PRIORITY_LOW             0x2E
+#define DEF_THREAD_PRIORITY_BELOW_NORMAL    0x2D
+#define DEF_THREAD_PRIORITY_NORMAL          0x2C
+#define DEF_THREAD_PRIORITY_ABOVE_NORMAL    0x2B
+#define DEF_THREAD_PRIORITY_HIGH            0x2A
+#define DEF_THREAD_PRIORITY_REALTIME        0x22//Highest priority for user thread.
+
+#define DEF_SYSTEM_THREAD_PRIORITY_IDLE     0x3F//Lowest priority for system thread, user thread must not use this priority.
+#define DEF_SYSTEM_THREAD_PRIORITY_REALTIME 0x18//Highest priority for system thread, user thread must not use this priority.

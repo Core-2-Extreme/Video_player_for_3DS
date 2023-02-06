@@ -17,7 +17,7 @@ bool vid_use_hw_color_conversion_request = true;
 bool vid_use_multi_threaded_decoding_request = true;
 bool vid_pause_request = false;
 bool vid_seek_request = false;
-bool vid_seek_adjust_request = false;
+bool vid_seek_adjust_request[2] = { false, false, };
 bool vid_seek_backward_wait_mode = false;
 bool vid_read_packet_request = false;
 bool vid_read_packet_wait_request = false;
@@ -259,7 +259,8 @@ void Vid_init_variable(void)
 {
 	//requests
 	vid_seek_request = false;
-	vid_seek_adjust_request = false;
+	vid_seek_adjust_request[0] = false;
+	vid_seek_adjust_request[1] = false;
 	vid_read_packet_request = false;
 	vid_pause_for_home_menu_request = false;
 	vid_set_volume_request = false;
@@ -987,7 +988,8 @@ void Vid_hid(Hid_info key)
 				vid_seek_pos = vid_duration * (((double)key.touch_x - 5) / 310);
 				vid_seek_start_pos = vid_current_pos;
 				vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
-				vid_seek_adjust_request = false;
+				vid_seek_adjust_request[0] = false;
+				vid_seek_adjust_request[1] = false;
 				vid_seek_request = true;
 			}
 			
@@ -1214,7 +1216,7 @@ void Vid_hid(Hid_info key)
 		if(key.p_d_right && !vid_seek_bar.selected && vid_play_request)
 		{
 			double current_bar_pos = 0;
-			if(vid_seek_request || vid_seek_adjust_request)
+			if(vid_seek_request || vid_seek_adjust_request[0] || vid_seek_adjust_request[1])
 				current_bar_pos = vid_seek_pos;
 			else
 				current_bar_pos = vid_current_pos;
@@ -1226,13 +1228,14 @@ void Vid_hid(Hid_info key)
 
 			vid_seek_start_pos = vid_current_pos;
 			vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
-			vid_seek_adjust_request = false;
+			vid_seek_adjust_request[0] = false;
+			vid_seek_adjust_request[1] = false;
 			vid_seek_request = true;
 		}
 		else if(key.p_d_left && !vid_seek_bar.selected && vid_play_request)
 		{
 			double current_bar_pos = 0;
-			if(vid_seek_request || vid_seek_adjust_request)
+			if(vid_seek_request || vid_seek_adjust_request[0] || vid_seek_adjust_request[1])
 				current_bar_pos = vid_seek_pos;
 			else
 				current_bar_pos = vid_current_pos;
@@ -1244,7 +1247,8 @@ void Vid_hid(Hid_info key)
 			
 			vid_seek_start_pos = vid_current_pos;
 			vid_seek_backward_wait_mode = (vid_seek_start_pos > vid_seek_pos);
-			vid_seek_adjust_request = false;
+			vid_seek_adjust_request[0] = false;
+			vid_seek_adjust_request[1] = false;
 			vid_seek_request = true;
 		}
 		else if(key.p_d_up)
@@ -1308,6 +1312,7 @@ void Vid_decode_thread(void* arg)
 	Util_log_save(DEF_VID_DECODE_THREAD_STR, "Thread started.");
 
 	bool key_frame = false;
+	int backward_timeout = 0;
 	int wait_count = 0;
 	int audio_track = 0;
 	int subtitle_track = 0;
@@ -1340,6 +1345,7 @@ void Vid_decode_thread(void* arg)
 		{
 			aptSetSleepAllowed(false);
 			key_frame = false;
+			backward_timeout = 0;
 			wait_count = 0;
 			audio_track = 0;
 			subtitle_track = 0;
@@ -1754,8 +1760,8 @@ void Vid_decode_thread(void* arg)
 						vid_play_request = false;
 					}
 
-					//Buffer some data before starting play a video.
-					vid_out_of_raw_buffer = true;
+					if(num_of_video_tracks > 0 && vid_frametime != 0)//Buffer some data before resuming playback.
+						vid_out_of_raw_buffer = true;
 				}
 
 				vid_read_packet_request = true;
@@ -1770,7 +1776,7 @@ void Vid_decode_thread(void* arg)
 			}
 
 			//Don't start audio playback until first video frame is ready
-			if(vid_num_of_video_tracks > 0)
+			if(vid_num_of_video_tracks > 0 && vid_frametime != 0)
 				Util_speaker_pause(0);
 			
 			if(num_of_video_tracks == 0 || vid_frametime == 0)
@@ -1870,7 +1876,7 @@ void Vid_decode_thread(void* arg)
 					}
 
 					//wait for video
-					if(num_of_video_tracks > 0)
+					if(num_of_video_tracks > 0 && vid_frametime != 0)
 					{
 						if(vid_hw_decoding_mode)
 						{
@@ -1892,27 +1898,31 @@ void Vid_decode_thread(void* arg)
 				}
 
 				//Handle seek adjust request
-				if(vid_seek_adjust_request && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO || vid_frametime == 0))
+				if(vid_seek_adjust_request[0] && (num_of_video_tracks == 0 || type == DEF_DECODER_PACKET_TYPE_VIDEO || vid_frametime == 0))
 				{
 					//Make sure we went back.
-					if(vid_seek_backward_wait_mode && vid_current_pos < vid_seek_start_pos)
+					if((wait_count <= 0 && vid_seek_backward_wait_mode && vid_current_pos < vid_seek_start_pos)
+					|| num_of_video_tracks == 0 || vid_frametime == 0)
 						vid_seek_backward_wait_mode = false;
 
 					if(!vid_seek_backward_wait_mode && vid_current_pos >= vid_seek_pos)
 					{
 						//Seek finished.
 						vid_show_current_pos_until = osGetTime() + 4000;
-						vid_seek_adjust_request = false;
+						vid_seek_adjust_request[0] = false;
 
-						//Buffer some data before starting play a video.
-						if(num_of_video_tracks > 0)
+						if(num_of_video_tracks > 0 && vid_frametime != 0)//Buffer some data before resuming playback.
 							vid_out_of_raw_buffer = true;
+						else//Resume playback immediately for audio only files (including tagged mp3).
+							vid_seek_adjust_request[1] = false;
 					}
 
-					if(wait_count <= 0)//Timeout.
+					if(wait_count > 0)
+						wait_count--;
+					else if(backward_timeout <= 0)//Timeout.
 						vid_seek_backward_wait_mode = false;
 					else
-						wait_count--;
+						backward_timeout--;
 				}
 
 				//Handle seek request
@@ -1927,17 +1937,18 @@ void Vid_decode_thread(void* arg)
 					while (vid_clear_cache_packet_request && vid_play_request && !vid_change_video_request)
 						usleep(10000);
 
-					if(num_of_video_tracks > 0)
+					if(num_of_video_tracks > 0 && vid_frametime != 0)
 					{
 						vid_clear_raw_buffer_request[0] = true; 
-						while ((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
+						while (vid_clear_raw_buffer_request[0] && vid_play_request && !vid_change_video_request)
 							usleep(10000);
 					}
 
-					vid_seek_adjust_request = true;
-					//Sometimes cached previous frames so ignore first 20 (+ num_of_threads if frame threading is used) frames.
-					//This is now used for timeout detection.
-					wait_count = 20 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
+					vid_seek_adjust_request[0] = true;
+					vid_seek_adjust_request[1] = true;
+					//Sometimes cached previous frames so ignore first 10 (+ num_of_threads if frame threading is used) frames.
+					wait_count = 10 + (vid_video_info.thread_type == DEF_DECODER_THREAD_TYPE_FRAME ? vid_num_of_threads : 0);
+					backward_timeout = 20;
 
 					vid_seek_request = false;
 				}
@@ -1957,7 +1968,7 @@ void Vid_decode_thread(void* arg)
 				if(type == DEF_DECODER_PACKET_TYPE_UNKNOWN)
 					Util_log_save("debug", "unknown packet!!!!!");
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO && packet_index == audio_track 
-				&& (!vid_seek_adjust_request || num_of_video_tracks == 0 || vid_frametime == 0) && num_of_audio_tracks != 0)//Always decode audio if video framerate is unknown or file does not have video track
+				&& (!vid_seek_adjust_request[0] || num_of_video_tracks == 0 || vid_frametime == 0) && num_of_audio_tracks != 0)//Always decode audio if video framerate is unknown or file does not have video track
 				{
 					result = Util_decoder_ready_audio_packet(audio_track, 0);
 					if(result.code == 0)
@@ -1970,10 +1981,10 @@ void Vid_decode_thread(void* arg)
 						osTickCounterUpdate(&counter);
 						vid_audio_time = osTickCounterRead(&counter);
 
-						if(!vid_out_of_raw_buffer && !vid_seek_request && !vid_seek_adjust_request && vid_num_of_video_tracks > 0 && vid_frametime != 0)
+						if(!vid_out_of_raw_buffer && !vid_seek_request && !vid_seek_adjust_request[0] && vid_num_of_video_tracks > 0 && vid_frametime != 0)
 							usleep(5000);//Avoid color conversion thread to spike
 
-						if(result.code == 0 && !vid_seek_adjust_request)
+						if(result.code == 0 && !vid_seek_adjust_request[0])
 						{
 							if(vid_audio_info.sample_format != DEF_CONVERTER_SAMPLE_FORMAT_S16 || vid_audio_info.ch > 2 || vid_audio_info.sample_rate > 32000)
 							{
@@ -2045,7 +2056,7 @@ void Vid_decode_thread(void* arg)
 				}
 				else if(type == DEF_DECODER_PACKET_TYPE_AUDIO)
 					Util_decoder_skip_audio_packet(packet_index, 0);
-				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE && packet_index == subtitle_track && !vid_seek_adjust_request && num_of_subtitle_tracks != 0)
+				else if(type == DEF_DECODER_PACKET_TYPE_SUBTITLE && packet_index == subtitle_track && !vid_seek_adjust_request[0] && num_of_subtitle_tracks != 0)
 				{
 					result = Util_decoder_ready_subtitle_packet(packet_index, 0);
 					if(result.code == 0)
@@ -2129,7 +2140,8 @@ void Vid_decode_thread(void* arg)
 				Util_remove_watch(&bar_pos);
 
 			vid_pause_request = false;
-			vid_seek_adjust_request = false;
+			vid_seek_adjust_request[0] = false;
+			vid_seek_adjust_request[1] = false;
 			vid_seek_request = false;
 			vid_show_full_screen_msg = false;
 			vid_out_of_raw_buffer = false;
@@ -2373,7 +2385,7 @@ void Vid_convert_thread(void* arg)
 				{
 					Util_speaker_pause(0);
 					aptSetSleepAllowed(true);
-					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_seek_adjust_request && !vid_change_video_request)
+					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_seek_adjust_request[0] && !vid_change_video_request)
 						usleep(5000);
 					
 					Util_speaker_resume(0);
@@ -2383,7 +2395,7 @@ void Vid_convert_thread(void* arg)
 				if(vid_clear_raw_buffer_request[0])
 				{
 					vid_clear_raw_buffer_request[1] = true;
-					while((vid_clear_raw_buffer_request[0] || vid_clear_raw_buffer_request[1]) && vid_play_request && !vid_change_video_request)
+					while(vid_clear_raw_buffer_request[1] && vid_play_request && !vid_change_video_request)
 						usleep(10000);
 				}
 				osTickCounterUpdate(&counter[3]);
@@ -2395,7 +2407,7 @@ void Vid_convert_thread(void* arg)
 				}
 				
 				//skip video frame if can't keep up
-				if((skip > vid_frametime || vid_seek_adjust_request) && vid_frametime != 0)
+				if((skip > vid_frametime || vid_seek_request || vid_seek_adjust_request[0]) && vid_frametime != 0)
 				{
 					if(vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) > 0 
 					: Util_video_decoder_get_available_raw_image_num(packet_index, 0) > 0)
@@ -2416,10 +2428,10 @@ void Vid_convert_thread(void* arg)
 						if(!std::isnan(pos) && !std::isinf(pos))
 							vid_current_pos = pos;
 					}
-					else if(vid_seek_adjust_request)
+					else if(vid_seek_request || vid_seek_adjust_request[0])
 						usleep(3000);
 
-					if(vid_seek_adjust_request)
+					if(vid_seek_request || vid_seek_adjust_request[0])
 						skip = 0;
 
 					osTickCounterUpdate(&counter[3]);
@@ -2429,6 +2441,7 @@ void Vid_convert_thread(void* arg)
 				: Util_video_decoder_get_available_raw_image_num(0, 0) == 0) || vid_out_of_raw_buffer)
 				&& !(Util_decoder_get_available_packet_num(0) <= 0 && vid_eof) && vid_num_of_video_tracks > 0 && vid_frametime != 0)
 				{
+					int wait_packet_count = 100;//500ms
 					//We run out of raw buffer, pause video and wait for decoding.
 					vid_out_of_raw_buffer = true;
 
@@ -2441,15 +2454,26 @@ void Vid_convert_thread(void* arg)
 						: Util_video_decoder_get_available_raw_image_num(0, 0) >= vid_restart_playback_threshold)
 							break;
 
-						//Avoid infinity loop in case of end of file.
-						if(Util_decoder_get_available_packet_num(0) <= 0 || Util_speaker_get_available_buffer_num(0) == DEF_SPEAKER_MAX_BUFFERS)
+						if(Util_speaker_get_available_buffer_num(0) == DEF_SPEAKER_MAX_BUFFERS)
+							break;
+
+						//Avoid infinity loop in case of end of file, wait 500ms before breaking the loop.
+						if(Util_decoder_get_available_packet_num(0) <= 0)
+							wait_packet_count--;
+						else
+							wait_packet_count = 100;
+
+						if(wait_packet_count <= 0)
 							break;
 					}
-					while(vid_play_request && !vid_seek_request && !vid_seek_adjust_request && !vid_change_video_request && vid_out_of_raw_buffer);
+					while(vid_play_request && !vid_seek_request && !vid_seek_adjust_request[0] && !vid_change_video_request && vid_out_of_raw_buffer);
 
 					Util_speaker_resume(0);
 
 					osTickCounterUpdate(&counter[3]);
+					if(!vid_seek_adjust_request[0])
+						vid_seek_adjust_request[1] = false;//Seek is done.
+
 					vid_out_of_raw_buffer = false;
 				}
 				else if(vid_num_of_video_tracks > 0)
@@ -3410,7 +3434,7 @@ void Vid_main(void)
 
 				if(vid_seek_bar.selected)
 					current_bar_pos = vid_seek_pos_cache / 1000;
-				else if(vid_seek_request || vid_seek_adjust_request || vid_seek_backward_wait_mode)
+				else if(vid_seek_request || vid_seek_adjust_request[0] || vid_seek_adjust_request[1] || vid_seek_backward_wait_mode)
 					current_bar_pos = vid_seek_pos / 1000;
 				else
 					current_bar_pos = (vid_current_pos - vid_frametime) / 1000;
@@ -3419,7 +3443,7 @@ void Vid_main(void)
 				bottom_left_msg += Util_convert_seconds_to_time(current_bar_pos) + "/" + Util_convert_seconds_to_time(vid_duration / 1000);
 			}
 
-			if(vid_seek_request || vid_seek_adjust_request)
+			if(vid_seek_request || vid_seek_adjust_request[0])
 			{
 				//Display seeking message.
 				bottom_center_msg += vid_msg[DEF_VID_SEEKING_MSG];
@@ -3433,7 +3457,7 @@ void Vid_main(void)
 				bottom_center_msg += vid_msg[DEF_VID_PROCESSING_VIDEO_MSG];
 			}
 
-			if(top_center_msg!= "")
+			if(top_center_msg != "")
 			{
 				Draw(top_center_msg, 0, 20, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER,
 				400, 30, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -4007,7 +4031,7 @@ void Vid_main(void)
 				//Draw(Util_convert_seconds_to_time(vid_current_audio_pos / 1000) + "/" + Util_convert_seconds_to_time(vid_duration / 1000), 10, 182.5, 0.5, 0.5, color);
 				if(vid_seek_bar.selected)
 					current_bar_pos = vid_seek_pos_cache / 1000;
-				else if(vid_seek_request || vid_seek_adjust_request || vid_seek_backward_wait_mode)
+				else if(vid_seek_request || vid_seek_adjust_request[0] || vid_seek_adjust_request[1] || vid_seek_backward_wait_mode)
 					current_bar_pos = vid_seek_pos / 1000;
 				else
 					current_bar_pos = (vid_current_pos - vid_frametime) / 1000;

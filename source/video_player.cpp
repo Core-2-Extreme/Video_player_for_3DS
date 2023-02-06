@@ -2257,7 +2257,7 @@ void Vid_decode_video_thread(void* arg)
 								}
 								else
 								{
-									if((int)Util_check_free_linear_space() > (1024 * 1024 * 6) + (vid_video_info.width * vid_video_info.height * 1.5 * 2) || Util_video_decoder_get_available_raw_image_num(packet_index, 0) == 0)
+									if((int)Util_check_free_linear_space() > (1024 * 1024 * 9) + (vid_video_info.width * vid_video_info.height * 1.5 * 2) || Util_video_decoder_get_available_raw_image_num(packet_index, 0) == 0)
 										result = Util_video_decoder_decode(packet_index, 0);
 									else
 										result.code = DEF_ERR_TRY_AGAIN;
@@ -3869,7 +3869,7 @@ void Vid_main(void)
 					if(vid_show_raw_audio_buffer_graph_mode)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_raw_audio_buffer[i] / 3 + vid_ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_raw_audio_buffer[i + 1] / 3 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
+							Draw_line(i, y_offset - vid_raw_audio_buffer[i] / 8 + vid_ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_raw_audio_buffer[i + 1] / 8 + vid_ui_y_offset, 0xFF00A000, 1);//Raw audio buffer
 					}
 
 					//bottom line

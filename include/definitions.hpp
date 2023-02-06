@@ -33,7 +33,7 @@
 #define DEF_LOG_BUFFER_LINES 512
 #define DEF_LOG_COLOR 0xFFBBBB00
 #define DEF_MUXER_MAX_SESSIONS 2
-#define DEF_SPEAKER_MAX_BUFFERS 192
+#define DEF_SPEAKER_MAX_BUFFERS 512
 #define DEF_SWKBD_MAX_DIC_WORDS 128
 
 #define DEF_DECODER_USE_DMA                 1 //Enable DMA in video decoder module for faster processing.

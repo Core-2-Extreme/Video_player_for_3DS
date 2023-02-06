@@ -62,10 +62,10 @@
 <59>Magyar</59>
 <60>简体中文</60>
 <61>Italiano</61>
-<62>Use fake model (restart to apply
-some function may not work)</62>
+<62>使用假模型（重新启动以应用，
+某些功能可能无法使用）</62>
 <63>Español</63>
 <64>Română</64>
 <65>Polski</65>
-<66>CPU usage monitor (may not accurate)</66>
-<67>Dump logs</67>
+<66>监控CPU使用情况（可能不准确）</66>
+<67>导出日志</67>

@@ -255,6 +255,25 @@ void Vid_control_full_screen(void)
 	}
 }
 
+void Vid_update_sleep_policy(void)
+{
+	//Disallow sleep if headset is connected and media is playing.
+	if((vid_play_request && !vid_pause_request) && osIsHeadsetConnected())
+	{
+		if(aptIsSleepAllowed())
+			aptSetSleepAllowed(false);
+
+		return;
+	}
+	else//Allow sleep if headset is not connected or no media is playing.
+	{
+		if(!aptIsSleepAllowed())
+			aptSetSleepAllowed(true);
+
+		return;
+	}
+}
+
 void Vid_init_variable(void)
 {
 	//requests
@@ -1343,7 +1362,6 @@ void Vid_decode_thread(void* arg)
 	{
 		if(vid_play_request || vid_change_video_request)
 		{
-			aptSetSleepAllowed(false);
 			key_frame = false;
 			backward_timeout = 0;
 			wait_count = 0;
@@ -1806,24 +1824,15 @@ void Vid_decode_thread(void* arg)
 					}
 				}
 
-				//Allow sleep if headset is not connected
-				if(!osIsHeadsetConnected() && !aptIsSleepAllowed())
-					aptSetSleepAllowed(true);
-
-				//Disallow sleep if headset is connected
-				if(osIsHeadsetConnected() && aptIsSleepAllowed())
-					aptSetSleepAllowed(false);
 
 				//Handle pause request here if video framerate is unknown or file doesn't have video track
 				if((num_of_video_tracks < 1 || vid_frametime == 0) && vid_pause_request)
 				{
 					Util_speaker_pause(0);
-					aptSetSleepAllowed(true);
 					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_change_video_request)
-						usleep(5000);
-					
+						usleep(50000);
+
 					Util_speaker_resume(0);
-					aptSetSleepAllowed(false);
 				}
 
 				var_afk_time = 0;
@@ -2151,10 +2160,7 @@ void Vid_decode_thread(void* arg)
 				vid_play_request = false;
 
 			if(!vid_play_request)
-			{
 				Vid_exit_full_screen();
-				aptSetSleepAllowed(true);
-			}
 
 			if(!vid_change_video_request && vid_play_request && (vid_playback_mode == DEF_VID_IN_ORDER || vid_playback_mode == DEF_VID_RANDOM))
 			{
@@ -2384,12 +2390,10 @@ void Vid_convert_thread(void* arg)
 				if(vid_pause_request)
 				{
 					Util_speaker_pause(0);
-					aptSetSleepAllowed(true);
 					while(vid_pause_request && vid_play_request && !vid_seek_request && !vid_seek_adjust_request[0] && !vid_change_video_request)
-						usleep(5000);
-					
+						usleep(50000);
+
 					Util_speaker_resume(0);
-					aptSetSleepAllowed(false);
 				}
 
 				if(vid_clear_raw_buffer_request[0])
@@ -4135,4 +4139,6 @@ void Vid_main(void)
 		Util_swkbd_exit();
 		vid_set_seek_duration_request = false;
 	}
+
+	Vid_update_sleep_policy();
 }

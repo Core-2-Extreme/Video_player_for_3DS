@@ -2442,7 +2442,7 @@ void Vid_convert_thread(void* arg)
 					skip -= vid_frametime - osTickCounterRead(&counter[3]);
 				}
 				else if(((vid_hw_decoding_mode ? Util_mvd_video_decoder_get_available_raw_image_num(0) == 0
-				: Util_video_decoder_get_available_raw_image_num(0, 0) == 0) || vid_out_of_raw_buffer)
+				: Util_video_decoder_get_available_raw_image_num(0, 0) == 0) || vid_out_of_raw_buffer || vid_seek_adjust_request[1])
 				&& !(Util_decoder_get_available_packet_num(0) <= 0 && vid_eof) && vid_num_of_video_tracks > 0 && vid_frametime != 0)
 				{
 					int wait_packet_count = 100;//500ms

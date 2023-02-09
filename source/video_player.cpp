@@ -1741,8 +1741,9 @@ void Vid_decode_thread(void* arg)
 					if(saved_pos > 0 && saved_pos < vid_duration)
 					{
 						vid_seek_pos = saved_pos;
-						vid_convert_request = true;
 						vid_seek_request = true;
+						if(vid_num_of_video_tracks > 0)
+							vid_convert_request = true;
 					}
 				}
 				result.code = 0;

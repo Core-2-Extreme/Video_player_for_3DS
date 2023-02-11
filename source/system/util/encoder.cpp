@@ -693,7 +693,7 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
 	ffmpeg_result = avcodec_send_frame(util_video_encoder_context[session], util_video_encoder_raw_data[session]);
 	if(ffmpeg_result != 0)
 	{
-		result.error_description = "avcodec_send_frame() failed " + std::to_string(ffmpeg_result);
+		result.error_description = "avcodec_send_frame() failed. " + std::to_string(ffmpeg_result);
 		goto ffmpeg_api_failed;
 	}
 
@@ -705,7 +705,7 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
 		av_packet_unref(util_video_encoder_packet[session]);
 		if(ffmpeg_result != 0)
 		{
-			result.error_description = "av_interleaved_write_frame() failed " + std::to_string(ffmpeg_result);
+			result.error_description = "av_interleaved_write_frame() failed. " + std::to_string(ffmpeg_result);
 			goto ffmpeg_api_failed;
 		}
 	}

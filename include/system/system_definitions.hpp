@@ -9,7 +9,8 @@
 #define DEF_MENU_UPDATE_THREAD_STR (std::string)"Menu/Update thread"
 #define DEF_MENU_SEND_APP_INFO_THREAD_STR (std::string)"Menu/Send app info thread"
 #define DEF_MENU_CHECK_INTERNET_THREAD_STR (std::string)"Menu/Check internet thread"
-#define DEF_MENU_HID_THREAD_STR (std::string)"Menu/Hid thread"
+
+#define DEF_MENU_NUM_OF_CALLBACKS 32
 
 #define DEF_MENU_EXIST_MSG 0
 #define DEF_MENU_CONFIRM_MSG 1
@@ -25,7 +26,7 @@
 #define DEF_SEM_NAME (std::string)"Settings"
 #define DEF_SEM_INIT_STR (std::string)"Sem/Init"
 #define DEF_SEM_EXIT_STR (std::string)"Sem/Exit"
-#define DEF_SEM_WORKER_THREAD_STR (std::string)"Sem/Worker thread"
+#define DEF_SEM_WORKER_CALLBACK_STR (std::string)"Sem/Worker callback"
 #define DEF_SEM_UPDATE_THREAD_STR (std::string)"Sem/Update thread"
 #define DEF_SEM_ENCODE_THREAD_STR (std::string)"Sem/Encode thread"
 #define DEF_SEM_RECORD_THREAD_STR (std::string)"Sem/Record thread"
@@ -469,12 +470,12 @@
 //error
 #define DEF_ERR_INIT_STR (std::string)"Err/Init"
 #define DEF_ERR_EXIT_STR (std::string)"Err/Exit"
-#define DEF_ERR_SAVE_THREAD_STR (std::string)"Err/Save thread"
+#define DEF_ERR_SAVE_CALLBACK (std::string)"Err/Save callback"
 
 //explorer
 #define DEF_EXPL_INIT_STR (std::string)"Expl/Init"
 #define DEF_EXPL_EXIT_STR (std::string)"Expl/Exit"
-#define DEF_EXPL_READ_DIR_THREAD_STR (std::string)"Expl/Read dir thread"
+#define DEF_EXPL_READ_DIR_CALLBACK_STR (std::string)"Expl/Read dir callback"
 #define DEF_EXPL_TYPE_UNKNOWN 0
 #define DEF_EXPL_TYPE_FILE 1
 #define DEF_EXPL_TYPE_DIR 2
@@ -543,7 +544,7 @@
 #define DEF_EXFONT_BLOCK_EMOTICONS                                  53
 #define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
-#define DEF_EXFONT_LOAD_FONT_THREAD_STR (std::string)"Exfont/Load font thread"
+#define DEF_EXFONT_LOAD_FONT_CALLBACK_STR (std::string)"Exfont/Load font callback"
 
 //file
 #define DEF_FILE_TYPE_FILE 1
@@ -558,6 +559,7 @@
 #define DEF_HID_INIT_STR (std::string)"Hid/Init"
 #define DEF_HID_EXIT_STR (std::string)"Hid/Exit"
 #define DEF_HID_SCAN_THREAD_STR (std::string)"Hid/Scan thread"
+#define DEF_HID_NUM_OF_CALLBACKS 4
 
 //log
 #define DEF_LOG_DISPLAYED_LINES 23

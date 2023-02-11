@@ -901,9 +901,6 @@ void Draw_bot_ui(void)
 
 Image_data* Draw_get_bot_ui_button(void)
 {
-	if(!util_draw_init)
-		return NULL;
-
 	return &util_draw_bot_ui;
 }
 

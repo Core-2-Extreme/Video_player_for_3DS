@@ -12,6 +12,10 @@ Result_with_string Menu_load_msg(std::string lang);
 
 void Menu_init(void);
 
+bool Menu_add_worker_thread_callback(void (*callback)(void));
+
+void Menu_remove_worker_thread_callback(void (*callback)(void));
+
 void Menu_exit(void);
 
 void Menu_main(void);

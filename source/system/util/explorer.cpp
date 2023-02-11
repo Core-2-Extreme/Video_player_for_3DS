@@ -4,22 +4,21 @@
 
 void (*util_expl_callback)(std::string, std::string) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
-bool util_expl_thread_run = false;
 bool util_expl_read_dir_request = false;
 bool util_expl_show_flag = false;
 bool util_expl_scroll_mode = false;
 bool util_expl_init = false;
 int util_expl_num_of_file = 0;
+int util_expl_check_file_size_index = 0;
 int util_expl_size[DEF_EXPL_MAX_FILES];
 int util_expl_type[DEF_EXPL_MAX_FILES];
 double util_expl_y_offset = 0.0;
 double util_expl_selected_file_num = 0.0;
 std::string util_expl_current_dir = "/";
 std::string util_expl_files[DEF_EXPL_MAX_FILES];
-Thread util_expl_read_dir_thread;
 Image_data util_expl_file_button[16];
 
-void Util_expl_read_dir_thread(void* arg);
+void Util_expl_read_dir_callback(void);
 
 Result_with_string Util_expl_init(void)
 {
@@ -33,6 +32,7 @@ Result_with_string Util_expl_init(void)
 	util_expl_show_flag = false;
 	util_expl_scroll_mode = false;
 	util_expl_num_of_file = 0;
+	util_expl_check_file_size_index = 0;
 	util_expl_y_offset = 0.0;
 	util_expl_selected_file_num = 0.0;
 	util_expl_current_dir = "/";
@@ -47,13 +47,10 @@ Result_with_string Util_expl_init(void)
 	for(int i = 0; i < 16; i++)
 		util_expl_file_button[i].c2d = var_square_image[0];
 
-	util_expl_thread_run = true;
-	util_expl_read_dir_thread = threadCreate(Util_expl_read_dir_thread, (void*)(""), DEF_STACKSIZE * 2, DEF_THREAD_PRIORITY_HIGH, 0, false);
-	if(!util_expl_read_dir_thread)
+	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
 	{
-		result.code = DEF_ERR_OTHER;
-		result.error_description = "[Error] threadCreate failed. ";
-		goto nintendo_api_failed;
+		result.error_description = "[Error] Menu_add_worker_thread_callback() failed. ";
+		goto other;
 	}
 
 	util_expl_init = true;
@@ -64,8 +61,9 @@ Result_with_string Util_expl_init(void)
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
 
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	other:
+	result.code = DEF_ERR_OTHER;
+	result.string = DEF_ERR_OTHER_STR;
 	return result;
 }
 
@@ -75,9 +73,7 @@ void Util_expl_exit(void)
 		return;
 
 	util_expl_init = false;
-	util_expl_thread_run = false;
-	threadJoin(util_expl_read_dir_thread, DEF_THREAD_WAIT_TIME);
-	threadFree(util_expl_read_dir_thread);
+	Menu_remove_worker_thread_callback(Util_expl_read_dir_callback);
 }
 
 std::string Util_expl_generate_file_type_string(int type)
@@ -403,35 +399,26 @@ void Util_expl_main(Hid_info key)
 	}
 }
 
-void Util_expl_read_dir_thread(void* arg)
+void Util_expl_read_dir_callback(void)
 {
-	Util_log_save(DEF_EXPL_READ_DIR_THREAD_STR, "Thread started.");
-	int log_num;
-	int num_of_dir = 0;
-	int num_of_file = 0;
-	int num_of_unknown = 0;
-	int num_offset = 0;
-	int index = 0;
-	int dir_type[DEF_EXPL_MAX_FILES];
-	int file_type[DEF_EXPL_MAX_FILES];
-	u64 file_size;
-	std::string name_of_dir[DEF_EXPL_MAX_FILES];
-	std::string name_of_file[DEF_EXPL_MAX_FILES];
-	std::string name_of_unknown[DEF_EXPL_MAX_FILES];
-	std::string name_cache[DEF_EXPL_MAX_FILES];
-	Result_with_string result;
-
-	for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
-	{
-		util_expl_files[i] = "";
-		util_expl_type[i] = 0;
-		util_expl_size[i] = 0;
-	}
-
-	while (util_expl_thread_run)
+	if (util_expl_init)
 	{
 		if (util_expl_read_dir_request)
 		{
+			int log_num;
+			int num_of_dir = 0;
+			int num_of_file = 0;
+			int num_of_unknown = 0;
+			int num_offset = 0;
+			int index = 0;
+			int dir_type[DEF_EXPL_MAX_FILES];
+			int file_type[DEF_EXPL_MAX_FILES];
+			std::string name_of_dir[DEF_EXPL_MAX_FILES];
+			std::string name_of_file[DEF_EXPL_MAX_FILES];
+			std::string name_of_unknown[DEF_EXPL_MAX_FILES];
+			std::string name_cache[DEF_EXPL_MAX_FILES];
+			Result_with_string result;
+
 			var_need_reflesh = true;
 			for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
@@ -441,7 +428,7 @@ void Util_expl_read_dir_thread(void* arg)
 			}
 			index = 0;
 
-			log_num = Util_log_save(DEF_EXPL_READ_DIR_THREAD_STR, "Util_file_read_dir()...");
+			log_num = Util_log_save(DEF_EXPL_READ_DIR_CALLBACK_STR, "Util_file_read_dir()...");
 			result = Util_file_read_dir(util_expl_current_dir, &util_expl_num_of_file, util_expl_files, util_expl_type, DEF_EXPL_MAX_FILES);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 
@@ -507,6 +494,8 @@ void Util_expl_read_dir_thread(void* arg)
 				else
 					num_offset = 0;
 
+				util_expl_check_file_size_index = num_offset;
+
 				//Directories
 				for(int i = 0; i < num_of_dir; i++)
 					name_cache[i] = name_of_dir[i];
@@ -562,34 +551,39 @@ void Util_expl_read_dir_thread(void* arg)
 				util_expl_type[0] = DEF_EXPL_TYPE_DIR;
 				util_expl_files[0] = ".. (Move to parent directory)";
 				util_expl_num_of_file = 1;
+				util_expl_check_file_size_index = 1;
 			}
 			
 			var_need_reflesh = true;
 			util_expl_read_dir_request = false;
-
-			for (int i = 0; i <= index; i++)
+		}
+		else if(util_expl_check_file_size_index < util_expl_num_of_file)
+		{
+			while(util_expl_check_file_size_index < util_expl_num_of_file)
 			{
-				if (util_expl_read_dir_request)
-					break;
-
-				if(util_expl_type[i] & DEF_EXPL_TYPE_FILE || util_expl_type[i] & DEF_EXPL_TYPE_UNKNOWN)
+				if(util_expl_type[util_expl_check_file_size_index] & DEF_EXPL_TYPE_FILE || util_expl_type[util_expl_check_file_size_index] & DEF_EXPL_TYPE_UNKNOWN)
 				{
-					result = Util_file_check_file_size(util_expl_files[i], util_expl_current_dir, &file_size);
+					u64 file_size;
+					Result_with_string result;
+
+					result = Util_file_check_file_size(util_expl_files[util_expl_check_file_size_index], util_expl_current_dir, &file_size);
 					if (result.code == 0)
 					{
-						util_expl_size[i] = (int)file_size;
+						util_expl_size[util_expl_check_file_size_index] = (int)file_size;
 						var_need_reflesh = true;
 					}
 					else
-						Util_log_save(DEF_EXPL_READ_DIR_THREAD_STR, "Util_file_check_file_size()..." + result.string + result.error_description, result.code);
+						Util_log_save(DEF_EXPL_READ_DIR_CALLBACK_STR, "Util_file_check_file_size()..." + result.string + result.error_description, result.code);
+
+					util_expl_check_file_size_index++;
+					//Don't check all files once as it locks worker thread too long.
+					break;
 				}
+				else
+					util_expl_check_file_size_index++;
 			}
 		}
-		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}
-	Util_log_save(DEF_EXPL_READ_DIR_THREAD_STR, "Thread exit.");
-	threadExit(0);
 }
 
 #endif

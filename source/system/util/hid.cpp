@@ -84,7 +84,9 @@ int util_hid_pre_touch_pos_y = 0;
 int util_hid_touch_pos_y_moved = 0;
 int util_hid_held_time = 0;
 u64 util_hid_ts = 0;
+void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { NULL, };
 Thread util_hid_scan_thread;
+LightLock util_hid_callback_mutex = 1;//Initially unlocked state.
 
 void Util_hid_scan_hid_thread(void* arg);
 
@@ -93,6 +95,9 @@ Result_with_string Util_hid_init(void)
 	Result_with_string result;
 	if(util_hid_init)
 		goto already_inited;
+
+	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+		util_hid_callbacks[i] = NULL;
 
 	result.code = hidInit();
 	if(result.code != 0)
@@ -263,6 +268,56 @@ Result_with_string Util_hid_query_key_state(Hid_info* out_key_state)
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
+}
+
+bool Util_hid_add_callback(void (*callback)(void))
+{
+	if(!util_hid_init)
+		return false;
+
+	LightLock_Lock(&util_hid_callback_mutex);
+
+	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	{
+		if(util_hid_callbacks[i] == callback)
+			goto success;//Already exist.
+	}
+
+	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	{
+		if(!util_hid_callbacks[i])
+		{
+			util_hid_callbacks[i] = callback;
+			goto success;
+		}
+	}
+
+	//No free spaces left.
+	LightLock_Unlock(&util_hid_callback_mutex);
+	return false;
+
+	success:
+	LightLock_Unlock(&util_hid_callback_mutex);
+	return true;
+}
+
+void Util_hid_remove_callback(void (*callback)(void))
+{
+	if(!util_hid_init)
+		return;
+
+	LightLock_Lock(&util_hid_callback_mutex);
+
+	for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+	{
+		if(util_hid_callbacks[i] == callback)
+		{
+			util_hid_callbacks[i] = NULL;
+			break;
+		}
+	}
+
+	LightLock_Unlock(&util_hid_callback_mutex);
 }
 
 void Util_hid_scan_hid_thread(void* arg)
@@ -441,6 +496,18 @@ void Util_hid_scan_hid_thread(void* arg)
 			util_hid_held_time = 0;
 		
 		util_hid_ts = osGetTime();
+
+		LightLock_Lock(&util_hid_callback_mutex);
+
+		//Call callback functions.
+		for(int i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
+		{
+			if(util_hid_callbacks[i])
+				util_hid_callbacks[i]();
+		}
+
+		LightLock_Unlock(&util_hid_callback_mutex);
+
 		gspWaitForVBlank();
 	}
 	Util_log_save(DEF_HID_SCAN_THREAD_STR, "Thread exit");

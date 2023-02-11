@@ -161,7 +161,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @warning Call it from only drawing thread.
 */
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
- float box_size_x, float box_size_y);
+float box_size_x, float box_size_y);
 
 /**
  * @brief Draw text.
@@ -183,7 +183,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @warning Call it from only drawing thread.
 */
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
- float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888);
+float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888);
 
 /**
  * @brief Draw text.
@@ -205,7 +205,7 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @warning Call it from only drawing thread.
 */
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
- float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888);
+float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888);
 
 /**
  * @brief Get free sheet index that can be used for Draw_load_texture().
@@ -254,7 +254,6 @@ void Draw_bot_ui(void);
 
 /**
  * @brief Get bottom UI's button.
- * Always return NULL if draw api is not initialized.
  * @return Bottom UI's button.
  * @warning Thread dangerous (untested)
 */
@@ -375,7 +374,7 @@ void Draw_cpu_usage_info(void);
 
 #else
 
-#define Draw_cpu_usage_info(...)
+#define Draw_cpu_usage_info()
 
 #endif
 

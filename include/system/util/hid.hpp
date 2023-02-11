@@ -53,3 +53,21 @@ bool Util_hid_is_released(Hid_info hid_state, Image_data image);
  * @note Thread safe
 */
 Result_with_string Util_hid_query_key_state(Hid_info* out_key_state);
+
+/**
+ * @brief Add hid callback.
+ * Always return false if hid api is not initialized.
+ * @param callback (in) Pointer for callback function.
+ * @return On success true, 
+ * on failure false.
+ * @note Thread safe
+*/
+bool Util_hid_add_callback(void (*callback)(void));
+
+/**
+ * @brief Remove hid callback.
+ * Do nothing if hid api is not initialized.
+ * @param callback (in) Pointer for callback function.
+ * @note Thread safe
+*/
+void Util_hid_remove_callback(void (*callback)(void));

@@ -1,17 +1,15 @@
 ﻿#include "system/headers.hpp"
 
 bool util_err_show_flag = false;
-bool util_err_thread_run = false;
 bool util_err_save_request = false;
 bool util_err_init = false;
 std::string util_err_summary = "N/A";
 std::string util_err_description = "N/A";
 std::string util_err_place = "N/A";
 std::string util_err_code = "N/A";
-Thread util_err_save_thread;
 Image_data util_err_ok_button, util_err_save_button;
 
-void Util_err_save_thread(void* args);
+void Util_err_save_callback(void);
 
 Result_with_string Util_err_init(void)
 {
@@ -21,13 +19,11 @@ Result_with_string Util_err_init(void)
 	
 	util_err_ok_button.c2d = var_square_image[0];
 	util_err_save_button.c2d = var_square_image[0];
-	util_err_thread_run = true;
-	util_err_save_thread = threadCreate(Util_err_save_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
-	if(!util_err_save_thread)
+
+	if(!Menu_add_worker_thread_callback(Util_err_save_callback))
 	{
-		result.code = DEF_ERR_OTHER;
-		result.error_description = "[Error] threadCreate() failed. ";
-		goto nintendo_api_failed;
+		result.error_description = "[Error] Menu_add_worker_thread_callback() failed. ";
+		goto other;
 	}
 
 	util_err_init = true;
@@ -38,8 +34,9 @@ Result_with_string Util_err_init(void)
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
 
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	other:
+	result.code = DEF_ERR_OTHER;
+	result.string = DEF_ERR_OTHER_STR;
 	return result;
 }
 
@@ -49,9 +46,7 @@ void Util_err_exit(void)
 		return;
 	
 	util_err_init = false;
-	util_err_thread_run = false;
-	threadJoin(util_err_save_thread, DEF_THREAD_WAIT_TIME);
-	threadFree(util_err_save_thread);
+	Menu_remove_worker_thread_callback(Util_err_save_callback);
 }
 
 bool Util_err_query_error_show_flag(void)
@@ -181,14 +176,13 @@ void Util_err_draw(void)
 	Draw("SAVE(X)", 212.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
 }
 
-void Util_err_save_thread(void* args)
+void Util_err_save_callback(void)
 {
-	Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Thread started.");
 	char file_name[64];
 	std::string save_data = "";
 	Result_with_string result;
 
-	while (util_err_thread_run)
+	if (util_err_init)
 	{
 		if (util_err_save_request)
 		{
@@ -197,18 +191,14 @@ void Util_err_save_thread(void* args)
 
 			result = Util_log_dump(file_name, DEF_MAIN_DIR + "error/");
 			if(result.code != 0)
-				Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Util_log_dump()..." + result.string + result.error_description, result.code);
+				Util_log_save(DEF_ERR_SAVE_CALLBACK, "Util_log_dump()..." + result.string + result.error_description, result.code);
 
 			result = Util_file_save_to_file(file_name, DEF_MAIN_DIR + "error/" , (u8*)save_data.c_str() , save_data.length(), false);
 			if(result.code != 0)
-				Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Util_file_save_to_file()..." + result.string + result.error_description, result.code);
+				Util_log_save(DEF_ERR_SAVE_CALLBACK, "Util_file_save_to_file()..." + result.string + result.error_description, result.code);
 
 			Util_err_set_error_show_flag(false);
 			util_err_save_request = false;
 		}
-		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 	}
-	Util_log_save(DEF_ERR_SAVE_THREAD_STR, "Thread exit.");
-	threadExit(0);
 }

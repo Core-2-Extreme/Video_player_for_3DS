@@ -7,7 +7,6 @@ struct One_character
 
 bool util_exfont_loaded_external_font[DEF_EXFONT_NUM_OF_FONT_NAME];
 bool util_exfont_request_external_font_state[DEF_EXFONT_NUM_OF_FONT_NAME];
-bool util_exfont_thread_run = false;
 bool util_exfont_load_external_font_request = false;
 bool util_exfont_unload_external_font_request = false;
 bool util_exfont_init = false;
@@ -44,17 +43,15 @@ int util_exfont_font_hangul_syllables_characters[11] =
 };
 int util_exfont_num_of_right_left_charcters = 0;
 int util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME];
-Thread util_exfont_load_font_thread;
 
 Result_with_string Exfont_load_exfont(int exfont_num);
 void Exfont_unload_exfont(int exfont_num);
 
-void Exfont_load_font_thread(void* arg)
+void Exfont_load_font_callback(void)
 {
-    Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Thread started.");
     Result_with_string result;
 
-    while(util_exfont_thread_run)
+    if(util_exfont_init)
     {
         if(util_exfont_load_external_font_request)
         {
@@ -63,7 +60,7 @@ void Exfont_load_font_thread(void* arg)
                 if(util_exfont_request_external_font_state[i] && !util_exfont_loaded_external_font[i])
                 {
                     result = Exfont_load_exfont(i);
-					Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Exfont_load_exfont()..." + result.string + result.error_description, result.code);
+					Util_log_save(DEF_EXFONT_LOAD_FONT_CALLBACK_STR, "Exfont_load_exfont()..." + result.string + result.error_description, result.code);
                     var_need_reflesh = true;
                 }
             }
@@ -81,10 +78,7 @@ void Exfont_load_font_thread(void* arg)
             }
             util_exfont_unload_external_font_request = false;
         }
-        else
-            usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
     }
-	Util_log_save(DEF_EXFONT_LOAD_FONT_THREAD_STR, "Thread exit.");
 }
 
 Result_with_string Exfont_init(void)
@@ -134,13 +128,11 @@ Result_with_string Exfont_init(void)
         util_exfont_texture_num[i] = -1;
     }
 
-	util_exfont_thread_run = true;
-	util_exfont_load_font_thread = threadCreate(Exfont_load_font_thread, (void*)(""), DEF_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
-    if(!util_exfont_load_font_thread)
-    {
-        result.error_description = "[Error] threadCreate() failed. ";
-        goto nintendo_api_failed;
-    }
+	if(!Menu_add_worker_thread_callback(Exfont_load_font_callback))
+	{
+		result.error_description = "[Error] Menu_add_worker_thread_callback() failed. ";
+		goto other;
+	}
 
     util_exfont_init = true;
     return result;
@@ -155,8 +147,9 @@ Result_with_string Exfont_init(void)
     fs_buffer = NULL;
 	return result;
 
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	other:
+	result.code = DEF_ERR_OTHER;
+	result.string = DEF_ERR_OTHER_STR;
 	return result;
 }
 
@@ -164,11 +157,9 @@ void Exfont_exit(void)
 {
     if(!util_exfont_init)
         return;
-    
+
     util_exfont_init = false;
-    util_exfont_thread_run = false;
-	threadJoin(util_exfont_load_font_thread, 10000000000);
-	threadFree(util_exfont_load_font_thread);
+    Menu_remove_worker_thread_callback(Exfont_load_font_callback);
 }
 
 std::string Exfont_query_external_font_name(int exfont_num)

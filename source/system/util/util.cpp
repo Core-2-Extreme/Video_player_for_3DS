@@ -4,7 +4,7 @@
 bool util_safe_linear_alloc_init = false, util_init = false;
 int util_draw_num_of_watch_bool = 0, util_draw_num_of_watch_int = 0, util_draw_num_of_watch_double = 0, util_draw_num_of_watch_string = 0;
 u32 util_max_core_1 = 0;
-Handle util_safe_linear_alloc_mutex = -1, util_watch_variables_mutex = -1;
+LightLock util_safe_linear_alloc_mutex = 1, util_watch_variables_mutex = 1;//Initially unlocked state.
 Watch_bool util_draw_watch_bool[DEF_DRAW_MAX_WATCH_BOOL_VARIABLES];
 Watch_int util_draw_watch_int[DEF_DRAW_MAX_WATCH_INT_VARIABLES];
 Watch_double util_draw_watch_double[DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES];
@@ -128,12 +128,7 @@ Result_with_string Util_init(void)
 	if(util_init)
 		goto already_inited;
 
-	result.code = svcCreateMutex(&util_watch_variables_mutex, false);
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] svcCreateMutex() failed. ";
-		goto nintendo_api_failed;
-	}
+	LightLock_Init(&util_watch_variables_mutex);
 
 	util_draw_num_of_watch_bool = 0;
 	util_draw_num_of_watch_int = 0;
@@ -161,10 +156,6 @@ Result_with_string Util_init(void)
 	}
 
 	util_init = true;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 
 	already_inited:
@@ -203,7 +194,6 @@ void Util_exit(void)
 		util_draw_watch_string[i].address = NULL;
 		util_draw_watch_string[i].previous_value = "";
 	}
-	svcCloseHandle(util_watch_variables_mutex);
 }
 
 int Util_get_watch_bool_usage(void)
@@ -234,10 +224,10 @@ bool Util_add_watch(bool* variable)
 	if(!util_init)
 		return false;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return false;
 	}
 
@@ -252,7 +242,7 @@ bool Util_add_watch(bool* variable)
 		}
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return true;
 }
 
@@ -264,10 +254,10 @@ bool Util_add_watch(int* variable)
 	if(!util_init)
 		return false;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return false;
 	}
 
@@ -282,7 +272,7 @@ bool Util_add_watch(int* variable)
 		}
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return true;
 }
 
@@ -294,10 +284,10 @@ bool Util_add_watch(double* variable)
 	if(!util_init)
 		return false;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return false;
 	}
 
@@ -312,7 +302,7 @@ bool Util_add_watch(double* variable)
 		}
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return true;
 }
 
@@ -324,10 +314,10 @@ bool Util_add_watch(std::string* variable)
 	if(!util_init)
 		return false;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return false;
 	}
 
@@ -342,7 +332,7 @@ bool Util_add_watch(std::string* variable)
 		}
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return true;
 }
 
@@ -355,10 +345,10 @@ void Util_remove_watch(int* variable)
 	if(!util_init)
 		return;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_int + 1 >= DEF_DRAW_MAX_WATCH_INT_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return;
 	}
 
@@ -378,7 +368,7 @@ void Util_remove_watch(int* variable)
 			break;
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return;
 }
 
@@ -391,10 +381,10 @@ void Util_remove_watch(bool* variable)
 	if(!util_init)
 		return;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_bool + 1 >= DEF_DRAW_MAX_WATCH_BOOL_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return;
 	}
 
@@ -414,7 +404,7 @@ void Util_remove_watch(bool* variable)
 			break;
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return;
 }
 
@@ -427,10 +417,10 @@ void Util_remove_watch(double* variable)
 	if(!util_init)
 		return;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_double + 1 >= DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return;
 	}
 
@@ -450,7 +440,7 @@ void Util_remove_watch(double* variable)
 			break;
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return;
 }
 
@@ -463,10 +453,10 @@ void Util_remove_watch(std::string* variable)
 	if(!util_init)
 		return;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 	if(util_draw_num_of_watch_string + 1 >= DEF_DRAW_MAX_WATCH_STRING_VARIABLES)
 	{
-		svcReleaseMutex(util_watch_variables_mutex);
+		LightLock_Unlock(&util_watch_variables_mutex);
 		return;
 	}
 
@@ -486,7 +476,7 @@ void Util_remove_watch(std::string* variable)
 			break;
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return;
 }
 
@@ -498,7 +488,7 @@ bool Util_is_watch_changed(void)
 	if(!util_init)
 		return false;
 
-	svcWaitSynchronization(util_watch_variables_mutex, U64_MAX);
+	LightLock_Lock(&util_watch_variables_mutex);
 
 	for(int i = 0; i < DEF_DRAW_MAX_WATCH_BOOL_VARIABLES; i++)
 	{
@@ -568,7 +558,7 @@ bool Util_is_watch_changed(void)
 			break;
 	}
 
-	svcReleaseMutex(util_watch_variables_mutex);
+	LightLock_Unlock(&util_watch_variables_mutex);
 	return changed;
 }
 
@@ -718,12 +708,7 @@ Result_with_string Util_safe_linear_alloc_init(void)
 	if(util_safe_linear_alloc_init)
 		goto already_inited;
 
-	result.code = svcCreateMutex(&util_safe_linear_alloc_mutex, false);
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] svcCreateMutex() failed. ";
-		goto nintendo_api_failed;
-	}
+	LightLock_Init(&util_safe_linear_alloc_mutex);
 
 	util_safe_linear_alloc_init = true;
 	return result;
@@ -731,10 +716,6 @@ Result_with_string Util_safe_linear_alloc_init(void)
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
 	return result;
 }
 
@@ -744,7 +725,6 @@ void Util_safe_linear_alloc_exit(void)
 		return;
 	
 	util_safe_linear_alloc_init = false;
-	svcCloseHandle(util_safe_linear_alloc_mutex);
 }
 
 void* Util_safe_linear_alloc(size_t size)
@@ -753,9 +733,9 @@ void* Util_safe_linear_alloc(size_t size)
 	if(!util_safe_linear_alloc_init)
 		return NULL;
 
-	svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+	LightLock_Lock(&util_safe_linear_alloc_mutex);
 	pointer = linearAlloc(size);
-	svcReleaseMutex(util_safe_linear_alloc_mutex);
+	LightLock_Unlock(&util_safe_linear_alloc_mutex);
 
 	return pointer;
 }
@@ -766,9 +746,9 @@ void* Util_safe_linear_align(size_t alignment, size_t size)
 	if(!util_safe_linear_alloc_init)
 		return NULL;
 
-	svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+	LightLock_Lock(&util_safe_linear_alloc_mutex);
 	pointer = linearMemAlign(size, alignment);
-	svcReleaseMutex(util_safe_linear_alloc_mutex);
+	LightLock_Unlock(&util_safe_linear_alloc_mutex);
 
 	return pointer;
 }
@@ -791,9 +771,9 @@ void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, si
 	new_ptr = Util_safe_linear_alloc(size);
 	if(new_ptr)
 	{
-		svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+		LightLock_Lock(&util_safe_linear_alloc_mutex);
 		pointer_size = linearGetSize(pointer);
-		svcReleaseMutex(util_safe_linear_alloc_mutex);
+		LightLock_Unlock(&util_safe_linear_alloc_mutex);
 		
 		if(size > pointer_size)
 			memcpy_asm((u8*)new_ptr, (u8*)pointer, pointer_size);
@@ -810,9 +790,9 @@ void Util_safe_linear_free(void* pointer)
 	if(!util_safe_linear_alloc_init)
 		return;
 
-	svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+	LightLock_Lock(&util_safe_linear_alloc_mutex);
 	linearFree(pointer);
-	svcReleaseMutex(util_safe_linear_alloc_mutex);
+	LightLock_Unlock(&util_safe_linear_alloc_mutex);
 }
 
 u32 Util_check_free_linear_space(void)
@@ -821,9 +801,9 @@ u32 Util_check_free_linear_space(void)
 	if(!util_safe_linear_alloc_init)
 		return 0;
 
-	svcWaitSynchronization(util_safe_linear_alloc_mutex, U64_MAX);
+	LightLock_Lock(&util_safe_linear_alloc_mutex);
 	space = linearSpaceFree();
-	svcReleaseMutex(util_safe_linear_alloc_mutex);
+	LightLock_Unlock(&util_safe_linear_alloc_mutex);
 	return space;
 }
 

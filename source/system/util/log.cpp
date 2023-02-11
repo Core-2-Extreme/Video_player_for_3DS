@@ -9,7 +9,7 @@ double util_log_uptime_ms = 0.0;
 double util_log_spend_time[DEF_LOG_BUFFER_LINES];
 std::string util_log_logs[DEF_LOG_BUFFER_LINES];
 TickCounter util_log_uptime_stopwatch;
-Handle util_log_mutex = 0;
+LightLock util_log_mutex = 1;//Initially unlocked state.
 
 Result_with_string Util_log_init(void)
 {
@@ -28,12 +28,8 @@ Result_with_string Util_log_init(void)
 		util_log_logs[i] = "";
 	}
 
-	result.code = svcCreateMutex(&util_log_mutex, false);
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] svcCreateMutex() failed. ";
-		goto nintendo_api_failed;
-	}
+	LightLock_Init(&util_log_mutex);
+
 	util_log_init = true;
 	return result;
 
@@ -41,19 +37,14 @@ Result_with_string Util_log_init(void)
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
 }
 
 void Util_log_exit(void)
 {
 	if(!util_log_init)
 		return;
-	
+
 	util_log_init = false;
-	svcCloseHandle(util_log_mutex);
 }
 
 Result_with_string Util_log_dump(std::string file_name, std::string dir_path)
@@ -114,7 +105,7 @@ int Util_log_save(std::string place, std::string text, int result)
 	
 	memset(app_log_cache, 0x0, place.length() + text.length() + 32);
 
-	svcWaitSynchronization(util_log_mutex, U64_MAX);
+	LightLock_Lock(&util_log_mutex);
 	osTickCounterUpdate(&util_log_uptime_stopwatch);
 	util_log_uptime_ms += osTickCounterRead(&util_log_uptime_stopwatch);
 
@@ -135,7 +126,7 @@ int Util_log_save(std::string place, std::string text, int result)
 	else
 		util_log_y = util_log_current_index - DEF_LOG_DISPLAYED_LINES;
 
-	svcReleaseMutex(util_log_mutex);
+	LightLock_Unlock(&util_log_mutex);
 	free(app_log_cache);
 	app_log_cache = NULL;
 
@@ -162,10 +153,10 @@ void Util_log_add(int log_index, std::string text, int result)
 	app_log_add_cache = (char*)malloc(text.length() + 32);
 	memset(app_log_add_cache, 0x0, text.length() + 32);
 
-	svcWaitSynchronization(util_log_mutex, U64_MAX);
+	LightLock_Lock(&util_log_mutex);
 	osTickCounterUpdate(&util_log_uptime_stopwatch);
 	util_log_uptime_ms += osTickCounterRead(&util_log_uptime_stopwatch);
-	svcReleaseMutex(util_log_mutex);
+	LightLock_Unlock(&util_log_mutex);
 
 	if (result != 1234567890)
 		sprintf(app_log_add_cache, "%s0x%x (%.2fms)", text.c_str(), result, (util_log_uptime_ms - util_log_spend_time[log_index]));
@@ -188,6 +179,7 @@ void Util_log_main(Hid_info key)
 			util_log_show_flag = false;
 			var_need_reflesh = true;
 		}
+		return;
 	}
 
 	if (key.h_c_up)
@@ -229,7 +221,10 @@ void Util_log_main(Hid_info key)
 void Util_log_draw(void)
 {
 	if(!util_log_init)
+	{
 		Draw("Log api is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
+		return;
+	}
 
 	for (int i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
 		Draw(util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);

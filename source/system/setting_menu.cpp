@@ -52,8 +52,8 @@ double sem_touch_y_move_left = 0.0;
 std::string sem_msg[DEF_SEM_NUM_OF_MSG];
 std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_english_button, sem_japanese_button,
-sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_polish_button, sem_night_mode_on_button,
-sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
+sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_polish_button, sem_ryukyuan_button,
+sem_night_mode_on_button, sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
 sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
 sem_scroll_speed_bar, sem_load_all_ex_font_button, sem_unload_all_ex_font_button, sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME],
 sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button, sem_deny_send_info_button, sem_debug_mode_on_button,
@@ -182,7 +182,7 @@ void Sem_init(void)
 			var_3d_mode = (data[10] == "1");
 
 			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
-			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl")
+			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl" && var_lang != "ryu")
 				var_lang = "en";
 			if(var_lcd_brightness < 0 || var_lcd_brightness > 180)
 				var_lcd_brightness = 100;
@@ -268,6 +268,7 @@ void Sem_init(void)
 	Util_add_watch(&sem_spanish_button.selected);
 	Util_add_watch(&sem_romanian_button.selected);
 	Util_add_watch(&sem_polish_button.selected);
+	Util_add_watch(&sem_ryukyuan_button.selected);
 
 	//LCD
 	Util_add_watch(&var_night_mode);
@@ -359,6 +360,7 @@ void Sem_draw_init(void)
 	sem_spanish_button.c2d = var_square_image[0];
 	sem_romanian_button.c2d = var_square_image[0];
 	sem_polish_button.c2d = var_square_image[0];
+	sem_ryukyuan_button.c2d = var_square_image[0];
 	sem_night_mode_on_button.c2d = var_square_image[0];
 	sem_night_mode_off_button.c2d = var_square_image[0];
 	sem_flash_mode_button.c2d = var_square_image[0];
@@ -493,6 +495,7 @@ void Sem_exit(void)
 	Util_remove_watch(&sem_spanish_button.selected);
 	Util_remove_watch(&sem_romanian_button.selected);
 	Util_remove_watch(&sem_polish_button.selected);
+	Util_remove_watch(&sem_ryukyuan_button.selected);
 
 	//LCD
 	Util_remove_watch(&var_night_mode);
@@ -610,7 +613,7 @@ void Sem_main(void)
 			}
 		}
 
-		if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+		if (sem_selected_menu_mode == DEF_SEM_MENU_FONT || sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
 		{
 			Draw_texture(var_square_image[0], color, 312.5, 0.0, 7.5, 15.0);
 			Draw_texture(var_square_image[0], color, 312.5, 215.0, 7.5, 10.0);
@@ -749,36 +752,40 @@ void Sem_main(void)
 			//Languages
 
 			//English
-			Draw(sem_msg[DEF_SEM_ENGLISH_MSG], 10, 25, 0.75, 0.75, (var_lang == "en") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_ENGLISH_MSG], 10, 25 + sem_y_offset, 0.75, 0.75, (var_lang == "en") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_english_button, sem_english_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Japanese
-			Draw(sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, (var_lang == "jp") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_japanese_button, sem_japanese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Hungarian
-			Draw(sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75 + sem_y_offset, 0.75, 0.75, (var_lang == "hu") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_hungarian_button, sem_hungarian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Chinese
-			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.75, 0.75, (var_lang == "zh-cn") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Italian
-			Draw(sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125, 0.75, 0.75, (var_lang == "it") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125 + sem_y_offset, 0.75, 0.75, (var_lang == "it") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_italian_button, sem_italian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Spanish
-			Draw(sem_msg[DEF_SEM_SPANISH_MSG], 10, 150, 0.75, 0.75, (var_lang == "es") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_SPANISH_MSG], 10, 150 + sem_y_offset, 0.75, 0.75, (var_lang == "es") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_spanish_button, sem_spanish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Romanian
-			Draw(sem_msg[DEF_SEM_ROMANIAN_MSG], 10, 175, 0.75, 0.75, (var_lang == "ro") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_ROMANIAN_MSG], 10, 175 + sem_y_offset, 0.75, 0.75, (var_lang == "ro") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_romanian_button, sem_romanian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Polish
-			Draw(sem_msg[DEF_SEM_POLISH_MSG], 10, 200, 0.75, 0.75, (var_lang == "pl") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw(sem_msg[DEF_SEM_POLISH_MSG], 10, 200 + sem_y_offset, 0.75, 0.75, (var_lang == "pl") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_polish_button, sem_polish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+			//Ryukyuan
+			Draw(sem_msg[DEF_SEM_RYUKYUAN_MSG], 10, 225 + sem_y_offset, 0.75, 0.75, (var_lang == "ryu") ? DEF_DRAW_RED : color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
+			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_ryukyuan_button, sem_ryukyuan_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -1057,7 +1064,9 @@ void Sem_hid(Hid_info key)
 				{
 					sem_y_offset = 0.0;
 					sem_selected_menu_mode = menu_button_list[i];
-					if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+					if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
+						sem_y_max = -50.0;
+					else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 						sem_y_max = -950.0;
 				}
 			}
@@ -1133,63 +1142,100 @@ void Sem_hid(Hid_info key)
 				}
 #endif
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES && !sem_reload_msg_request)//Language
+			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)//Language
 			{
-				if(Util_hid_is_pressed(key, sem_english_button))
-					sem_english_button.selected = true;
-				else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
+				if(key.p_touch || key.h_touch || key.r_touch)
 				{
-					var_lang = "en";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_japanese_button))
-					sem_japanese_button.selected = true;
-				else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
-				{
-					var_lang = "jp";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_hungarian_button))
-					sem_hungarian_button.selected = true;
-				else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
-				{
-					var_lang = "hu";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_chinese_button))
-					sem_chinese_button.selected = true;
-				else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
-				{
-					var_lang = "zh-cn";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_italian_button))
-					sem_italian_button.selected = true;
-				else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
-				{
-					var_lang = "it";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_spanish_button))
-					sem_spanish_button.selected = true;
-				else if(Util_hid_is_released(key, sem_spanish_button) && sem_spanish_button.selected)
-				{
-					var_lang = "es";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_romanian_button))
-					sem_romanian_button.selected = true;
-				else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
-				{
-					var_lang = "ro";
-					sem_reload_msg_request = true;
-				}
-				else if(Util_hid_is_pressed(key, sem_polish_button))
-					sem_polish_button.selected = true;
-				else if(Util_hid_is_released(key, sem_polish_button) && sem_polish_button.selected)
-				{
-					var_lang = "pl";
-					sem_reload_msg_request = true;
+					if(!sem_reload_msg_request)
+					{
+						if(Util_hid_is_pressed(key, sem_english_button))
+							sem_english_button.selected = true;
+						else if(Util_hid_is_released(key, sem_english_button) && sem_english_button.selected)
+						{
+							var_lang = "en";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_english_button.selected && !Util_hid_is_held(key, sem_english_button))
+							sem_english_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_japanese_button))
+							sem_japanese_button.selected = true;
+						else if(Util_hid_is_released(key, sem_japanese_button) && sem_japanese_button.selected)
+						{
+							var_lang = "jp";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_japanese_button.selected && !Util_hid_is_held(key, sem_japanese_button))
+							sem_japanese_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_hungarian_button))
+							sem_hungarian_button.selected = true;
+						else if(Util_hid_is_released(key, sem_hungarian_button) && sem_hungarian_button.selected)
+						{
+							var_lang = "hu";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_hungarian_button.selected && !Util_hid_is_held(key, sem_hungarian_button))
+							sem_hungarian_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_chinese_button))
+							sem_chinese_button.selected = true;
+						else if(Util_hid_is_released(key, sem_chinese_button) && sem_chinese_button.selected)
+						{
+							var_lang = "zh-cn";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_chinese_button.selected && !Util_hid_is_held(key, sem_chinese_button))
+							sem_chinese_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_italian_button))
+							sem_italian_button.selected = true;
+						else if(Util_hid_is_released(key, sem_italian_button) && sem_italian_button.selected)
+						{
+							var_lang = "it";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_italian_button.selected && !Util_hid_is_held(key, sem_italian_button))
+							sem_italian_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_spanish_button))
+							sem_spanish_button.selected = true;
+						else if(Util_hid_is_released(key, sem_spanish_button) && sem_spanish_button.selected)
+						{
+							var_lang = "es";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_spanish_button.selected && !Util_hid_is_held(key, sem_spanish_button))
+							sem_spanish_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_romanian_button))
+							sem_romanian_button.selected = true;
+						else if(Util_hid_is_released(key, sem_romanian_button) && sem_romanian_button.selected)
+						{
+							var_lang = "ro";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_romanian_button.selected && !Util_hid_is_held(key, sem_romanian_button))
+							sem_romanian_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_polish_button))
+							sem_polish_button.selected = true;
+						else if(Util_hid_is_released(key, sem_polish_button) && sem_polish_button.selected)
+						{
+							var_lang = "pl";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_polish_button.selected && !Util_hid_is_held(key, sem_polish_button))
+							sem_polish_button.selected = false;
+						else if(Util_hid_is_pressed(key, sem_ryukyuan_button))
+							sem_ryukyuan_button.selected = true;
+						else if(Util_hid_is_released(key, sem_ryukyuan_button) && sem_ryukyuan_button.selected)
+						{
+							var_lang = "ryu";
+							sem_reload_msg_request = true;
+						}
+						else if(sem_ryukyuan_button.selected && !Util_hid_is_held(key, sem_ryukyuan_button))
+							sem_ryukyuan_button.selected = false;
+					}
+
+					sem_scroll_mode = true;
+					if(sem_english_button.selected || sem_japanese_button.selected || sem_hungarian_button.selected || sem_chinese_button.selected
+					|| sem_italian_button.selected || sem_spanish_button.selected || sem_romanian_button.selected || sem_polish_button.selected
+					|| sem_ryukyuan_button.selected || Draw_get_bot_ui_button()->selected)
+						sem_scroll_mode = false;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)//LCD
@@ -1330,22 +1376,6 @@ void Sem_hid(Hid_info key)
 					if(sem_ex_font_button[i].selected)
 						sem_scroll_mode = false;
 				}
-
-				//Scroll bar
-				if(sem_scroll_mode)
-				{
-					if (key.h_c_down || key.h_c_up)
-						sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
-
-					if (key.h_touch && sem_scroll_bar.selected)
-						sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
-
-					if (Util_hid_is_pressed(key, sem_scroll_bar))
-						sem_scroll_bar.selected = true;
-
-					if(sem_touch_y_move_left * var_scroll_speed != 0)
-						sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
-				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)//Wireless
 			{
@@ -1464,6 +1494,22 @@ void Sem_hid(Hid_info key)
 #endif
 		}
 
+		//Scroll bar
+		if(sem_scroll_mode)
+		{
+			if (key.h_c_down || key.h_c_up)
+				sem_y_offset += (double)key.cpad_y * var_scroll_speed * 0.0625;
+
+			if (key.h_touch && sem_scroll_bar.selected)
+				sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
+
+			if (Util_hid_is_pressed(key, sem_scroll_bar))
+				sem_scroll_bar.selected = true;
+
+			if(sem_touch_y_move_left * var_scroll_speed != 0)
+				sem_y_offset -= sem_touch_y_move_left * var_scroll_speed;
+		}
+
 		if (sem_y_offset >= 0)
 			sem_y_offset = 0.0;
 		else if (sem_y_offset <= sem_y_max)
@@ -1486,11 +1532,11 @@ void Sem_hid(Hid_info key)
 
 			sem_back_button.selected = sem_scroll_bar.selected = sem_english_button.selected = sem_japanese_button.selected
 			= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected = sem_spanish_button.selected
-			= sem_romanian_button.selected = sem_polish_button.selected = sem_night_mode_on_button.selected = sem_night_mode_off_button.selected
-			= sem_flash_mode_button.selected = sem_screen_brightness_bar.selected = sem_screen_off_time_bar.selected
-			= sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected = sem_scroll_speed_bar.selected
-			= sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected = sem_deny_send_info_button.selected
-			= sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
+			= sem_romanian_button.selected = sem_polish_button.selected = sem_ryukyuan_button.selected = sem_night_mode_on_button.selected
+			= sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected = sem_screen_off_time_bar.selected
+			= sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
+			= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
+			= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
 			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
 			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
 			= sem_use_fake_model_button.selected = sem_dump_log_button.selected = false;

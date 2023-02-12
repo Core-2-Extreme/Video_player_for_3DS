@@ -69,3 +69,4 @@ some function may not work)</62>
 <65>Polski</65>
 <66>CPU usage monitor (may not accurate)</66>
 <67>Dump logs</67>
+<68>琉球諸語</68>

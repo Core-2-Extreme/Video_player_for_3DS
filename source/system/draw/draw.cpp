@@ -2,6 +2,8 @@
 
 bool util_draw_init = false;
 bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
+bool util_draw_is_800px = false;
+bool util_draw_is_3d = false;
 double util_draw_frametime = 0;
 int util_draw_rendered_frames = 0;
 int util_draw_rendered_frames_cache = 0;
@@ -30,6 +32,8 @@ Result_with_string Draw_init(bool wide, bool _3d)
 	gfxInitDefault();
 	gfxSet3D(false);
 	gfxSetWide(false);
+	util_draw_is_800px = false;
+	util_draw_is_3d = false;
 
 	if(wide)
 		gfxSetWide(wide);
@@ -90,6 +94,9 @@ Result_with_string Draw_init(bool wide, bool _3d)
 
 	util_draw_bot_ui.c2d = var_square_image[0];
 	util_draw_reset_fps_counter_time = osGetTime() + 1000;
+	util_draw_is_800px = wide;
+	util_draw_is_3d = _3d;
+
 	util_draw_init = true;
 	return result;
 
@@ -117,13 +124,18 @@ Result_with_string Draw_reinit(bool wide, bool _3d)
 
 	if(!util_draw_init)
 		goto not_inited;
-	
-	util_draw_init = false;
+
+	//Without calling gspWaitForVBlank() twice before calling C3D_Fini(), it may hang in C3D_Fini().
+	//Not sure why.
+	gspWaitForVBlank();
+	gspWaitForVBlank();
 	C2D_Fini();
 	C3D_Fini();
 
 	gfxSet3D(false);
 	gfxSetWide(false);
+	util_draw_is_800px = false;
+	util_draw_is_3d = false;
 
 	if(wide)
 		gfxSetWide(wide);
@@ -153,7 +165,9 @@ Result_with_string Draw_reinit(bool wide, bool _3d)
 		goto other;
 	}
 
-	util_draw_init = true;
+	util_draw_is_800px = wide;
+	util_draw_is_3d = _3d;
+
 	return result;
 
 	not_inited:
@@ -162,6 +176,7 @@ Result_with_string Draw_reinit(bool wide, bool _3d)
 	return result;
 
 	other:
+	util_draw_init = false;
 	C2D_Fini();
 	C3D_Fini();
 	result.code = DEF_ERR_OTHER;
@@ -180,9 +195,29 @@ void Draw_exit(void)
 	for (int i = 0; i < 4; i++)
 		Draw_free_system_font(i);
 
+	//Without calling gspWaitForVBlank() twice before calling C3D_Fini(), it may hang in C3D_Fini().
+	//Not sure why.
+	gspWaitForVBlank();
+	gspWaitForVBlank();
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
+}
+
+bool Draw_is_800px_mode(void)
+{
+	if(!util_draw_init)
+		return false;
+	else
+		return util_draw_is_800px;
+}
+
+bool Draw_is_3d_mode(void)
+{
+	if(!util_draw_init)
+		return false;
+	else
+		return util_draw_is_3d;
 }
 
 double Draw_query_frametime(void)

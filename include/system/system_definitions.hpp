@@ -19,7 +19,7 @@
 #define DEF_MENU_HOW_TO_UPDATE_MSG 4
 
 //setting menu
-#define DEF_SEM_NUM_OF_MSG 69
+#define DEF_SEM_NUM_OF_MSG 70
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH (std::string)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -49,6 +49,11 @@
 #define DEF_SEM_EDTION_NONE -1
 #define DEF_SEM_EDTION_3DSX 0
 #define DEF_SEM_EDTION_CIA 1
+
+#define DEF_SEM_SCREEN_AUTO 0
+#define DEF_SEM_SCREEN_400PX 1
+#define DEF_SEM_SCREEN_800PX 2
+#define DEF_SEM_SCREEN_3D 3
 
 #define DEF_SEM_UPDATE_MSG 0
 #define DEF_SEM_LANGAGES_MSG 1
@@ -120,6 +125,7 @@
 #define DEF_SEM_CPU_USAGE_MONITOR_MSG 66
 #define DEF_SEM_DUMP_LOGS_MSG 67
 #define DEF_SEM_RYUKYUAN_MSG 68
+#define DEF_SEM_AUTO_MSG 69
 
 //You need to enable DEF_ENABLE_SW_CONVERTER_API **and** DEF_ENABLE_VIDEO_AUDIO_ENCODER_API as well to use screen recorder
 #define DEF_SEM_ENABLE_SCREEN_RECORDER 0

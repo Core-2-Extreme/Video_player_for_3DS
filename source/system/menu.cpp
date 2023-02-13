@@ -126,6 +126,8 @@ void Menu_check_core_thread(void* arg)
 
 void Menu_init(void)
 {
+	bool is_800px = false;
+	bool is_3d = false;
 	u8* data = NULL;
 	u8 dummy = 0;
 	u8 region = 0;
@@ -210,10 +212,25 @@ void Menu_init(void)
 	Sem_init();
 
 	Sem_suspend();
-	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(var_high_resolution_mode, var_3d_mode).code);
+
+	if(var_screen_mode == DEF_SEM_SCREEN_AUTO)
+	{
+		if(osGet3DSliderState())
+			is_3d = true;
+		else
+			is_800px = true;
+	}
+	else if(var_screen_mode == DEF_SEM_SCREEN_800PX)
+		is_800px = true;
+	else if(var_screen_mode == DEF_SEM_SCREEN_3D)
+		is_3d = true;
+
+	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(is_800px, is_3d).code);
 	Draw_frame_ready();
 	Draw_screen_ready(0, DEF_DRAW_WHITE);
+	Draw_top_ui();
 	Draw_screen_ready(1, DEF_DRAW_WHITE);
+	Draw_bot_ui();
 	Draw_apply_draw();
 	Sem_draw_init();
 
@@ -233,7 +250,7 @@ void Menu_init(void)
 	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
 
 	result = Exfont_init();
-	Util_log_save(DEF_MENU_INIT_STR, "Util_expl_init()...", result.code);
+	Util_log_save(DEF_MENU_INIT_STR, "Exfont_init()...", result.code);
 
 	result = Util_err_init();
 	Util_log_save(DEF_MENU_INIT_STR, "Util_err_init()...", result.code);
@@ -518,8 +535,50 @@ void Menu_remove_worker_thread_callback(void (*callback)(void))
 
 void Menu_main(void)
 {
+	bool is_800px = false;
+	bool is_3d = false;
+	u8 screen_mode = var_screen_mode;
 	int color = DEF_DRAW_BLACK;
 	int back_color = DEF_DRAW_WHITE;
+
+	is_800px = (screen_mode == DEF_SEM_SCREEN_800PX);
+	is_3d = (screen_mode == DEF_SEM_SCREEN_3D);
+	if(screen_mode == DEF_SEM_SCREEN_AUTO)
+	{
+		if(osGet3DSliderState())
+		{
+			is_3d = true;
+			is_800px = false;
+		}
+		else
+		{
+			is_3d = false;
+			is_800px = true;
+		}
+	}
+
+	if(var_model == CFG_MODEL_2DS && is_800px)
+	{
+		is_800px = false;
+		var_screen_mode = DEF_SEM_SCREEN_AUTO;
+	}
+	if((var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_N2DSXL) && is_3d)
+	{
+		is_3d = false;
+		var_screen_mode = DEF_SEM_SCREEN_AUTO;
+	}
+
+	//Update screen mode here.
+	if(is_3d != Draw_is_3d_mode() || is_800px != Draw_is_800px_mode())
+	{
+		Result_with_string result;
+		int log = 0;
+
+		log = Util_log_save(DEF_MENU_MAIN_STR, "Draw_reinit()...");
+		result = Draw_reinit(is_800px, is_3d);
+		Util_log_add(log, result.string + result.error_description, result.code);
+		var_need_reflesh = true;
+	}
 
 	if(var_debug_mode)
 		var_need_reflesh = true;

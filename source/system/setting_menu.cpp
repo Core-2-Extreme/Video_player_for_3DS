@@ -41,7 +41,6 @@ bool sem_thread_suspend = false;
 bool sem_reload_msg_request = false;
 bool sem_change_brightness_request = false;
 bool sem_scroll_mode = false;
-bool sem_draw_reinit_request = false;
 bool sem_dump_log_request = false;
 u8 sem_fake_model_num = 255;
 int sem_selected_menu_mode = DEF_SEM_MENU_TOP;
@@ -54,7 +53,7 @@ std::string sem_newest_ver_data[6];//0 newest version number, 1 3dsx available, 
 Image_data sem_back_button, sem_scroll_bar, sem_menu_button[9], sem_english_button, sem_japanese_button,
 sem_hungarian_button, sem_chinese_button, sem_italian_button, sem_spanish_button, sem_romanian_button, sem_polish_button, sem_ryukyuan_button,
 sem_night_mode_on_button, sem_night_mode_off_button, sem_flash_mode_button, sem_screen_brightness_slider, sem_screen_brightness_bar, sem_screen_off_time_slider,
-sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_scroll_speed_slider,
+sem_screen_off_time_bar, sem_800px_mode_button, sem_3d_mode_button, sem_400px_mode_button, sem_auto_mode_button, sem_scroll_speed_slider,
 sem_scroll_speed_bar, sem_load_all_ex_font_button, sem_unload_all_ex_font_button, sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME],
 sem_wifi_on_button, sem_wifi_off_button, sem_allow_send_info_button, sem_deny_send_info_button, sem_debug_mode_on_button,
 sem_debug_mode_off_button, sem_eco_mode_on_button, sem_eco_mode_off_button,sem_record_both_lcd_button, sem_record_top_lcd_button,
@@ -155,7 +154,7 @@ void Sem_init(void)
 	bool wifi_state = true;
 	u8* read_cache = NULL;
 	u32 read_size = 0;
-	std::string data[11];
+	std::string data[12];
 	Result_with_string result;
 
 	if(var_fake_model)
@@ -165,8 +164,15 @@ void Sem_init(void)
 	Util_log_save(DEF_SEM_INIT_STR , "Util_file_load_from_file()..." + result.string + result.error_description, result.code);
 	if (result.code == 0)
 	{
-		result = Util_parse_file((char*)read_cache, 11, data);
+		result = Util_parse_file((char*)read_cache, 12, data);
 		Util_log_save(DEF_SEM_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+		if(result.code != 0)
+		{
+			result = Util_parse_file((char*)read_cache, 11, data);
+			Util_log_save(DEF_SEM_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
+			data[11] = "0";
+		}
+
 		if(result.code == 0)
 		{
 			var_lang = data[0];
@@ -178,8 +184,8 @@ void Sem_init(void)
 			var_night_mode = (data[6] == "1");
 			var_eco_mode = (data[7] == "1");
 			wifi_state = (data[8] == "1");
-			var_high_resolution_mode = (data[9] == "1");
-			var_3d_mode = (data[10] == "1");
+			//9 and 10 is no longer used.
+			var_screen_mode = atoi(data[11].c_str());
 
 			if(var_lang != "jp" && var_lang != "en" && var_lang != "hu" && var_lang != "zh-cn" && var_lang != "it"
 			&& var_lang != "es" && var_lang != "ro" && var_lang != "pl" && var_lang != "ryu")
@@ -192,7 +198,9 @@ void Sem_init(void)
 				var_scroll_speed = 0.5;
 			if(var_num_of_app_start < 0)
 				var_num_of_app_start = 0;
-			
+			if(var_screen_mode > DEF_SEM_SCREEN_3D)
+				var_screen_mode = DEF_SEM_SCREEN_AUTO;
+
 			var_top_lcd_brightness = var_lcd_brightness;
 			var_bottom_lcd_brightness = var_lcd_brightness;
 		}
@@ -200,11 +208,11 @@ void Sem_init(void)
 		read_cache = NULL;
 	}
 
-	if(var_model == CFG_MODEL_2DS)//OLD 2DS doesn't support high resolution mode
-		var_high_resolution_mode = false;
-	
-	if(var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_N2DSXL)//2DSs don't support 3d mode
-		var_3d_mode = false;
+	if(var_model == CFG_MODEL_2DS && var_screen_mode == DEF_SEM_SCREEN_800PX)//OLD 2DS doesn't support high resolution mode.
+		var_screen_mode = DEF_SEM_SCREEN_AUTO;
+
+	if((var_model == CFG_MODEL_2DS || var_model == CFG_MODEL_N2DSXL) && var_screen_mode == DEF_SEM_SCREEN_3D)//2DSs don't support 3d mode.
+		var_screen_mode = DEF_SEM_SCREEN_AUTO;
 
 	sem_thread_run = true;
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
@@ -278,9 +286,7 @@ void Sem_init(void)
 	Util_add_watch(&var_bottom_lcd_brightness);
 	Util_add_watch(&sem_change_brightness_request);
 	Util_add_watch(&var_time_to_turn_off_lcd);
-	Util_add_watch(&var_high_resolution_mode);
-	Util_add_watch(&var_3d_mode);
-	Util_add_watch(&sem_draw_reinit_request);
+	Util_add_watch((bool*)&var_screen_mode);
 
 	Util_add_watch(&sem_night_mode_on_button.selected);
 	Util_add_watch(&sem_night_mode_off_button.selected);
@@ -290,6 +296,7 @@ void Sem_init(void)
 	Util_add_watch(&sem_800px_mode_button.selected);
 	Util_add_watch(&sem_3d_mode_button.selected);
 	Util_add_watch(&sem_400px_mode_button.selected);
+	Util_add_watch(&sem_auto_mode_button.selected);
 
 	//Scroll speed
 	Util_add_watch(&var_scroll_speed);
@@ -371,6 +378,7 @@ void Sem_draw_init(void)
 	sem_800px_mode_button.c2d = var_square_image[0];
 	sem_3d_mode_button.c2d = var_square_image[0];
 	sem_400px_mode_button.c2d = var_square_image[0];
+	sem_auto_mode_button.c2d = var_square_image[0];
 	sem_scroll_speed_slider.c2d = var_square_image[0];
 	sem_scroll_speed_bar.c2d = var_square_image[0];
 	sem_load_all_ex_font_button.c2d = var_square_image[0];
@@ -419,7 +427,8 @@ void Sem_exit(void)
 	std::string data = "<0>" + var_lang + "</0><1>" + std::to_string(var_lcd_brightness) + "</1><2>" + std::to_string(var_time_to_turn_off_lcd)
 	+ "</2><3>" + std::to_string(var_scroll_speed) + "</3><4>" + std::to_string(var_allow_send_app_info) + "</4><5>" + std::to_string(var_num_of_app_start)
 	+ "</5><6>" + std::to_string(var_night_mode) + "</6><7>" + std::to_string(var_eco_mode) + "</7><8>" + std::to_string(var_wifi_enabled) + "</8>"
-	+ "<9>" + std::to_string(var_high_resolution_mode) + "</9><10>" + std::to_string(var_3d_mode) + "</10>";
+	+ "<9>0</9><10>0</10><11>" + std::to_string(var_screen_mode) + "</11>";
+	//9 and 10 is no longer used.
 	Result_with_string result;
 
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
@@ -505,9 +514,7 @@ void Sem_exit(void)
 	Util_remove_watch(&var_bottom_lcd_brightness);
 	Util_remove_watch(&sem_change_brightness_request);
 	Util_remove_watch(&var_time_to_turn_off_lcd);
-	Util_remove_watch(&var_high_resolution_mode);
-	Util_remove_watch(&var_3d_mode);
-	Util_remove_watch(&sem_draw_reinit_request);
+	Util_remove_watch((bool*)&var_screen_mode);
 
 	Util_remove_watch(&sem_night_mode_on_button.selected);
 	Util_remove_watch(&sem_night_mode_off_button.selected);
@@ -517,6 +524,7 @@ void Sem_exit(void)
 	Util_remove_watch(&sem_800px_mode_button.selected);
 	Util_remove_watch(&sem_3d_mode_button.selected);
 	Util_remove_watch(&sem_400px_mode_button.selected);
+	Util_remove_watch(&sem_auto_mode_button.selected);
 
 	//Scroll speed
 	Util_remove_watch(&var_scroll_speed);
@@ -850,14 +858,17 @@ void Sem_main(void)
 			//Screen mode
 			Draw(sem_msg[DEF_SEM_LCD_MODE_MSG], 0, 175, 0.5, 0.5, color);
 			//800px
-			Draw(sem_msg[DEF_SEM_800PX_MSG], 10, 190, 0.65, 0.65, var_high_resolution_mode ? DEF_DRAW_RED : cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			Draw(sem_msg[DEF_SEM_800PX_MSG], 10, 190, 0.65, 0.65, (var_screen_mode == DEF_SEM_SCREEN_800PX) ? DEF_DRAW_RED : cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 65, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_800px_mode_button, sem_800px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//3D
-			Draw(sem_msg[DEF_SEM_3D_MSG], 110, 190, 0.65, 0.65, var_3d_mode ? DEF_DRAW_RED : cache_color[1], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			Draw(sem_msg[DEF_SEM_3D_MSG], 85, 190, 0.65, 0.65, (var_screen_mode == DEF_SEM_SCREEN_3D) ? DEF_DRAW_RED : cache_color[1], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 65, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_3d_mode_button, sem_3d_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//Nothing
-			Draw(sem_msg[DEF_SEM_400PX_MSG], 210, 190, 0.65, 0.65, (var_high_resolution_mode || var_3d_mode) ? cache_color[2] : DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 90, 20,
+			Draw(sem_msg[DEF_SEM_400PX_MSG], 160, 190, 0.65, 0.65, (var_screen_mode == DEF_SEM_SCREEN_400PX) ? DEF_DRAW_RED : cache_color[2], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 65, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_400px_mode_button, sem_400px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			//Auto
+			Draw(sem_msg[DEF_SEM_AUTO_MSG], 235, 190, 0.65, 0.65, (var_screen_mode == DEF_SEM_SCREEN_AUTO) ? DEF_DRAW_RED : cache_color[2], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 65, 20,
+			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_auto_mode_button, sem_auto_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
 		{
@@ -993,9 +1004,9 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 		{
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
-			if(var_high_resolution_mode && var_night_mode)
+			if(var_screen_mode == DEF_SEM_SCREEN_800PX && var_night_mode)
 				cache_color[0] = DEF_DRAW_WEAK_WHITE;
-			else if(var_high_resolution_mode)
+			else if(var_screen_mode == DEF_SEM_SCREEN_800PX)
 				cache_color[0] = DEF_DRAW_WEAK_BLACK;
 
 			//Record both screen
@@ -1010,7 +1021,7 @@ void Sem_main(void)
 			Draw(sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0], DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 240, 20,
 			DEF_DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_bottom_lcd_button, sem_record_bottom_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
-			if(var_high_resolution_mode)
+			if(var_screen_mode == DEF_SEM_SCREEN_800PX)
 				Draw(sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
 #else
 			Draw("☢Screen recorder is disabled\non this app.☢", 10, 25, 0.75, 0.75, DEF_DRAW_RED);
@@ -1026,15 +1037,6 @@ void Sem_main(void)
 	}
 	else
 		gspWaitForVBlank();
-
-	if(sem_draw_reinit_request)
-	{
-		Util_remove_watch(&Draw_get_bot_ui_button()->selected);
-		Draw_reinit(var_high_resolution_mode, var_3d_mode);
-		Util_add_watch(&Draw_get_bot_ui_button()->selected);
-		sem_draw_reinit_request = false;
-		var_need_reflesh = true;
-	}
 }
 
 void Sem_hid(Hid_info key)
@@ -1050,9 +1052,9 @@ void Sem_hid(Hid_info key)
 		Util_err_main(key);
 	else
 	{
-		if(!sem_draw_reinit_request && Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
+		if(Util_hid_is_pressed(key, *Draw_get_bot_ui_button()))
 			Draw_get_bot_ui_button()->selected = true;
-		else if (key.p_start || (!sem_draw_reinit_request &&  Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
+		else if (key.p_start || (Util_hid_is_released(key, *Draw_get_bot_ui_button()) && Draw_get_bot_ui_button()->selected))
 			Sem_suspend();
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
 		{
@@ -1284,27 +1286,19 @@ void Sem_hid(Hid_info key)
 				else if (Util_hid_is_pressed(key, sem_800px_mode_button) && !record_request && var_model != CFG_MODEL_2DS)
 					sem_800px_mode_button.selected = true;
 				else if (Util_hid_is_released(key, sem_800px_mode_button) && !record_request && var_model != CFG_MODEL_2DS && sem_800px_mode_button.selected)
-				{
-					var_high_resolution_mode = true;
-					var_3d_mode = false;
-					sem_draw_reinit_request = true;
-				}
+					var_screen_mode = DEF_SEM_SCREEN_800PX;
 				else if (Util_hid_is_pressed(key, sem_3d_mode_button) && !record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL)
 					sem_3d_mode_button.selected = true;
 				else if (Util_hid_is_released(key, sem_3d_mode_button) && !record_request && var_model != CFG_MODEL_2DS && var_model != CFG_MODEL_N2DSXL && sem_3d_mode_button.selected)
-				{
-					var_high_resolution_mode = false;
-					var_3d_mode = true;
-					sem_draw_reinit_request = true;
-				}
+					var_screen_mode = DEF_SEM_SCREEN_3D;
 				else if (Util_hid_is_pressed(key, sem_400px_mode_button) && !record_request)
 					sem_400px_mode_button.selected = true;
 				else if (Util_hid_is_released(key, sem_400px_mode_button) && !record_request && sem_400px_mode_button.selected)
-				{
-					var_high_resolution_mode = false;
-					var_3d_mode = false;
-					sem_draw_reinit_request = true;
-				}
+					var_screen_mode = DEF_SEM_SCREEN_400PX;
+				else if (Util_hid_is_pressed(key, sem_auto_mode_button) && !record_request)
+					sem_auto_mode_button.selected = true;
+				else if (Util_hid_is_released(key, sem_auto_mode_button) && !record_request && sem_auto_mode_button.selected)
+					var_screen_mode = DEF_SEM_SCREEN_AUTO;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)//Scroll speed
 			{
@@ -1368,7 +1362,7 @@ void Sem_hid(Hid_info key)
 				}
 
 				sem_scroll_mode = true;
-				if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || (!sem_draw_reinit_request && Draw_get_bot_ui_button()->selected))
+				if(sem_load_all_ex_font_button.selected || sem_unload_all_ex_font_button.selected || Draw_get_bot_ui_button()->selected)
 					sem_scroll_mode = false;
 
 				for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
@@ -1454,9 +1448,9 @@ void Sem_hid(Hid_info key)
 #if (DEF_ENABLE_VIDEO_AUDIO_ENCODER_API && DEF_ENABLE_SW_CONVERTER_API && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)//Screen recording
 			{
-				if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && !var_high_resolution_mode)
+				if (Util_hid_is_pressed(key, sem_record_both_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX)
 					sem_record_both_lcd_button.selected = true;
-				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && !var_high_resolution_mode && sem_record_both_lcd_button.selected)
+				else if (Util_hid_is_released(key, sem_record_both_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX && sem_record_both_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1466,9 +1460,9 @@ void Sem_hid(Hid_info key)
 						sem_record_request = true;
 					}
 				}
-				else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && !var_high_resolution_mode)
+				else if (Util_hid_is_pressed(key, sem_record_top_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX)
 					sem_record_top_lcd_button.selected = true;
-				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && !var_high_resolution_mode && sem_record_top_lcd_button.selected)
+				else if (Util_hid_is_released(key, sem_record_top_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX && sem_record_top_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1478,9 +1472,9 @@ void Sem_hid(Hid_info key)
 						sem_record_request = true;
 					}
 				}
-				else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode)
+				else if (Util_hid_is_pressed(key, sem_record_bottom_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX)
 					sem_record_bottom_lcd_button.selected = true;
-				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && !var_high_resolution_mode && sem_record_bottom_lcd_button.selected)
+				else if (Util_hid_is_released(key, sem_record_bottom_lcd_button) && var_screen_mode != DEF_SEM_SCREEN_800PX && sem_record_bottom_lcd_button.selected)
 				{
 					if(sem_record_request)
 						sem_stop_record_request = true;
@@ -1534,7 +1528,7 @@ void Sem_hid(Hid_info key)
 			= sem_hungarian_button.selected = sem_chinese_button.selected = sem_italian_button.selected = sem_spanish_button.selected
 			= sem_romanian_button.selected = sem_polish_button.selected = sem_ryukyuan_button.selected = sem_night_mode_on_button.selected
 			= sem_night_mode_off_button.selected = sem_flash_mode_button.selected = sem_screen_brightness_bar.selected = sem_screen_off_time_bar.selected
-			= sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected
+			= sem_800px_mode_button.selected = sem_3d_mode_button.selected = sem_400px_mode_button.selected = sem_auto_mode_button.selected
 			= sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected = sem_allow_send_info_button.selected
 			= sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected = sem_eco_mode_on_button.selected
 			= sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
@@ -1551,8 +1545,7 @@ void Sem_hid(Hid_info key)
 			sem_monitor_cpu_usage_on_button.selected = sem_monitor_cpu_usage_off_button.selected = false;
 #endif
 
-			if(!sem_draw_reinit_request)
-				Draw_get_bot_ui_button()->selected = false;
+			Draw_get_bot_ui_button()->selected = false;
 
 			for (int i = 0; i < 9; i++)
 				sem_menu_button[i].selected = false;

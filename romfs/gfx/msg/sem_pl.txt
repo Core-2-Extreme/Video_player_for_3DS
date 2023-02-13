@@ -69,3 +69,4 @@ wyłączyć tryb '800px'
 <66>CPU usage monitor (may not accurate)</66>
 <67>Dump logs</67>
 <68>琉球諸語</68>
+<69>Auto</69>

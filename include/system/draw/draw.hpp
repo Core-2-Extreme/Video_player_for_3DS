@@ -33,6 +33,22 @@ Result_with_string Draw_reinit(bool wide, bool _3d);
 void Draw_exit(void);
 
 /**
+ * @brief Get if currently 800px mode is enabled.
+ * Always return false if draw api is not initialized.
+ * @return true if 800px mode is enabled, otherwise false.
+ * @warning Thread dangerous (untested)
+*/
+bool Draw_is_800px_mode(void);
+
+/**
+ * @brief Get if currently 3d mode is enabled.
+ * Always return false if draw api is not initialized.
+ * @return true if 3d mode is enabled, otherwise false.
+ * @warning Thread dangerous (untested)
+*/
+bool Draw_is_3d_mode(void);
+
+/**
  * @brief Query frametime.
  * Always return 0 if draw api is not initialized.
  * @return Frametime (in ms).

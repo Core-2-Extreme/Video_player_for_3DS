@@ -3486,7 +3486,7 @@ void Vid_main(void)
 			if(Util_log_query_log_show_flag())
 				Util_log_draw();
 
-			if(var_3d_mode)
+			if(Draw_is_3d_mode())
 			{
 				Draw_screen_ready(2, vid_full_screen_mode ? DEF_DRAW_BLACK : back_color);
 

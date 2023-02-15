@@ -450,7 +450,7 @@
 #define DEF_ERR_NOT_INITIALIZED 0xFFFFFFF5
 #define DEF_ERR_CURL_RETURNED_NOT_SUCCESS 0xFFFFFFF4
 #define DEF_ERR_NEED_MORE_INPUT 0xFFFFFFF3
-//This is different from DEF_ERR_MVD_TRY_AGAIN_, No video output was made at this call, try again without calling Util_decoder_ready_video_packet().
+//This is different from DEF_ERR_MVD_TRY_AGAIN, No video output was made at this call, try again without calling Util_decoder_ready_video_packet().
 #define DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT 0xFFFFFFF2
 //This is different from DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT, Video output was made at this call, try again without calling Util_decoder_ready_video_packet().
 #define DEF_ERR_MVD_TRY_AGAIN 0xFFFFFFF1

@@ -274,6 +274,39 @@ void Vid_update_sleep_policy(void)
 	}
 }
 
+void Vid_update_performance_graph(double decoding_time, bool is_key_frame, double* total_delay)
+{
+	vid_key_frame_list[319] = is_key_frame;
+	vid_video_time = decoding_time;
+
+	vid_total_frames++;
+	vid_time[0][319] = vid_video_time;
+
+	if(vid_frametime - vid_video_time < 0 && vid_allow_skip_frames && vid_frametime != 0)
+		*total_delay -= vid_frametime - vid_video_time;
+
+	if(vid_min_time > vid_video_time)
+		vid_min_time = vid_video_time;
+	if(vid_max_time < vid_video_time)
+		vid_max_time = vid_video_time;
+
+	vid_total_time += vid_video_time;
+
+	vid_recent_time[89] = vid_video_time;
+	vid_recent_total_time = 0;
+	for(int i = 0; i < 90; i++)
+		vid_recent_total_time += vid_recent_time[i];
+
+	for(int i = 1; i < 90; i++)
+		vid_recent_time[i - 1] = vid_recent_time[i];
+
+	for(int i = 1; i < 320; i++)
+	{
+		vid_key_frame_list[i - 1] = vid_key_frame_list[i];
+		vid_time[0][i - 1] = vid_time[0][i];
+	}
+}
+
 void Vid_init_variable(void)
 {
 	//requests
@@ -1787,7 +1820,7 @@ void Vid_decode_thread(void* arg)
 			}
 
 			//Wait for packet thread
-			while(vid_play_request)
+			while(vid_play_request && vid_play_request && !vid_change_video_request)
 			{
 				usleep(10000);
 				if(Util_decoder_get_available_packet_num(0) > 0)
@@ -2279,8 +2312,11 @@ void Vid_decode_video_thread(void* arg)
 									break;
 								else if(result.code == DEF_ERR_MVD_TRY_AGAIN || result.code == DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT)
 								{
-									if(result.code == DEF_ERR_MVD_TRY_AGAIN && !vid_convert_request)
+									if(result.code == DEF_ERR_MVD_TRY_AGAIN)//Got a frame.
+									{
 										vid_convert_request = true;
+										Vid_update_performance_graph(osTickCounterRead(&counter), key_frame, &skip);
+									}
 
 									continue;
 								}
@@ -2290,12 +2326,10 @@ void Vid_decode_video_thread(void* arg)
 									usleep(1000);
 							}
 
-							vid_video_time = osTickCounterRead(&counter);
-
 							if(result.code == 0)
 							{
-								if(!vid_convert_request)
-									vid_convert_request = true;
+								vid_convert_request = true;
+								Vid_update_performance_graph(osTickCounterRead(&counter), key_frame, &skip);
 							}
 							else if(result.code != DEF_ERR_NEED_MORE_INPUT)
 							{
@@ -2306,34 +2340,6 @@ void Vid_decode_video_thread(void* arg)
 							}
 
 							vid_decode_video_wait_request = false;
-
-							vid_key_frame_list[319] = key_frame;
-							vid_time[0][319] = vid_video_time;
-
-							if(vid_frametime - vid_video_time < 0 && vid_allow_skip_frames && vid_frametime != 0)
-								skip -= vid_frametime - vid_video_time;
-
-							if(vid_min_time > vid_video_time)
-								vid_min_time = vid_video_time;
-							if(vid_max_time < vid_video_time)
-								vid_max_time = vid_video_time;
-							
-							vid_total_time += vid_video_time;
-							vid_total_frames++;
-
-							vid_recent_time[89] = vid_video_time;
-							vid_recent_total_time = 0;
-							for(int i = 0; i < 90; i++)
-								vid_recent_total_time += vid_recent_time[i];
-
-							for(int i = 1; i < 90; i++)
-								vid_recent_time[i - 1] = vid_recent_time[i];
-
-							for(int i = 1; i < 320; i++)
-							{
-								vid_key_frame_list[i - 1] = vid_key_frame_list[i];
-								vid_time[0][i - 1] = vid_time[0][i];
-							}
 						}
 						else
 						{

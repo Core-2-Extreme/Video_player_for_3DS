@@ -2366,15 +2366,21 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session)
 
 Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_pos, int width, int height, int packet_index, int session)
 {
+	bool is_linear = true;
 	int cpy_size = 0;
 	int buffer_num = 0;
+	u32 y_offset = 0;
+	u32 u_offset = 0;
+	u32 v_offset = 0;
+	u32 y_size = width * height;
+	u32 uv_size = width * height / 4;
 	double framerate = 0;
 	double current_frame = 0;
 	double timebase = 0;
 	Result_with_string result;
 #if DEF_DECODER_USE_DMA
-	int dma_result = 0;
-	Handle dma_handle = 0;
+	int dma_result[3] = { 0, 0, 0, };
+	Handle dma_handle[3] = { 0, 0, 0, };
 	DmaConfig dma_config;
 #endif
 
@@ -2418,20 +2424,61 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	else if(framerate != 0.0)
 		*current_pos = current_frame * (1000 / framerate);//calc frame pos
 
+	y_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0];
+	u_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1];
+	v_offset = (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2];
+
+	//Check if the decoded data is in linear format (some decoder return in not linear format).
+	//Currently, only check for YUV420P because it only occurs in h263p afaik.
+	if(util_video_decoder_context[session][packet_index]->pix_fmt == AV_PIX_FMT_YUV420P
+	&& (y_offset + y_size != u_offset || u_offset + uv_size != v_offset))
+		is_linear = false;
+
 #if DEF_DECODER_USE_DMA
-	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size);
+	if(is_linear)
+	{
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, y_offset, cpy_size);
 
-	dmaConfigInitDefault(&dma_config);
-	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size, &dma_config);
+		dmaConfigInitDefault(&dma_config);
+		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size, &dma_config);
 
-	if(dma_result == 0)
-		svcWaitSynchronization(dma_handle, INT64_MAX);
+		if(dma_result[0] == 0)
+			svcWaitSynchronization(dma_handle[0], INT64_MAX);
 
-	svcCloseHandle(dma_handle);
+		svcCloseHandle(dma_handle[0]);
 
-	svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+	}
+	else
+	{
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, y_offset, y_size);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, u_offset, uv_size);
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, v_offset, uv_size);
+
+		dmaConfigInitDefault(&dma_config);
+		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (u32)*raw_data, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size, &dma_config);
+		dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (u32)(*raw_data) + y_size, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size, &dma_config);
+		dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (u32)(*raw_data) + y_size + uv_size, CUR_PROCESS_HANDLE, (u32)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size, &dma_config);
+
+		for(int i = 0; i < 3; i++)
+		{
+			if(dma_result[i] == 0)
+				svcWaitSynchronization(dma_handle[i], INT64_MAX);
+
+			svcCloseHandle(dma_handle[i]);
+		}
+
+		svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)*raw_data, cpy_size);
+	}
 #else
-	memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size);
+	if(is_linear)
+		memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], cpy_size);
+	else
+	{
+		memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size);
+		memcpy_asm((*raw_data) + y_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size);
+		memcpy_asm((*raw_data) + y_size + uv_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size);
+	}
 #endif
 
 	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);

@@ -161,56 +161,24 @@ Videos that in this resolution may be played without problems if video is not mo
 **Note : Video resolution that exceeds screen resolution (400x240 on OLD2DS, 800x240 on OLD3DS, NEW2DS and NEW3DS) has little visible effect.**
 
 ## Benchmark
-⚠️ Decoding speed depends on encoder option, video type, video scene, etc... \
-⚠️ This table shows average fps, so you may hear stutter audio if you use this framerate. \
-(Lower video resolution or framerate in that case) \
-Software decoding in this table uses only one thread not multi-threaded decoding.
+⚠️ Decoding speed depends on encoder option, video type, video scene, etc...
 
-**MPEG1video** \
-MPEG1video test file was encoded following command : \
-ffmpeg -i {input_file_name} -acodec copy -vcodec mpeg1video -s {width}x{height} -r 30 -q:v 15 {output_file_name}
+Original video file : [Big Buck Bunny](https://www.youtube.com/watch?v=YE7VzlLtp-4) \
+The test videos were generated with following commands : \
+mjpeg : `ffmpeg -i {input_file} -acodec copy -vcodec mjpeg -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg1video	: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg1video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg2video	: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg2video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg4 : `ffmpeg -i {input_file} -acodec copy -vcodec mpeg4 -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+h263p : `ffmpeg -i {input_file} -acodec copy -vcodec h263p -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+h264 : `ffmpeg -i {input_file} -acodec copy -vcodec libx264 -s {width}x{height} -crf 25 -t 03:00 {output_file}` \
+h265 : `ffmpeg -i {input_file} -acodec copy -vcodec libx265 -s {width}x{height} -crf 30 -t 03:00 {output_file}` \
+av1 : `ffmpeg -i {input_file} -acodec copy -vcodec libsvtav1 -s {width}x{height} -crf 40 -row-mt 1 -cpu-used 5 -t 03:00 {output_file}`
 
-|        MPEG1video        | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
-| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
-| OLD3DS Software decoding |     69.0fps    |     39.9fps    |     24.0fps    | 27.4fps |     16.7fps    |
-| NEW3DS Software decoding |    532.0fps    |    267.2fps    |    119.8fps    |158.0fps |     69.4fps    |
+NEW3DS : 
+![new3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850778-c58cb243-854c-499f-9084-4646bd8c9de9.png)
 
-**MPEG2video** \
-MPEG2video test file was encoded following command : \
-ffmpeg -i {input_file_name} -acodec copy -vcodec mpeg2video -s {width}x{height} -r 30 -q:v 15 {output_file_name}
-
-|        MPEG2video        | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
-| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
-| OLD3DS Software decoding |     67.1fps    |     37.6fps    |     22.3fps    | 26.3fps |     15.4fps    |
-| NEW3DS Software decoding |    518.8fps    |    254.2fps    |    113.9fps    |145.7fps |     65.9fps    |
-
-**H263+** \
-H263+ test file was encoded following command : \
-ffmpeg -i {input_file_name} -acodec copy -vcodec h263p -s {width}x{height} -r 30 -q:v 15 {output_file_name}
-
-|          H.263+          | 256x144 (144p) | 424x240 (240p) | 640x360 (360p) | 800x240 | 856x480 (480p) |
-| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
-| OLD3DS Software decoding |     62.8fps    |     35.6fps    |     21.1fps    | 24.6fps |      8.7fps    |
-| NEW3DS Software decoding |    527.9fps    |    257.8fps    |    113.1fps    |144.2fps |     33.9fps    |
-
-**H264** \
-H264 test file was encoded following command : \
-ffmpeg -i {input_file_name} -acodec copy -vcodec libx264 -s {width}x{height} -r 30 -preset fast -profile:v baseline  {output_file_name}
-
-|          H.264           | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
-| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
-| OLD3DS Software decoding |     30.7fps    |     15.9fps    |      8.8fps    | 10.2fps |      5.4fps    |
-| NEW3DS Software decoding |    226.7fps    |     95.1fps    |     43.4fps    | 53.2fps |     25.1fps    |
-| NEW3DS Hardware decoding |    560.6fps    |    338.7fps    |    206.0fps    |235.3fps |    114.7fps    |
-
-**H265** \
-H265 test file was encoded following command : \
-ffmpeg -i {input_file_name} -acodec copy -vcodec libx265 -s {width}x{height} -r 30 -preset fast -profile:v main  {output_file_name}
-
-|          H.265           | 256x144 (144p) | 426x240 (240p) | 640x360 (360p) | 800x240 | 854x480 (480p) |
-| ------------------------ | -------------- | -------------- | -------------- | ------- | -------------- |
-| OLD3DS Software decoding |     22.4fps    |     11.3fps    |      6.2fps    |  7.2fps |      3.9fps    |
-| NEW3DS Software decoding |    136.8fps    |     55.7fps    |     26.4fps    | 30.9fps |     15.3fps    |
+OLD3DS : 
+![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
 
 ## Patch note
 * [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v152)

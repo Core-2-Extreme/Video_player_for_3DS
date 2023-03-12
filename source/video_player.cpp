@@ -3520,6 +3520,24 @@ void Vid_main(void)
 				else
 					Draw_texture(vid_banner[var_night_mode], 0, 15, 400, 225);
 
+				if(top_center_msg != "")
+				{
+					Draw(top_center_msg, 0, 20, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER,
+					400, 30, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
+				}
+
+				if(bottom_left_msg != "")
+				{
+					Draw(bottom_left_msg, 0, 200, 0.45, 0.45, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_BOTTOM,
+					400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
+				}
+
+				if(bottom_center_msg != "")
+				{
+					Draw(bottom_center_msg, 0, 200, 0.5, 0.5, DEF_DRAW_WHITE, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_BOTTOM,
+					400, 40, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
+				}
+
 				if(var_monitor_cpu_usage)
 					Draw_cpu_usage_info();
 

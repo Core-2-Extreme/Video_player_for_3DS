@@ -8,6 +8,7 @@
 * [Controls](https://github.com/Core-2-Extreme/Video_player_for_3DS#Controls)
 * [Supported languages](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-languages)
 * [Supported codecs](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-codecs)
+* [Supported containers](https://github.com/Core-2-Extreme/Video_player_for_3DS#Supported-containers-extensions)
 * [Links](https://github.com/Core-2-Extreme/Video_player_for_3DS#Links)
 * [Build](https://github.com/Core-2-Extreme/Video_player_for_3DS#Build)
 * [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution)
@@ -91,6 +92,7 @@ for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe
 * Spanish/Español (translated by Cookiee)
 * Romanian/Română (translated by Tescu48)
 * Polish/Polski (translated by JustScratchCoder)
+* Ryukyuan/琉球諸語 (translated by kuragehimekurara1)
 
 ## Supported codecs
 **Supported video codecs**
@@ -112,14 +114,27 @@ for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe
 * mp1 (MPEG audio layer 1)
 * mp2 (MPEG audio layer 2)
 * mp3 (MPEG audio layer 3)
-* pcm audio
 * ogg (Vorbis)
+* opus
+* pcm audio
 
 **Supported subtitle codecs**
 * movtext
 * subrip
 * subviewer
 (No style support)
+
+**Supported containers (extensions)**
+* aac
+* ac3
+* avi
+* mkv
+* mp1
+* mp2
+* mp3
+* mov
+* ogg
+* wav
 
 ## Links
 [Discord channel](https://discord.gg/MMsAXvetpR) \
@@ -181,6 +196,7 @@ OLD3DS :
 ![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
 
 ## Patch note
+* [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)
 * [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v152)
 * [v1.5.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v151)
 * [v1.5.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v150)
@@ -197,119 +213,133 @@ OLD3DS :
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
 
+### v1.5.3
+**Changes** \
+Audio files more than 2ch (e.g. 2.1ch) has been supported. \
+Many pixel formats have been supported, \
+however, YUV420P is recommended for performance reason. \
+Ryukyuan(琉球諸語) translation has been added (by kuragehimekurara1). \ 
+Auto mode for top screen mode has been added, \
+when this is enabled (settings -> LCD -> screen mode -> auto) \
+you can just use 3d slider to change between 3D <-> 800px mode. \
+Simplified Chinese(简体中文) translation has been updated.
+
+**Fixed bugs** \
+Many problems with seek function including backward seeking has been fixed. \
+Problem that it won't enter sleep mode in some case has been fixed. \
+Problem that h263p video is not played correctly in some resolution has been fixed.
+
 ### v1.5.2
 **Changes** \
-Ignore unsupported codec so that you can play supported codec only \
+Ignore unsupported codec so that you can play supported codec only. \
 (e.g. You can now play videos that contain unsupported subtitles/audio)
 
 **Fixed bugs** \
-Hardware decoder won't play videos that contain B-frames smoothly has been fixed \
+Hardware decoder won't play videos that contain B-frames smoothly has been fixed. \
 (It means you don't have to care about B-frames when encoding to H.264 videos)
 
 ### v1.5.1
-**Added features** \
-Screen update frequency in audio only files have been increased \
-Performance has been improved by adding DMA \
-Video playback is automatically paused when runs out of buffer \
-(You can change threshold by changing 'Restart playback threshold' settings) \
-Seeking speed has been improved
-
 **Changes** \
-Disallow sleep when only headset is connected \
+Screen update frequency in audio only files have been increased. \
+Performance has been improved by adding DMA. \
+Video playback is automatically paused when runs out of buffer. \
+(You can change threshold by changing 'Restart playback threshold' settings) \
+Seeking speed has been improved. \
+Disallow sleep when only headset is connected. \
 (allow sleep if headset is disconnected during playback) \
-App directory has been changed from sdmc:/Video_player/ to sdmc:/3ds/Video_player/ \
+App directory has been changed from "sdmc:/Video_player/" to "sdmc:/3ds/Video_player/". \
 (App will automatically move folder) \
-Simplified Chinese(简体中文) translation has been updated \
-Enabled 'correct aspect ratio option' by default
+Simplified Chinese(简体中文) translation has been updated. \
+Enabled 'correct aspect ratio option' by default.
 
 **Fixed bugs** \
-Crashes in hw decoder in some videos have been fixed \
-Automatically enter full screen mode even file explorer is opened has been fixed \
-App will freeze if you seek after EOF has been fixed \
-Unable to pause/resume in tagged mp3 has been fixed \
-Video position won't be saved in some cases have been fixed \
-Glitch on video in full screen mode has been fixed \
-Some directories can't be entered have been fixed \
-Some videos won't be played at correct speed has been fixed \
-Frame desync in some 3D videos have been fixed
+Crashes in hw decoder in some videos have been fixed. \
+Automatically enter full screen mode even file explorer is opened has been fixed. \
+App will freeze if you seek after EOF has been fixed. \
+Unable to pause/resume in tagged mp3 has been fixed. \
+Video position won't be saved in some cases have been fixed. \
+Glitch on video in full screen mode has been fixed. \
+Some directories can't be entered have been fixed. \
+Some videos won't be played at correct speed has been fixed. \
+Frame desync in some 3D videos have been fixed.
 
 
 ### v1.5.0
-Subtitles have been supported (*0) \
-Disable video, audio and subtitle have been added \
-Audio desync has been fixed \
-AV1 videos have been supported \
-The problem some video won't play smoothly in sw decoder has been fixed \
-Screen brightness adjustment function has been added (DPAD "↑" and "↓") \
+Subtitles have been supported. (*0) \
+Disable video, audio and subtitle have been added. \
+Audio desync has been fixed. \
+AV1 videos have been supported. \
+The problem some video won't play smoothly in sw decoder has been fixed. \
+Screen brightness adjustment function has been added (DPAD "↑" and "↓"). \
 *0 No style support, only plain text \
-Other minor changes
+Other minor changes.
 
 ### v1.4.2
 Unexpected touch in Nintendo's home menu has been fixed \
 Multi-threaded decoding stability has been fixed and it is enabled by default \
 Seeking stability has been fixed \
 Repeat, in order, random playback mode have been added \
-Other minor changes
+Other minor changes.
 
 ### v1.4.1
-The "FSUSER_OpenFile() failed" error has been fixed \
-Adjusted font and button size in settings menu \
-Multi-threaded decoding is disabled by default because it has stability problem \
-Polish(Polski) translation has been added (by JustScratchCoder) \
-Other minor changes
+The "FSUSER_OpenFile() failed" error has been fixed. \
+Adjusted font and button size in settings menu. \
+Multi-threaded decoding is disabled by default because it has stability problem. \
+Polish(Polski) translation has been added (by JustScratchCoder). \
+Other minor changes.
 
 ### v1.4.0
-Decoded image(raw) buffer has been added and it makes playback \
+Decoded image(raw) buffer has been added and it makes playback. \
 much much much much better (especially on OLD3DS)
-Spanish(español) translation has been added (by Cookiee) \
-Romanian(Română) translation has been added (by Tescu48) \
-Other minor changes
+Spanish(español) translation has been added (by Cookiee). \
+Romanian(Română) translation has been added (by Tescu48). \
+Other minor changes.
 
 ### v1.3.3
-'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)) \
-Color conversion speed has been improved \
-Simplified Chinese(简体中文) translation has been added (by LITTOMA) \
-Italian(italiano) translation has been added (by dixy52-beep) \
-*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2 \
-Other minor changes
+'aspect ratio 10:3 mode' has been changed to 'correct aspect ratio mode' (follow sar value(*0)). \
+Color conversion speed has been improved. \
+Simplified Chinese(简体中文) translation has been added (by LITTOMA). \
+Italian(italiano) translation has been added (by dixy52-beep). \
+*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2. \
+Other minor changes.
 
 ### v1.3.2
-Added aspect ratio 10:3 mode (for 800x240 videos) \
-Added disable resize and move video mode \
-Added remember video pos mode (resume from that pos next time) \
-Other minor changes
+Added aspect ratio 10:3 mode (for 800x240 videos). \
+Added disable resize and move video mode. \
+Added remember video pos mode (resume from that pos next time). \
+Other minor changes.
 
 ### v1.3.1
-Volume adjustment has been added (from 0% to 999%) \
-Direction pad seeking has been added (from 1 second to 99 seconds) \
-Hungarian(magyar) translation has been added (by vargaviktor) \
-Other minor changes
+Volume adjustment has been added (from 0% to 999%). \
+Direction pad seeking has been added (from 1 second to 99 seconds). \
+Hungarian(magyar) translation has been added (by vargaviktor). \
+Other minor changes.
 
 ### v1.3.0
-The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track) \
-Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle) \
-Hardware decoder has been merged (Press Y key-> use hw decoder to toggle) \
-Full screen mode has been supported (Press select key to toggle) \
-Other minor changes
+The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track). \
+Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle). \
+Hardware decoder has been merged (Press Y key-> use hw decoder to toggle). \
+Full screen mode has been supported (Press select key to toggle). \
+Other minor changes.
 
 ### v1.2.0
-Hardware decoding won't work in .cia has been fixed \
-Hardware decoding won't work in some resolution has been fixed \
-Added hardware color conversion for software decoder \
-Added 3D video support(software decoder only) \
-Other minor changes and optimization
+Hardware decoding won't work in .cia has been fixed. \
+Hardware decoding won't work in some resolution has been fixed. \
+Added hardware color conversion for software decoder. \
+Added 3D video support(software decoder only). \
+Other minor changes and optimization.
 
 ### v1.1.1
-Video will not be decoded correctly in hardware decoder has been fixed
+Video will not be decoded correctly in hardware decoder has been fixed.
 
 ### v1.1.0
-Added hardware decoder (β)
+Added hardware decoder (β).
 
 ### v1.0.1
-Added allow skip frames option
+Added allow skip frames option.
 
 ### v1.0.0
-Initial release
+Initial release.
 
 ## Credits
 * Core 2 Extreme
@@ -321,6 +351,8 @@ Initial release
 * Cookiee (Spanish translation)
 * Tescu48 (Romanian translation)
 * JustScratchCoder (Polish translation)
+* T0biasCZe (Nintendo Video Convertor)
+* kuragehimekurara1 (Ryukyuan translation)
 
 ## Donation
 If you find my app helpful, buy me a cup of coffee.

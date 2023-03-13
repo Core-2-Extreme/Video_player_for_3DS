@@ -217,7 +217,7 @@ OLD3DS :
 **Changes** \
 Audio files more than 2ch (e.g. 2.1ch) has been supported. \
 Many pixel formats have been supported, however, YUV420P is recommended for performance reason. \
-Ryukyuan(琉球諸語) translation has been added (by kuragehimekurara1). \ 
+Ryukyuan(琉球諸語) translation has been added (by kuragehimekurara1). \
 Auto mode for top screen mode has been added, when this is enabled (settings -> LCD -> screen mode -> auto) you can just use 3d slider to change between 3D <-> 800px mode. \
 Simplified Chinese(简体中文) translation has been updated.
 

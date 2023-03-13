@@ -124,7 +124,7 @@ for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe
 * subviewer
 (No style support)
 
-**Supported containers (extensions)**
+## Supported containers (extensions)
 * aac
 * ac3
 * avi
@@ -216,12 +216,9 @@ OLD3DS :
 ### v1.5.3
 **Changes** \
 Audio files more than 2ch (e.g. 2.1ch) has been supported. \
-Many pixel formats have been supported, \
-however, YUV420P is recommended for performance reason. \
+Many pixel formats have been supported, however, YUV420P is recommended for performance reason. \
 Ryukyuan(琉球諸語) translation has been added (by kuragehimekurara1). \ 
-Auto mode for top screen mode has been added, \
-when this is enabled (settings -> LCD -> screen mode -> auto) \
-you can just use 3d slider to change between 3D <-> 800px mode. \
+Auto mode for top screen mode has been added, when this is enabled (settings -> LCD -> screen mode -> auto) you can just use 3d slider to change between 3D <-> 800px mode. \
 Simplified Chinese(简体中文) translation has been updated.
 
 **Fixed bugs** \

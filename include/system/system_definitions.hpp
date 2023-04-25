@@ -560,7 +560,9 @@
 #define DEF_FILE_TYPE_HIDDEN 8
 
 //fake pthread
+#ifndef _POSIX_THREADS
 #define _POSIX_THREADS
+#endif
 
 //hid
 #define DEF_HID_INIT_STR (std::string)"Hid/Init"

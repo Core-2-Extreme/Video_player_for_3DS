@@ -1,5 +1,9 @@
 # Video player for 3DS
 
+![GitHub all releases](https://img.shields.io/github/downloads/Core-2-Extreme/Video_player_for_3DS/total?color=purple&style=flat-square)
+![GitHub commits since latest release (by SemVer)](https://img.shields.io/github/commits-since/Core-2-Extreme/Video_player_for_3DS/latest?color=orange&style=flat-square)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/Video_player_for_3DS?color=darkgreen&style=flat-square)
+
 ## Index
 * [Screenshots](https://github.com/Core-2-Extreme/Video_player_for_3DS#Screenshots)
 * [Features](https://github.com/Core-2-Extreme/Video_player_for_3DS#Features)
@@ -141,18 +145,27 @@ for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Build
-If you want to build only .3dsx :
-* Install [devkitpro](https://devkitpro.org/wiki/Getting_Started)
-* Clone this repository
-  * On windows open `build.bat`
-  * On other system, type `make` (`make -j` for faster build)
+You need : 
+* [devkitpro](https://devkitpro.org/wiki/Getting_Started)
 
-If you want to build .3dsx and .cia :
-* Install [devkitpro](https://devkitpro.org/wiki/Getting_Started)
-* Download [bannertool](https://github.com/Steveice10/bannertool/releases) and [makerom](https://github.com/3DSGuy/Project_CTR/releases)
-* Copy them in your path (e.g. in `{devkitPro_install_dir}\tools\bin`)
+If you want to build .cia, then you also need : 
+* [bannertool](https://github.com/Steveice10/bannertool/releases) and [makerom](https://github.com/3DSGuy/Project_CTR/releases) (Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
+
+If you already have devkitpro, type `{devkitPro_install_dir}\devkitARM\bin\arm-none-eabi-gcc -v`. \
+You should see something like : 
+```
+.....
+.....
+.....
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 12.2.0 (devkitARM release 60)
+```
+Make sure you have release 60 or later. \
+If you have older devkitpro, update it or compilation will fail.
+
 * Clone this repository
-  * On windows open `build.bat`
+  * On windows run `build.bat`
   * On other system, type `make` (`make -j` for faster build)
 
 ## Recommended resolution

@@ -1,6 +1,8 @@
-#pragma once
+#ifndef SWKBD_HPP
+#define SWKBD_HPP
 
 #if DEF_ENABLE_SWKBD_API
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a software keyboard.
@@ -89,13 +91,13 @@ Result_with_string Util_swkbd_launch(std::string* out_data);
 /**
  * @brief Launch software keyboard.
  * @param out_data (out) Pointer for user input text.
- * @param pressed_button (out) Pressed button (DEF_SWKBD_BUTTON_*).
+ * @param pressed_button (out) Pressed button.
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @warning Call it from only drawing thread.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_swkbd_launch(std::string* out_data, int* pressed_button);
+Result_with_string Util_swkbd_launch(std::string* out_data, Keyboard_button* pressed_button);
 
 /**
  * @brief Uninitialize a software keyboard.
@@ -109,6 +111,8 @@ void Util_swkbd_exit(void);
 #define Util_swkbd_init(...) Util_return_result_with_string(var_disabled_result)
 #define Util_swkbd_set_dic_word(...) Util_return_result_with_string(var_disabled_result)
 #define Util_swkbd_launch(...) Util_return_result_with_string(var_disabled_result)
-#define Util_swkbd_exit(...)
+#define Util_swkbd_exit()
+
+#endif
 
 #endif

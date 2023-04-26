@@ -1,4 +1,7 @@
-#pragma once
+#ifndef UTIL_HPP
+#define UTIL_HPP
+
+#include "system/types.hpp"
 
 extern "C" void* __real_malloc(size_t size);
 extern "C" void* __real_realloc(void* ptr, size_t size);
@@ -248,6 +251,12 @@ u32 Util_check_free_ram(void);
 */
 u32 Util_get_core_1_max(void);
 
+/**
+ * @brief Sleep thread.
+ * @param ns (in) Time to sleep in us.
+ * @note Thread safe
+*/
+void Util_sleep(s64 us);
 
 /**
  * @brief To prevent 'statement has no effect' warning in unused functions.
@@ -269,3 +278,5 @@ std::string Util_return_string(std::string string);
  * @brief To prevent 'statement has no effect' warning in unused functions.
 */
 Result_with_string Util_return_result_with_string(Result_with_string value);
+
+#endif

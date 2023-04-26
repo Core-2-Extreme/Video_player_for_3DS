@@ -1,6 +1,8 @@
-#pragma once
+#ifndef MIC_HPP
+#define MIC_HPP
 
 #if DEF_ENABLE_MIC_API
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a mic.
@@ -13,13 +15,12 @@ Result_with_string Util_mic_init(int buffer_size);
 
 /**
  * @brief Start recording.
- * Available sample rate are : 32728, 16364, 10909 and 8182
- * @param sample_rate (in) Audio sample rate (in Hz).
+ * @param sample_rate_mode (in) Audio sample rate.
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_mic_start_recording(int sample_rate);
+Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode);
 
 /**
  * @brief Stop recording.
@@ -67,10 +68,12 @@ void Util_mic_exit(void);
 
 #define Util_mic_init(...) Util_return_result_with_string(var_disabled_result)
 #define Util_mic_start_recording(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mic_stop_recording(...)
-#define Util_mic_is_recording(...) Util_return_bool(false)
-#define Util_mic_query_remaining_buffer_time(...) Util_return_int(0)
+#define Util_mic_stop_recording()
+#define Util_mic_is_recording() Util_return_bool(false)
+#define Util_mic_query_remaining_buffer_time() Util_return_int(0)
 #define Util_mic_get_audio_data(...) Util_return_result_with_string(var_disabled_result)
-#define Util_mic_exit(...)
+#define Util_mic_exit()
+
+#endif
 
 #endif

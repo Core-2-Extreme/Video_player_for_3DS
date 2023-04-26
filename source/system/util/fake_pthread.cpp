@@ -1,4 +1,16 @@
-#include "system/headers.hpp"
+#include <malloc.h>
+#include <unistd.h>
+
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/variables.hpp"
+
+//Include myself.
+#include "system/util/fake_pthread.hpp"
+
+extern "C"
+{
 
 int util_fake_pthread_core_offset = 0;
 int util_fake_pthread_enabled_core_list[4] = { 0, 1, -3, -3, };
@@ -234,4 +246,6 @@ long sysconf(int name)
     }
     else
         return -1;
+}
+
 }

@@ -1,11 +1,11 @@
-#pragma once
+#ifndef ENCODER_HPP
+#define ENCODER_HPP
+
+#if (defined(DEF_ENABLE_VIDEO_AUDIO_ENCODER_API) || defined(DEF_ENABLE_IMAGE_ENCODER_API))
+#include "system/types.hpp"
+#endif
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
-
-extern "C" 
-{
-#include "libavcodec/avcodec.h"
-}
 
 /**
  * @brief Create the output file.
@@ -19,7 +19,7 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
 
 /**
  * @brief Initialize a audio encoder.
- * @param codec (in) Audio codec (DEF_ENCODER_AUDIO_CODEC_*).
+ * @param codec (in) Audio codec.
  * @param original_sample_rate (in) Input audio sample rate (in Hz).
  * @param encode_sample_rate (in) Encode audio sample rate (in Hz) (audio data will be converted 
  * original_sample_rate -> encode_sample_rate internally when you call Util_audio_encoder_encode()).
@@ -29,11 +29,11 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, int encode_sample_rate, int bitrate, int session);
+Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sample_rate, int encode_sample_rate, int bitrate, int session);
 
 /**
  * @brief Initialize a video encoder.
- * @param codec (in) Video codec (DEF_ENCODER_VIDEO_CODEC_*).
+ * @param codec (in) Video codec.
  * @param width (in) Video width.
  * @param height (in) Video height.
  * @param bitrate (in) Video bitrate (in bit).
@@ -43,7 +43,7 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_video_encoder_init(int codec, int width, int height, int bitrate, int fps, int session);
+Result_with_string Util_video_encoder_init(Video_codec codec, int width, int height, int bitrate, int fps, int session);
 
 /**
  * @brief Write a header (if needed by container).
@@ -101,19 +101,21 @@ void Util_encoder_close_output_file(int session);
 /**
  * @brief Encode image file.
  * @param file_path (in) File path.
- * @param raw_data (in) Pointer for raw image (RGB888LE).
+ * @param raw_data (in) Pointer for raw image (BGR888).
  * @param width (in) Image width.
  * @param height (in) Image height.
- * @param format (in) Image format DEF_ENCODER_IMAGE_CODEC_*.
+ * @param codec (in) Image codec.
  * @param quality (in) Image quality (jpg only).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
-Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality);
+Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, Image_codec codec, int quality);
 
 #else
 
 #define Util_image_encoder_encode(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
 
 #endif

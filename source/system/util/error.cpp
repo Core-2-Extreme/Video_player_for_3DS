@@ -1,4 +1,17 @@
-﻿#include "system/headers.hpp"
+﻿#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/file.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/log.hpp"
+
+//Include myself.
+#include "system/util/error.hpp"
 
 bool util_err_show_flag = false;
 bool util_err_save_request = false;

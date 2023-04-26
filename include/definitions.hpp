@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DEFINITIONS_HPP
+#define DEFINITIONS_HPP
 
 //settings
 #define DEF_MAIN_DIR (std::string)"/3ds/Video_player/"
@@ -208,3 +209,5 @@
 #define DEF_SAPP7_INIT_STR (std::string)"Sapp7/Init"
 #define DEF_SAPP7_EXIT_STR (std::string)"Sapp7/Exit"
 #define DEF_SAPP7_WORKER_THREAD_STR (std::string)"Sapp7/Worker thread"
+
+#endif

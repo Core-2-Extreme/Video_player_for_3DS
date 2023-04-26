@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿#ifndef EXTERNAL_FONT_HPP
+#define EXTERNAL_FONT_HPP
+
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a external font api.
@@ -126,3 +129,5 @@ float texture_size_y, int abgr8888, float* out_width, float* out_height);
  * @warning Call it from only drawing thread.
 */
 void Exfont_draw_get_text_size(std::string* in_part_string, int num_of_characters, float texture_size_x, float texture_size_y, float* out_width, float* out_height);
+
+#endif

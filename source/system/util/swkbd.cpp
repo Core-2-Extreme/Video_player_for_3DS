@@ -1,6 +1,10 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_SWKBD_API
+#include "system/types.hpp"
+
+//Include myself.
+#include "system/util/swkbd.hpp"
 
 bool util_swkbd_init = false;
 int util_swkbd_max_length = 0;
@@ -98,11 +102,11 @@ Result_with_string Util_swkbd_set_dic_word(std::string first_spell[], std::strin
 
 Result_with_string Util_swkbd_launch(std::string* out_data)
 {
-	int pressed_button = 0;
+	Keyboard_button pressed_button = KEYBOARD_BUTTON_INVALID;
 	return Util_swkbd_launch(out_data, &pressed_button);
 }
 
-Result_with_string Util_swkbd_launch(std::string* out_data, int* pressed_button)
+Result_with_string Util_swkbd_launch(std::string* out_data, Keyboard_button* pressed_button)
 {
 	char* input_text = NULL;
 	SwkbdButton button;
@@ -125,13 +129,13 @@ Result_with_string Util_swkbd_launch(std::string* out_data, int* pressed_button)
 	input_text = NULL;
 
 	if(button == SWKBD_BUTTON_LEFT)
-		*pressed_button = DEF_SWKBD_BUTTON_LEFT;
+		*pressed_button = KEYBOARD_BUTTON_LEFT;
 	else if(button == SWKBD_BUTTON_MIDDLE)
-		*pressed_button = DEF_SWKBD_BUTTON_MIDDLE;
+		*pressed_button = KEYBOARD_BUTTON_MIDDLE;
 	else if(button == SWKBD_BUTTON_RIGHT)
-		*pressed_button = DEF_SWKBD_BUTTON_RIGHT;
+		*pressed_button = KEYBOARD_BUTTON_RIGHT;
 	else if(button == SWKBD_BUTTON_NONE)
-		*pressed_button = DEF_SWKBD_BUTTON_NONE;
+		*pressed_button = KEYBOARD_BUTTON_NONE;
 
 	return result;
 

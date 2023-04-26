@@ -1,4 +1,17 @@
-﻿#include "system/headers.hpp"
+﻿#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/file.hpp"
+#include "system/util/log.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/draw/external_font.hpp"
 
 struct One_character
 {

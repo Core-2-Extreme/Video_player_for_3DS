@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿#ifndef LOG_HPP
+#define LOG_HPP
+
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a log api.
@@ -91,3 +94,5 @@ void Util_log_main(Hid_info key);
  * @warning Call it from only drawing thread.
 */
 void Util_log_draw(void);
+
+#endif

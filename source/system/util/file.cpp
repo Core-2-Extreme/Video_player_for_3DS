@@ -1,4 +1,10 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/file.hpp"
 
 Result_with_string Util_file_save_to_file(std::string file_name, std::string dir_path, u8* write_data, int size, bool delete_old_file)
 {
@@ -468,7 +474,7 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 	return result;
 }
 
-Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::string file_name[], int type[], int array_length)
+Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::string file_name[], File_type type[], int array_length)
 {
 	int count = 0;
 	u16* utf16_dir_path = NULL;
@@ -486,7 +492,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	for(int i = 0; i < array_length; i++)
 	{
 		file_name[i] = "";
-		type[i] = 0;
+		type[i] = FILE_TYPE_NONE;
 	}
 	*detected = 0;
 
@@ -531,15 +537,14 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 		utf16_to_utf8((u8*)utf8_file_name, fs_entry.name, 256);
 		file_name[count] = utf8_file_name;
 
-		type[count] = 0;
 		if (fs_entry.attributes & FS_ATTRIBUTE_HIDDEN)
-			type[count] |= DEF_FILE_TYPE_HIDDEN;
+			type[count] = (File_type)(type[count] | FILE_TYPE_HIDDEN);
 		if (fs_entry.attributes & FS_ATTRIBUTE_DIRECTORY)
-			type[count] |= DEF_FILE_TYPE_DIR;
+			type[count] = (File_type)(type[count] | FILE_TYPE_DIR);
 		if (fs_entry.attributes & FS_ATTRIBUTE_ARCHIVE)
-			type[count] |= DEF_FILE_TYPE_FILE;
+			type[count] = (File_type)(type[count] | FILE_TYPE_FILE);
 		if (fs_entry.attributes & FS_ATTRIBUTE_READ_ONLY)
-			type[count] |= DEF_FILE_TYPE_READ_ONLY;
+			type[count] = (File_type)(type[count] | FILE_TYPE_READ_ONLY);
 
 		count++;
 		*detected = count;

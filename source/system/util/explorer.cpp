@@ -1,6 +1,21 @@
-﻿#include "system/headers.hpp"
+﻿#include "definitions.hpp"
 
 #if DEF_ENABLE_EXPL_API
+#include <algorithm>
+
+#include "system/types.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/util/file.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/log.hpp"
+
+//Include myself.
+#include "system/util/explorer.hpp"
 
 void (*util_expl_callback)(std::string, std::string) = NULL;
 void (*util_expl_cancel_callback)(void) = NULL;
@@ -11,12 +26,12 @@ bool util_expl_init = false;
 int util_expl_num_of_file = 0;
 int util_expl_check_file_size_index = 0;
 int util_expl_size[DEF_EXPL_MAX_FILES];
-int util_expl_type[DEF_EXPL_MAX_FILES];
 double util_expl_y_offset = 0.0;
 double util_expl_selected_file_num = 0.0;
 std::string util_expl_current_dir = "/";
 std::string util_expl_files[DEF_EXPL_MAX_FILES];
 Image_data util_expl_file_button[16];
+File_type util_expl_type[DEF_EXPL_MAX_FILES];
 
 void Util_expl_read_dir_callback(void);
 
@@ -40,7 +55,7 @@ Result_with_string Util_expl_init(void)
 	for(int i = 0; i < DEF_EXPL_MAX_FILES; i++)
 	{
 		util_expl_size[i] = 0;
-		util_expl_type[i] = 0;
+		util_expl_type[i] = FILE_TYPE_NONE;
 		util_expl_files[i] = "";
 	}
 
@@ -79,15 +94,15 @@ void Util_expl_exit(void)
 std::string Util_expl_generate_file_type_string(int type)
 {
 	std::string type_string = "";
-	if(type == DEF_EXPL_TYPE_UNKNOWN)
+	if(type == FILE_TYPE_NONE)
 		type_string += "unknown,";
-	if(type & DEF_EXPL_TYPE_FILE)
+	if(type & FILE_TYPE_FILE)
 		type_string += "file,";
-	if(type & DEF_EXPL_TYPE_DIR)
+	if(type & FILE_TYPE_DIR)
 		type_string += "dir,";
-	if(type & DEF_EXPL_TYPE_READ_ONLY)
+	if(type & FILE_TYPE_READ_ONLY)
 		type_string += "read only,";
-	if(type & DEF_EXPL_TYPE_HIDDEN)
+	if(type & FILE_TYPE_HIDDEN)
 		type_string += "hidden,";
 	
 	if(type_string.length() > 0)
@@ -140,14 +155,14 @@ int Util_expl_query_size(int index)
 		return 0;
 }
 
-int Util_expl_query_type(int index)
+File_type Util_expl_query_type(int index)
 {
 	if(!util_expl_init)
-		return DEF_EXPL_TYPE_UNKNOWN;
+		return FILE_TYPE_NONE;
 	if (index >= 0 && index < DEF_EXPL_MAX_FILES)
 		return util_expl_type[index];
 	else
-		return DEF_EXPL_TYPE_UNKNOWN;
+		return FILE_TYPE_NONE;
 }
 
 bool Util_expl_query_show_flag(void)
@@ -209,7 +224,7 @@ void Util_expl_draw(void)
 	for (int i = 0; i < 16; i++)
 	{
 		Draw_texture(&util_expl_file_button[i], util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA, 10, 20 + (i * 10), 290, 10);
-		if(util_expl_type[i + (int)util_expl_y_offset] & DEF_EXPL_TYPE_DIR)
+		if(util_expl_type[i + (int)util_expl_y_offset] & FILE_TYPE_DIR)
 		{
 			Draw(util_expl_files[i + (int)util_expl_y_offset] + "(" + Util_expl_generate_file_type_string(util_expl_type[i + (int)util_expl_y_offset])
 			 + ")" , 12.5, 19 + (i * 10), 0.425, 0.425, i == (int)util_expl_selected_file_num ? DEF_DRAW_RED : color);
@@ -288,7 +303,7 @@ void Util_expl_main(Hid_info key)
 							util_expl_selected_file_num = 0.0;
 							util_expl_read_dir_request = true;
 						}
-						else if (util_expl_type[(int)util_expl_y_offset + (int)util_expl_selected_file_num] & DEF_EXPL_TYPE_DIR)
+						else if (util_expl_type[(int)util_expl_y_offset + (int)util_expl_selected_file_num] & FILE_TYPE_DIR)
 						{
 							util_expl_current_dir = util_expl_current_dir + util_expl_files[(int)util_expl_selected_file_num + (int)util_expl_y_offset] + "/";
 							util_expl_y_offset = 0.0;
@@ -411,8 +426,8 @@ void Util_expl_read_dir_callback(void)
 			int num_of_unknown = 0;
 			int num_offset = 0;
 			int index = 0;
-			int dir_type[DEF_EXPL_MAX_FILES];
-			int file_type[DEF_EXPL_MAX_FILES];
+			File_type dir_type[DEF_EXPL_MAX_FILES];
+			File_type file_type[DEF_EXPL_MAX_FILES];
 			std::string name_of_dir[DEF_EXPL_MAX_FILES];
 			std::string name_of_file[DEF_EXPL_MAX_FILES];
 			std::string name_of_unknown[DEF_EXPL_MAX_FILES];
@@ -423,7 +438,7 @@ void Util_expl_read_dir_callback(void)
 			for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
 				util_expl_files[i] = "";
-				util_expl_type[i] = DEF_EXPL_TYPE_UNKNOWN;
+				util_expl_type[i] = FILE_TYPE_NONE;
 				util_expl_size[i] = 0;
 			}
 			index = 0;
@@ -443,32 +458,22 @@ void Util_expl_read_dir_callback(void)
 					name_of_file[i] = "";
 					name_of_unknown[i] = "";
 					name_cache[i] = "";
-					dir_type[DEF_EXPL_MAX_FILES] = DEF_EXPL_TYPE_UNKNOWN;
-					file_type[DEF_EXPL_MAX_FILES] = DEF_EXPL_TYPE_UNKNOWN;
+					dir_type[DEF_EXPL_MAX_FILES] = FILE_TYPE_NONE;
+					file_type[DEF_EXPL_MAX_FILES] = FILE_TYPE_NONE;
 				}
 
 				for (int i = 0; i < util_expl_num_of_file; i++)
 				{
-					if (util_expl_type[i] & DEF_FILE_TYPE_DIR)
+					if (util_expl_type[i] & FILE_TYPE_DIR)
 					{
 						name_of_dir[num_of_dir] = util_expl_files[i];
-						dir_type[num_of_dir] = DEF_EXPL_TYPE_DIR;
-						if(util_expl_type[i] & DEF_FILE_TYPE_HIDDEN)
-							dir_type[num_of_dir] |= DEF_EXPL_TYPE_HIDDEN;
-						if(util_expl_type[i] & DEF_FILE_TYPE_READ_ONLY)
-							dir_type[num_of_dir] |= DEF_EXPL_TYPE_READ_ONLY;
-
+						dir_type[num_of_dir] = util_expl_type[i];
 						num_of_dir++;
 					}
-					else if (util_expl_type[i] & DEF_FILE_TYPE_FILE)
+					else if (util_expl_type[i] & FILE_TYPE_FILE)
 					{
 						name_of_file[num_of_file] = util_expl_files[i];
-						file_type[num_of_file] = DEF_EXPL_TYPE_FILE;
-						if(util_expl_type[i] & DEF_FILE_TYPE_HIDDEN)
-							file_type[num_of_file] |= DEF_EXPL_TYPE_HIDDEN;
-						if(util_expl_type[i] & DEF_FILE_TYPE_READ_ONLY)
-							file_type[num_of_file] |= DEF_EXPL_TYPE_READ_ONLY;
-
+						file_type[num_of_file] = util_expl_type[i];
 						num_of_file++;
 					}
 					else
@@ -481,14 +486,14 @@ void Util_expl_read_dir_callback(void)
 				for (int i = 0; i < DEF_EXPL_MAX_FILES; i++)
 				{
 					util_expl_files[i] = "";
-					util_expl_type[i] = DEF_EXPL_TYPE_UNKNOWN;
+					util_expl_type[i] = FILE_TYPE_NONE;
 				}
 
 				if (!(util_expl_current_dir == "/"))
 				{
 					num_offset = 1;
 					util_expl_num_of_file += 1;
-					util_expl_type[0] = DEF_EXPL_TYPE_DIR;
+					util_expl_type[0] = FILE_TYPE_DIR;
 					util_expl_files[0] = ".. (Move to parent directory)";
 				}
 				else
@@ -543,12 +548,12 @@ void Util_expl_read_dir_callback(void)
 				{
 					index = i + num_of_dir + num_of_file + num_offset;
 					util_expl_files[index] = name_of_unknown[i];
-					util_expl_type[index] = DEF_EXPL_TYPE_UNKNOWN;
+					util_expl_type[index] = FILE_TYPE_NONE;
 				}
 			}
 			else
 			{
-				util_expl_type[0] = DEF_EXPL_TYPE_DIR;
+				util_expl_type[0] = FILE_TYPE_DIR;
 				util_expl_files[0] = ".. (Move to parent directory)";
 				util_expl_num_of_file = 1;
 				util_expl_check_file_size_index = 1;
@@ -561,7 +566,7 @@ void Util_expl_read_dir_callback(void)
 		{
 			while(util_expl_check_file_size_index < util_expl_num_of_file)
 			{
-				if(util_expl_type[util_expl_check_file_size_index] & DEF_EXPL_TYPE_FILE || util_expl_type[util_expl_check_file_size_index] & DEF_EXPL_TYPE_UNKNOWN)
+				if(util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_FILE || util_expl_type[util_expl_check_file_size_index] & FILE_TYPE_NONE)
 				{
 					u64 file_size;
 					Result_with_string result;

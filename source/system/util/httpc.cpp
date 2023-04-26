@@ -1,6 +1,13 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_HTTPC_API
+#include "system/types.hpp"
+
+#include "system/util/file.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/httpc.hpp"
 
 bool util_httpc_init = false;
 
@@ -38,7 +45,7 @@ Result_with_string Util_httpc_init(int buffer_size)
 	return result;
 }
 
-void Util_httpc_exit()
+void Util_httpc_exit(void)
 {
 	if(!util_httpc_init)
 		return;
@@ -350,7 +357,7 @@ int max_redirect, std::string* last_url)
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -460,7 +467,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -572,7 +579,7 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, 
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -691,7 +698,7 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)

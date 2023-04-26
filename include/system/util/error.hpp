@@ -1,4 +1,7 @@
-#pragma once
+#ifndef ERROR_HPP
+#define ERROR_HPP
+
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a error api.
@@ -80,3 +83,5 @@ void Util_err_main(Hid_info key);
  * @warning Call it from only drawing thread.
 */
 void Util_err_draw(void);
+
+#endif

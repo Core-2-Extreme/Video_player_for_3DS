@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿#ifndef MENU_HPP
+#define MENU_HPP
+
+#include "types.hpp"
 
 bool Menu_query_must_exit_flag(void);
 
@@ -20,3 +23,4 @@ void Menu_exit(void);
 
 void Menu_main(void);
 
+#endif

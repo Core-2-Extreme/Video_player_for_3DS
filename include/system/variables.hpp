@@ -1,4 +1,7 @@
-#pragma once
+#ifndef VARIABLES_HPP
+#define VARIABLES_HPP
+
+#include "system/types.hpp"
 
 extern bool var_connect_test_succes;
 extern bool var_need_reflesh;
@@ -35,6 +38,7 @@ extern int var_lcd_brightness;
 extern int var_top_lcd_brightness;
 extern int var_bottom_lcd_brightness;
 extern int var_time_to_turn_off_lcd;
+extern int var_time_to_enter_sleep;
 extern int var_num_of_app_start;
 extern int var_system_region;
 extern int var_debug_int[8];
@@ -50,3 +54,5 @@ extern std::string var_debug_string[8];
 extern C2D_Image var_square_image[1];
 extern C2D_Image var_null_image;
 extern Result_with_string var_disabled_result;
+
+#endif

@@ -1,4 +1,14 @@
-﻿#include "system/headers.hpp"
+﻿#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+
+#include "system/util/file.hpp"
+
+//Include myself.
+#include "system/util/log.hpp"
 
 bool util_log_show_flag = false;
 bool util_log_init = false;

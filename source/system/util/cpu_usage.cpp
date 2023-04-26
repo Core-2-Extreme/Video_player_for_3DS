@@ -1,6 +1,15 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_CPU_MONITOR_API
+#include "system/types.hpp"
+
+#include "system/variables.hpp"
+
+#include "system/util/log.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/cpu_usage.hpp"
 
 bool util_cpu_usage_monitor_init = false;
 bool util_cpu_usage_reset_counter_request[4] = { false, false, false, false, };
@@ -104,7 +113,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 	while(util_cpu_usage_monitor_init)
 	{
 		//1ms
-		usleep(1000);
+		Util_sleep(1000);
 		//In ideal condition (CPU usage is 0%), it should be 1000 in 1000ms.
 		util_cpu_usage_counter_cache[core_id]++;
 

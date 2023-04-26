@@ -1,5 +1,10 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
 
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/encoder.hpp"
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
@@ -155,7 +160,7 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
 	return result;
 }
 
-Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, int encode_sample_rate, int bitrate, int session)
+Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sample_rate, int encode_sample_rate, int bitrate, int session)
 {
 	int ffmpeg_result = 0;
 	Result_with_string result;
@@ -164,8 +169,8 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	if(!util_encoder_init)
 		Util_encoder_init_variables();
 
-	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate <= 0 || encode_sample_rate <= 0 || bitrate <= 0
-	|| (codec != DEF_ENCODER_AUDIO_CODEC_AAC && codec != DEF_ENCODER_AUDIO_CODEC_AC3 && codec != DEF_ENCODER_AUDIO_CODEC_MP2 && codec != DEF_ENCODER_AUDIO_CODEC_MP3))
+	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || original_sample_rate <= 0 || encode_sample_rate <= 0
+	|| bitrate <= 0 || codec <= AUDIO_CODEC_INVALID || codec >= AUDIO_CODEC_MAX)
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -174,13 +179,13 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	if(util_audio_encoder_init[session] || util_encoder_wrote_header[session])
 		goto already_inited;
 	
-	if(codec == DEF_ENCODER_AUDIO_CODEC_AAC)
+	if(codec == AUDIO_CODEC_AAC)
 		codec_id = AV_CODEC_ID_AAC;
-	else if(codec == DEF_ENCODER_AUDIO_CODEC_AC3)
+	else if(codec == AUDIO_CODEC_AC3)
 		codec_id = AV_CODEC_ID_AC3;
-	else if(codec == DEF_ENCODER_AUDIO_CODEC_MP2)
+	else if(codec == AUDIO_CODEC_MP2)
 		codec_id = AV_CODEC_ID_MP2;
-	else if(codec == DEF_ENCODER_AUDIO_CODEC_MP3)
+	else if(codec == AUDIO_CODEC_MP3)
 		codec_id = AV_CODEC_ID_MP3;
 
 	util_audio_pos[session] = 0;
@@ -209,8 +214,7 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	
 	util_audio_encoder_context[session]->bit_rate = bitrate;
 	util_audio_encoder_context[session]->sample_rate = encode_sample_rate;
-	util_audio_encoder_context[session]->channel_layout = AV_CH_LAYOUT_MONO;
-	util_audio_encoder_context[session]->channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_MONO);
+	util_audio_encoder_context[session]->ch_layout = AV_CHANNEL_LAYOUT_MONO;
 	util_audio_encoder_context[session]->codec_type = AVMEDIA_TYPE_AUDIO;
 	util_audio_encoder_context[session]->time_base = (AVRational){ 1, encode_sample_rate };
 	if(codec_id == AV_CODEC_ID_AAC)
@@ -234,7 +238,8 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	
 	util_audio_encoder_raw_data[session]->nb_samples = util_audio_encoder_context[session]->frame_size;
 	util_audio_encoder_raw_data[session]->format = util_audio_encoder_context[session]->sample_fmt;
-	util_audio_encoder_raw_data[session]->channel_layout = util_audio_encoder_context[session]->channel_layout;
+
+	av_channel_layout_copy(&util_audio_encoder_raw_data[session]->ch_layout, &util_audio_encoder_context[session]->ch_layout);
 
 	ffmpeg_result = av_frame_get_buffer(util_audio_encoder_raw_data[session], 0);
 	if(ffmpeg_result != 0)
@@ -250,11 +255,11 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 		goto ffmpeg_api_failed;
 	}
 
-	util_audio_encoder_swr_context[session] = swr_alloc_set_opts(NULL, av_get_default_channel_layout(util_audio_encoder_context[session]->channels), util_audio_encoder_context[session]->sample_fmt, util_audio_encoder_context[session]->sample_rate,
-	av_get_default_channel_layout(util_audio_encoder_context[session]->channels), AV_SAMPLE_FMT_S16, original_sample_rate, 0, NULL);
-	if(!util_audio_encoder_swr_context[session])
+	ffmpeg_result = swr_alloc_set_opts2(&util_audio_encoder_swr_context[session], &util_audio_encoder_context[session]->ch_layout, util_audio_encoder_context[session]->sample_fmt, util_audio_encoder_context[session]->sample_rate,
+	&util_audio_encoder_context[session]->ch_layout, AV_SAMPLE_FMT_S16, original_sample_rate, 0, NULL);
+	if(ffmpeg_result != 0)
 	{
-		result.error_description = "[Error] swr_alloc_set_opts() failed. ";
+		result.error_description = "[Error] swr_alloc_set_opts() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
 
@@ -313,7 +318,7 @@ Result_with_string Util_audio_encoder_init(int codec, int original_sample_rate, 
 	return result;
 }
 
-Result_with_string Util_video_encoder_init(int codec, int width, int height, int bitrate, int fps, int session)
+Result_with_string Util_video_encoder_init(Video_codec codec, int width, int height, int bitrate, int fps, int session)
 {
 	int ffmpeg_result = 0;
 	Result_with_string result;
@@ -323,8 +328,7 @@ Result_with_string Util_video_encoder_init(int codec, int width, int height, int
 		Util_encoder_init_variables();
 
 	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || width <= 0 || height <= 0
-	|| (codec != DEF_ENCODER_VIDEO_CODEC_MJPEG && codec != DEF_ENCODER_VIDEO_CODEC_H264 
-	&& codec != DEF_ENCODER_VIDEO_CODEC_MPEG4 && codec != DEF_ENCODER_VIDEO_CODEC_MPEG2VIDEO))
+	|| codec <= VIDEO_CODEC_INVALID || codec >= VIDEO_CODEC_MAX)
 		goto invalid_arg;
 
 	if(!util_encoder_created_file[session])
@@ -333,13 +337,13 @@ Result_with_string Util_video_encoder_init(int codec, int width, int height, int
 	if(util_video_encoder_init[session] || util_encoder_wrote_header[session])
 		goto already_inited;
 
-	if(codec == DEF_ENCODER_VIDEO_CODEC_MJPEG)
+	if(codec == VIDEO_CODEC_MJPEG)
 		video_codec = AV_CODEC_ID_MJPEG;
-	else if(codec == DEF_ENCODER_VIDEO_CODEC_H264)
+	else if(codec == VIDEO_CODEC_H264)
 		video_codec = AV_CODEC_ID_H264;
-	else if(codec == DEF_ENCODER_VIDEO_CODEC_MPEG4)
+	else if(codec == VIDEO_CODEC_MPEG4)
 		video_codec = AV_CODEC_ID_MPEG4;
-	else if(codec == DEF_ENCODER_VIDEO_CODEC_MPEG2VIDEO)
+	else if(codec == VIDEO_CODEC_MPEG2VIDEO)
 		video_codec = AV_CODEC_ID_MPEG2VIDEO;
 
 	util_video_pos[session] = 0;
@@ -550,7 +554,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	if(!util_audio_encoder_init[session] || !util_encoder_wrote_header[session])
 		goto not_inited;
 
-	one_frame_size = av_samples_get_buffer_size(NULL, util_audio_encoder_context[session]->channels, util_audio_encoder_context[session]->frame_size, util_audio_encoder_context[session]->sample_fmt, 0);
+	one_frame_size = av_samples_get_buffer_size(NULL, util_audio_encoder_context[session]->ch_layout.nb_channels, util_audio_encoder_context[session]->frame_size, util_audio_encoder_context[session]->sample_fmt, 0);
 	bytes_per_sample = av_get_bytes_per_sample(util_audio_encoder_context[session]->sample_fmt);
 	
 	in_samples = size / 2;
@@ -786,32 +790,32 @@ void Util_video_encoder_exit(int session)
 
 #if DEF_ENABLE_IMAGE_ENCODER_API
 
-Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, int format, int quality)
+Result_with_string Util_image_encoder_encode(std::string file_path, u8* raw_data, int width, int height, Image_codec codec, int quality)
 {
 	Result_with_string result;
-	if(!raw_data || width <= 0 || height <= 0 || (format == DEF_ENCODER_IMAGE_CODEC_JPG && (quality < 0 || quality > 100))
-	|| (format != DEF_ENCODER_IMAGE_CODEC_PNG && format != DEF_ENCODER_IMAGE_CODEC_JPG && format != DEF_ENCODER_IMAGE_CODEC_BMP
-	&& format != DEF_ENCODER_IMAGE_CODEC_TGA))
+	if(!raw_data || width <= 0 || height <= 0 || codec <= IMAGE_CODEC_INVALID || codec >= IMAGE_CODEC_MAX
+	|| (codec == IMAGE_CODEC_JPG && (quality < 0 || quality > 100)))
 		goto invalid_arg;
 
-	if(format == DEF_ENCODER_IMAGE_CODEC_PNG)
+
+	if(codec == IMAGE_CODEC_PNG)
 		result.code = stbi_write_png(file_path.c_str(), width, height, 3, raw_data, 0);
-	else if(format == DEF_ENCODER_IMAGE_CODEC_JPG)
+	else if(codec == IMAGE_CODEC_JPG)
 		result.code = stbi_write_jpg(file_path.c_str(), width, height, 3, raw_data, quality);
-	else if(format == DEF_ENCODER_IMAGE_CODEC_BMP)
+	else if(codec == IMAGE_CODEC_BMP)
 		result.code = stbi_write_bmp(file_path.c_str(), width, height, 3, raw_data);
-	else if(format == DEF_ENCODER_IMAGE_CODEC_TGA)
+	else if(codec == IMAGE_CODEC_TGA)
 		result.code = stbi_write_tga(file_path.c_str(), width, height, 3, raw_data);
 
 	if(result.code == 0)
 	{
-		if(format == DEF_ENCODER_IMAGE_CODEC_PNG)
+		if(codec == IMAGE_CODEC_PNG)
 			result.error_description = "[Error] stbi_write_png() failed. ";
-		else if(format == DEF_ENCODER_IMAGE_CODEC_JPG)
+		else if(codec == IMAGE_CODEC_JPG)
 			result.error_description = "[Error] stbi_write_jpg() failed. ";
-		else if(format == DEF_ENCODER_IMAGE_CODEC_BMP)
+		else if(codec == IMAGE_CODEC_BMP)
 			result.error_description = "[Error] stbi_write_bmp() failed. ";
-		else if(format == DEF_ENCODER_IMAGE_CODEC_TGA)
+		else if(codec == IMAGE_CODEC_TGA)
 			result.error_description = "[Error] stbi_write_tga() failed. ";
 
 		goto stbi_api_failed;

@@ -1,6 +1,12 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_MIC_API
+#include "system/types.hpp"
+
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/mic.hpp"
 
 bool util_mic_init = false;
 u8* util_mic_buffer = NULL;
@@ -35,7 +41,7 @@ Result_with_string Util_mic_init(int buffer_size)
 	result.code = MICU_SetAllowShellClosed(true);
 	if(result.code != 0)
 	{
-		result.error_description = "[Error] MICU_SetAllowShellClosed(() failed. ";
+		result.error_description = "[Error] MICU_SetAllowShellClosed() failed. ";
 		goto nintendo_api_failed_0;
 	}
 
@@ -74,25 +80,41 @@ Result_with_string Util_mic_init(int buffer_size)
 	return result;
 }
 
-Result_with_string Util_mic_start_recording(int sample_rate)
+Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 {
 	Result_with_string result;
 	MICU_SampleRate mic_sample_rate;
+	int sample_rate = 0;
 
 	if(!util_mic_init)
 		goto not_inited;
 
+	if (sample_rate_mode <= MIC_SAMPLE_RATE_INVALID || sample_rate_mode >= MIC_SAMPLE_RATE_MAX)
+		goto invalid_arg;
+
 	if(Util_mic_is_recording())
 		goto already_inited;
 
-	if(sample_rate == 32728)
+	if(sample_rate_mode == MIC_SAMPLE_RATE_32728HZ)
+	{
+		sample_rate = 32728;
 		mic_sample_rate = MICU_SAMPLE_RATE_32730;
-	else if(sample_rate == 16364)
+	}
+	else if(sample_rate_mode == MIC_SAMPLE_RATE_16364HZ)
+	{
+		sample_rate = 16364;
 		mic_sample_rate = MICU_SAMPLE_RATE_16360;
-	else if(sample_rate == 10909)
+	}
+	else if(sample_rate_mode == MIC_SAMPLE_RATE_10909HZ)
+	{
+		sample_rate = 10909;
 		mic_sample_rate = MICU_SAMPLE_RATE_10910;
-	else if(sample_rate == 8182)
+	}
+	else if(sample_rate_mode == MIC_SAMPLE_RATE_8182HZ)
+	{
+		sample_rate = 8182;
 		mic_sample_rate = MICU_SAMPLE_RATE_8180;
+	}
 	else
 		goto invalid_arg;
 

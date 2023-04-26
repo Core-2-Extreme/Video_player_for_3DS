@@ -1,6 +1,22 @@
-﻿#include "system/headers.hpp"
+﻿#include "definitions.hpp"
+#include "system/types.hpp"
 
 #include "system/setting_menu.hpp"
+#include "system/variables.hpp"
+
+#include "system/draw/draw.hpp"
+#include "system/draw/external_font.hpp"
+
+#include "system/util/change_setting.hpp"
+#include "system/util/cpu_usage.hpp"
+#include "system/util/curl.hpp"
+#include "system/util/error.hpp"
+#include "system/util/explorer.hpp"
+#include "system/util/file.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/httpc.hpp"
+#include "system/util/log.hpp"
+#include "system/util/util.hpp"
 
 #ifdef DEF_ENABLE_VID
 #include "video_player.hpp"
@@ -33,6 +49,9 @@
 #ifdef DEF_ENABLE_SUB_APP7
 #include "sub_app7.hpp"
 #endif
+
+//Include myself.
+#include "system/menu.hpp"
 
 bool menu_thread_run = false;
 bool menu_main_run = true;
@@ -227,9 +246,9 @@ void Menu_init(void)
 
 	Util_log_save(DEF_MENU_INIT_STR, "Draw_init()...", Draw_init(is_800px, is_3d).code);
 	Draw_frame_ready();
-	Draw_screen_ready(0, DEF_DRAW_WHITE);
+	Draw_screen_ready(SCREEN_TOP_LEFT, DEF_DRAW_WHITE);
 	Draw_top_ui();
-	Draw_screen_ready(1, DEF_DRAW_WHITE);
+	Draw_screen_ready(SCREEN_BOTTOM, DEF_DRAW_WHITE);
 	Draw_bot_ui();
 	Draw_apply_draw();
 	Sem_draw_init();
@@ -595,16 +614,16 @@ void Menu_main(void)
 			}
 
 			Draw_frame_ready();
-			Draw_screen_ready(0, back_color);
+			Draw_screen_ready(SCREEN_TOP_LEFT, back_color);
 
 			if(menu_check_exit_request)
 			{
-				Draw(menu_msg[DEF_MENU_EXIST_MSG], 0, 105, 0.5, 0.5, color, DEF_DRAW_X_ALIGN_CENTER,
-					DEF_DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DEF_DRAW_X_ALIGN_RIGHT,
-					DEF_DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DEF_DRAW_X_ALIGN_LEFT,
-					DEF_DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw(menu_msg[DEF_MENU_EXIST_MSG], 0, 105, 0.5, 0.5, color, X_ALIGN_CENTER,
+					Y_ALIGN_CENTER, 400, 20);
+				Draw(menu_msg[DEF_MENU_CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, X_ALIGN_RIGHT,
+					Y_ALIGN_CENTER, 190, 20);
+				Draw(menu_msg[DEF_MENU_CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, X_ALIGN_LEFT,
+					Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
@@ -620,7 +639,7 @@ void Menu_main(void)
 			if(var_monitor_cpu_usage)
 				Draw_cpu_usage_info();
 
-			Draw_screen_ready(1, back_color);
+			Draw_screen_ready(SCREEN_BOTTOM, back_color);
 
 			#ifdef DEF_ENABLE_VID
 			Draw_texture(&menu_sapp_button[0], menu_sapp_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 60, 100, 100);
@@ -629,13 +648,13 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[0], 110, 60, 100, 100);
 			#endif
 			#ifdef DEF_VID_ENABLE_NAME
-			Draw(DEF_VID_NAME, 110, 60, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 100, 100);
+			Draw(DEF_VID_NAME, 110, 60, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 100, 100);
 			#endif
 
 			if(Vid_query_init_flag())
 			{
-				Draw("X", 195, 60, 0.5, 0.5, DEF_DRAW_RED, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 15, 15,
-				DEF_DRAW_BACKGROUND_ENTIRE_BOX, &menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
+				Draw("X", 195, 60, 0.5, 0.5, DEF_DRAW_RED, X_ALIGN_CENTER, Y_ALIGN_CENTER, 15, 15,
+				BACKGROUND_ENTIRE_BOX, &menu_sapp_close_button[0], menu_sapp_close_button[0].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 			}
 			#endif
 			#ifdef DEF_ENABLE_SUB_APP1
@@ -645,7 +664,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[1], 80, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp1_query_init_flag())
@@ -661,7 +680,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[2], 160, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP2_ENABLE_NAME
-			Draw(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp2_query_init_flag())
@@ -677,7 +696,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[3], 240, 0, 60, 60);
 			#endif
 			#ifdef DEF_SAPP3_ENABLE_NAME
-			Draw(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp3_query_init_flag())
@@ -693,7 +712,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[4], 0, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP4_ENABLE_NAME
-			Draw(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp4_query_init_flag())
@@ -709,7 +728,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[5], 80, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP5_ENABLE_NAME
-			Draw(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp5_query_init_flag())
@@ -725,7 +744,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[6], 160, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP6_ENABLE_NAME
-			Draw(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp6_query_init_flag())
@@ -741,7 +760,7 @@ void Menu_main(void)
 			Draw_texture(menu_icon_image[7], 240, 80, 60, 60);
 			#endif
 			#ifdef DEF_SAPP7_ENABLE_NAME
-			Draw(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, DEF_DRAW_X_ALIGN_CENTER, DEF_DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 60, 60);
 			#endif
 
 			if(Sapp7_query_init_flag())
@@ -945,7 +964,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[0] = true;
 						while(menu_exit_request[0])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[0]))
 						menu_sapp_button[0].selected = true;
@@ -955,7 +974,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[0] = true;
 							while(menu_init_request[0])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Vid_resume();
@@ -968,7 +987,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[1] = true;
 						while(menu_exit_request[1])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[1]))
 						menu_sapp_button[1].selected = true;
@@ -978,7 +997,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[1] = true;
 							while(menu_init_request[1])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp1_resume();
@@ -991,7 +1010,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[2] = true;
 						while(menu_exit_request[2])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[2]))
 						menu_sapp_button[2].selected = true;
@@ -1001,7 +1020,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[2] = true;
 							while(menu_init_request[2])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp2_resume();
@@ -1014,7 +1033,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[3] = true;
 						while(menu_exit_request[3])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[3]))
 						menu_sapp_button[3].selected = true;
@@ -1024,7 +1043,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[3] = true;
 							while(menu_init_request[3])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp3_resume();
@@ -1037,7 +1056,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[4] = true;
 						while(menu_exit_request[4])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[4]))
 						menu_sapp_button[4].selected = true;
@@ -1047,7 +1066,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[4] = true;
 							while(menu_init_request[4])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp4_resume();
@@ -1060,7 +1079,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[5] = true;
 						while(menu_exit_request[5])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[5]))
 						menu_sapp_button[5].selected = true;
@@ -1070,7 +1089,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[5] = true;
 							while(menu_init_request[5])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp5_resume();
@@ -1083,7 +1102,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[6] = true;
 						while(menu_exit_request[6])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[6]))
 						menu_sapp_button[6].selected = true;
@@ -1093,7 +1112,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[6] = true;
 							while(menu_init_request[6])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp6_resume();
@@ -1106,7 +1125,7 @@ void Menu_hid_callback(void)
 					{
 						menu_exit_request[7] = true;
 						while(menu_exit_request[7])
-							usleep(20000);
+							Util_sleep(20000);
 					}
 					else if (Util_hid_is_pressed(key, menu_sapp_button[7]))
 						menu_sapp_button[7].selected = true;
@@ -1116,7 +1135,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[7] = true;
 							while(menu_init_request[7])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sapp7_resume();
@@ -1130,7 +1149,7 @@ void Menu_hid_callback(void)
 						{
 							menu_init_request[8] = true;
 							while(menu_init_request[8])
-								usleep(20000);
+								Util_sleep(20000);
 						}
 						else
 							Sem_resume();
@@ -1342,7 +1361,7 @@ void Menu_check_connectivity_thread(void* arg)
 				var_connect_test_succes = false;
 		}
 		else
-			usleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
+			Util_sleep(DEF_ACTIVE_THREAD_SLEEP_TIME);
 
 		count++;
 	}
@@ -1386,13 +1405,14 @@ void Menu_worker_thread(void* arg)
 			count = 0;
 		}
 
-		if(var_afk_time > var_time_to_turn_off_lcd)
+		//If var_time_to_turn_off_lcd < 0, it means turn off LCD settings has been disabled.
+		if(var_time_to_turn_off_lcd > 0 && var_afk_time > var_time_to_turn_off_lcd)
 		{
 			result = Util_cset_set_screen_state(true, true, false);
 			if(result.code != 0)
 				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_state()..." + result.string + result.error_description, result.code);
 		}
-		else if(var_afk_time > (var_time_to_turn_off_lcd - 10))
+		else if(var_time_to_turn_off_lcd > 0 &&var_afk_time > (var_time_to_turn_off_lcd - 10))
 		{
 			result = Util_cset_set_screen_brightness(true, true, 10);
 			if(result.code != 0)
@@ -1423,6 +1443,18 @@ void Menu_worker_thread(void* arg)
 				if(result.code != 0)
 					Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_set_screen_brightness()..." + result.string + result.error_description, result.code);
 			}
+		}
+
+		if(var_time_to_enter_sleep > 0 && var_afk_time > var_time_to_enter_sleep)
+		{
+			result = Util_cset_sleep_system((Wake_up_event)(WAKE_UP_EVENT_OPEN_SHELL | WAKE_UP_EVENT_PRESS_HOME_BUTTON));
+			if(result.code == 0)
+			{
+				//We woke up from sleep.
+				var_afk_time = 0;
+			}
+			else
+				Util_log_save(DEF_MENU_WORKER_THREAD_STR, "Util_cset_sleep_system()..." + result.string + result.error_description, result.code);
 		}
 
 		LightLock_Lock(&menu_callback_mutex);

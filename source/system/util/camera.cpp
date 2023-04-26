@@ -1,14 +1,21 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_CAM_API
+#include "system/types.hpp"
+
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/util/camera.hpp"
 
 bool util_cam_init = false;
 u32 util_cam_buffer_size = 0;
 int util_cam_width = 640;
 int util_cam_height = 480;
-int util_cam_mode = DEF_CAM_OUT_RIGHT;
+Camera_resolution util_cam_resolution = CAM_RES_640x480;
+Camera_port util_cam_port = CAM_PORT_OUT_RIGHT;
 
-Result_with_string Util_cam_init(int color_format)
+Result_with_string Util_cam_init(Pixel_format color_format)
 {
 	Result_with_string result;
 	CAMU_OutputFormat color;
@@ -18,9 +25,9 @@ Result_with_string Util_cam_init(int color_format)
 	if(util_cam_init)
 		goto already_inited;
 
-	if(color_format == DEF_CAM_OUT_RGB565)
+	if(color_format == PIXEL_FORMAT_RGB565LE)
 		color = OUTPUT_RGB_565;
-	else if(color_format == DEF_CAM_OUT_YUV422)
+	else if(color_format == PIXEL_FORMAT_YUV422P)
 		color = OUTPUT_YUV_422;
 	else
 		goto invalid_arg;
@@ -124,7 +131,7 @@ Result_with_string Util_cam_init(int color_format)
 		result.error_description = "[Error] CAMU_Activate() failed. ";
 		goto nintendo_api_failed;
 	}
-	util_cam_mode = DEF_CAM_OUT_RIGHT;
+	util_cam_port = CAM_PORT_OUT_RIGHT;
 
 	util_cam_width = width;
 	util_cam_height = height;
@@ -171,7 +178,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 		goto nintendo_api_failed;
 	}
 
-	result.code = CAMU_SetReceiving(&receive, *raw_data, util_cam_mode == DEF_CAM_OUT_LEFT ? PORT_CAM2 : PORT_CAM1, util_cam_width * util_cam_height * 2, (s16)util_cam_buffer_size);
+	result.code = CAMU_SetReceiving(&receive, *raw_data, util_cam_port == CAM_PORT_OUT_LEFT ? PORT_CAM2 : PORT_CAM1, util_cam_width * util_cam_height * 2, (s16)util_cam_buffer_size);
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] CAMU_SetReceiving() failed. ";
@@ -222,31 +229,66 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 	return result;
 }
 
-Result_with_string Util_cam_set_resolution(int width, int height)
+Result_with_string Util_cam_set_resolution(Camera_resolution resolution_mode)
 {
+	s16 width = 0;
+	s16 height = 0;
 	CAMU_Size size;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
-	if (width == 640 && height == 480)
-		size = SIZE_VGA;
-	else if (width == 512 && height == 384)
-		size = SIZE_DS_LCDx4;
-	else if (width == 400 && height == 240)
-		size = SIZE_CTR_TOP_LCD;
-	else if (width == 352 && height == 288)
-		size = SIZE_CIF;
-	else if (width == 320 && height == 240)
-		size = SIZE_QVGA;
-	else if (width == 256 && height == 192)
-		size = SIZE_DS_LCD;
-	else if (width == 176 && height == 144)
-		size = SIZE_QCIF;
-	else if (width == 160 && height == 120)
-		size = SIZE_QQVGA;
-	else
+
+	if(resolution_mode <= CAM_RES_INVALID || resolution_mode >= CAM_RES_MAX)
 		goto invalid_arg;
+
+	if (resolution_mode == CAM_RES_640x480)
+	{
+		size = SIZE_VGA;
+		width = 640;
+		height = 480;
+	}
+	else if (resolution_mode == CAM_RES_512x384)
+	{
+		size = SIZE_DS_LCDx4;
+		width = 512;
+		height = 384;
+	}
+	else if (resolution_mode == CAM_RES_400x240)
+	{
+		size = SIZE_CTR_TOP_LCD;
+		width = 400;
+		height = 240;
+	}
+	else if (resolution_mode == CAM_RES_352x288)
+	{
+		size = SIZE_CIF;
+		width = 352;
+		height = 288;
+	}
+	else if (resolution_mode == CAM_RES_320x240)
+	{
+		size = SIZE_QVGA;
+		width = 320;
+		height = 240;
+	}
+	else if (resolution_mode == CAM_RES_256x192)
+	{
+		size = SIZE_DS_LCD;
+		width = 256;
+		height = 192;
+	}
+	else if (resolution_mode == CAM_RES_176x144)
+	{
+		size = SIZE_QCIF;
+		width = 176;
+		height = 144;
+	}
+	else if (resolution_mode == CAM_RES_160x120)
+	{
+		size = SIZE_QQVGA;
+		width = 160;
+		height = 120;
+	}
 
 	result.code = CAMU_SetSize(SELECT_ALL, size, CONTEXT_BOTH);
 	if (result.code != 0)
@@ -271,6 +313,7 @@ Result_with_string Util_cam_set_resolution(int width, int height)
 
 	util_cam_width = width;
 	util_cam_height = height;
+	util_cam_resolution = resolution_mode;
 
 	return result;
 
@@ -289,39 +332,39 @@ Result_with_string Util_cam_set_resolution(int width, int height)
 	return result;
 }
 
-Result_with_string Util_cam_set_fps(int fps_mode)
+Result_with_string Util_cam_set_fps(Camera_framerate fps_mode)
 {
 	CAMU_FrameRate framerate = FRAME_RATE_15;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 	
-	if (fps_mode < 0 || fps_mode > 12)
+	if (fps_mode <= CAM_FPS_INVALID || fps_mode >= CAM_FPS_MAX)
 		goto invalid_arg;
 
-	if(fps_mode == DEF_CAM_FPS_5)
+	if(fps_mode == CAM_FPS_5)
 		framerate = FRAME_RATE_5;
-	else if(fps_mode == DEF_CAM_FPS_8_5)
+	else if(fps_mode == CAM_FPS_8_5)
 		framerate = FRAME_RATE_8_5;
-	else if(fps_mode == DEF_CAM_FPS_10)
+	else if(fps_mode == CAM_FPS_10)
 		framerate = FRAME_RATE_10;
-	else if(fps_mode == DEF_CAM_FPS_15)
+	else if(fps_mode == CAM_FPS_15)
 		framerate = FRAME_RATE_15;
-	else if(fps_mode == DEF_CAM_FPS_20)
+	else if(fps_mode == CAM_FPS_20)
 		framerate = FRAME_RATE_20;
-	else if(fps_mode == DEF_CAM_FPS_30)
+	else if(fps_mode == CAM_FPS_30)
 		framerate = FRAME_RATE_30;
-	else if(fps_mode == DEF_CAM_FPS_15_TO_2)
+	else if(fps_mode == CAM_FPS_15_TO_2)
 		framerate = FRAME_RATE_15_TO_2;
-	else if(fps_mode == DEF_CAM_FPS_15_TO_5)
+	else if(fps_mode == CAM_FPS_15_TO_5)
 		framerate = FRAME_RATE_15_TO_5;
-	else if(fps_mode == DEF_CAM_FPS_15_TO_10)
+	else if(fps_mode == CAM_FPS_15_TO_10)
 		framerate = FRAME_RATE_15_TO_10;
-	else if(fps_mode == DEF_CAM_FPS_20_TO_10)
+	else if(fps_mode == CAM_FPS_20_TO_10)
 		framerate = FRAME_RATE_20_TO_10;
-	else if(fps_mode == DEF_CAM_FPS_30_TO_10)
+	else if(fps_mode == CAM_FPS_30_TO_10)
 		framerate = FRAME_RATE_30_TO_10;
-	else if(fps_mode == DEF_CAM_FPS_30_TO_5)
+	else if(fps_mode == CAM_FPS_30_TO_5)
 		framerate = FRAME_RATE_30_TO_5;
 
 	result.code = CAMU_SetFrameRate(SELECT_ALL, framerate);
@@ -348,37 +391,37 @@ Result_with_string Util_cam_set_fps(int fps_mode)
 	return result;
 }
 
-Result_with_string Util_cam_set_contrast(int contrast_mode)
+Result_with_string Util_cam_set_contrast(Camera_contrast contrast_mode)
 {
 	CAMU_Contrast contrast = CONTRAST_PATTERN_01;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 	
-	if (contrast_mode < 0 || contrast_mode > 10)
+	if (contrast_mode <= CAM_CONTRAST_INVALID || contrast_mode >= CAM_CONTRAST_MAX)
 		goto invalid_arg;
 
-	if(contrast_mode == DEF_CAM_CONTRAST_01)
+	if(contrast_mode == CAM_CONTRAST_01)
 		contrast = CONTRAST_PATTERN_01;
-	else if(contrast_mode == DEF_CAM_CONTRAST_02)
+	else if(contrast_mode == CAM_CONTRAST_02)
 		contrast = CONTRAST_PATTERN_02;
-	else if(contrast_mode == DEF_CAM_CONTRAST_03)
+	else if(contrast_mode == CAM_CONTRAST_03)
 		contrast = CONTRAST_PATTERN_03;
-	else if(contrast_mode == DEF_CAM_CONTRAST_04)
+	else if(contrast_mode == CAM_CONTRAST_04)
 		contrast = CONTRAST_PATTERN_04;
-	else if(contrast_mode == DEF_CAM_CONTRAST_05)
+	else if(contrast_mode == CAM_CONTRAST_05)
 		contrast = CONTRAST_PATTERN_05;
-	else if(contrast_mode == DEF_CAM_CONTRAST_06)
+	else if(contrast_mode == CAM_CONTRAST_06)
 		contrast = CONTRAST_PATTERN_06;
-	else if(contrast_mode == DEF_CAM_CONTRAST_07)
+	else if(contrast_mode == CAM_CONTRAST_07)
 		contrast = CONTRAST_PATTERN_07;
-	else if(contrast_mode == DEF_CAM_CONTRAST_08)
+	else if(contrast_mode == CAM_CONTRAST_08)
 		contrast = CONTRAST_PATTERN_08;
-	else if(contrast_mode == DEF_CAM_CONTRAST_09)
+	else if(contrast_mode == CAM_CONTRAST_09)
 		contrast = CONTRAST_PATTERN_09;
-	else if(contrast_mode == DEF_CAM_CONTRAST_10)
+	else if(contrast_mode == CAM_CONTRAST_10)
 		contrast = CONTRAST_PATTERN_10;
-	else if(contrast_mode == DEF_CAM_CONTRAST_11)
+	else if(contrast_mode == CAM_CONTRAST_11)
 		contrast = CONTRAST_PATTERN_11;
 
 	result.code = CAMU_SetContrast(SELECT_ALL, contrast);
@@ -405,29 +448,28 @@ Result_with_string Util_cam_set_contrast(int contrast_mode)
 	return result;
 }
 
-Result_with_string Util_cam_set_white_balance(int white_balance_mode)
+Result_with_string Util_cam_set_white_balance(Camera_white_balance white_balance_mode)
 {
 	CAMU_WhiteBalance white_balance = WHITE_BALANCE_AUTO;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 	
-	if (white_balance_mode < 0 || white_balance_mode > 5)
+	if (white_balance_mode <= CAM_WHITE_BALANCE_INVALID || white_balance_mode >= CAM_WHITE_BALANCE_MAX)
 		goto invalid_arg;
 
-	if (white_balance_mode == DEF_CAM_WHITE_BALANCE_AUTO)
+	if (white_balance_mode == CAM_WHITE_BALANCE_AUTO)
 		white_balance = WHITE_BALANCE_AUTO;
-	else if (white_balance_mode == DEF_CAM_WHITE_BALANCE_3200K)
+	else if (white_balance_mode == CAM_WHITE_BALANCE_3200K)
 		white_balance = WHITE_BALANCE_3200K;
-	else if (white_balance_mode == DEF_CAM_WHITE_BALANCE_4150K)
+	else if (white_balance_mode == CAM_WHITE_BALANCE_4150K)
 		white_balance = WHITE_BALANCE_4150K;
-	else if (white_balance_mode == DEF_CAM_WHITE_BALANCE_5200K)
+	else if (white_balance_mode == CAM_WHITE_BALANCE_5200K)
 		white_balance = WHITE_BALANCE_5200K;
-	else if (white_balance_mode == DEF_CAM_WHITE_BALANCE_6000K)
+	else if (white_balance_mode == CAM_WHITE_BALANCE_6000K)
 		white_balance = WHITE_BALANCE_6000K;
-	else if (white_balance_mode == DEF_CAM_WHITE_BALANCE_7000K)
+	else if (white_balance_mode == CAM_WHITE_BALANCE_7000K)
 		white_balance = WHITE_BALANCE_7000K;
-
 
 	result.code = CAMU_SetWhiteBalance(SELECT_ALL, white_balance);
 	if (result.code != 0)
@@ -453,21 +495,21 @@ Result_with_string Util_cam_set_white_balance(int white_balance_mode)
 	return result;
 }
 
-Result_with_string Util_cam_set_lens_correction(int lens_correction_mode)
+Result_with_string Util_cam_set_lens_correction(Camera_lens_correction lens_correction_mode)
 {
 	CAMU_LensCorrection lens_correction = LENS_CORRECTION_OFF;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 
-	if (lens_correction_mode < 0 || lens_correction_mode > 2)
+	if (lens_correction_mode <= CAM_LENS_CORRECTION_INVALID || lens_correction_mode >= CAM_LENS_CORRECTION_MAX)
 		goto invalid_arg;
 
-	if (lens_correction_mode == DEF_CAM_LENS_CORRECTION_OFF)
+	if (lens_correction_mode == CAM_LENS_CORRECTION_OFF)
 		lens_correction = LENS_CORRECTION_OFF;
-	else if (lens_correction_mode == DEF_CAM_LENS_CORRECTION_70)
+	else if (lens_correction_mode == CAM_LENS_CORRECTION_70)
 		lens_correction = LENS_CORRECTION_ON_70;
-	else if (lens_correction_mode == DEF_CAM_LENS_CORRECTION_90)
+	else if (lens_correction_mode == CAM_LENS_CORRECTION_90)
 		lens_correction = LENS_CORRECTION_ON_90;
 
 	result.code = CAMU_SetLensCorrection(SELECT_ALL, lens_correction);
@@ -494,24 +536,24 @@ Result_with_string Util_cam_set_lens_correction(int lens_correction_mode)
 	return result;
 }
 
-Result_with_string Util_cam_set_camera(int camera_mode)
+Result_with_string Util_cam_set_camera(Camera_port camera_port)
 {
 	int camera = 0;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
-	if (camera_mode < 0 || camera_mode > 2)
+
+	if (camera_port <= CAM_PORT_INVALID || camera_port >= CAM_PORT_MAX)
 		goto invalid_arg;
 	
-	if(camera_mode == DEF_CAM_OUT_LEFT)
+	if(camera_port == CAM_PORT_OUT_LEFT)
 		camera = SELECT_OUT2;
-	else if(camera_mode == DEF_CAM_OUT_RIGHT)
+	else if(camera_port == CAM_PORT_OUT_RIGHT)
 		camera = SELECT_OUT1;
-	else if(camera_mode == DEF_CAM_IN)
+	else if(camera_port == CAM_PORT_IN)
 		camera = SELECT_IN1;
 
-	result = Util_cam_set_resolution(util_cam_width, util_cam_height);
+	result = Util_cam_set_resolution(util_cam_resolution);
 	if (result.code != 0)
 		return result;
 
@@ -521,7 +563,7 @@ Result_with_string Util_cam_set_camera(int camera_mode)
 		result.error_description = "[Error] CAMU_Activate() failed. ";
 		goto nintendo_api_failed;
 	}
-	util_cam_mode = camera_mode;
+	util_cam_port = camera_port;
 
 	return result;
 
@@ -540,14 +582,14 @@ Result_with_string Util_cam_set_camera(int camera_mode)
 	return result;
 }
 
-Result_with_string Util_cam_set_exposure(int exposure_mode)
+Result_with_string Util_cam_set_exposure(Camera_exposure exposure_mode)
 {
 	int exposure = 0;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 	
-	if(exposure < 0 || exposure > 5)
+	if(exposure <= CAM_EXPOSURE_INVALID || exposure >= CAM_EXPOSURE_MAX)
 		goto invalid_arg;
 
 	result.code = CAMU_SetExposure(SELECT_ALL, (s8)exposure);

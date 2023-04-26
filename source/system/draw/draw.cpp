@@ -1,4 +1,16 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/variables.hpp"
+
+#include "system/draw/external_font.hpp"
+
+#include "system/util/cpu_usage.hpp"
+#include "system/util/hid.hpp"
+#include "system/util/util.hpp"
+
+//Include myself.
+#include "system/draw/draw.hpp"
 
 bool util_draw_init = false;
 bool util_draw_sheet_texture_free[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS];
@@ -53,19 +65,19 @@ Result_with_string Draw_init(bool wide, bool _3d)
 	}
 
 	C2D_Prepare();
-	util_draw_screen[DEF_DRAW_SCREEN_TOP_LEFT] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-	util_draw_screen[DEF_DRAW_SCREEN_BOTTOM] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-	util_draw_screen[DEF_DRAW_SCREEN_TOP_RIGHT] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
-	if(!util_draw_screen[DEF_DRAW_SCREEN_TOP_LEFT] || !util_draw_screen[DEF_DRAW_SCREEN_BOTTOM]
-	|| !util_draw_screen[DEF_DRAW_SCREEN_TOP_RIGHT])
+	util_draw_screen[SCREEN_TOP_LEFT] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	util_draw_screen[SCREEN_BOTTOM] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	util_draw_screen[SCREEN_TOP_RIGHT] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
+	if(!util_draw_screen[SCREEN_TOP_LEFT] || !util_draw_screen[SCREEN_BOTTOM]
+	|| !util_draw_screen[SCREEN_TOP_RIGHT])
 	{
 		result.error_description = "[Error] C2D_CreateScreenTarget() failed. ";
 		goto other;
 	}
 
-	C2D_TargetClear(util_draw_screen[DEF_DRAW_SCREEN_TOP_LEFT], C2D_Color32f(0, 0, 0, 0));
-	C2D_TargetClear(util_draw_screen[DEF_DRAW_SCREEN_BOTTOM], C2D_Color32f(0, 0, 0, 0));
-	C2D_TargetClear(util_draw_screen[DEF_DRAW_SCREEN_TOP_RIGHT], C2D_Color32f(0, 0, 0, 0));
+	C2D_TargetClear(util_draw_screen[SCREEN_TOP_LEFT], C2D_Color32f(0, 0, 0, 0));
+	C2D_TargetClear(util_draw_screen[SCREEN_BOTTOM], C2D_Color32f(0, 0, 0, 0));
+	C2D_TargetClear(util_draw_screen[SCREEN_TOP_RIGHT], C2D_Color32f(0, 0, 0, 0));
 
 	for (int i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
 		util_draw_sheet_texture_free[i] = true;
@@ -155,11 +167,11 @@ Result_with_string Draw_reinit(bool wide, bool _3d)
 	}
 
 	C2D_Prepare();
-	util_draw_screen[DEF_DRAW_SCREEN_TOP_LEFT] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-	util_draw_screen[DEF_DRAW_SCREEN_BOTTOM] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-	util_draw_screen[DEF_DRAW_SCREEN_TOP_RIGHT] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
-	if(!util_draw_screen[DEF_DRAW_SCREEN_TOP_LEFT] || !util_draw_screen[DEF_DRAW_SCREEN_BOTTOM]
-	|| !util_draw_screen[DEF_DRAW_SCREEN_TOP_RIGHT])
+	util_draw_screen[SCREEN_TOP_LEFT] = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	util_draw_screen[SCREEN_BOTTOM] = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	util_draw_screen[SCREEN_TOP_RIGHT] = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
+	if(!util_draw_screen[SCREEN_TOP_LEFT] || !util_draw_screen[SCREEN_BOTTOM]
+	|| !util_draw_screen[SCREEN_TOP_RIGHT])
 	{
 		result.error_description = "[Error] C2D_CreateScreenTarget() failed. ";
 		goto other;
@@ -246,22 +258,22 @@ int Draw_convert_to_pos(int height, int width, int img_height, int img_width, in
 	return pos * pixel_size;
 }
 
-Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_size_y, int color_format)
+Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_size_y, Pixel_format color_format)
 {
-	int color = 0;
+	GPU_TEXCOLOR color = GPU_RGBA8;
 	Result_with_string result;
 	if(!util_draw_init)
 		goto not_inited;
 
 	if(!image || tex_size_x <= 0 || tex_size_y <= 0
-	|| (color_format != DEF_DRAW_FORMAT_RGBA8888 && color_format != DEF_DRAW_FORMAT_RGB888 && color_format != DEF_DRAW_FORMAT_RGB565))
+	|| (color_format != PIXEL_FORMAT_ABGR8888 && color_format != PIXEL_FORMAT_BGR888 && color_format != PIXEL_FORMAT_RGB565LE))
 		goto invalid_arg;
 
-	if(color_format == DEF_DRAW_FORMAT_RGBA8888)
+	if(color_format == PIXEL_FORMAT_ABGR8888)
 		color = GPU_RGBA8;
-	else if(color_format == DEF_DRAW_FORMAT_RGB888)
+	else if(color_format == PIXEL_FORMAT_BGR888)
 		color = GPU_RGB8;
-	else if(color_format == DEF_DRAW_FORMAT_RGB565)
+	else if(color_format == PIXEL_FORMAT_RGB565LE)
 		color = GPU_RGB565;
 
 	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture*));
@@ -269,7 +281,7 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
 	
-	if (!C3D_TexInit(image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, (GPU_TEXCOLOR)color))
+	if (!C3D_TexInit(image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, color))
 		goto out_of_linear_memory;
 
 	image->c2d.subtex = image->subtex;
@@ -628,8 +640,8 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 	part_text = nullptr;
 }
 
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y, int texture_position, void* background_image, int texture_abgr8888, bool c2d_image_pointer)
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align, Text_align_y y_align,
+float box_size_x, float box_size_y, Background texture_position, void* background_image, int texture_abgr8888, bool c2d_image_pointer)
 {
 	bool new_line = false;
 	bool eof = false;
@@ -645,10 +657,9 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 
 	if(!util_draw_init)
 		return;
-
-	if((x_align != DEF_DRAW_X_ALIGN_LEFT && x_align != DEF_DRAW_X_ALIGN_CENTER && x_align != DEF_DRAW_X_ALIGN_RIGHT)
-	|| (y_align != DEF_DRAW_Y_ALIGN_TOP && y_align != DEF_DRAW_Y_ALIGN_CENTER && y_align != DEF_DRAW_Y_ALIGN_BOTTOM)
-	|| (texture_position != DEF_DRAW_BACKGROUND_NONE && texture_position != DEF_DRAW_BACKGROUND_ENTIRE_BOX && texture_position != DEF_DRAW_BACKGROUND_UNDER_TEXT))
+	
+	if(x_align <= X_ALIGN_INVALID || x_align >= X_ALIGN_MAX || y_align <= Y_ALIGN_INVALID || y_align >= Y_ALIGN_MAX
+	|| texture_position <= BACKGROUND_INVALID || texture_position >= BACKGROUND_MAX)
 		return;
 
 	part_text = new std::string[text.length() + 1];
@@ -668,7 +679,7 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 	Exfont_text_parse(text, part_text, (text.length() + 1), &array_count);
 	array_count++;
 
-	if(x_align == DEF_DRAW_X_ALIGN_LEFT && y_align == DEF_DRAW_Y_ALIGN_TOP && texture_position == DEF_DRAW_BACKGROUND_NONE)
+	if(x_align == X_ALIGN_LEFT && y_align == Y_ALIGN_TOP && texture_position == BACKGROUND_NONE)
 		x = original_x;
 	else
 	{
@@ -708,9 +719,9 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 					used_y_max = height;
 
 				y_offset += used_y_max;
-				if(x_align == DEF_DRAW_X_ALIGN_CENTER)
+				if(x_align == X_ALIGN_CENTER)
 					x_start[lines] = ((box_size_x - used_x) / 2) + x;
-				else if(x_align == DEF_DRAW_X_ALIGN_RIGHT)
+				else if(x_align == X_ALIGN_RIGHT)
 					x_start[lines] = box_size_x - used_x + x;
 
 				used_y_max = 0;
@@ -721,23 +732,23 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 		}
 		used_y_max = y_offset + used_y_max;
 
-		if(x_align == DEF_DRAW_X_ALIGN_CENTER)
+		if(x_align == X_ALIGN_CENTER)
 			x_start[lines] = ((box_size_x - used_x) / 2.0) + x;
-		else if(x_align == DEF_DRAW_X_ALIGN_RIGHT)
+		else if(x_align == X_ALIGN_RIGHT)
 			x_start[lines] = box_size_x - used_x + x;
-		if(y_align == DEF_DRAW_Y_ALIGN_CENTER)
+		if(y_align == Y_ALIGN_CENTER)
 			y = ((box_size_y - used_y_max) / 2.0) + y;
-		else if(y_align == DEF_DRAW_Y_ALIGN_BOTTOM)
+		else if(y_align == Y_ALIGN_BOTTOM)
 			y = box_size_y - used_y_max + y;
 
 		lines++;
 
-		if(x_align == DEF_DRAW_X_ALIGN_LEFT)
+		if(x_align == X_ALIGN_LEFT)
 		{
 			x = original_x;
 			x_min = original_x;
 		}
-		else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
+		else if(x_align == X_ALIGN_CENTER || x_align == X_ALIGN_RIGHT)
 		{
 			x = x_start[line_count];
 			x_min = x_start[0];
@@ -751,17 +762,17 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 		if(c2d_image_pointer)
 		{
 			C2D_Image* c2d_pointer = (C2D_Image*)background_image;
-			if(texture_position == DEF_DRAW_BACKGROUND_ENTIRE_BOX)
+			if(texture_position == BACKGROUND_ENTIRE_BOX)
 				Draw_texture(*c2d_pointer, texture_abgr8888, original_x, original_y, box_size_x, box_size_y);
-			else if(texture_position == DEF_DRAW_BACKGROUND_UNDER_TEXT)
+			else if(texture_position == BACKGROUND_UNDER_TEXT)
 				Draw_texture(*c2d_pointer, texture_abgr8888, x_min, y, used_x_max, used_y_max);
 		}
 		else
 		{
 			Image_data* image_data_pointer = (Image_data*)background_image;
-			if(texture_position == DEF_DRAW_BACKGROUND_ENTIRE_BOX)
+			if(texture_position == BACKGROUND_ENTIRE_BOX)
 				Draw_texture(image_data_pointer, texture_abgr8888, original_x, original_y, box_size_x, box_size_y);
-			else if(texture_position == DEF_DRAW_BACKGROUND_UNDER_TEXT)
+			else if(texture_position == BACKGROUND_UNDER_TEXT)
 				Draw_texture(image_data_pointer, texture_abgr8888, x_min, y, used_x_max, used_y_max);
 		}
 	}
@@ -793,9 +804,9 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 		if(new_line)
 		{
 			y += 25 * text_size_y;
-			if(x_align == DEF_DRAW_X_ALIGN_LEFT)
+			if(x_align == X_ALIGN_LEFT)
 				x = original_x;
-			else if(x_align == DEF_DRAW_X_ALIGN_CENTER || x_align == DEF_DRAW_X_ALIGN_RIGHT)
+			else if(x_align == X_ALIGN_CENTER || x_align == X_ALIGN_RIGHT)
 			{
 				line_count++;
 				x = x_start[line_count];
@@ -815,23 +826,23 @@ float box_size_x, float box_size_y, int texture_position, void* background_image
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_TOP, 0, 0, DEF_DRAW_BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
+	Draw(text, x, y, text_size_x, text_size_y, abgr8888, X_ALIGN_LEFT, Y_ALIGN_TOP, 0, 0, BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
 }
 
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y)
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, DEF_DRAW_BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
+	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
 }
 
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888)
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, C2D_Image background_image, int texture_abgr8888)
 {
 	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, &background_image, texture_abgr8888, true);
 }
 
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888)
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, Image_data* background_image, int texture_abgr8888)
 {
 	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888, false);
 }
@@ -1034,8 +1045,8 @@ void Draw_cpu_usage_info(void)
 
 	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %ld%%)", Util_get_core_1_max());
 
-	Draw(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DEF_DRAW_X_ALIGN_RIGHT, DEF_DRAW_Y_ALIGN_CENTER, 100, 60,
-	DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], 0x80FFFFFF);
+	Draw(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, X_ALIGN_RIGHT, Y_ALIGN_CENTER,
+	100, 60, BACKGROUND_UNDER_TEXT, var_square_image[0], 0x80FFFFFF);
 }
 #endif
 
@@ -1048,28 +1059,28 @@ void Draw_debug_info(void)
 	if (var_night_mode)
 		color = DEF_DRAW_WHITE;
 
-	Draw("A p: " + std::to_string(key.p_a) + " h: " + std::to_string(key.h_a) + " B p: " + std::to_string(key.p_b) + " h: " + std::to_string(key.h_b), 0, 20, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("X p: " + std::to_string(key.p_x) + " h: " + std::to_string(key.h_x) + " Y p: " + std::to_string(key.p_y) + " h: " + std::to_string(key.h_y), 0, 30, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("L p: " + std::to_string(key.p_l) + " h: " + std::to_string(key.h_l) + " R p: " + std::to_string(key.p_r) + " h: " + std::to_string(key.h_r), 0, 40, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("ZL p: " + std::to_string(key.p_zl) + " h: " + std::to_string(key.h_zl) + " ZR p: " + std::to_string(key.p_zr) + " h: " + std::to_string(key.h_zr), 0, 50, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("C↓ p: " + std::to_string(key.p_c_down) + " h: " + std::to_string(key.h_c_down) + " C→ p: " + std::to_string(key.p_c_right) + " h: " + std::to_string(key.h_c_right), 0, 60, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("C↑ p: " + std::to_string(key.p_c_up) + " h: " + std::to_string(key.h_c_up) + " C← p: " + std::to_string(key.p_c_left) + " h: " + std::to_string(key.h_c_left), 0, 70, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("D↓ p: " + std::to_string(key.p_d_down) + " h: " + std::to_string(key.h_d_down) + " D→ p: " + std::to_string(key.p_d_right) + " h: " + std::to_string(key.h_d_right), 0, 80, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("D↑ p: " + std::to_string(key.p_d_up) + " h: " + std::to_string(key.h_d_up) + " D← p: " + std::to_string(key.p_d_left) + " h: " + std::to_string(key.h_d_left), 0, 90, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("CS↓ p: " + std::to_string(key.p_cs_down) + " h: " + std::to_string(key.h_cs_down) + " CS→ p: " + std::to_string(key.p_cs_right) + " h: " + std::to_string(key.h_cs_right), 0, 100, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("CS↑ p: " + std::to_string(key.p_cs_up) + " h: " + std::to_string(key.h_cs_up) + " CS← p: " + std::to_string(key.p_cs_left) + " h: " + std::to_string(key.h_cs_left), 0, 110, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("START p: " + std::to_string(key.p_start) + " h: " + std::to_string(key.h_start), 0, 120, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("SELET p: " + std::to_string(key.p_select) + " h: " + std::to_string(key.h_select), 0, 130, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("touch x: " + std::to_string(key.touch_x) + ", y: " + std::to_string(key.touch_y), 0, 140, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0, 150, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0, 160, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Frametime: " + std::to_string(util_draw_frametime).substr(0, 6) + "ms", 0, 170, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("RAM: " + std::to_string(var_free_ram / 1024.0 / 1024.0).substr(0, 5) + " MB", 0, 180, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1024.0 / 1024.0).substr(0, 5) +" MB", 0, 190, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Watch(bool): " + std::to_string(Util_get_watch_bool_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_BOOL_VARIABLES) + "(" + std::to_string((double)Util_get_watch_bool_usage() / DEF_DRAW_MAX_WATCH_BOOL_VARIABLES * 100).substr(0, 4)+ "%)", 0, 200, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Watch(int): " + std::to_string(Util_get_watch_int_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_INT_VARIABLES) + "(" + std::to_string((double)Util_get_watch_int_usage() / DEF_DRAW_MAX_WATCH_INT_VARIABLES * 100).substr(0, 4) + "%)", 0, 210, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Watch(double): " + std::to_string(Util_get_watch_double_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES) + "(" + std::to_string((double)Util_get_watch_double_usage() / DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES * 100).substr(0, 4) + "%)", 0, 220, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
-	Draw("Watch(string): " + std::to_string(Util_get_watch_string_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_STRING_VARIABLES) + "(" + std::to_string((double)Util_get_watch_string_usage() / DEF_DRAW_MAX_WATCH_STRING_VARIABLES * 100).substr(0, 4) + "%)", 0, 230, 0.35, 0.35, color, DEF_DRAW_X_ALIGN_LEFT, DEF_DRAW_Y_ALIGN_CENTER, 300, 10, DEF_DRAW_BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("A p: " + std::to_string(key.p_a) + " h: " + std::to_string(key.h_a) + " B p: " + std::to_string(key.p_b) + " h: " + std::to_string(key.h_b), 0, 20, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("X p: " + std::to_string(key.p_x) + " h: " + std::to_string(key.h_x) + " Y p: " + std::to_string(key.p_y) + " h: " + std::to_string(key.h_y), 0, 30, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("L p: " + std::to_string(key.p_l) + " h: " + std::to_string(key.h_l) + " R p: " + std::to_string(key.p_r) + " h: " + std::to_string(key.h_r), 0, 40, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("ZL p: " + std::to_string(key.p_zl) + " h: " + std::to_string(key.h_zl) + " ZR p: " + std::to_string(key.p_zr) + " h: " + std::to_string(key.h_zr), 0, 50, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("C↓ p: " + std::to_string(key.p_c_down) + " h: " + std::to_string(key.h_c_down) + " C→ p: " + std::to_string(key.p_c_right) + " h: " + std::to_string(key.h_c_right), 0, 60, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("C↑ p: " + std::to_string(key.p_c_up) + " h: " + std::to_string(key.h_c_up) + " C← p: " + std::to_string(key.p_c_left) + " h: " + std::to_string(key.h_c_left), 0, 70, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("D↓ p: " + std::to_string(key.p_d_down) + " h: " + std::to_string(key.h_d_down) + " D→ p: " + std::to_string(key.p_d_right) + " h: " + std::to_string(key.h_d_right), 0, 80, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("D↑ p: " + std::to_string(key.p_d_up) + " h: " + std::to_string(key.h_d_up) + " D← p: " + std::to_string(key.p_d_left) + " h: " + std::to_string(key.h_d_left), 0, 90, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("CS↓ p: " + std::to_string(key.p_cs_down) + " h: " + std::to_string(key.h_cs_down) + " CS→ p: " + std::to_string(key.p_cs_right) + " h: " + std::to_string(key.h_cs_right), 0, 100, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("CS↑ p: " + std::to_string(key.p_cs_up) + " h: " + std::to_string(key.h_cs_up) + " CS← p: " + std::to_string(key.p_cs_left) + " h: " + std::to_string(key.h_cs_left), 0, 110, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("START p: " + std::to_string(key.p_start) + " h: " + std::to_string(key.h_start), 0, 120, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("SELET p: " + std::to_string(key.p_select) + " h: " + std::to_string(key.h_select), 0, 130, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("touch x: " + std::to_string(key.touch_x) + ", y: " + std::to_string(key.touch_y), 0, 140, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("CPU: " + std::to_string(C3D_GetProcessingTime()).substr(0, 5) + "ms", 0, 150, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("GPU: " + std::to_string(C3D_GetDrawingTime()).substr(0, 5) + "ms", 0, 160, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Frametime: " + std::to_string(util_draw_frametime).substr(0, 6) + "ms", 0, 170, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("RAM: " + std::to_string(var_free_ram / 1024.0 / 1024.0).substr(0, 5) + " MB", 0, 180, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("linear RAM: " + std::to_string(var_free_linear_ram / 1024.0 / 1024.0).substr(0, 5) +" MB", 0, 190, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Watch(bool): " + std::to_string(Util_get_watch_bool_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_BOOL_VARIABLES) + "(" + std::to_string((double)Util_get_watch_bool_usage() / DEF_DRAW_MAX_WATCH_BOOL_VARIABLES * 100).substr(0, 4)+ "%)", 0, 200, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Watch(int): " + std::to_string(Util_get_watch_int_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_INT_VARIABLES) + "(" + std::to_string((double)Util_get_watch_int_usage() / DEF_DRAW_MAX_WATCH_INT_VARIABLES * 100).substr(0, 4) + "%)", 0, 210, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Watch(double): " + std::to_string(Util_get_watch_double_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES) + "(" + std::to_string((double)Util_get_watch_double_usage() / DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES * 100).substr(0, 4) + "%)", 0, 220, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
+	Draw("Watch(string): " + std::to_string(Util_get_watch_string_usage()) + "/" + std::to_string(DEF_DRAW_MAX_WATCH_STRING_VARIABLES) + "(" + std::to_string((double)Util_get_watch_string_usage() / DEF_DRAW_MAX_WATCH_STRING_VARIABLES * 100).substr(0, 4) + "%)", 0, 230, 0.35, 0.35, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 10, BACKGROUND_UNDER_TEXT, var_square_image[0], DEF_DRAW_WEAK_BLUE);
 }
 
 Result_with_string Draw_load_system_font(int system_font_num)
@@ -1137,17 +1148,16 @@ void Draw_frame_ready(void)
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 }
 
-void Draw_screen_ready(int screen_num, int abgr8888)
+void Draw_screen_ready(Screen screen, int abgr8888)
 {
 	if(!util_draw_init)
 		return;
 
-	if (screen_num != DEF_DRAW_SCREEN_TOP_LEFT && screen_num != DEF_DRAW_SCREEN_BOTTOM
-	&& screen_num != DEF_DRAW_SCREEN_TOP_RIGHT)
+	if (screen <= SCREEN_INVALID || screen >= SCREEN_MAX)
 		return;
 
-	C2D_TargetClear(util_draw_screen[screen_num], abgr8888);
-	C2D_SceneBegin(util_draw_screen[screen_num]);
+	C2D_TargetClear(util_draw_screen[screen], abgr8888);
+	C2D_SceneBegin(util_draw_screen[screen]);
 }
 
 void Draw_apply_draw(void)

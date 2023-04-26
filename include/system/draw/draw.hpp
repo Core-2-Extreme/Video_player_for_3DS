@@ -1,4 +1,7 @@
-#pragma once
+#ifndef DRAW_HPP
+#define DRAW_HPP
+
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a draw api.
@@ -69,12 +72,12 @@ double Draw_query_fps(void);
  * @param image (out) Pointer for texture.
  * @param tex_size_x (in) Texture width (must be power of 2).
  * @param tex_size_y (in) Texture height (must be power of 2).
- * @param color_format (in) Color format (DEF_DRAW_FORMAT_*).
+ * @param color_format (in) Color format (PIXEL_FORMAT_ABGR8888, PIXEL_FORMAT_BGR888 or PIXEL_FORMAT_RGB565LE).
  * @return On success DEF_SUCCESS, 
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
-Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_size_y, int color_format);
+Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_size_y, Pixel_format color_format);
 
 /**
  * @brief Uninitialize a texture.
@@ -169,15 +172,15 @@ void Draw(std::string text, float x, float y, float text_size_x, float text_size
  * @param text_size_x (in) Font size for X direction.
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
- * @param x_align (in) DEF_DRAW_X_ALIGN_*.
- * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
- * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
- * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
+ * @param x_align (in) Text align for x direction.
+ * @param y_align (in) Text align for y direction.
+ * @param x_size (in) If align is X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
+ * @param y_size (in) If align is Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y);
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
  * @brief Draw text.
@@ -188,18 +191,18 @@ float box_size_x, float box_size_y);
  * @param text_size_x (in) Font size for X direction.
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
- * @param x_align (in) DEF_DRAW_X_ALIGN_*.
- * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
- * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
- * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
- * @param texture_position (in) Background texture position DEF_DRAW_BACKGROUND_*.
+ * @param x_align (in) Text align for x direction.
+ * @param y_align (in) Text align for y direction.
+ * @param x_size (in) If align is X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
+ * @param y_size (in) If align is Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
+ * @param texture_position (in) Background texture position.
  * @param background_image (in) C2D Texture data.
  * @param texture_abgr8888 (in) Texture color.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y, int texture_position, C2D_Image background_image, int texture_abgr8888);
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, C2D_Image background_image, int texture_abgr8888);
 
 /**
  * @brief Draw text.
@@ -210,18 +213,18 @@ float box_size_x, float box_size_y, int texture_position, C2D_Image background_i
  * @param text_size_x (in) Font size for X direction.
  * @param text_size_y (in) Font size for Y direction.
  * @param abgr8888 (in) Font color.
- * @param x_align (in) DEF_DRAW_X_ALIGN_*.
- * @param y_align (in) DEF_DRAW_Y_ALIGN_*.
- * @param x_size (in) If align is not DEF_DRAW_X_ALIGN_LEFT, virtual box width (in px).
- * @param y_size (in) If align is not DEF_DRAW_Y_ALIGN_TOP, virtual box height (in px).
- * @param texture_position (in) Background texture position DEF_DRAW_BACKGROUND_*.
+ * @param x_align (in) Text align for x direction.
+ * @param y_align (in) Text align for y direction.
+ * @param x_size (in) If align is X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
+ * @param y_size (in) If align is Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
+ * @param texture_position (in) Background texture position.
  * @param background_image (in&out) Image data.
  * @param texture_abgr8888 (in) Texture color.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, int x_align, int y_align,
-float box_size_x, float box_size_y, int texture_position, Image_data* background_image, int texture_abgr8888);
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
+Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, Image_data* background_image, int texture_abgr8888);
 
 /**
  * @brief Get free sheet index that can be used for Draw_load_texture().
@@ -422,12 +425,12 @@ void Draw_frame_ready(void);
 /**
  * @brief Ready screen and fill with abgr8888.
  * Do nothing if draw api is not initialized.
- * @param screen_num (in) Target screen (DEF_DRAW_SCREEN_*).
+ * @param screen_num (in) Target screen.
  * @param abgr8888 (in) Fill color.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
-void Draw_screen_ready(int screen_num, int abgr8888);
+void Draw_screen_ready(Screen screen, int abgr8888);
 
 /**
  * @brief Apply drawing.
@@ -436,3 +439,5 @@ void Draw_screen_ready(int screen_num, int abgr8888);
  * @warning Call it from only drawing thread.
 */
 void Draw_apply_draw(void);
+
+#endif

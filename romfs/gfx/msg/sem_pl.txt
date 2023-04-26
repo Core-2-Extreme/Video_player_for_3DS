@@ -70,3 +70,4 @@ wyłączyć tryb '800px'
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
+<70>Time to enter sleep : </70>

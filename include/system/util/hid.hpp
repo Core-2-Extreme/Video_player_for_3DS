@@ -1,4 +1,7 @@
-#pragma once
+#ifndef HID_HPP
+#define HID_HPP
+
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a hid api.
@@ -71,3 +74,5 @@ bool Util_hid_add_callback(void (*callback)(void));
  * @note Thread safe
 */
 void Util_hid_remove_callback(void (*callback)(void));
+
+#endif

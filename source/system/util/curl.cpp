@@ -1,8 +1,18 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_CURL_API
+#include "system/types.hpp"
 
+#include "system/util/file.hpp"
+#include "system/util/util.hpp"
+
+extern "C" 
+{
 #include "curl/curl.h"
+}
+
+//Include myself.
+#include "system/util/curl.hpp"
 
 bool util_curl_init = false;
 u32* util_curl_buffer = NULL;
@@ -72,7 +82,7 @@ Result_with_string Util_curl_init(int buffer_size)
 	return result;
 }
 
-void Util_curl_exit()
+void Util_curl_exit(void)
 {
 	if(!util_curl_init)
 		return;
@@ -524,7 +534,7 @@ int max_redirect, std::string* last_url)
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -628,7 +638,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -764,7 +774,7 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)
@@ -911,7 +921,7 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		if(result.code != 0xE0A09D2E)
 			break;
 		
-		usleep(100000);
+		Util_sleep(100000);
 	}
 	
 	if(result.code != 0)

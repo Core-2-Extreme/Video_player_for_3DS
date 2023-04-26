@@ -1,6 +1,8 @@
-#pragma once
+#ifndef HTTPC_HPP
+#define HTTPC_HPP
 
 #if DEF_ENABLE_HTTPC_API
+#include "system/types.hpp"
 
 /**
  * @brief Initialize a httpc api.
@@ -16,7 +18,7 @@ Result_with_string Util_httpc_init(int buffer_size);
  * Do nothing if httpc api is not initialized.
  * @warning Thread dangerous (untested)
 */
-void Util_httpc_exit();
+void Util_httpc_exit(void);
 
 /**
  * @brief Make a http get request.
@@ -309,10 +311,12 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 #else
 
 #define Util_httpc_init(...) Util_return_result_with_string(var_disabled_result)
-#define Util_httpc_exit(...)
+#define Util_httpc_exit()
 #define Util_httpc_dl_data(...) Util_return_result_with_string(var_disabled_result)
 #define Util_httpc_save_data(...) Util_return_result_with_string(var_disabled_result)
 #define Util_httpc_post_and_dl_data(...) Util_return_result_with_string(var_disabled_result)
 #define Util_httpc_post_and_save_data(...) Util_return_result_with_string(var_disabled_result)
+
+#endif
 
 #endif

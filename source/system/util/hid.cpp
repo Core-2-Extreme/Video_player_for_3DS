@@ -1,4 +1,12 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+#include "system/variables.hpp"
+
+#include "system/util/log.hpp"
+
+//Include myself.
+#include "system/util/hid.hpp"
 
 bool util_hid_thread_run = false;
 bool util_hid_init = false;

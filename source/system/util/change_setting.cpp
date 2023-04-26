@@ -1,4 +1,8 @@
-#include "system/headers.hpp"
+#include "definitions.hpp"
+#include "system/types.hpp"
+
+//Include myself.
+#include "system/util/change_setting.hpp"
 
 Result_with_string Util_cset_set_screen_brightness(bool top_screen, bool bottom_screen, int brightness)
 {
@@ -131,15 +135,18 @@ Result_with_string Util_cset_set_screen_state(bool top_screen, bool bottom_scree
 	return result;
 }
 
-Result_with_string Util_cset_sleep_system(int wake_up_event)
+Result_with_string Util_cset_sleep_system(Wake_up_event wake_up_events)
 {
 	PtmWakeEvents wake_up_event_mask;
 	Result_with_string result;
 
-	if(!(wake_up_event & DEF_CSET_WAKE_UP_PRESS_HOME_BUTTON) && !(wake_up_event & DEF_CSET_WAKE_UP_OPEN_SHELL)) 
+	if(!(wake_up_events & WAKE_UP_EVENT_PRESS_HOME_BUTTON) && !(wake_up_events & WAKE_UP_EVENT_OPEN_SHELL)) 
 		goto invalid_arg;
 
-	wake_up_event_mask.mcu_interupt_mask = wake_up_event;
+	if(!aptIsSleepAllowed())
+		goto not_allowed;
+
+	wake_up_event_mask.mcu_interupt_mask = (u32)wake_up_events;
 	wake_up_event_mask.pdn_wake_events = 0;
 
 	result.code = APT_SleepSystem(&wake_up_event_mask);
@@ -154,6 +161,12 @@ Result_with_string Util_cset_sleep_system(int wake_up_event)
 	invalid_arg:
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	not_allowed:
+	result.code = DEF_ERR_OTHER;
+	result.string = DEF_ERR_OTHER_STR;
+	result.error_description = "[Error] Sleep is not allowed. ";
 	return result;
 
 	nintendo_api_failed:

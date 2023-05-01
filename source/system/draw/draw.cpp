@@ -335,14 +335,15 @@ void Draw_texture_free(Image_data* image)
 Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int pic_width, int pic_height)
 {
 	int pixel_size = 0;
-	int tex_offset = 0;
-	int buffer_offset = 0;
+	s16 copy_size = 0;
 	Result_with_string result;
 #if DEF_DRAW_USE_DMA
-	bool dma_result[4] = { false, false, false, false, };
-	int dma_count = 0;
-	Handle dma_handle[4] = { 0, 0, 0, 0, };
+	int dma_result = 0;
+	Handle dma_handle = 0;
 	DmaConfig dma_config;
+#else
+	int tex_offset = 0;
+	int buffer_offset = 0;
 #endif
 
 	if(!util_draw_init)
@@ -368,44 +369,34 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 	image->subtex->bottom = 1.0 - pic_height / (float)image->c2d.tex->height;
 	image->c2d.subtex = image->subtex;
 
+	copy_size = pic_width * 8 * pixel_size;
+
 #if DEF_DRAW_USE_DMA
 	dmaConfigInitDefault(&dma_config);
-#endif
+
+	//It should be DMACFG_USE_DST_CONFIG and dma_config.dstCfg instead of dma_config.srcCfg
+	//as we want to set stride for texture buffer (but DMACFG_USE_DST_CONFIG and dstCfg didn't work).
+	//Maybe library names it wrong or I misunderstand something.
+	dma_config.flags |= DMACFG_USE_SRC_CONFIG;
+	dma_config.srcCfg.allowedAlignments = (8 | 4 | 2 | 1);
+	dma_config.srcCfg.burstSize = copy_size;
+	dma_config.srcCfg.burstStride = (image->c2d.tex->width * pixel_size * 8);
+	dma_config.srcCfg.transferSize = dma_config.srcCfg.burstSize;
+	dma_config.srcCfg.transferStride = dma_config.srcCfg.burstStride;
+
+	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (u32)image->c2d.tex->data,
+	CUR_PROCESS_HANDLE, (u32)buf, pic_width * pic_height * pixel_size, &dma_config);
+
+	if(dma_result == 0)
+		svcWaitSynchronization(dma_handle, INT64_MAX);
+
+	svcCloseHandle(dma_handle);
+#else
 	for(int i = 0; i < pic_height / 8; i ++)
 	{
-#if DEF_DRAW_USE_DMA
-		dma_result[dma_count] = svcStartInterProcessDma(&dma_handle[dma_count], CUR_PROCESS_HANDLE, (u32)((u8*)image->c2d.tex->data + tex_offset),
-		CUR_PROCESS_HANDLE, (u32)buf + buffer_offset, pic_width * 8 * pixel_size, &dma_config);
-		dma_count++;
-#else
-		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, pic_width * 8 * pixel_size);
-#endif
+		memcpy_asm(((u8*)image->c2d.tex->data + tex_offset), buf + buffer_offset, copy_size);
 		tex_offset += image->c2d.tex->width * pixel_size * 8;
-		buffer_offset += pic_width * pixel_size * 8;
-
-#if DEF_DRAW_USE_DMA
-		if(dma_count > 3)
-		{
-			for(int k = 0; k < 4; k++)
-			{
-				if(dma_result[k] == 0)
-					svcWaitSynchronization(dma_handle[k], INT64_MAX);
-
-				svcCloseHandle(dma_handle[k]);
-				dma_result[k] = -1;
-			}
-			dma_count = 0;
-		}
-#endif
-	}
-
-#if DEF_DRAW_USE_DMA
-	for(int k = 0; k < 4; k++)
-	{
-		if(dma_result[k] == 0)
-			svcWaitSynchronization(dma_handle[k], INT64_MAX);
-
-		svcCloseHandle(dma_handle[k]);
+		buffer_offset += copy_size;
 	}
 #endif
 

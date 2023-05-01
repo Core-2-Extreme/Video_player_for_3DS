@@ -708,8 +708,8 @@ Result_with_string Util_converter_y2r_init(void)
 
 Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, int width, int height, bool texture_format)
 {
-	bool finished = false;
 	Y2RU_ConversionParams y2r_parameters;
+	Handle conversion_finish_event_handle;
 	Result_with_string result;
 
 	if(!util_y2r_init)
@@ -774,16 +774,15 @@ Result_with_string Util_converter_y2r_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb5
 		goto nintendo_api_failed;
 	}
 
-	while(!finished)
+	result.code = Y2RU_GetTransferEndEvent(&conversion_finish_event_handle);
+	if(result.code != 0)
 	{
-		result.code = Y2RU_IsDoneReceiving(&finished);
-		if(result.code != 0)
-		{
-			result.error_description = "[Error] Y2RU_IsDoneReceiving() failed. ";
-			goto nintendo_api_failed;
-		}
-		Util_sleep(500);
+		result.error_description = "[Error] Y2RU_GetTransferEndEvent() failed. ";
+		goto nintendo_api_failed;
 	}
+
+	svcWaitSynchronization(conversion_finish_event_handle, 200000000);//Wait up to 200ms.
+	svcCloseHandle(conversion_finish_event_handle);
 
 	return result;
 

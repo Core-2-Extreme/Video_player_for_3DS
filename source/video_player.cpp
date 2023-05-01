@@ -225,7 +225,7 @@ void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter)
 		Draw_set_texture_filter(&large_image_data->images[i], filter);
 }
 
-void Vid_large_texture_clip(Large_image* large_image_data, int width, int height)
+void Vid_large_texture_crop(Large_image* large_image_data, int width, int height)
 {
 	int width_offset = 0;
 	int height_offset = 0;
@@ -2742,8 +2742,8 @@ void Vid_convert_thread(void* arg)
 							if(result.code != 0)
 								Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Vid_large_texture_set_data()..." + result.string + result.error_description, result.code);
 
-							//Clip the image so that user won't see glitch on videos.
-							Vid_large_texture_clip(&vid_large_image[image_num][packet_index], vid_video_info.width, vid_video_info.height);
+							//Crop the image so that user won't see glitch on videos.
+							Vid_large_texture_crop(&vid_large_image[image_num][packet_index], vid_video_info.width, vid_video_info.height);
 
 							osTickCounterUpdate(&counter[1]);
 							vid_copy_time[1] = osTickCounterRead(&counter[1]);

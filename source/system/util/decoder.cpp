@@ -1019,20 +1019,21 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
 
 	if(!util_decoder_opened_file[session] || !util_audio_decoder_init[session][audio_index])
 		return;
-		
-	audio_info->track_lang = "language:und";
+
+	audio_info->track_lang = "und";
 
 	if(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata)
 	{
 		data = av_dict_get(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
 		if(data)
-			audio_info->track_lang = (std::string)data->key + ":" + data->value;
+			audio_info->track_lang = data->value;
 	}
 
 	audio_info->bitrate = util_audio_decoder_context[session][audio_index]->bit_rate;
 	audio_info->sample_rate = util_audio_decoder_context[session][audio_index]->sample_rate;
 	audio_info->ch = util_audio_decoder_context[session][audio_index]->ch_layout.nb_channels;
 	audio_info->format_name = util_audio_decoder_codec[session][audio_index]->long_name;
+	audio_info->short_format_name = util_audio_decoder_codec[session][audio_index]->name;
 	audio_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 
 	if(util_audio_decoder_context[session][audio_index]->sample_fmt < 0 || util_audio_decoder_context[session][audio_index]->sample_fmt >= AV_SAMPLE_FMT_NB)
@@ -1044,6 +1045,8 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
 void Util_video_decoder_get_info(Video_info* video_info, int video_index, int session)
 {
 	AVRational sar;
+	int multiple_of = 0;
+
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
@@ -1067,12 +1070,29 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 
 	video_info->width = util_video_decoder_context[session][video_index]->width;
 	video_info->height = util_video_decoder_context[session][video_index]->height;
+
+	if(util_video_decoder_context[session][video_index]->codec_id == AV_CODEC_ID_AV1)
+		multiple_of = 128;//AV1 buffer size is multiple of 128.
+	else
+		multiple_of = 16;//Other codecs are multiple of 16.
+
+	if(video_info->width % multiple_of != 0)
+		video_info->codec_width = video_info->width + (multiple_of - (video_info->width % multiple_of));
+	else
+		video_info->codec_width = video_info->width;
+
+	if(video_info->height % multiple_of != 0)
+		video_info->codec_height = video_info->height + (multiple_of - (video_info->height % multiple_of));
+	else
+		video_info->codec_height = video_info->height;
+
 	if(util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den == 0)
 		video_info->framerate = 0;
 	else
 		video_info->framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->avg_frame_rate.den;
 
 	video_info->format_name = util_video_decoder_codec[session][video_index]->long_name;
+	video_info->short_format_name = util_video_decoder_codec[session][video_index]->name;
 	video_info->duration = (double)util_decoder_format_context[session]->duration / AV_TIME_BASE;
 	if(util_video_decoder_context[session][video_index]->thread_type == FF_THREAD_FRAME)
 		video_info->thread_type = THREAD_TYPE_FRAME;
@@ -1098,17 +1118,18 @@ void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_i
 
 	if(!util_decoder_opened_file[session] || !util_subtitle_decoder_init[session][subtitle_index])
 		return;
-		
-	subtitle_info->track_lang = "language:und";
+
+	subtitle_info->track_lang = "und";
 
 	if(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][subtitle_index]]->metadata)
 	{
 		data = av_dict_get(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][subtitle_index]]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
 		if(data)
-			subtitle_info->track_lang = (std::string)data->key + ":" + data->value;
+			subtitle_info->track_lang = data->value;
 	}
-		
+
 	subtitle_info->format_name = util_subtitle_decoder_codec[session][subtitle_index]->long_name;
+	subtitle_info->short_format_name = util_subtitle_decoder_codec[session][subtitle_index]->name;
 }
 
 void Util_decoder_clear_cache_packet(int session)

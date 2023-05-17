@@ -485,25 +485,29 @@ struct Watch_string
 
 struct Audio_info
 {
-	int bitrate = 0;				//Audio bitrate in Bps.
-	int sample_rate = 0;		    //Audio smaple rate in Hz.
-	int ch = 0;                 	//Number of audio channels.
-	std::string format_name = "";	//Audio codec name.
-	double duration = 0;			//Audio track duration in seconds.
-	std::string track_lang = "";    //Track languages
+	int bitrate = 0;				    //Audio bitrate in Bps.
+	int sample_rate = 0;    		    //Audio smaple rate in Hz.
+	int ch = 0;                     	//Number of audio channels.
+	std::string format_name = "";   	//Audio codec name.
+	std::string short_format_name = ""; //Audio short codec name.
+	double duration = 0;			    //Audio track duration in seconds.
+	std::string track_lang = "";        //Audio track language.
 	Sample_format sample_format = SAMPLE_FORMAT_INVALID;    //Audio sample format.
 };
 
 struct Video_info
 {
-	int width = 0;					//Video width.
-	int height = 0;					//Video height.
-	double framerate = 0;			//Video framerate.
-	std::string format_name = "";	//Video codec name.
-	double duration = 0;			//Video track duration in seconds.
+	int width = 0;	    				//Video width.
+	int height = 0; 					//Video height.
+	int codec_width = 0;			    //Video codec width (actual image width).
+	int codec_height = 0;		    	//Video codec height (actual image height).
+	double framerate = 0;	    		//Video framerate.
+	std::string format_name = "";   	//Video codec name.
+	std::string short_format_name = ""; //Video short codec name.
+	double duration = 0;		    	//Video track duration in seconds.
 	Multi_thread_type thread_type = THREAD_TYPE_NONE;   //Threading mode.
-	int sar_width = 1;	            //Sample aspect ratio for width.
-	int sar_height = 1;             //Sample aspect ratio for height.
+	int sar_width = 1;  	            //Sample aspect ratio for width.
+	int sar_height = 1;                 //Sample aspect ratio for height.
 	Pixel_format pixel_format = PIXEL_FORMAT_INVALID;   //Video pixel format.
 };
 
@@ -535,30 +539,32 @@ struct Audio_converter_parameters
 
 struct Subtitle_info
 {
-	std::string format_name = "";
-	std::string track_lang = "";
+	std::string format_name = "";       //Subtitle codec name.
+    std::string short_format_name = ""; //Subtitle short codec name.
+	std::string track_lang = "";        //Subtitle track language.
 };
 
 struct Subtitle_data
 {
-	std::string text = "";
-	double start_time = 0;
-	double end_time = 0;
+	std::string text = "";  //Subtitle text.
+	double start_time = 0;  //Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
+	double end_time = 0;    //End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 };
 
 struct Image_data
 {
-	C2D_Image c2d = { .tex = NULL, .subtex = NULL, };
-	Tex3DS_SubTexture* subtex = NULL;
-	bool selected = false;
-	double x = -1;
-	double y = -1;
-	double x_size = -1;
-	double y_size = -1;
+	C2D_Image c2d = { .tex = NULL, .subtex = NULL, };   //Texture data.
+	Tex3DS_SubTexture* subtex = NULL;                   //Subtexture data.
+	bool selected = false;  //Whether this texture is selected.
+	double x = -1;          //X (horizontal) position.
+	double y = -1;          //Y (vertical) position.
+	double x_size = -1;     //Texture drawn width.
+	double y_size = -1;     //Texture drawn height.
 };
 
 struct Hid_info
 {
+    //Is button pressed.
 	bool p_a = false;
 	bool p_b = false;
 	bool p_x = false;
@@ -583,6 +589,7 @@ struct Hid_info
 	bool p_cs_right = false;
 	bool p_touch = false;
 	bool p_any = false;
+    //Is button held.
 	bool h_a = false;
 	bool h_b = false;
 	bool h_x = false;
@@ -607,6 +614,7 @@ struct Hid_info
 	bool h_cs_right = false;
 	bool h_touch = false;
 	bool h_any = false;
+    //Is button released.
 	bool r_a = false;
 	bool r_b = false;
 	bool r_x = false;
@@ -631,6 +639,7 @@ struct Hid_info
 	bool r_cs_right = false;
 	bool r_touch = false;
 	bool r_any = false;
+    //CPAD and touch position.
 	int cpad_x = 0;
 	int cpad_y = 0;
 	int touch_x = 0;
@@ -638,19 +647,20 @@ struct Hid_info
 	int touch_x_move = 0;
 	int touch_y_move = 0;
 	int held_time = 0;
+    //Timestamp for this data.
 	u64 ts = 0;
 };
 
 struct Queue
 {
-    bool deleting;
-	u32* data;
-	u32* event_id;
-	s32 max_items;
-	s32 next_index;
-    s32 reference_count;
-	LightEvent receive_wait_event;
-	LightEvent send_wait_event;
+    bool deleting;                  //Whether this queue is being deleted.
+	u32* data;                      //Data list.
+	u32* event_id;                  //Event id list.
+	s32 max_items;                  //Queue capacity.
+	s32 next_index;                 //Next free index.
+    s32 reference_count;            //Reference count for this queue.
+	LightEvent receive_wait_event;  //If timeout is not 0, this is used to wait for new message from this queue.
+	LightEvent send_wait_event;     //If timeout is not 0, this is used to wait for available space to send data to this queue.
 };
 
 #endif

@@ -25,7 +25,6 @@
 #define DEF_DECODER_MAX_VIDEO_TRACKS 2
 #define DEF_DECODER_MAX_SUBTITLE_TRACKS 8
 #define DEF_DECODER_MAX_RAW_IMAGE 128
-#define DEF_DECODER_MAX_SUBTITLE_DATA 16
 #define DEF_DECODER_MAX_SESSIONS 2
 #define DEF_ENCODER_MAX_SESSIONS 2
 #define DEF_EXPL_MAX_FILES 1024
@@ -69,6 +68,8 @@
 #define DEF_VID_MAIN_STR (std::string)"Vid/Main"
 #define DEF_VID_INIT_STR (std::string)"Vid/Init"
 #define DEF_VID_EXIT_STR (std::string)"Vid/Exit"
+#define DEF_VID_HID_CALLBACK_STR (std::string)"Vid/Hid callback"
+#define DEF_VID_EXPL_CALLBACK_STR (std::string)"Vid/Expl callback"
 #define DEF_VID_DECODE_THREAD_STR (std::string)"Vid/Decode thread"
 #define DEF_VID_DECODE_VIDEO_THREAD_STR (std::string)"Vid/Decode video thread"
 #define DEF_VID_CONVERT_THREAD_STR (std::string)"Vid/Convert thread"
@@ -124,7 +125,10 @@
 #define DEF_VID_MOVE_VIDEO 2
 #define DEF_VID_MOVE_SUBTITLE 3
 
-#define DEF_VID_BUFFERS 3
+#define DEF_VID_VIDEO_BUFFERS 3
+#define DEF_VID_SUBTITLE_BUFFERS 16
+#define DEF_VID_MAX_FILE_NAME_LENGTH 256
+#define DEF_VID_MAX_PATH_LENGTH 8192
 
 //sample app 1
 #define DEF_SAPP1_NUM_OF_MSG 1

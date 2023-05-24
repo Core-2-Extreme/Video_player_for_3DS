@@ -185,7 +185,7 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 	*data = (u8*)Util_safe_linear_alloc(buffer_size);
 	if (!*data)
 		goto out_of_memory;
-	
+
 	remain_buffer_size = buffer_size;
 	memset(*data, 0x0, remain_buffer_size);
 
@@ -290,6 +290,8 @@ Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_
 		}
 	}
 
+	Util_safe_linear_free(cache);
+	cache = NULL;
 	return result;
 
 	out_of_memory:

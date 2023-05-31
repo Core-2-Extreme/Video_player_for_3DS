@@ -354,7 +354,7 @@ Added allow skip frames option.
 Initial release.
 
 ## License
-This software is licensed as GNU General Public License v3.0. \
+This software is licensed as GNU General Public License v3.0.
 
 Third party libraries are licensed as :
 

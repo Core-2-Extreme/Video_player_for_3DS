@@ -3859,7 +3859,7 @@ void Vid_init_thread(void* arg)
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		Util_add_watch(&vid_player.audio_track_button[i].selected);
 
-	for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_add_watch(&vid_player.subtitle_track_button[i].selected);
 
 	for(int i = 0; i < 3; i++)
@@ -4139,7 +4139,7 @@ void Vid_exit_thread(void* arg)
 	for(int i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
 		Util_remove_watch(&vid_player.audio_track_button[i].selected);
 
-	for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)
+	for(int i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_remove_watch(&vid_player.subtitle_track_button[i].selected);
 
 	for(int i = 0; i < 3; i++)

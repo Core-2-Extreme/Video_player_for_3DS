@@ -166,7 +166,10 @@ struct Vid_player
 	bool show_packet_buffer_graph = true;			//Whether show packet buffer health graph in debug view.
 	bool show_raw_video_buffer_graph = true;		//Whether show video buffer health graph in debug view.
 	bool show_raw_audio_buffer_graph = true;		//Whether show audio buffer health graph in debug view.
-	int total_frames = 0;							//Total number of decoded frames.
+	int total_frames = 0;							//Total number of decoded frames
+													//(including decoded frames in seeking, so this is not the same as total_rendered_frames).
+	int total_rendered_frames = 0;					//Total number of rendered frames.
+	int total_dropped_frames = 0;					//Total number of dropped frames that should have rendered.
 	u64 previous_ts = 0;							//Time stamp for last graph update (only for packet, video and audio buffers).
 	double decoding_min_time = 0;					//Minimum video decoding time in ms.
 	double decoding_max_time = 0;					//Maximum video decoding time in ms.
@@ -194,16 +197,20 @@ struct Vid_player
 
 	//Video.
 	int num_of_video_tracks = 0;					//Number of video tracks for current file.
-	int image_index = 0;							//Next texture buffer index to store converted image.
-	int image_index_3d = 0;							//Next 3d video texture buffer (for right eye) index to store converted image.
 	int vps = 0;									//Actual video playback framerate.
-	double video_current_pos = 0;					//Current video position in ms.
+	int vfps_cache = 0;								//Actual video playback framerate cache.
+	u64 next_frame_update_time = 0;					//Next timestamp to update a video frame.
+	u64 next_vfps_update = 0;						//Next timestamp to update vps value.
+	double _3d_slider_pos = 0;						//3D slider position (0.0~1.0).
 	double video_x_offset = 0;						//X (horizontal) offset for video.
 	double video_y_offset = 15;						//Y (vertical) offset for video.
 	double video_zoom = 1;							//Zoom level for video.
 	double video_frametime = 0;						//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
+	int next_store_index[DEF_DECODER_MAX_VIDEO_TRACKS];		//Next texture buffer index to store converted image.
+	int next_draw_index[DEF_DECODER_MAX_VIDEO_TRACKS];		//Next texture buffer index that is ready to draw.
+	double video_current_pos[DEF_DECODER_MAX_VIDEO_TRACKS];	//Current video position in ms.
 	Video_info video_info[DEF_DECODER_MAX_VIDEO_TRACKS];	//Video info.
-	Large_image large_image[DEF_VID_VIDEO_BUFFERS][2];		//Texture for video images.
+	Large_image large_image[DEF_VID_VIDEO_BUFFERS][DEF_DECODER_MAX_VIDEO_TRACKS];	//Texture for video images.
 
 	//Audio.
 	int num_of_audio_tracks = 0;					//Number of audio tracks for current file.
@@ -766,6 +773,8 @@ void Vid_init_debug_view_mode(void)
 void Vid_init_debug_view_data(void)
 {
 	vid_player.total_frames = 0;
+	vid_player.total_rendered_frames = 0;
+	vid_player.total_dropped_frames = 0;
 	vid_player.previous_ts = 0;
 	vid_player.decoding_min_time = 0xFFFFFFFF;
 	vid_player.decoding_max_time = 0;
@@ -804,17 +813,20 @@ void Vid_init_media_data(void)
 void Vid_init_video_data(void)
 {
 	vid_player.num_of_video_tracks = 0;
-	vid_player.image_index = 0;
-	vid_player.image_index_3d = 0;
+	vid_player.next_frame_update_time = osGetTime();
+	vid_player.next_vfps_update = osGetTime() + 1000;
 	vid_player.vps = 0;
-	vid_player.video_current_pos = 0;
 	vid_player.video_x_offset = 0;
 	vid_player.video_y_offset = 15;
 	vid_player.video_zoom = 1;
 	vid_player.video_frametime = 0;
+	vid_player._3d_slider_pos = osGet3DSliderState();
 
 	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
+		vid_player.next_store_index[i] = 0;
+		vid_player.next_draw_index[i] = 0;
+		vid_player.video_current_pos[i] = 0;
 		vid_player.video_info[i].width = 0;
 		vid_player.video_info[i].height = 0;
 		vid_player.video_info[i].codec_width = 0;
@@ -831,7 +843,7 @@ void Vid_init_video_data(void)
 
 	for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 	{
-		for(int k = 0; k < 2; k++)
+		for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 			Vid_large_texture_free(&vid_player.large_image[i][k]);
 	}
 }
@@ -1113,7 +1125,7 @@ void Vid_hid(Hid_info key)
 					//Update texture filter.
 					for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 					{
-						for(int k = 0; k < 2; k++)
+						for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 							Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 					}
 				}
@@ -2125,7 +2137,7 @@ void Vid_decode_thread(void* arg)
 								//Apply texture filter.
 								for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 								{
-									for(int k = 0; k < 2; k++)
+									for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 										Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 								}
 
@@ -2482,7 +2494,7 @@ void Vid_decode_thread(void* arg)
 
 					for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 					{
-						for(int k = 0; k < 2; k++)
+						for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 							Vid_large_texture_free(&vid_player.large_image[i][k]);
 					}
 
@@ -2716,8 +2728,10 @@ void Vid_decode_thread(void* arg)
 			if(vid_player.num_of_audio_tracks > 0)
 				vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 
-			//Get position from audio track if duration is longer than video track.
-			if(vid_player.num_of_video_tracks == 0 || vid_player.audio_info[vid_player.selected_audio_track].duration > vid_player.video_info[0].duration)
+			//Get position from audio track if file does not have video tracks,
+			//frametime is unknown or audio duration is longer than video track.
+			if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0
+			|| vid_player.audio_info[vid_player.selected_audio_track].duration > vid_player.video_info[0].duration)
 				vid_player.media_current_pos = vid_player.audio_current_pos;
 
 			//If file does not have video tracks, update bar pos to see if the position has changed
@@ -2841,7 +2855,7 @@ void Vid_decode_thread(void* arg)
 			if(vid_player.state == PLAYER_STATE_SEEKING && (vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0 || type == PACKET_TYPE_VIDEO))
 			{
 				//Make sure we went back.
-				if((wait_count <= 0 && vid_player.video_current_pos < seek_start_pos)
+				if((wait_count <= 0 && vid_player.video_current_pos[0] < seek_start_pos)
 				|| vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)//Remove seek backward wait bit.
 					vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);
 
@@ -3249,9 +3263,7 @@ void Vid_convert_thread(void* arg)
 
 	bool should_convert = false;
 	int packet_index = 0;
-	int vfps_cache = 0;
-	u64 next_vfps_update = 0;
-	double video_delay_ms = 0;
+	double video_delay_ms[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	TickCounter conversion_time_counter;
 	Result_with_string result;
 
@@ -3260,6 +3272,8 @@ void Vid_convert_thread(void* arg)
 	while (vid_thread_run)
 	{
 		int num_of_cached_raw_images = 0;
+		double drop_threshold = 0;
+		double max_drop = 0;
 		u64 timeout_us = DEF_ACTIVE_THREAD_SLEEP_TIME;
 		Vid_command event = NONE_REQUEST;
 
@@ -3287,10 +3301,9 @@ void Vid_convert_thread(void* arg)
 						break;
 
 					should_convert = true;
-					video_delay_ms = 0;
 					packet_index = 0;
-					vfps_cache = 0;
-					next_vfps_update = osGetTime() + 1000;
+					for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+						video_delay_ms[i] = 0;
 
 					break;
 				}
@@ -3298,10 +3311,9 @@ void Vid_convert_thread(void* arg)
 				case CONVERT_THREAD_ABORT_REQUEST:
 				{
 					should_convert = false;
-					video_delay_ms = 0;
 					packet_index = 0;
-					vfps_cache = 0;
-					next_vfps_update = 0;
+					for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+						video_delay_ms[i] = 0;
 
 					//Flush the command queue.
 					while(true)
@@ -3323,23 +3335,13 @@ void Vid_convert_thread(void* arg)
 			}
 		}
 
-		//Update vps (video playback framerate).
-		if(osGetTime() >= next_vfps_update)
-		{
-			if(osGetTime() >= next_vfps_update + 1000)
-				next_vfps_update = osGetTime() + 1000;
-			else
-				next_vfps_update += 1000;
-
-			vid_player.vps = vfps_cache;
-			vfps_cache = 0;
-		}
-
 		//Do nothing if player state is idle, prepare playing, pause, prepare seeking or should_convert flag is not set.
 		if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
-		|| vid_player.state == PLAYER_STATE_PAUSE || vid_player.state == PLAYER_STATE_PREPARE_SEEKING || !should_convert)
+		|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || !should_convert)
 		{
-			video_delay_ms = 0;
+			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+				video_delay_ms[i] = 0;
+
 			continue;
 		}
 
@@ -3349,55 +3351,82 @@ void Vid_convert_thread(void* arg)
 		else
 			num_of_cached_raw_images = Util_video_decoder_get_available_raw_image_num(packet_index, 0);
 
+		if(vid_player.video_frametime != 0)
+		{
+			//Calc video frame drop threshold.
+			drop_threshold = (vid_player.video_frametime * DEF_VID_VIDEO_BUFFERS / 2);
+			if(vid_player.num_of_video_tracks >= 2)
+				drop_threshold *= 2;
+
+			//Don't skip too many frames at onece.
+			max_drop = (vid_player.video_frametime * DEF_VID_VIDEO_BUFFERS * 2);
+			if(vid_player.num_of_video_tracks >= 2)
+				max_drop *= 2;
+		}
+
+		if(video_delay_ms[packet_index] > max_drop)
+			video_delay_ms[packet_index] = max_drop;
+
 		//Skip video frame if we can't keep up or we are seeking.
-		if((video_delay_ms > vid_player.video_frametime || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime != 0)
+		if((video_delay_ms[packet_index] > drop_threshold || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime != 0)
 		{
 			if(num_of_cached_raw_images > 0)
 			{
 				double pos = 0;
 
+				//We doropped a frame.
+				if(vid_player.state != PLAYER_STATE_SEEKING)
+					vid_player.total_dropped_frames++;
+
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+				{
+					//Hardware decoder can't decode 2 tracks at the same time.
 					Util_mvd_video_decoder_skip_image(&pos, 0);
+					vid_player.video_current_pos[0] = pos;
+				}
 				else
 				{
-					if(vid_player.num_of_video_tracks >= 2)
-					{
-						Util_video_decoder_skip_image(&pos, 0, 0);
-						Util_video_decoder_skip_image(&pos, 1, 0);
-					}
-					else
-						Util_video_decoder_skip_image(&pos, packet_index, 0);
+					Util_video_decoder_skip_image(&pos, packet_index, 0);
+					vid_player.video_current_pos[packet_index] = pos;
 				}
-
-				vid_player.video_current_pos = pos;
-				if(vid_player.num_of_video_tracks >= 2)
-					packet_index = (packet_index == 0 ? 1 : 0);
 			}
 			else if(vid_player.state == PLAYER_STATE_SEEKING)
 				Util_sleep(3000);
 
 			osTickCounterUpdate(&conversion_time_counter);
 
-			//Get position from video track if duration is longer than ot equal to audio track.
+			//Get position from video track if duration is longer than or equal to audio track.
 			if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
 			|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-				vid_player.media_current_pos = vid_player.video_current_pos;
+				vid_player.media_current_pos = vid_player.video_current_pos[0];
 
 			if(vid_player.state == PLAYER_STATE_SEEKING)
-				video_delay_ms = 0;
+			{
+				for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+					video_delay_ms[i] = 0;
+			}
 			else
-				video_delay_ms -= vid_player.video_frametime - osTickCounterRead(&conversion_time_counter);
+				video_delay_ms[packet_index] -= vid_player.video_frametime;
+
+			if(vid_player.num_of_video_tracks >= 2)
+				packet_index = (packet_index == 0 ? 1 : 0);
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
-			osTickCounterUpdate(&conversion_time_counter);
-
 			if(num_of_cached_raw_images <= 0 && vid_player.video_frametime != 0 && (Util_speaker_get_available_buffer_num(0) + 1) < DEF_SPEAKER_MAX_BUFFERS)
 			{
 				//Notify we've run out of buffer.
 				DEF_VID_QUEUE_ADD_WITH_LOG(DEF_VID_CONVERT_THREAD_STR, &vid_player.decode_thread_notification_queue,
 				CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST)
-				Util_sleep(1000);
+				Util_sleep(5000);
+				continue;
+			}
+			else if(num_of_cached_raw_images <= 0)
+			{
+				//We've run out of buffer, but frametime is unknown, this is most likely tagged mp3
+				//that has only one picture, so don't send out of buffer notification.
+				Util_sleep(5000);
+				continue;
 			}
 			else
 			{
@@ -3405,30 +3434,67 @@ void Vid_convert_thread(void* arg)
 				u8* video = NULL;
 				int width = vid_player.video_info[packet_index].codec_width;
 				int height = vid_player.video_info[packet_index].codec_height;
+				int next_store_index = vid_player.next_store_index[packet_index];
+				int next_draw_index = vid_player.next_draw_index[packet_index];
+				int buffer_health = 0;
 				double pos = 0;
+
+				if(next_draw_index <= next_store_index)
+					buffer_health = next_store_index - next_draw_index;
+				else
+					buffer_health = DEF_VID_VIDEO_BUFFERS - next_draw_index + next_store_index;
+
+				if(buffer_health + 1 >= DEF_VID_VIDEO_BUFFERS)
+				{
+					//Buffer is full.
+					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
+					{
+						//Audio exist, sync with audio time.
+						//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / num_of_ch / sample_rate) * 1000).
+						double audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_player.audio_info[vid_player.selected_audio_track].ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+						video_delay_ms[packet_index] = (vid_player.last_decoded_audio_pos - audio_buffer_health_ms) - vid_player.video_current_pos[packet_index];
+					}
+					else
+					{
+						//Audio doesn't exist, no time reference exist just add 1ms.
+						video_delay_ms[packet_index]++;
+					}
+
+					Util_sleep(1000);
+					continue;
+				}
+
+				osTickCounterUpdate(&conversion_time_counter);
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
 					result = Util_mvd_video_decoder_get_image(&video, &pos, vid_player.video_info[0].codec_width, vid_player.video_info[0].codec_height, 0);
 				else
 					result = Util_video_decoder_get_image(&yuv_video, &pos, width, height, packet_index, 0);
 
-				if(result.code == 0)
+				//Get position from video track if duration is longer than or equal to audio track.
+				if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
+				|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
+				{
+					if(vid_player.num_of_video_tracks >= 2)
+						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
+					else
+						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
+
+					//We use track 0 as a time reference.
+					vid_player.media_current_pos = vid_player.video_current_pos[0];
+				}
+
+				//Update audio position.
+				if(vid_player.num_of_audio_tracks > 0)
 				{
 					//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / num_of_ch / sample_rate) * 1000).
 					double audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_player.audio_info[vid_player.selected_audio_track].ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+					audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_player.audio_info[vid_player.selected_audio_track].ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+					vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
+				}
 
-					//Get position from video track if duration is longer than ot equal to audio track.
-					if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-					|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-					{
-						vid_player.video_current_pos = pos - vid_player.video_frametime;
-						vid_player.media_current_pos = vid_player.video_current_pos;
-					}
-
-					//Update audio position.
-					if(vid_player.num_of_audio_tracks > 0)
-						vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
-
+				if(result.code == 0)
+				{
 					//Hardware decoder returns BGR565, so we don't have to convert it.
 					if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING))
 					{
@@ -3453,7 +3519,7 @@ void Vid_convert_thread(void* arg)
 					//Set texture data.
 					if(result.code == 0)
 					{
-						int image_num = (packet_index == 0 ? vid_player.image_index : vid_player.image_index_3d);
+						int image_num = vid_player.next_store_index[packet_index];
 
 						if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && (vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION))//Raw image is texture format.
 							result = Vid_large_texture_set_data(&vid_player.large_image[image_num][packet_index], video, width, height, true);
@@ -3465,30 +3531,6 @@ void Vid_convert_thread(void* arg)
 
 						//Crop the image so that user won't see glitch on videos.
 						Vid_large_texture_crop(&vid_player.large_image[image_num][packet_index], vid_player.video_info[packet_index].width, vid_player.video_info[packet_index].height);
-
-						if(packet_index == 0)
-						{
-							if(image_num + 1 < DEF_VID_VIDEO_BUFFERS)
-								vid_player.image_index++;
-							else
-								vid_player.image_index = 0;
-						}
-						else if(packet_index == 1)
-						{
-							if(image_num + 1 < DEF_VID_VIDEO_BUFFERS)
-								vid_player.image_index_3d++;
-							else
-								vid_player.image_index_3d = 0;
-						}
-
-						if(packet_index == 0)
-						{
-							vfps_cache++;
-							var_need_reflesh = true;
-						}
-
-						if(vid_player.num_of_video_tracks >= 2)
-							packet_index = !packet_index;
 					}
 					else
 						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_converter_yuv420p_to_bgr565()..." + result.string + result.error_description, result.code);
@@ -3499,8 +3541,27 @@ void Vid_convert_thread(void* arg)
 						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_mvd_video_decoder_get_image()..." + result.string + result.error_description, result.code);
 					else
 						Util_log_save(DEF_VID_CONVERT_THREAD_STR, "Util_video_decoder_get_image()..." + result.string + result.error_description, result.code);
+				}
 
-					Util_sleep(5000);
+				if(result.code == 0)
+				{
+					//Update buffer index.
+					if(next_store_index + 1 < DEF_VID_VIDEO_BUFFERS)
+						next_store_index++;
+					else
+						next_store_index = 0;
+
+					vid_player.next_store_index[packet_index] = next_store_index;
+
+					if(vid_player.num_of_video_tracks >= 2)
+						packet_index = (packet_index == 0 ? 1 : 0);
+
+					vid_player.total_rendered_frames++;
+				}
+				else
+				{
+					vid_player.total_dropped_frames++;
+					Util_sleep(1000);
 				}
 
 				Util_safe_linear_free(yuv_video);
@@ -3514,59 +3575,18 @@ void Vid_convert_thread(void* arg)
 				osTickCounterUpdate(&conversion_time_counter);
 				vid_player.conversion_time_list[319] = osTickCounterRead(&conversion_time_counter);
 
-				if(packet_index == 0 && vid_player.video_frametime != 0)
+				if(result.code == 0 && vid_player.video_frametime != 0)
 				{
-					//Calculate how long we should sleep before converting the next frame.
-					double sleep_time_ms = (vid_player.video_frametime - vid_player.conversion_time_list[319]);
-
-					if(vid_player.num_of_audio_tracks > 0 && Util_speaker_get_available_buffer_num(0) > 0)
+					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
 					{
-						float av_difference_ms = vid_player.video_current_pos - vid_player.audio_current_pos;
-
-						if(av_difference_ms >= 0)
-						{
-							//If audio is late, add extra sleep (up to 100ms) time to sync with audio.
-							sleep_time_ms += av_difference_ms > 100 ? 100 : av_difference_ms;
-						}
-						else
-						{
-							//If video is late, reduce sleep time to sync with audio
-							sleep_time_ms += av_difference_ms < -100 ? -100 : av_difference_ms;
-						}
-					}
-
-					if(sleep_time_ms > 0)
-					{
-						if(video_delay_ms > 0)
-						{
-							//If we are delayed, try to reduce delay time before sleeping.
-							if(sleep_time_ms > video_delay_ms)
-							{
-								sleep_time_ms -= video_delay_ms;
-								video_delay_ms = 0;
-							}
-							else
-							{
-								video_delay_ms -= sleep_time_ms;
-								sleep_time_ms = 0;
-							}
-						}
-
-						if(sleep_time_ms > 0)
-						{
-							//We still go ahead, so we can sleep.
-							TickCounter counter;
-
-							osTickCounterStart(&counter);
-							Util_sleep(sleep_time_ms * 1000);
-							osTickCounterUpdate(&counter);
-
-							//Sleep function may sleep more than the specified duration, so check the actual sleep duration.
-							video_delay_ms += osTickCounterRead(&counter) - sleep_time_ms;
-						}
+						//Audio exist, sync with audio time.
+						video_delay_ms[packet_index] = vid_player.audio_current_pos - vid_player.video_current_pos[packet_index];
 					}
 					else
-						video_delay_ms -= sleep_time_ms;//We are delayed.
+					{
+						//Audio doesn't exist, calculate video delay based on conversion time.
+						video_delay_ms[packet_index] += vid_player.conversion_time_list[319] - vid_player.video_frametime;
+					}
 				}
 			}
 		}
@@ -3580,7 +3600,8 @@ void Vid_convert_thread(void* arg)
 				CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE)
 			}
 
-			video_delay_ms = 0;
+			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+				video_delay_ms[i] = 0;
 		}
 		else
 			Util_sleep(1000);
@@ -3722,6 +3743,8 @@ void Vid_resume(void)
 	vid_main_run = true;
 	var_need_reflesh = true;
 	Menu_suspend();
+
+	vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
 }
 
 void Vid_suspend(void)
@@ -3819,6 +3842,7 @@ void Vid_init_thread(void* arg)
 	Util_add_watch(&vid_player.subtitle_x_offset);
 	Util_add_watch(&vid_player.subtitle_y_offset);
 	Util_add_watch(&vid_player.subtitle_zoom);
+	Util_add_watch(&vid_player._3d_slider_pos);
 	Util_add_watch(&vid_player.video_x_offset);
 	Util_add_watch(&vid_player.video_y_offset);
 	Util_add_watch(&vid_player.video_zoom);
@@ -4099,6 +4123,7 @@ void Vid_exit_thread(void* arg)
 	Util_remove_watch(&vid_player.subtitle_x_offset);
 	Util_remove_watch(&vid_player.subtitle_y_offset);
 	Util_remove_watch(&vid_player.subtitle_zoom);
+	Util_remove_watch(&vid_player._3d_slider_pos);
 	Util_remove_watch(&vid_player.video_x_offset);
 	Util_remove_watch(&vid_player.video_y_offset);
 	Util_remove_watch(&vid_player.video_zoom);
@@ -4271,12 +4296,12 @@ void Vid_main(void)
 	int color = DEF_DRAW_BLACK;
 	int disabled_color = DEF_DRAW_WEAK_BLACK;
 	int back_color = DEF_DRAW_WHITE;
-	int image_num = 0;
-	int image_num_3d = 0;
+	//Array 0 == for left eye, array 1 == for right eye.
+	int image_index[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	double image_width[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	double image_height[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	double y_offset = 0;
-	char msg_cache[128];
+	char msg_cache[192];
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	std::string swkbd_input = "";
@@ -4290,15 +4315,114 @@ void Vid_main(void)
 		back_color = DEF_DRAW_BLACK;
 	}
 
-	if(vid_player.image_index - 1 >= 0)
-		image_num = vid_player.image_index - 1;
-	else
-		image_num = DEF_VID_VIDEO_BUFFERS - 1;
+	//Assign previous frame index first.
+	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	{
+		if(vid_player.next_draw_index[i] > 0)
+			image_index[i] = vid_player.next_draw_index[i] - 1;
+		else
+			image_index[i] = DEF_VID_VIDEO_BUFFERS - 1;
+	}
 
-	if(vid_player.image_index_3d - 1 >= 0)
-		image_num_3d = vid_player.image_index_3d - 1;
+	if(vid_player.state == PLAYER_STATE_PLAYING && vid_player.num_of_video_tracks > 0)
+	{
+		if(vid_player.next_frame_update_time <= osGetTime())
+		{
+			//Array 0 == for left eye, array 1 == for right eye.
+			bool is_both_buffer_ready = false;
+			bool is_buffer_full = false;
+			int buffer_health[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
+
+			//Update next frame update timestamp.
+			vid_player.next_frame_update_time += vid_player.video_frametime;
+			if(vid_player.num_of_video_tracks >= 2)
+				vid_player.next_frame_update_time += vid_player.video_frametime;
+
+			//Check for buffer health.
+			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+			{
+				if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
+					buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
+				else
+					buffer_health[i] = DEF_VID_VIDEO_BUFFERS - vid_player.next_draw_index[i] + vid_player.next_store_index[i];
+			}
+
+			if(vid_player.num_of_video_tracks >= 2)
+			{
+				is_both_buffer_ready = ((buffer_health[0] > 0) && (buffer_health[1] > 0));
+				is_buffer_full = ((buffer_health[0] >= (DEF_VID_VIDEO_BUFFERS - 1)) || (buffer_health[1] >= (DEF_VID_VIDEO_BUFFERS - 1)));
+			}
+			else
+			{
+				is_both_buffer_ready = (buffer_health[0] > 0);
+				is_buffer_full = (buffer_health[0] >= (DEF_VID_VIDEO_BUFFERS - 1));
+			}
+
+			//Update video frame if any of them is true :
+			//1. Both buffer has at least 1 ready frame.
+			//(If number of video tracks is 1, then if buffer for left eye has at least 1 ready frame.)
+			//2. Any of buffer is full.
+			if(is_both_buffer_ready || is_buffer_full)
+			{
+				double av_difference = 0;
+
+				if(vid_player.num_of_audio_tracks > 0)
+					av_difference = vid_player.video_current_pos[0] - vid_player.audio_current_pos;
+
+				for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+				{
+					if(vid_player.num_of_video_tracks <= i)
+						break;
+
+					//If no buffer is available, don't update it.
+					if(buffer_health[i] == 0)
+						continue;
+
+					//Update buffer index.
+					image_index[i] = vid_player.next_draw_index[i];
+
+					if(vid_player.next_draw_index[i] + 1 < DEF_VID_VIDEO_BUFFERS)
+						vid_player.next_draw_index[i]++;
+					else
+						vid_player.next_draw_index[i] = 0;
+				}
+
+				var_need_reflesh = true;
+				vid_player.vfps_cache++;
+
+				//If video goes too fast, increase next frame update timestamp.
+				//The reason threshold is multiple of 16.8ms here is this function (Vid_main())
+				//is called approximately every 16.7ms (60fps) so that frame update
+				//won't be performed next time this function is called.
+				if(av_difference > (16.8 * 2))
+				{
+					double extra_wait = (av_difference > 168 ? 168 : av_difference);//Add time up to 168ms.
+					extra_wait = 16.8 * (int)(extra_wait / 16.8);
+					vid_player.next_frame_update_time += extra_wait;
+				}
+			}
+			else
+			{
+				//Unfortunately, we dropped frame since no frames are ready.
+			}
+		}
+	}
 	else
-		image_num_3d = DEF_VID_VIDEO_BUFFERS - 1;
+		vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
+
+	//Update vps (video playback framerate).
+	if(osGetTime() >= vid_player.next_vfps_update)
+	{
+		if(osGetTime() >= vid_player.next_vfps_update + 1000)
+			vid_player.next_vfps_update = osGetTime() + 1000;
+		else
+			vid_player.next_vfps_update += 1000;
+
+		vid_player.vps = vid_player.vfps_cache;
+		vid_player.vfps_cache = 0;
+	}
+
+	vid_player._3d_slider_pos = osGet3DSliderState();
 
 	Vid_control_full_screen();
 
@@ -4347,12 +4471,20 @@ void Vid_main(void)
 
 			if(vid_player.state != PLAYER_STATE_IDLE)
 			{
+				double video_x_offset = vid_player.video_x_offset;
+
+				//Change video offset based on 3D slider bar position for 3D videos
+				//so that user can manually adjust it with 3D slider bar.
+				if(Draw_is_3d_mode() && vid_player._3d_slider_pos > 0)
+					video_x_offset -= ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
+
 				//Draw videos.
-				Vid_large_texture_draw(&vid_player.large_image[image_num][0], vid_player.video_x_offset, vid_player.video_y_offset, image_width[0], image_height[0]);
+				Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset, vid_player.video_y_offset, image_width[0], image_height[0]);
 
 				for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
 				{
-					if(vid_player.video_current_pos >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos <= vid_player.subtitle_data[i].end_time)
+					//We use video track 0 as a time reference.
+					if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
 					{
 						Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom,
 						DEF_DRAW_WHITE, X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -4440,12 +4572,20 @@ void Vid_main(void)
 
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
+					double video_x_offset = vid_player.video_x_offset;
+
+					//Change video offset based on 3D slider bar position for 3D videos
+					//so that user can manually adjust it with 3D slider bar.
+					if(vid_player._3d_slider_pos > 0)
+						video_x_offset += ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
+
 					//Draw 3d videos (right eye).
-					Vid_large_texture_draw(&vid_player.large_image[image_num_3d][1], vid_player.video_x_offset, vid_player.video_y_offset, image_width[1], image_height[1]);
+					Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset, vid_player.video_y_offset, image_width[1], image_height[1]);
 
 					for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
 					{
-						if(vid_player.video_current_pos >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos <= vid_player.subtitle_data[i].end_time)
+						//We use video track 0 as a time reference.
+						if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
 						{
 							Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom, DEF_DRAW_WHITE, 
 								X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
@@ -4502,11 +4642,12 @@ void Vid_main(void)
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
 					//Draw videos.
-					Vid_large_texture_draw(&vid_player.large_image[image_num][0], vid_player.video_x_offset - 40, vid_player.video_y_offset - 240, image_width[0], image_height[0]);
+					Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], vid_player.video_x_offset - 40, vid_player.video_y_offset - 240, image_width[0], image_height[0]);
 
 					for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
 					{
-						if(vid_player.video_current_pos >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos <= vid_player.subtitle_data[i].end_time)
+						//We use video track 0 as a time reference.
+						if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
 						{
 							Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset - 240, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom, DEF_DRAW_WHITE, 
 								X_ALIGN_CENTER, Y_ALIGN_CENTER, 320, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);

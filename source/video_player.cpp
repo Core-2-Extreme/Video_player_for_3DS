@@ -177,7 +177,7 @@ struct Vid_player
 	double decoding_recent_total_time = 0;			//Same as above, but only for recent 90 frames.
 	bool keyframe_list[320];						//List for keyframe.
 	int packet_buffer_list[320];					//List for packet buffer health.
-	int raw_video_buffer_list[320];					//List for video buffer health.
+	int raw_video_buffer_list[320][DEF_DECODER_MAX_VIDEO_TRACKS];	//List for video buffer health.
 	int raw_audio_buffer_list[320];					//List for audio buffer health.
 	double video_decoding_time_list[320];			//List for video decoding time in ms.
 	double audio_decoding_time_list[320];			//List for audio decoding time in ms.
@@ -785,7 +785,9 @@ void Vid_init_debug_view_data(void)
 	{
 		vid_player.keyframe_list[i] = 0;
 		vid_player.packet_buffer_list[i] = 0;
-		vid_player.raw_video_buffer_list[i] = 0;
+		for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+			vid_player.raw_video_buffer_list[i][k] = 0;
+
 		vid_player.raw_audio_buffer_list[i] = 0;
 		vid_player.video_decoding_time_list[i] = 0;
 		vid_player.audio_decoding_time_list[i] = 0;
@@ -3134,10 +3136,10 @@ void Vid_decode_video_thread(void* arg)
 
 								osTickCounterUpdate(&counter);
 
-								if(result.code == DEF_ERR_MVD_TRY_AGAIN || result.code == DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT
+								if(result.code == DEF_ERR_DECODER_TRY_AGAIN || result.code == DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT
 								|| result.code == DEF_ERR_TRY_AGAIN)
 								{
-									if(result.code == DEF_ERR_MVD_TRY_AGAIN)//Got a frame.
+									if(result.code == DEF_ERR_DECODER_TRY_AGAIN)//Got a frame.
 									{
 										Vid_update_performance_graph(osTickCounterRead(&counter), key_frame, &skip);
 										key_frame = false;
@@ -3208,7 +3210,7 @@ void Vid_decode_video_thread(void* arg)
 								result = Util_video_decoder_decode(1, 0);
 						}
 
-						if(result.code != 0 && result.code != DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT && result.code != DEF_ERR_MVD_TRY_AGAIN)
+						if(result.code != 0 && result.code != DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT && result.code != DEF_ERR_DECODER_TRY_AGAIN)
 							break;
 					}
 
@@ -3407,12 +3409,12 @@ void Vid_convert_thread(void* arg)
 			}
 			else
 				video_delay_ms[packet_index] -= vid_player.video_frametime;
-
-			if(vid_player.num_of_video_tracks >= 2)
-				packet_index = (packet_index == 0 ? 1 : 0);
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
+			if(vid_player.num_of_video_tracks >= 2)
+				num_of_cached_raw_images = Util_max(Util_video_decoder_get_available_raw_image_num(0, 0), Util_video_decoder_get_available_raw_image_num(1, 0));
+
 			if(num_of_cached_raw_images <= 0 && vid_player.video_frametime != 0 && (Util_speaker_get_available_buffer_num(0) + 1) < DEF_SPEAKER_MAX_BUFFERS)
 			{
 				//Notify we've run out of buffer.
@@ -3471,19 +3473,6 @@ void Vid_convert_thread(void* arg)
 				else
 					result = Util_video_decoder_get_image(&yuv_video, &pos, width, height, packet_index, 0);
 
-				//Get position from video track if duration is longer than or equal to audio track.
-				if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-				|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-				{
-					if(vid_player.num_of_video_tracks >= 2)
-						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
-					else
-						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
-
-					//We use track 0 as a time reference.
-					vid_player.media_current_pos = vid_player.video_current_pos[0];
-				}
-
 				//Update audio position.
 				if(vid_player.num_of_audio_tracks > 0)
 				{
@@ -3495,6 +3484,19 @@ void Vid_convert_thread(void* arg)
 
 				if(result.code == 0)
 				{
+					//Get position from video track if duration is longer than or equal to audio track.
+					if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
+					|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
+					{
+						if(vid_player.num_of_video_tracks >= 2)
+							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
+						else
+							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
+
+						//We use track 0 as a time reference.
+						vid_player.media_current_pos = vid_player.video_current_pos[0];
+					}
+
 					//Hardware decoder returns BGR565, so we don't have to convert it.
 					if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING))
 					{
@@ -3553,9 +3555,6 @@ void Vid_convert_thread(void* arg)
 
 					vid_player.next_store_index[packet_index] = next_store_index;
 
-					if(vid_player.num_of_video_tracks >= 2)
-						packet_index = (packet_index == 0 ? 1 : 0);
-
 					vid_player.total_rendered_frames++;
 				}
 				else
@@ -3588,6 +3587,9 @@ void Vid_convert_thread(void* arg)
 						video_delay_ms[packet_index] += vid_player.conversion_time_list[319] - vid_player.video_frametime;
 					}
 				}
+
+				if(vid_player.num_of_video_tracks >= 2)
+					packet_index = (packet_index == 0 ? 1 : 0);
 			}
 		}
 		else if(vid_player.state == PLAYER_STATE_BUFFERING)
@@ -4441,7 +4443,8 @@ void Vid_main(void)
 		vid_player.previous_ts = osGetTime();
 		vid_player.packet_buffer_list[319] = Util_decoder_get_available_packet_num(0);
 		vid_player.raw_audio_buffer_list[319] = Util_speaker_get_available_buffer_num(0);
-		vid_player.raw_video_buffer_list[319] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0);
+		vid_player.raw_video_buffer_list[319][0] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0);
+		vid_player.raw_video_buffer_list[319][1] = Util_video_decoder_get_available_raw_image_num(1, 0);
 
 		for(int i = 1; i < 320; i++)
 			vid_player.packet_buffer_list[i - 1] = vid_player.packet_buffer_list[i];
@@ -4450,7 +4453,10 @@ void Vid_main(void)
 			vid_player.raw_audio_buffer_list[i - 1] = vid_player.raw_audio_buffer_list[i];
 
 		for(int i = 1; i < 320; i++)
-			vid_player.raw_video_buffer_list[i - 1] = vid_player.raw_video_buffer_list[i];
+		{
+			for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+				vid_player.raw_video_buffer_list[i - 1][k] = vid_player.raw_video_buffer_list[i][k];
+		}
 	}
 
 
@@ -4960,7 +4966,10 @@ void Vid_main(void)
 					if(vid_player.show_raw_video_buffer_graph)
 					{
 						for(int i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i][0] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1][0] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
+
+						for(int i = 0; i < 319; i++)
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
 					}
 					//raw audio buffer
 					if(vid_player.show_raw_audio_buffer_graph)

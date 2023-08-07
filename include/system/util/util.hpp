@@ -259,6 +259,24 @@ u32 Util_get_core_1_max(void);
 void Util_sleep(s64 us);
 
 /**
+ * @brief Compare values and return minimum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Minimum value.
+ * @note Thread safe
+*/
+long Util_min(long value_0, long value_1);
+
+/**
+ * @brief Compare values and return maximum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Maximum value.
+ * @note Thread safe
+*/
+long Util_max(long value_0, long value_1);
+
+/**
  * @brief To prevent 'statement has no effect' warning in unused functions.
 */
 bool Util_return_bool(bool value);

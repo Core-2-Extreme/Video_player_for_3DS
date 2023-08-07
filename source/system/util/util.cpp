@@ -845,6 +845,16 @@ void Util_sleep(s64 us)
 	svcSleepThread(us * 1000);
 }
 
+long Util_min(long value_0, long value_1)
+{
+	return (value_0 > value_1 ? value_1 : value_0);
+}
+
+long Util_max(long value_0, long value_1)
+{
+	return (value_0 > value_1 ? value_0 : value_1);
+}
+
 bool Util_return_bool(bool value)
 {
 	return value;

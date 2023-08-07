@@ -353,6 +353,24 @@ u8 util_audio_decoder_sample_format_size_table[] =
     sizeof(s64),
 };
 
+// void Util_video_decoder_log_callback(void *avcl, int level, const char *fmt, va_list list)
+// {
+// 	if(level > AV_LOG_ERROR)
+// 		return;
+
+// 	char* buf = (char*)malloc(1024);
+
+// 	if(!buf)
+// 		return;
+
+// 	vsnprintf(buf, 1024, fmt, list);
+
+// 	Util_log_save("ffmpeg", buf);
+
+// 	free(buf);
+// 	buf = NULL;
+// }
+
 void Util_video_decoder_free(void *opaque, uint8_t *data)
 {
 	Util_safe_linear_free(data);
@@ -510,6 +528,8 @@ void Util_decoder_init_variables(void)
 	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 	util_mvd_video_decoder_packet_size = 0;
 	util_mvd_video_decoder_packet = NULL;
+
+	// av_log_set_callback(Util_video_decoder_log_callback);
 
 	util_decoder_init = true;
 }
@@ -771,7 +791,13 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 			util_video_decoder_context[session][i]->lowres = low_resolution;
 
 		util_video_decoder_context[session][i]->flags = AV_CODEC_FLAG_OUTPUT_CORRUPT;
-		util_video_decoder_context[session][i]->thread_count = num_of_threads;
+
+		//If there is more than 1 video tracks, limit number of threads to avoid poor performance due to too many threads.
+		if(num_of_video_tracks >= 2)
+			util_video_decoder_context[session][i]->thread_count = (num_of_threads > 4 ? 4 : num_of_threads);
+		else
+			util_video_decoder_context[session][i]->thread_count = num_of_threads;
+
 		if(thread_type == THREAD_TYPE_AUTO)
 		{
 			if(util_video_decoder_codec[session][i]->capabilities & AV_CODEC_CAP_FRAME_THREADS)
@@ -1800,7 +1826,8 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 
 Result_with_string Util_video_decoder_decode(int packet_index, int session)
 {
-	int ffmpeg_result = 0;
+	int send_ffmpeg_result = 0;
+	int receive_ffmpeg_result = 0;
 	int buffer_num = 0;
 	Result_with_string result;
 	if(!util_decoder_init)
@@ -1834,25 +1861,26 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 		goto ffmpeg_api_failed;
 	}
 
-	ffmpeg_result = avcodec_send_packet(util_video_decoder_context[session][packet_index], util_video_decoder_packet[session][packet_index]);
-	//dav1d decoder sometimes return EAGAIN if so, ignore it and call avcodec_receive_frame()
-	if(ffmpeg_result != 0 && ffmpeg_result != AVERROR(EAGAIN))
+	send_ffmpeg_result = avcodec_send_packet(util_video_decoder_context[session][packet_index], util_video_decoder_packet[session][packet_index]);
+	//Some decoders (such as av1 and vp9) may return EAGAIN if so, ignore it and call avcodec_receive_frame().
+	if(send_ffmpeg_result != 0 && send_ffmpeg_result != AVERROR(EAGAIN))
 	{
-		result.error_description = "[Error] avcodec_send_packet() failed. " + std::to_string(ffmpeg_result) + " ";
+		result.error_description = "[Error] avcodec_send_packet() failed. " + std::to_string(send_ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
 
-	ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
-	if(ffmpeg_result != 0)
+	receive_ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
+	if(receive_ffmpeg_result != 0)
 	{
-		//dav1d decoder sometimes doesn't return image at first call
-		if(ffmpeg_result == AVERROR(EAGAIN))
-			ffmpeg_result = avcodec_receive_frame(util_video_decoder_context[session][packet_index], util_video_decoder_raw_image[session][packet_index][buffer_num]);
-
-		if(ffmpeg_result != 0)
+		if(receive_ffmpeg_result != 0)
 		{
-			result.error_description = "[Error] avcodec_receive_frame() failed. " + std::to_string(ffmpeg_result) + " ";
-			goto ffmpeg_api_failed;
+			if(send_ffmpeg_result == AVERROR(EAGAIN))
+				goto try_again_no_output;
+			else
+			{
+				result.error_description = "[Error] avcodec_receive_frame() failed. " + std::to_string(receive_ffmpeg_result) + " ";
+				goto ffmpeg_api_failed;
+			}
 		}
 	}
 
@@ -1864,6 +1892,9 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	LightLock_Lock(&util_video_decoder_raw_image_mutex[session][packet_index]);
 	util_video_decoder_available_raw_image[session][packet_index]++;
 	LightLock_Unlock(&util_video_decoder_raw_image_mutex[session][packet_index]);
+
+	if(send_ffmpeg_result == AVERROR(EAGAIN))
+		goto try_again_with_output;
 
 	util_video_decoder_packet_ready[session][packet_index] = false;
 	av_packet_free(&util_video_decoder_packet[session][packet_index]);
@@ -1882,6 +1913,17 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	try_again:
 	result.code = DEF_ERR_TRY_AGAIN;
 	result.string = DEF_ERR_TRY_AGAIN_STR;
+	return result;
+
+	try_again_no_output:
+	av_frame_free(&util_video_decoder_raw_image[session][packet_index][buffer_num]);
+	result.code = DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT;
+	result.string = DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR;
+	return result;
+
+	try_again_with_output:
+	result.code = DEF_ERR_DECODER_TRY_AGAIN;
+	result.string = DEF_ERR_DECODER_TRY_AGAIN_STR;
 	return result;
 
 	ffmpeg_api_failed:
@@ -2163,13 +2205,13 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	Util_safe_linear_free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
-	result.code = DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT;
-	result.string = DEF_ERR_MVD_TRY_AGAIN_NO_OUTPUT_STR;
+	result.code = DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT;
+	result.string = DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR;
 	return result;
 
 	try_again_with_output:
-	result.code = DEF_ERR_MVD_TRY_AGAIN;
-	result.string = DEF_ERR_MVD_TRY_AGAIN_STR;
+	result.code = DEF_ERR_DECODER_TRY_AGAIN;
+	result.string = DEF_ERR_DECODER_TRY_AGAIN_STR;
 	return result;
 
 	need_more_packet:

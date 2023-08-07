@@ -77,7 +77,7 @@ LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/mp3lame/lib library/dav1d/lib library/portlibs/lib
+LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/mp3lame/lib library/dav1d/lib library/portlibs/lib library/zlib/lib
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

@@ -1,0 +1,25 @@
+//How to build zlib for 3DS
+//Note : This step is optional
+//*install devkitpro (libctru) first*
+//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
+
+git clone https://github.com/madler/zlib; cd zlib
+
+CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" LDFLAGS="-mfloat-abi=hard" ./configure --static --prefix="/opt/devkitpro/extra_lib"
+
+make -j
+sudo make install
+
+/*
+After installing library, copy these files : 
+
+/opt/devkitpro/extra_lib/lib/libx264.a
+/opt/devkitpro/extra_lib/include/x264_config.h
+/opt/devkitpro/extra_lib/include/x264.h
+
+to : 
+
+{project_folder}/library/zlib/lib/libz.a
+{project_folder}/library/zlib/include/zconf.h
+{project_folder}/library/zlib/include/zlib.h
+*/

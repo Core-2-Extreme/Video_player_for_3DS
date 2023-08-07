@@ -41,36 +41,25 @@ void Util_fake_pthread_set_enabled_core(bool enabled_core[4])
 
 int	pthread_mutex_init(pthread_mutex_t* __mutex, const pthread_mutexattr_t* __attr)
 {
-    return svcCreateMutex((Handle*)__mutex, false);
+    LightLock_Init((LightLock*)__mutex);
+    return 0;
 }
 
 int	pthread_mutex_lock(pthread_mutex_t* __mutex)
 {
-    uint result = 0;
-
-    while(true)
-    {
-        result = svcWaitSynchronization(*(Handle*)__mutex, U64_MAX);
-        if(result == 0)
-            return 0;
-
-        if(result == 0xD8E007F7)
-        {
-            result = pthread_mutex_init(__mutex, NULL);
-            if(result != 0)
-                return -1;
-        }
-    }
+    LightLock_Lock((LightLock*)__mutex);
+    return 0;
 }
 
 int	pthread_mutex_unlock(pthread_mutex_t* __mutex)
 {
-    return svcReleaseMutex(*(Handle*)__mutex);
+    LightLock_Unlock((LightLock*)__mutex);
+    return 0;
 }
 
 int	pthread_mutex_destroy(pthread_mutex_t* __mutex)
 {
-    return svcCloseHandle(*(Handle*)__mutex);
+    return 0;
 }
 
 int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
@@ -95,62 +84,31 @@ int	pthread_once(pthread_once_t* __once_control, void (*__init_routine)(void))
 
 int	pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* __attr)
 {
-    return svcCreateEvent((Handle*)__cond, RESET_ONESHOT);
+    CondVar_Init((CondVar*)__cond);
+    return 0;
 }
 
 int	pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex)
 {
-    uint result = 0;
-    pthread_mutex_unlock(__mutex);
-
-    while(true)
-    {
-        result = svcWaitSynchronization(*(Handle*)__cond, U64_MAX);
-        if(result == 0)
-        {
-            pthread_mutex_lock(__mutex);
-            return 0;
-        }
-
-        if(result == 0xD8E007F7)
-        {
-            result = pthread_cond_init(__cond, NULL);
-            if(result != 0)
-                return -1;
-        }
-    }
+    CondVar_Wait((CondVar*)__cond, (LightLock*)__mutex);
+    return 0;
 }
 
 int	pthread_cond_signal(pthread_cond_t* __cond)
 {
-    return svcSignalEvent(*(Handle*)__cond);
+    CondVar_Signal((CondVar*)__cond);
+    return 0;
 }
 
 int	pthread_cond_broadcast(pthread_cond_t* __cond)
 {
-    uint result = 0;
-    
-    while(true)
-    {
-        result = svcSignalEvent(*(Handle*)__cond);
-        if(result == 0xD8E007F7)
-        {
-            result = pthread_cond_init(__cond, NULL);
-            if(result != 0)
-                return -1;
-            else
-                continue;
-        }
-
-        result = svcWaitSynchronization(*(Handle*)__cond, 0);
-        if(result == 0)
-            return 0;
-    }
+    CondVar_Broadcast((CondVar*)__cond);
+    return 0;
 }
 
 int	pthread_cond_destroy(pthread_cond_t* __mutex)
 {
-    return svcCloseHandle(*(Handle*)__mutex);
+    return 0;
 }
 
 int	pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg)

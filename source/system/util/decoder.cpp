@@ -1090,8 +1090,8 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 	}
 	else
 	{
-		video_info->sar_width = sar.num;
-		video_info->sar_height = sar.den;
+		video_info->sar_width = 1;
+		video_info->sar_height = (double)sar.den / sar.num;
 	}
 
 	video_info->width = util_video_decoder_context[session][video_index]->width;
@@ -2306,15 +2306,43 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 
 		for(uint i = 0; i < util_subtitle_decoder_raw_data[session][packet_index]->num_rects; i++)
 		{
-			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_NONE)
-			{
-			}
+			free(subtitle_data->bitmap);
+			subtitle_data->bitmap = NULL;
+			subtitle_data->bitmap_x = 0;
+			subtitle_data->bitmap_y = 0;
+			subtitle_data->bitmap_width = 0;
+			subtitle_data->bitmap_height = 0;
+			subtitle_data->text = "";
+
 			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_BITMAP)
 			{
+				u8* index_table = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[0];
+				u32* color_table = (u32*)util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[1];
+				int index = 0;
+				int size = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->w * util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->h * 4;
+
+				if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->nb_colors != 4)
+					goto unsupported;
+
+				subtitle_data->bitmap = (u8*)malloc(size);
+				if(!subtitle_data->bitmap)
+					goto out_of_memory;
+
+				subtitle_data->bitmap_x = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->x;
+				subtitle_data->bitmap_y = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->y;
+				subtitle_data->bitmap_width = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->w;
+				subtitle_data->bitmap_height = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->h;
+
+				//Convert to ABGR8888.
+				for(int i = 0; i < subtitle_data->bitmap_height; i++)
+				{
+					for(int k = 0; k < subtitle_data->bitmap_width; k++)
+						((u32*)subtitle_data->bitmap)[index++] = __builtin_bswap32(color_table[index_table[(subtitle_data->bitmap_width * i) + k]]);
+				}
 			}
-			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_TEXT)
+			else if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_TEXT)
 				subtitle_data->text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->text;
-			if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_ASS)
+			else if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->type == SUBTITLE_ASS)
 			{
 				text = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->ass;
 				cut_pos = 0;
@@ -2373,8 +2401,29 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
 	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
 	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	out_of_memory:
+	util_subtitle_decoder_packet_ready[session][packet_index] = false;
+	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
+	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
+	result.code = DEF_ERR_OUT_OF_MEMORY;
+	result.string = DEF_ERR_OUT_OF_LINEAR_MEMORY_STR;
+	return result;
+
+	unsupported:
+	util_subtitle_decoder_packet_ready[session][packet_index] = false;
+	av_packet_free(&util_subtitle_decoder_packet[session][packet_index]);
+	avsubtitle_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	Util_safe_linear_free(util_subtitle_decoder_raw_data[session][packet_index]);
+	util_subtitle_decoder_raw_data[session][packet_index] = NULL;
+	result.code = DEF_ERR_OTHER;
+	result.string = "[Error] Unsupported format. ";
 	return result;
 }
 

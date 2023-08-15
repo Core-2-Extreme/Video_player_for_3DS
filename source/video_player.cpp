@@ -230,6 +230,7 @@ struct Vid_player
 	double subtitle_zoom = 1;						//Zoom level for subtitle.
 	Subtitle_info subtitle_info[DEF_DECODER_MAX_SUBTITLE_TRACKS];	//Subtitle info.
 	Subtitle_data subtitle_data[DEF_VID_SUBTITLE_BUFFERS];			//Subtitle data.
+	Image_data subtitle_image[DEF_VID_SUBTITLE_BUFFERS];			//Bitmap subtitle data.
 
 	//UI.
 	bool is_full_screen = false;					//Whether player is full screen.
@@ -278,6 +279,9 @@ struct Vid_player
 
 	Thread read_packet_thread;						//Read packet thread handle.
 	Queue read_packet_thread_command_queue;			//Read packet thread command queue.
+
+	//Mutexs.
+	LightLock texture_init_free_lock = 0;			//Mutex for initializing and freeing texture buffers.
 };
 
 bool vid_main_run = false;
@@ -843,11 +847,13 @@ void Vid_init_video_data(void)
 		vid_player.video_info[i].pixel_format = PIXEL_FORMAT_INVALID;
 	}
 
+	LightLock_Lock(&vid_player.texture_init_free_lock);
 	for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 	{
 		for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 			Vid_large_texture_free(&vid_player.large_image[i][k]);
 	}
+	LightLock_Unlock(&vid_player.texture_init_free_lock);
 }
 
 void Vid_init_audio_data(void)
@@ -890,9 +896,13 @@ void Vid_init_subtitle_data(void)
 
 	for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)
 	{
-		vid_player.subtitle_data[i].text = "";
+		free(vid_player.subtitle_data[i].bitmap);
+		vid_player.subtitle_data[i].bitmap = NULL;
+		vid_player.subtitle_data[i].bitmap_width = 0;
+		vid_player.subtitle_data[i].bitmap_height = 0;
 		vid_player.subtitle_data[i].start_time = 0;
 		vid_player.subtitle_data[i].end_time = 0;
+		vid_player.subtitle_data[i].text = "";
 	}
 }
 
@@ -2127,7 +2137,10 @@ void Vid_decode_thread(void* arg)
 								{
 									for(int k = 0; k < loop; k++)
 									{
+										LightLock_Lock(&vid_player.texture_init_free_lock);
 										result = Vid_large_texture_init(&vid_player.large_image[i][k], vid_player.video_info[k].codec_width, vid_player.video_info[k].codec_height, PIXEL_FORMAT_RGB565LE, true);
+										LightLock_Unlock(&vid_player.texture_init_free_lock);
+
 										if(result.code != 0)
 										{
 											result.error_description = "[Error] Vid_large_texture_init() failed. ";
@@ -2416,9 +2429,13 @@ void Vid_decode_thread(void* arg)
 						vid_player.selected_subtitle_track = vid_player.selected_subtitle_track_cache;
 						for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)
 						{
-							vid_player.subtitle_data[i].text = "";
+							free(vid_player.subtitle_data[i].bitmap);
+							vid_player.subtitle_data[i].bitmap = NULL;
+							vid_player.subtitle_data[i].bitmap_width = 0;
+							vid_player.subtitle_data[i].bitmap_height = 0;
 							vid_player.subtitle_data[i].start_time = 0;
 							vid_player.subtitle_data[i].end_time = 0;
+							vid_player.subtitle_data[i].text = "";
 						}
 					}
 
@@ -2494,11 +2511,13 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION)
 						Util_converter_y2r_exit();
 
+					LightLock_Lock(&vid_player.texture_init_free_lock);
 					for(int i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 					{
 						for(int k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 							Vid_large_texture_free(&vid_player.large_image[i][k]);
 					}
+					LightLock_Unlock(&vid_player.texture_init_free_lock);
 
 					if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
 						Util_remove_watch(&bar_pos);
@@ -3001,6 +3020,30 @@ void Vid_decode_thread(void* arg)
 						result = Util_subtitle_decoder_decode(&vid_player.subtitle_data[vid_player.subtitle_index], packet_index, 0);
 						if(result.code == 0)
 						{
+							if(vid_player.subtitle_data[vid_player.subtitle_index].bitmap)
+							{
+								//Subtitle data format is bitmap, copy raw data to subtitle texture.
+								int texture_width = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width);
+								int texture_height = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height);
+
+								LightLock_Lock(&vid_player.texture_init_free_lock);
+								Draw_texture_free(&vid_player.subtitle_image[vid_player.subtitle_index]);
+								result = Draw_texture_init(&vid_player.subtitle_image[vid_player.subtitle_index], texture_width, texture_height, PIXEL_FORMAT_ABGR8888);
+								memset(vid_player.subtitle_image[vid_player.subtitle_index].c2d.tex->data, 0x0, texture_width * texture_height * 4);
+								LightLock_Unlock(&vid_player.texture_init_free_lock);
+
+								if(result.code == 0)
+								{
+									Draw_set_texture_data(&vid_player.subtitle_image[vid_player.subtitle_index], vid_player.subtitle_data[vid_player.subtitle_index].bitmap,
+									vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width, vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height);
+								}
+								else
+									Util_log_save(DEF_VID_DECODE_THREAD_STR, "Draw_texture_init()..." + result.string + result.error_description, result.code);
+
+								free(vid_player.subtitle_data[vid_player.subtitle_index].bitmap);
+								vid_player.subtitle_data[vid_player.subtitle_index].bitmap = NULL;
+							}
+
 							if(vid_player.subtitle_index + 1 >= DEF_VID_SUBTITLE_BUFFERS)
 								vid_player.subtitle_index = 0;
 							else
@@ -3435,7 +3478,8 @@ void Vid_convert_thread(void* arg)
 				u8* yuv_video = NULL;
 				u8* video = NULL;
 				int width = vid_player.video_info[packet_index].codec_width;
-				int height = vid_player.video_info[packet_index].codec_height;
+				//int height = vid_player.video_info[packet_index].codec_height;//We don't need to copy padding area for Y direction.
+				int height = vid_player.video_info[packet_index].height;
 				int next_store_index = vid_player.next_store_index[packet_index];
 				int next_draw_index = vid_player.next_draw_index[packet_index];
 				int buffer_health = 0;
@@ -3906,6 +3950,8 @@ void Vid_init_thread(void* arg)
 	result = Util_queue_create(&vid_player.convert_thread_command_queue, 200);
 	Util_log_save(DEF_VID_INIT_STR, "Util_queue_create()..." + result.string + result.error_description, result.code);
 
+	LightLock_Init(&vid_player.texture_init_free_lock);
+
 	vid_status += "\nStarting threads...";
 	vid_thread_run = true;
 	if(var_model == CFG_MODEL_N2DSXL || var_model == CFG_MODEL_N3DS || var_model == CFG_MODEL_N3DSXL)
@@ -4298,17 +4344,27 @@ void Vid_main(void)
 	int color = DEF_DRAW_BLACK;
 	int disabled_color = DEF_DRAW_WEAK_BLACK;
 	int back_color = DEF_DRAW_WHITE;
-	//Array 0 == for left eye, array 1 == for right eye.
+	int subtitle_index = -1;
+	double bitmap_subtitle_width = 0;
+	double bitmap_subtitle_height = 0;
+	double text_subtitle_width = 0;
+	double text_subtitle_height = 0;
+	//Array 0 == for top screen left eye, array 1 == for top screen right eye.
 	int image_index[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	double image_width[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	double image_height[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
+	//Array 0 == for top screen left eye, array 1 == for top screen right eye, array 2 == for bottom screen.
+	double video_x_offset[3] = { 0, 0, 0, };
+	double video_y_offset[3] = { 0, 0, 0, };
+	double bitmap_subtitle_x_offset[3] = { 0, 0, 0, };
+	double bitmap_subtitle_y_offset[3] = { 0, 0, 0, };
+	double text_subtitle_x_offset[3] = { 0, 0, 0, };
+	double text_subtitle_y_offset[3] = { 0, 0, 0, };
 	double y_offset = 0;
 	char msg_cache[192];
 	std::string thread_mode[3] = { "none", "frame", "slice" };
 	std::string lower_resolution_mode[3] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	std::string swkbd_input = "";
-	Hid_info key;
-	Util_hid_query_key_state(&key);
 
 	if (var_night_mode)
 	{
@@ -4424,18 +4480,72 @@ void Vid_main(void)
 		vid_player.vfps_cache = 0;
 	}
 
-	vid_player._3d_slider_pos = osGet3DSliderState();
-
-	Vid_control_full_screen();
-
+	//Calculate image size and drawing position.
 	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 	{
+		double sar_width_ratio = 0;
+		double sar_height_ratio = 0;
+
 		if(i >= vid_player.num_of_video_tracks)
 			break;
 
-		image_width[i] = vid_player.video_info[i].codec_width * (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1) * vid_player.video_zoom;
-		image_height[i] = vid_player.video_info[i].codec_height * (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1) * vid_player.video_zoom;
+		sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
+		sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
+		image_width[i] = vid_player.video_info[i].codec_width * sar_width_ratio * vid_player.video_zoom;
+		image_height[i] = vid_player.video_info[i].codec_height * sar_height_ratio * vid_player.video_zoom;
 	}
+
+	for(int i = 0; i < 3; i++)
+	{
+		video_x_offset[i] = vid_player.video_x_offset;
+		video_y_offset[i] = vid_player.video_y_offset;
+	}
+
+	vid_player._3d_slider_pos = osGet3DSliderState();
+
+	if(Draw_is_3d_mode() && vid_player._3d_slider_pos > 0)
+	{
+		//Change video offset based on 3D slider bar position for 3D videos
+		//so that user can manually adjust it with 3D slider bar.
+		video_x_offset[0] -= ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
+		video_x_offset[1] += ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
+	}
+
+	video_x_offset[2] -= 40;
+	video_y_offset[2] -= 240;
+
+	//Find subtitle index.
+	for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)
+	{
+		if(vid_player.media_current_pos >= vid_player.subtitle_data[i].start_time && vid_player.media_current_pos <= vid_player.subtitle_data[i].end_time)
+		{
+			subtitle_index = i;
+			break;
+		}
+	}
+
+	//Calculate subtitle size and drawing position.
+	if(subtitle_index >= 0 && subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
+	{
+		//Use of vid_player.video_zoom is intended.
+		bitmap_subtitle_width = vid_player.subtitle_data[subtitle_index].bitmap_width * vid_player.video_zoom;
+		bitmap_subtitle_height = vid_player.subtitle_data[subtitle_index].bitmap_height * vid_player.video_zoom;
+		text_subtitle_width = 0.5 * vid_player.subtitle_zoom;
+		text_subtitle_height = 0.5 * vid_player.subtitle_zoom;
+
+		for(int i = 0; i < 3; i++)
+		{
+			bitmap_subtitle_x_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_x * vid_player.video_zoom) + vid_player.video_x_offset + vid_player.subtitle_x_offset;
+			bitmap_subtitle_y_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_y * vid_player.video_zoom) + vid_player.video_y_offset + vid_player.subtitle_y_offset;
+			text_subtitle_x_offset[i] = vid_player.subtitle_x_offset;
+			text_subtitle_y_offset[i] = 195 + vid_player.subtitle_y_offset;
+		}
+	}
+
+	bitmap_subtitle_x_offset[2] -= 40;
+	bitmap_subtitle_y_offset[2] -= 240;
+	text_subtitle_x_offset[2] -= 40;
+	text_subtitle_y_offset[2] -= 240;
 
 	//Update performance data every 100ms.
 	if(osGetTime() >= vid_player.previous_ts + 100)
@@ -4459,6 +4569,8 @@ void Vid_main(void)
 		}
 	}
 
+	Vid_control_full_screen();
+
 
 	if(Util_is_watch_changed() || var_need_reflesh || !var_eco_mode)
 	{
@@ -4477,26 +4589,26 @@ void Vid_main(void)
 
 			if(vid_player.state != PLAYER_STATE_IDLE)
 			{
-				double video_x_offset = vid_player.video_x_offset;
-
-				//Change video offset based on 3D slider bar position for 3D videos
-				//so that user can manually adjust it with 3D slider bar.
-				if(Draw_is_3d_mode() && vid_player._3d_slider_pos > 0)
-					video_x_offset -= ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
-
 				//Draw videos.
-				Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset, vid_player.video_y_offset, image_width[0], image_height[0]);
-
-				for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
+				if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 				{
-					//We use video track 0 as a time reference.
-					if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
-					{
-						Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom,
-						DEF_DRAW_WHITE, X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
+					Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[0], video_y_offset[0], image_width[0], image_height[0]);
+					LightLock_Unlock(&vid_player.texture_init_free_lock);
+				}
 
-						break;
+				//Draw subtitles.
+				if(subtitle_index >= 0 && subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
+				{
+					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+					{
+						if(vid_player.subtitle_image[subtitle_index].subtex)
+							Draw_texture(&vid_player.subtitle_image[subtitle_index], bitmap_subtitle_x_offset[0], bitmap_subtitle_y_offset[0], bitmap_subtitle_width, bitmap_subtitle_height);
+
+						LightLock_Unlock(&vid_player.texture_init_free_lock);
 					}
+
+					Draw(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[0], text_subtitle_y_offset[0], text_subtitle_width, text_subtitle_height,
+					DEF_DRAW_WHITE, X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 				}
 			}
 			else
@@ -4578,25 +4690,26 @@ void Vid_main(void)
 
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
-					double video_x_offset = vid_player.video_x_offset;
-
-					//Change video offset based on 3D slider bar position for 3D videos
-					//so that user can manually adjust it with 3D slider bar.
-					if(vid_player._3d_slider_pos > 0)
-						video_x_offset += ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
-
 					//Draw 3d videos (right eye).
-					Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset, vid_player.video_y_offset, image_width[1], image_height[1]);
-
-					for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
+					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 					{
-						//We use video track 0 as a time reference.
-						if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
+						Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset[1], video_y_offset[1], image_width[1], image_height[1]);
+						LightLock_Unlock(&vid_player.texture_init_free_lock);
+					}
+
+					//Draw subtitles.
+					if(subtitle_index >= 0 && subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
+					{
+						if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 						{
-							Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom, DEF_DRAW_WHITE,
-								X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
-							break;
+							if(vid_player.subtitle_image[subtitle_index].subtex)
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], bitmap_subtitle_x_offset[1], bitmap_subtitle_y_offset[1], bitmap_subtitle_width, bitmap_subtitle_height);
+
+							LightLock_Unlock(&vid_player.texture_init_free_lock);
 						}
+
+						Draw(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[1], text_subtitle_y_offset[1], text_subtitle_width, text_subtitle_height,
+						DEF_DRAW_WHITE, X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 					}
 				}
 				else
@@ -4648,17 +4761,25 @@ void Vid_main(void)
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
 					//Draw videos.
-					Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], vid_player.video_x_offset - 40, vid_player.video_y_offset - 240, image_width[0], image_height[0]);
-
-					for(int i = 0; i < DEF_VID_SUBTITLE_BUFFERS; i++)//Draw subtitles.
+					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 					{
-						//We use video track 0 as a time reference.
-						if(vid_player.video_current_pos[0] >= vid_player.subtitle_data[i].start_time && vid_player.video_current_pos[0] <= vid_player.subtitle_data[i].end_time)
+						Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[2], video_y_offset[2], image_width[0], image_height[0]);
+						LightLock_Unlock(&vid_player.texture_init_free_lock);
+					}
+
+					//Draw subtitles.
+					if(subtitle_index >= 0 && subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
+					{
+						if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 						{
-							Draw(vid_player.subtitle_data[i].text, vid_player.subtitle_x_offset, 195 + vid_player.subtitle_y_offset - 240, 0.5 * vid_player.subtitle_zoom, 0.5 * vid_player.subtitle_zoom, DEF_DRAW_WHITE,
-								X_ALIGN_CENTER, Y_ALIGN_CENTER, 320, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
-							break;
+							if(vid_player.subtitle_image[subtitle_index].subtex)
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], bitmap_subtitle_x_offset[2], bitmap_subtitle_y_offset[2], bitmap_subtitle_width, bitmap_subtitle_height);
+
+							LightLock_Unlock(&vid_player.texture_init_free_lock);
 						}
+
+						Draw(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[2], text_subtitle_y_offset[2], text_subtitle_width, text_subtitle_height,
+						DEF_DRAW_WHITE, X_ALIGN_CENTER, Y_ALIGN_CENTER, 400, 40, BACKGROUND_UNDER_TEXT, var_square_image[0], 0xA0000000);
 					}
 				}
 

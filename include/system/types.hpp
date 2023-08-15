@@ -506,8 +506,8 @@ struct Video_info
 	std::string short_format_name = ""; //Video short codec name.
 	double duration = 0;		    	//Video track duration in seconds.
 	Multi_thread_type thread_type = THREAD_TYPE_NONE;   //Threading mode.
-	int sar_width = 1;  	            //Sample aspect ratio for width.
-	int sar_height = 1;                 //Sample aspect ratio for height.
+	double sar_width = 1;  	            //Sample aspect ratio for width.
+	double sar_height = 1;              //Sample aspect ratio for height.
 	Pixel_format pixel_format = PIXEL_FORMAT_INVALID;   //Video pixel format.
 };
 
@@ -546,9 +546,14 @@ struct Subtitle_info
 
 struct Subtitle_data
 {
-	std::string text = "";  //Subtitle text.
+    u8* bitmap = NULL;      //Subtitle bitmap, this may NULL.
+    int bitmap_x = 0;       //X (horizontal) position, this field will be set if bitmap is not NULL.
+    int bitmap_y = 0;       //Y (vertical) position, this field will be set if bitmap is not NULL.
+    int bitmap_width = 0;   //Bitmap width, this field will be set if bitmap is not NULL.
+    int bitmap_height = 0;  //Bitmap height, this field will be set if bitmap is not NULL.
 	double start_time = 0;  //Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
 	double end_time = 0;    //End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
+	std::string text = "";  //Subtitle text.
 };
 
 struct Image_data

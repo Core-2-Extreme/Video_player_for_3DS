@@ -81,7 +81,7 @@ AccessControlInfo:
   CanUseNonAlphabetAndNumber    : true
   PermitMainFunctionArgument    : true
   CanShareDeviceMemory          : true
-  RunnableOnSleep               : true
+  RunnableOnSleep               : false
   SpecialMemoryArrange          : true
 
   # New3DS Exclusive Process Settings

@@ -3478,8 +3478,7 @@ void Vid_convert_thread(void* arg)
 				u8* yuv_video = NULL;
 				u8* video = NULL;
 				int width = vid_player.video_info[packet_index].codec_width;
-				//int height = vid_player.video_info[packet_index].codec_height;//We don't need to copy padding area for Y direction.
-				int height = vid_player.video_info[packet_index].height;
+				int height = vid_player.video_info[packet_index].codec_height;
 				int next_store_index = vid_player.next_store_index[packet_index];
 				int next_draw_index = vid_player.next_draw_index[packet_index];
 				int buffer_health = 0;
@@ -3513,7 +3512,7 @@ void Vid_convert_thread(void* arg)
 				osTickCounterUpdate(&conversion_time_counter);
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
-					result = Util_mvd_video_decoder_get_image(&video, &pos, vid_player.video_info[0].codec_width, vid_player.video_info[0].codec_height, 0);
+					result = Util_mvd_video_decoder_get_image(&video, &pos, width, height, 0);
 				else
 					result = Util_video_decoder_get_image(&yuv_video, &pos, width, height, packet_index, 0);
 
@@ -3566,6 +3565,9 @@ void Vid_convert_thread(void* arg)
 					if(result.code == 0)
 					{
 						int image_num = vid_player.next_store_index[packet_index];
+
+						//We don't need to copy padding area for Y direction.
+						height = vid_player.video_info[packet_index].height;
 
 						if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && (vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION))//Raw image is texture format.
 							result = Vid_large_texture_set_data(&vid_player.large_image[image_num][packet_index], video, width, height, true);
@@ -4491,8 +4493,8 @@ void Vid_main(void)
 
 		sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
 		sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
-		image_width[i] = vid_player.video_info[i].codec_width * sar_width_ratio * vid_player.video_zoom;
-		image_height[i] = vid_player.video_info[i].codec_height * sar_height_ratio * vid_player.video_zoom;
+		image_width[i] = vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom;
+		image_height[i] = vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom;
 	}
 
 	for(int i = 0; i < 3; i++)

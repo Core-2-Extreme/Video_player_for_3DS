@@ -1,4 +1,4 @@
-﻿<0>Updates</0>
+<0>Updates</0>
 <1>Languages</1>
 <2>LCD</2>
 <3>Control</3>

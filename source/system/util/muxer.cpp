@@ -82,12 +82,12 @@ Result_with_string Util_muxer_open_audio_file(std::string file_path, int session
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	avformat_close_input(&util_audio_muxer_format_context[session]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -111,7 +111,7 @@ Result_with_string Util_muxer_open_video_file(std::string file_path, int session
 
 	if(util_video_muxer_init[session])
 		goto already_inited;
-	
+
 	util_video_muxer_format_context[session] = avformat_alloc_context();
 	if(!util_video_muxer_format_context[session])
 	{
@@ -153,12 +153,12 @@ Result_with_string Util_muxer_open_video_file(std::string file_path, int session
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	avformat_close_input(&util_video_muxer_format_context[session]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -211,7 +211,7 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 		result.error_description = "[Error] avcodec_find_encoder() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_audio_muxer_context[session] = avcodec_alloc_context3(util_audio_muxer_codec[session]);
 	if(!util_audio_muxer_context[session])
 	{
@@ -286,20 +286,20 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 			goto ffmpeg_api_failed;
 		}
 	}
-	
+
 	util_audio_muxer_packet[session] = av_packet_alloc();
 	if(!util_audio_muxer_packet[session])
 	{
 		result.error_description = "[Error] av_packet_alloc() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	while(true)//mux audio
 	{
 		ffmpeg_result = av_read_frame(util_audio_muxer_format_context[session], util_audio_muxer_packet[session]);
 		if(ffmpeg_result != 0)
 			break;
-		
+
 		if(util_audio_muxer_stream_num[session] == util_audio_muxer_packet[session]->stream_index)
 		{
 			util_audio_muxer_packet[session]->stream_index = 0;
@@ -328,7 +328,7 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 		ffmpeg_result = av_read_frame(util_video_muxer_format_context[session], util_video_muxer_packet[session]);
 		if(ffmpeg_result != 0)
 			break;
-		
+
 		if(util_video_muxer_stream_num[session] == util_video_muxer_packet[session]->stream_index)
 		{
 			util_video_muxer_packet[session]->stream_index = 1;
@@ -344,7 +344,7 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 			av_packet_unref(util_video_muxer_packet[session]);
 	}
 	av_packet_free(&util_video_muxer_packet[session]);
-	
+
 	av_write_trailer(util_muxer_format_context[session]);
 	avio_close(util_muxer_format_context[session]->pb);
 	avformat_free_context(util_muxer_format_context[session]);
@@ -355,12 +355,12 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	av_packet_free(&util_audio_muxer_packet[session]);
 	av_packet_free(&util_video_muxer_packet[session]);

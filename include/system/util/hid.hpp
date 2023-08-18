@@ -5,7 +5,7 @@
 
 /**
  * @brief Initialize a hid api.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -51,7 +51,7 @@ bool Util_hid_is_released(Hid_info hid_state, Image_data image);
 /**
  * @brief Query current key state.
  * @param out_key_state (out) Pointer for key info.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -61,7 +61,7 @@ Result_with_string Util_hid_query_key_state(Hid_info* out_key_state);
  * @brief Add hid callback.
  * Always return false if hid api is not initialized.
  * @param callback (in) Pointer for callback function.
- * @return On success true, 
+ * @return On success true,
  * on failure false.
  * @note Thread safe
 */

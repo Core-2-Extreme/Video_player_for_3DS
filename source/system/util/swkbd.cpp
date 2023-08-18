@@ -46,7 +46,7 @@ SwkbdPasswordMode password_mode, u32 feature)
 	if(type < 0 || type > 3 || valid_type < 0 || valid_type > 4 || num_of_button <= 0 || num_of_button > 3 || max_length <= 0
 	|| password_mode < 0 || password_mode > 2)
 		goto invalid_arg;
-	
+
 	util_swkbd_hint_text = hint_text;
 	util_swkbd_init_text = init_text;
 	util_swkbd_max_length = max_length;
@@ -78,7 +78,7 @@ Result_with_string Util_swkbd_set_dic_word(std::string first_spell[], std::strin
 	Result_with_string result;
 	if(!util_swkbd_init)
 		goto not_inited;
-	
+
 	if(!first_spell || !full_spell || num_of_word <= 0 || num_of_word > DEF_SWKBD_MAX_DIC_WORDS)
 		goto invalid_arg;
 
@@ -117,7 +117,7 @@ Result_with_string Util_swkbd_launch(std::string* out_data, Keyboard_button* pre
 
 	if(!out_data || !pressed_button)
 		goto invalid_arg;
-	
+
 	input_text = (char*)malloc(util_swkbd_max_length + 1);
 	if(!input_text)
 		goto out_of_memory;

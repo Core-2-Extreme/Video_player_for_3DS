@@ -7,7 +7,7 @@
  * @brief Create the queue.
  * @param queue (out) Pointer for the queue.
  * @param max_items (in) Max number of items this queue can hold.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -21,7 +21,7 @@ Result_with_string Util_queue_create(Queue* queue, int max_items);
  * @param wait_ns (in) Wait time in us when queue is full.
  * @param event_id (in) User defined event id.
  * @param option (in) Queue options.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -33,7 +33,7 @@ Result_with_string Util_queue_add(Queue* queue, u32 event_id, void* data, s64 wa
  * @param event_id (out) Event id.
  * @param data (out) Pointer for data, can be NULL.
  * @param wait_ns (in) Wait time in us when queue is empty.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */

@@ -1,4 +1,4 @@
-﻿#include "definitions.hpp"
+#include "definitions.hpp"
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -356,7 +356,7 @@ void Sem_init(void)
 	Util_add_watch(&sem_unload_all_ex_font_button.selected);
 	for(int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		Util_add_watch(&sem_ex_font_button[i].selected);
-	
+
 	//Wireless
 	Util_add_watch(&var_wifi_enabled);
 
@@ -653,7 +653,7 @@ void Sem_main(void)
 
 		if(Util_log_query_log_show_flag())
 			Util_log_draw();
-	
+
 		Draw_top_ui();
 
 		if(var_monitor_cpu_usage)
@@ -1071,7 +1071,7 @@ void Sem_main(void)
 			}
 
 			Draw(sem_msg[DEF_SEM_DUMP_LOGS_MSG], 10, 165, 0.5, 0.5, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 190, 20,
-			BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, sem_dump_log_button.selected  ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, sem_dump_log_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 #if DEF_ENABLE_CPU_MONITOR_API
 			//CPU usage monitor
@@ -1447,7 +1447,7 @@ void Sem_hid(Hid_info key)
 				sem_scroll_mode = true;
 				if(sem_night_mode_on_button.selected || sem_night_mode_off_button.selected || sem_flash_mode_button.selected
 				|| sem_screen_brightness_bar.selected || sem_screen_brightness_slider.selected || sem_screen_off_time_bar.selected
-				|| sem_screen_off_time_slider.selected || sem_sleep_time_bar.selected || sem_sleep_time_slider.selected 
+				|| sem_screen_off_time_slider.selected || sem_sleep_time_bar.selected || sem_sleep_time_slider.selected
 				|| sem_800px_mode_button.selected || sem_3d_mode_button.selected || sem_400px_mode_button.selected
 				|| sem_auto_mode_button.selected || Draw_get_bot_ui_button()->selected)
 					sem_scroll_mode = false;
@@ -1477,7 +1477,7 @@ void Sem_hid(Hid_info key)
 				{
 					for (int i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						Exfont_set_external_font_request_state(i ,true);
-					
+
 					Exfont_request_load_external_font();
 				}
 				else if (Util_hid_is_pressed(key, sem_unload_all_ex_font_button) && !Exfont_is_loading_external_font() && !Exfont_is_unloading_external_font())
@@ -1585,7 +1585,7 @@ void Sem_hid(Hid_info key)
 						sem_fake_model_num = 255;
 					else
 						sem_fake_model_num++;
-					
+
 					var_need_reflesh = true;
 				}
 				else if(Util_hid_is_pressed(key, sem_dump_log_button) && !sem_dump_log_request)
@@ -1691,7 +1691,7 @@ void Sem_hid(Hid_info key)
 			= sem_auto_mode_button.selected = sem_scroll_speed_bar.selected = sem_wifi_on_button.selected = sem_wifi_off_button.selected
 			= sem_allow_send_info_button.selected = sem_deny_send_info_button.selected = sem_debug_mode_on_button.selected = sem_debug_mode_off_button.selected
 			= sem_eco_mode_on_button.selected = sem_eco_mode_off_button.selected = sem_record_both_lcd_button.selected = sem_record_top_lcd_button.selected
-			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected 
+			= sem_record_bottom_lcd_button.selected = sem_load_all_ex_font_button.selected = sem_unload_all_ex_font_button.selected
 			= sem_use_fake_model_button.selected = sem_dump_log_button.selected = false;
 
 #if ((DEF_ENABLE_CURL_API || DEF_ENABLE_HTTPC_API) && DEF_SEM_ENABLE_UPDATER)
@@ -1840,7 +1840,7 @@ void Sem_record_thread(void* arg)
 			sem_rec_height = rec_height;
 
 			log_num = Util_log_save(DEF_SEM_RECORD_THREAD_STR, "Util_encoder_create_output_file()...");
-			result = Util_encoder_create_output_file(DEF_MAIN_DIR + "screen_recording/" + std::to_string(var_years) + "_" + std::to_string(var_months) 
+			result = Util_encoder_create_output_file(DEF_MAIN_DIR + "screen_recording/" + std::to_string(var_years) + "_" + std::to_string(var_months)
 			+ "_" + std::to_string(var_days) + "_" + std::to_string(var_hours) + "_" + std::to_string(var_minutes) + "_" + std::to_string(var_seconds) + ".mp4", 0);
 			Util_log_add(log_num, result.string + result.error_description, result.code);
 			if(result.code != 0)
@@ -1870,7 +1870,7 @@ void Sem_record_thread(void* arg)
 					break;
 
 				osTickCounterUpdate(&counter);
-				
+
 				if(mode == DEF_SEM_RECORD_BOTH)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
@@ -1933,7 +1933,7 @@ void Sem_record_thread(void* arg)
 						break;
 					}
 				}
-				
+
 				parameters.converted = NULL;
 				parameters.in_color_format = PIXEL_FORMAT_BGR888;
 				parameters.in_height = rec_height;
@@ -2012,7 +2012,7 @@ void Sem_worker_callback(void)
 				result = Menu_load_msg("en");
 				Util_log_save(DEF_SEM_WORKER_CALLBACK_STR, "Menu_load_msg()..." + result.string + result.error_description, result.code);
 			}
-			
+
 			#ifdef DEF_ENABLE_VID
 			result = Vid_load_msg(var_lang);
 			Util_log_save(DEF_SEM_WORKER_CALLBACK_STR, "Vid_load_msg()..." + result.string + result.error_description, result.code);
@@ -2263,7 +2263,7 @@ void Sem_update_thread(void* arg)
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;
-						
+
 						if(envIsHomebrew() && sem_newest_ver_data[1] == "1")
 							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
 						else if(sem_newest_ver_data[2] == "1")

@@ -161,7 +161,7 @@
 #define DEF_DRAW_MAX_WATCH_DOUBLE_VARIABLES 64
 #define DEF_DRAW_MAX_WATCH_STRING_VARIABLES 32
 
-//decoder 
+//decoder
 #define STB_IMAGE_IMPLEMENTATION
 
 //encoder
@@ -217,65 +217,65 @@
 #define DEF_EXPL_READ_DIR_CALLBACK_STR (std::string)"Expl/Read dir callback"
 
 //external font
-#define DEF_EXFONT_NUM_OF_ONE_BYTE_FONT     1
-#define DEF_EXFONT_NUM_OF_TWO_BYTES_FONT    12
-#define DEF_EXFONT_NUM_OF_THREE_BYTES_FONT  39
-#define DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT   2
-#define DEF_EXFONT_NUM_OF_FONT_NAME         (DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT + DEF_EXFONT_NUM_OF_THREE_BYTES_FONT + DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT)
-#define DEF_EXFONT_BLOCK_BASIC_LATIN                                0
-#define DEF_EXFONT_BLOCK_LATIN_1_SUPPLEMENT                         1
-#define DEF_EXFONT_BLOCK_LATIN_EXTENDED_A                           2
-#define DEF_EXFONT_BLOCK_LATIN_EXTENDED_B                           3
-#define DEF_EXFONT_BLOCK_IPA_EXTENSIONS                             4
-#define DEF_EXFONT_BLOCK_SPACING_MODIFIER_LETTERS                   5
-#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS                6
-#define DEF_EXFONT_BLOCK_GREEK_AND_COPTIC                           7
-#define DEF_EXFONT_BLOCK_CYRILLIC                                   8
-#define DEF_EXFONT_BLOCK_CYRILLIC_SUPPLEMENT                        9
-#define DEF_EXFONT_BLOCK_ARMENIAN                                   10
-#define DEF_EXFONT_BLOCK_HEBREW                                     11
-#define DEF_EXFONT_BLOCK_ARABIC                                     12
-#define DEF_EXFONT_BLOCK_DEVANAGARI                                 13
-#define DEF_EXFONT_BLOCK_GURMUKHI                                   14
-#define DEF_EXFONT_BLOCK_TAMIL                                      15
-#define DEF_EXFONT_BLOCK_TELUGU                                     16
-#define DEF_EXFONT_BLOCK_KANNADA                                    17
-#define DEF_EXFONT_BLOCK_SINHALA                                    18
-#define DEF_EXFONT_BLOCK_THAI                                       19
-#define DEF_EXFONT_BLOCK_LAO                                        20
-#define DEF_EXFONT_BLOCK_TIBETAN                                    21
-#define DEF_EXFONT_BLOCK_GEORGIAN                                   22
-#define DEF_EXFONT_BLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS      23
-#define DEF_EXFONT_BLOCK_PHONETIC_EXTENSIONS                        24
-#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT     25
-#define DEF_EXFONT_BLOCK_GREEK_EXTENDED                             26
-#define DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION                        27
-#define DEF_EXFONT_BLOCK_SUPERSCRIPTS_AND_SUBSCRIPTS                28
-#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_FOR_SYMBOLS    29
-#define DEF_EXFONT_BLOCK_ARROWS                                     30
-#define DEF_EXFONT_BLOCK_MATHEMATICAL_OPERATORS                     31
-#define DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL                    32
-#define DEF_EXFONT_BLOCK_OPTICAL_CHARACTER_RECOGNITION              33
-#define DEF_EXFONT_BLOCK_ENCLOSED_ALPHANUMERICS                     34
-#define DEF_EXFONT_BLOCK_BOX_DRAWING                                35
-#define DEF_EXFONT_BLOCK_BLOCK_ELEMENTS                             36
-#define DEF_EXFONT_BLOCK_GEOMETRIC_SHAPES                           37
-#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS                      38
-#define DEF_EXFONT_BLOCK_DINGBATS                                   39
-#define DEF_EXFONT_BLOCK_SUPPLEMENTAL_ARROWS_B                      40
-#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS           41
-#define DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION                 42
-#define DEF_EXFONT_BLOCK_HIRAGANA                                   43
-#define DEF_EXFONT_BLOCK_KATAKANA                                   44
-#define DEF_EXFONT_BLOCK_CJK_COMPATIBILITY                          45
-#define DEF_EXFONT_BLOCK_CJK_UNIFIED_IDEOGRAPHS                     46
-#define DEF_EXFONT_BLOCK_YI_SYLLABLES                               47
-#define DEF_EXFONT_BLOCK_YI_RADICALS                                48
-#define DEF_EXFONT_BLOCK_HANGUL_SYLLABLES                           49
-#define DEF_EXFONT_BLOCK_CJK_COMPATIBILITY_FORMS                    50
-#define DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS              51
-#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS      52
-#define DEF_EXFONT_BLOCK_EMOTICONS                                  53
+#define DEF_EXFONT_NUM_OF_ONE_BYTE_FONT		1
+#define DEF_EXFONT_NUM_OF_TWO_BYTES_FONT	12
+#define DEF_EXFONT_NUM_OF_THREE_BYTES_FONT	39
+#define DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT	2
+#define DEF_EXFONT_NUM_OF_FONT_NAME			(DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT + DEF_EXFONT_NUM_OF_THREE_BYTES_FONT + DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT)
+#define DEF_EXFONT_BLOCK_BASIC_LATIN								0
+#define DEF_EXFONT_BLOCK_LATIN_1_SUPPLEMENT							1
+#define DEF_EXFONT_BLOCK_LATIN_EXTENDED_A							2
+#define DEF_EXFONT_BLOCK_LATIN_EXTENDED_B							3
+#define DEF_EXFONT_BLOCK_IPA_EXTENSIONS								4
+#define DEF_EXFONT_BLOCK_SPACING_MODIFIER_LETTERS					5
+#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS				6
+#define DEF_EXFONT_BLOCK_GREEK_AND_COPTIC							7
+#define DEF_EXFONT_BLOCK_CYRILLIC									8
+#define DEF_EXFONT_BLOCK_CYRILLIC_SUPPLEMENT						9
+#define DEF_EXFONT_BLOCK_ARMENIAN									10
+#define DEF_EXFONT_BLOCK_HEBREW										11
+#define DEF_EXFONT_BLOCK_ARABIC										12
+#define DEF_EXFONT_BLOCK_DEVANAGARI									13
+#define DEF_EXFONT_BLOCK_GURMUKHI									14
+#define DEF_EXFONT_BLOCK_TAMIL										15
+#define DEF_EXFONT_BLOCK_TELUGU										16
+#define DEF_EXFONT_BLOCK_KANNADA									17
+#define DEF_EXFONT_BLOCK_SINHALA									18
+#define DEF_EXFONT_BLOCK_THAI										19
+#define DEF_EXFONT_BLOCK_LAO										20
+#define DEF_EXFONT_BLOCK_TIBETAN									21
+#define DEF_EXFONT_BLOCK_GEORGIAN									22
+#define DEF_EXFONT_BLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS		23
+#define DEF_EXFONT_BLOCK_PHONETIC_EXTENSIONS						24
+#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT		25
+#define DEF_EXFONT_BLOCK_GREEK_EXTENDED								26
+#define DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION						27
+#define DEF_EXFONT_BLOCK_SUPERSCRIPTS_AND_SUBSCRIPTS				28
+#define DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_FOR_SYMBOLS	29
+#define DEF_EXFONT_BLOCK_ARROWS										30
+#define DEF_EXFONT_BLOCK_MATHEMATICAL_OPERATORS						31
+#define DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL					32
+#define DEF_EXFONT_BLOCK_OPTICAL_CHARACTER_RECOGNITION				33
+#define DEF_EXFONT_BLOCK_ENCLOSED_ALPHANUMERICS						34
+#define DEF_EXFONT_BLOCK_BOX_DRAWING								35
+#define DEF_EXFONT_BLOCK_BLOCK_ELEMENTS								36
+#define DEF_EXFONT_BLOCK_GEOMETRIC_SHAPES							37
+#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS						38
+#define DEF_EXFONT_BLOCK_DINGBATS									39
+#define DEF_EXFONT_BLOCK_SUPPLEMENTAL_ARROWS_B						40
+#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS			41
+#define DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION					42
+#define DEF_EXFONT_BLOCK_HIRAGANA									43
+#define DEF_EXFONT_BLOCK_KATAKANA									44
+#define DEF_EXFONT_BLOCK_CJK_COMPATIBILITY							45
+#define DEF_EXFONT_BLOCK_CJK_UNIFIED_IDEOGRAPHS						46
+#define DEF_EXFONT_BLOCK_YI_SYLLABLES								47
+#define DEF_EXFONT_BLOCK_YI_RADICALS								48
+#define DEF_EXFONT_BLOCK_HANGUL_SYLLABLES							49
+#define DEF_EXFONT_BLOCK_CJK_COMPATIBILITY_FORMS					50
+#define DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS				51
+#define DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS		52
+#define DEF_EXFONT_BLOCK_EMOTICONS									53
 #define DEF_EXFONT_INIT_STR (std::string)"Exfont/Init"
 #define DEF_EXFONT_EXIT_STR (std::string)"Exfont/Exit"
 #define DEF_EXFONT_LOAD_FONT_CALLBACK_STR (std::string)"Exfont/Load font callback"
@@ -301,15 +301,15 @@
 #define DEF_THREAD_WAIT_TIME 10000000000//10s
 
 //0x18~0x3F
-#define DEF_THREAD_PRIORITY_IDLE            0x36//Lowest priority for user thread.
-#define DEF_THREAD_PRIORITY_LOW             0x2E
-#define DEF_THREAD_PRIORITY_BELOW_NORMAL    0x2D
-#define DEF_THREAD_PRIORITY_NORMAL          0x2C
-#define DEF_THREAD_PRIORITY_ABOVE_NORMAL    0x2B
-#define DEF_THREAD_PRIORITY_HIGH            0x2A
-#define DEF_THREAD_PRIORITY_REALTIME        0x22//Highest priority for user thread.
+#define DEF_THREAD_PRIORITY_IDLE			0x36//Lowest priority for user thread.
+#define DEF_THREAD_PRIORITY_LOW				0x2E
+#define DEF_THREAD_PRIORITY_BELOW_NORMAL	0x2D
+#define DEF_THREAD_PRIORITY_NORMAL			0x2C
+#define DEF_THREAD_PRIORITY_ABOVE_NORMAL	0x2B
+#define DEF_THREAD_PRIORITY_HIGH			0x2A
+#define DEF_THREAD_PRIORITY_REALTIME		0x22//Highest priority for user thread.
 
-#define DEF_SYSTEM_THREAD_PRIORITY_IDLE     0x3F//Lowest priority for system thread, user thread must not use this priority.
-#define DEF_SYSTEM_THREAD_PRIORITY_REALTIME 0x18//Highest priority for system thread, user thread must not use this priority.
+#define DEF_SYSTEM_THREAD_PRIORITY_IDLE		0x3F//Lowest priority for system thread, user thread must not use this priority.
+#define DEF_SYSTEM_THREAD_PRIORITY_REALTIME	0x18//Highest priority for system thread, user thread must not use this priority.
 
 #endif

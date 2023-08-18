@@ -14,7 +14,7 @@
  * @param num_of_video_tracks (out) Number of video tracks.
  * @param num_of_subtitle_tracks (out) Number of subtitle tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -24,7 +24,7 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
  * @brief Initialize a audio decoder.
  * @param num_of_audio_tracks (in) Number of audio tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -45,7 +45,7 @@ void Util_video_decoder_set_enabled_cores(bool frame_threading_cores[4], bool sl
  * @param num_of_threads (in) Number of threads.
  * @param thread_type (in) Thread type when not THREAD_TYPE_NONE, enable multi-threaded decoding if video codec supports it.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -55,7 +55,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
  * @brief Initialize a mvd (hardware) video decoder.
  * You need to call Util_video_decoder_init() first, then call this function.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -65,7 +65,7 @@ Result_with_string Util_mvd_video_decoder_init(int session);
  * @brief Initialize a subtitle decoder.
  * @param num_of_subtitle_tracks (in) Number of subtitle tracks.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -121,7 +121,7 @@ int Util_decoder_get_available_packet_num(int session);
 /**
  * @brief Read packet.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -133,7 +133,7 @@ Result_with_string Util_decoder_read_packet(int session);
  * @param packet_index (out) Pointer for packet index.
  * @param key_frame (out) Pointer for key frame (video packet only).
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -144,7 +144,7 @@ Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_inde
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_AUDIO.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -155,7 +155,7 @@ Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_VIDEO.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -166,7 +166,7 @@ Result_with_string Util_decoder_ready_video_packet(int packet_index, int session
  * Call it after Util_decoder_parse_packet() returned PACKET_TYPE_SUBTITLE.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -250,7 +250,7 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session);
  * @param current_pos (out) Current audio pos (in ms).
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -261,7 +261,7 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
  * Call it after calling Util_decoder_ready_video_packet().
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -271,7 +271,7 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session);
  * @brief Decode video using mvd service.
  * Call it after calling Util_decoder_ready_video_packet().
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -283,7 +283,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session);
  * @param Subtitle_data (out) Pointer for subtitle data.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -334,7 +334,7 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session);
  * @param height (in) Image height.
  * @param packet_index (in) Packet index.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -348,7 +348,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
  * @param width (in) Image width.
  * @param height (in) Image height.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -443,7 +443,7 @@ void Util_decoder_close_file(int session);
  * @param width (out) Image width.
  * @param height (out) Image height.
  * @param format (out) Image format (PIXEL_FORMAT_RGBA8888, PIXEL_FORMAT_RGB888, PIXEL_FORMAT_GRAYALPHA88 or PIXEL_FORMAT_GRAY8).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -457,7 +457,7 @@ Result_with_string Util_image_decoder_decode(std::string file_name, u8** raw_dat
  * @param width (out) Image width.
  * @param height (out) Image height.
  * @param format (out) Image format (PIXEL_FORMAT_RGBA8888, PIXEL_FORMAT_RGB888, PIXEL_FORMAT_GRAYALPHA88 or PIXEL_FORMAT_GRAY8).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */

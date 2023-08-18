@@ -1,4 +1,4 @@
-﻿#include "definitions.hpp"
+#include "definitions.hpp"
 #include "system/types.hpp"
 
 #include "system/menu.hpp"
@@ -29,7 +29,7 @@ Result_with_string Util_err_init(void)
 	Result_with_string result;
 	if(util_err_init)
 		goto already_inited;
-	
+
 	util_err_ok_button.c2d = var_square_image[0];
 	util_err_save_button.c2d = var_square_image[0];
 
@@ -57,7 +57,7 @@ void Util_err_exit(void)
 {
 	if(!util_err_init)
 		return;
-	
+
 	util_err_init = false;
 	Menu_remove_worker_thread_callback(Util_err_save_callback);
 }
@@ -66,7 +66,7 @@ bool Util_err_query_error_show_flag(void)
 {
 	if(!util_err_init)
 		return false;
-	
+
 	return util_err_show_flag;
 }
 
@@ -99,7 +99,7 @@ void Util_err_set_error_show_flag(bool flag)
 {
 	if(!util_err_init)
 		return;
-	
+
 	util_err_show_flag = flag;
 }
 

@@ -1,4 +1,4 @@
-﻿#include "definitions.hpp"
+#include "definitions.hpp"
 #include "system/types.hpp"
 
 #include "system/variables.hpp"
@@ -108,11 +108,11 @@ int Util_log_save(std::string place, std::string text, int result)
 	char* app_log_cache = NULL;
 	if(!util_log_init)
 		return -1;
-	
+
 	app_log_cache = (char*)malloc(place.length() + text.length() + 32);
 	if(!app_log_cache)
 		return -1;
-	
+
 	memset(app_log_cache, 0x0, place.length() + text.length() + 32);
 
 	LightLock_Lock(&util_log_mutex);
@@ -156,7 +156,7 @@ void Util_log_add(int log_index, std::string text, int result)
 	char* app_log_add_cache = NULL;
 	if(!util_log_init)
 		return;
-	
+
 	if(log_index < 0 || log_index > DEF_LOG_BUFFER_LINES)
 		return;
 

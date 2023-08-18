@@ -13,7 +13,7 @@ extern "C" Result __real_APT_GetAppCpuTimeLimit(u32* percent);
 
 /**
  * @brief Initialize util API.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -117,7 +117,7 @@ void Util_remove_watch(std::string* variable);
 /**
  * @brief Check if watched values were changed.
  * Always return false if util api is not initialized.
- * @return True if values were changed otherwise false. 
+ * @return True if values were changed otherwise false.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
 */
@@ -128,7 +128,7 @@ bool Util_is_watch_changed(void);
  * @param source_data (in) Text data.
  * @param expected_items (in) Expected elements.
  * @param out_data (out) Array for parsed data.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -155,7 +155,7 @@ std::string Util_encode_to_escape(std::string in_data);
  * @param file_name (in) File name in romfs:/gfx/msg/.
  * @param out_msg (out) Array for parsed message.
  * @param num_of_msg (in) Number of message.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -180,7 +180,7 @@ std::string Util_decode_from_base64(std::string source);
 
 /**
  * @brief Initialize a safe linear alloc API.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

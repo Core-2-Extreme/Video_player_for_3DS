@@ -1,11 +1,11 @@
-﻿#ifndef EXTERNAL_FONT_HPP
+#ifndef EXTERNAL_FONT_HPP
 #define EXTERNAL_FONT_HPP
 
 #include "system/types.hpp"
 
 /**
  * @brief Initialize a external font api.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -31,7 +31,7 @@ std::string Exfont_query_external_font_name(int exfont_num);
  * @brief Check whether external font is loaded (ready).
  * Always return false if external font api is not initialized.
  * @param exfont_num (in) External font index.
- * @return True if external font is loaded, otherwise false. 
+ * @return True if external font is loaded, otherwise false.
  * @warning Thread dangerous (untested)
 */
 bool Exfont_is_loaded_external_font(int exfont_num);
@@ -39,7 +39,7 @@ bool Exfont_is_loaded_external_font(int exfont_num);
 /**
  * @brief Check whether external font is loading.
  * Always return false if external font api is not initialized.
- * @return True if external font is loading right now, otherwise false. 
+ * @return True if external font is loading right now, otherwise false.
  * @warning Thread dangerous (untested)
 */
 bool Exfont_is_loading_external_font(void);
@@ -47,7 +47,7 @@ bool Exfont_is_loading_external_font(void);
 /**
  * @brief Check whether external font is unloading.
  * Always return false if external font api is not initialized.
- * @return True if external font is unloading right now, otherwise false. 
+ * @return True if external font is unloading right now, otherwise false.
  * @warning Thread dangerous (untested)
 */
 bool Exfont_is_unloading_external_font(void);
@@ -55,7 +55,7 @@ bool Exfont_is_unloading_external_font(void);
 /**
  * @brief Set external font request state.
  * Do nothing if external font api is not initialized.
- * Actuall loading/unloading won't happen until you call 
+ * Actuall loading/unloading won't happen until you call
  * Exfont_request_load_external_font()/Exfont_request_unload_external_font().
  * @param exfont_num (in) External font index.
  * @param flag (in) When true, external font request state will be set to true, otherwise set to false.

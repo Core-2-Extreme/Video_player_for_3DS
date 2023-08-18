@@ -7,7 +7,7 @@
 /**
  * @brief Initialize a speaker.
  * Run dsp1(https://github.com/zoogie/DSP1/releases) first if 0xd880A7FA is returned.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -18,7 +18,7 @@ Result_with_string Util_speaker_init(void);
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @param music_ch (in) Audio ch (1 or 2).
  * @param sample_rate (in) Audio sample rate (in Hz).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -29,7 +29,7 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
  * @param play_ch (in) Internal speaker ch (0 ~ 23).
  * @param buffer (in) Pointer for raw audio data (PCM_S16LE).
  * @param size (in) Audio data size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */

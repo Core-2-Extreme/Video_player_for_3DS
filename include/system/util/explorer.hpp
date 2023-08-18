@@ -1,4 +1,4 @@
-﻿#ifndef EXPLORER_HPP
+#ifndef EXPLORER_HPP
 #define EXPLORER_HPP
 
 #if DEF_ENABLE_EXPL_API
@@ -6,7 +6,7 @@
 
 /**
  * @brief Initialize a explorer api.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

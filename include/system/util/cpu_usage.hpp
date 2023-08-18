@@ -6,7 +6,7 @@
 
 /**
  * @brief Initialize cpu usage monitor API.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

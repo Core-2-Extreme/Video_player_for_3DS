@@ -11,7 +11,7 @@
  * @brief Create the output file.
  * @param file_path (in) Output file path.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -21,11 +21,11 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
  * @brief Initialize a audio encoder.
  * @param codec (in) Audio codec.
  * @param original_sample_rate (in) Input audio sample rate (in Hz).
- * @param encode_sample_rate (in) Encode audio sample rate (in Hz) (audio data will be converted 
+ * @param encode_sample_rate (in) Encode audio sample rate (in Hz) (audio data will be converted
  * original_sample_rate -> encode_sample_rate internally when you call Util_audio_encoder_encode()).
  * @param bitrate (in) Audio bitrate (in bit).
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -39,7 +39,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
  * @param bitrate (in) Video bitrate (in bit).
  * @param fps (in) Video framerate.
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -49,7 +49,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
  * @brief Write a header (if needed by container).
  * Call it after calling Util_*_encoder_init().
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -60,7 +60,7 @@ Result_with_string Util_encoder_write_header(int session);
  * @param size (in) Raw audio data size (in byte).
  * @param raw_audio (in) Pointer for raw audio data (PCM_S16LE).
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -70,7 +70,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
  * @brief Encode a image.
  * @param raw_image (in) Pointer for raw image data (yuv420p).
  * @param session (in) Session number.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -106,7 +106,7 @@ void Util_encoder_close_output_file(int session);
  * @param height (in) Image height.
  * @param codec (in) Image codec.
  * @param quality (in) Image quality (jpg only).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */

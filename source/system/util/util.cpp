@@ -43,7 +43,7 @@ extern "C" void* __wrap_realloc(void* ptr, size_t size)
 {
 	void* new_ptr[2] = { NULL, NULL, };
 
-	//Alloc memory on linear ram if requested size is greater than 32KB 
+	//Alloc memory on linear ram if requested size is greater than 32KB
 	//or previous pointer is allocated on linear ram to prevent slow down (linear alloc is slow).
 	if(size > 1024 * 32 || (ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
 		|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
@@ -60,7 +60,7 @@ extern "C" void* __wrap_realloc(void* ptr, size_t size)
 				new_ptr[1] = Util_safe_linear_alloc(size);
 				if(new_ptr[1])
 					memcpy(new_ptr[1], new_ptr[0], size);
-				
+
 				free(new_ptr[0]);
 				return new_ptr[1];
 			}
@@ -73,7 +73,7 @@ extern "C" void* __wrap_realloc(void* ptr, size_t size)
 }
 
 extern "C" void __wrap_free(void* ptr)
-{	
+{
 	if((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE))
 	|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 		Util_safe_linear_free(ptr);
@@ -115,7 +115,7 @@ extern "C" Result __wrap_APT_SetAppCpuTimeLimit(u32 percent)
 	Result code = __real_APT_SetAppCpuTimeLimit(percent);
 	if(code == 0)
 		util_max_core_1 = percent;
-	
+
 	return code;
 }
 
@@ -124,7 +124,7 @@ extern "C" Result __wrap_APT_GetAppCpuTimeLimit(u32* percent)
 	Result code = __real_APT_GetAppCpuTimeLimit(percent);
 	if(percent && code == 0)
 		util_max_core_1 = *percent;
-	
+
 	return code;
 }
 
@@ -370,7 +370,7 @@ void Util_remove_watch(int* variable)
 		}
 		else if(util_draw_watch_int[i].address)
 			count++;
-		
+
 		if(count >= util_draw_num_of_watch_int)
 			break;
 	}
@@ -406,7 +406,7 @@ void Util_remove_watch(bool* variable)
 		}
 		else if(util_draw_watch_bool[i].address)
 			count++;
-		
+
 		if(count >= util_draw_num_of_watch_bool)
 			break;
 	}
@@ -442,7 +442,7 @@ void Util_remove_watch(double* variable)
 		}
 		else if(util_draw_watch_double[i].address)
 			count++;
-		
+
 		if(count >= util_draw_num_of_watch_double)
 			break;
 	}
@@ -478,7 +478,7 @@ void Util_remove_watch(std::string* variable)
 		}
 		else if(util_draw_watch_string[i].address)
 			count++;
-		
+
 		if(count >= util_draw_num_of_watch_string)
 			break;
 	}
@@ -508,7 +508,7 @@ bool Util_is_watch_changed(void)
 			}
 			count++;
 		}
-		
+
 		if(count >= util_draw_num_of_watch_bool)
 			break;
 	}
@@ -525,7 +525,7 @@ bool Util_is_watch_changed(void)
 			}
 			count++;
 		}
-		
+
 		if(count >= util_draw_num_of_watch_int)
 			break;
 	}
@@ -542,7 +542,7 @@ bool Util_is_watch_changed(void)
 			}
 			count++;
 		}
-		
+
 		if(count >= util_draw_num_of_watch_double)
 			break;
 	}
@@ -560,7 +560,7 @@ bool Util_is_watch_changed(void)
 			}
 			count++;
 		}
-		
+
 		if(count >= util_draw_num_of_watch_string)
 			break;
 	}
@@ -578,7 +578,7 @@ Result_with_string Util_parse_file(std::string source_data, int expected_items, 
 	Result_with_string result;
 
 	if(!out_data || expected_items <= 0)
-		goto invalid_arg;	
+		goto invalid_arg;
 
 	for (int i = 0; i < expected_items; i++)
 	{
@@ -620,7 +620,7 @@ std::string Util_convert_seconds_to_time(double input_seconds)
 
 	if(std::isnan(input_seconds) || std::isinf(input_seconds))
 		input_seconds = 0;
-	
+
 	hours = (int)input_seconds / 3600;
 	minutes = ((int)input_seconds % 3600) / 60;
 	seconds = ((int)input_seconds % 60);
@@ -730,7 +730,7 @@ void Util_safe_linear_alloc_exit(void)
 {
 	if(!util_safe_linear_alloc_init)
 		return;
-	
+
 	util_safe_linear_alloc_init = false;
 }
 
@@ -781,7 +781,7 @@ void* __attribute__((optimize("O0"))) Util_safe_linear_realloc(void* pointer, si
 		LightLock_Lock(&util_safe_linear_alloc_mutex);
 		pointer_size = linearGetSize(pointer);
 		LightLock_Unlock(&util_safe_linear_alloc_mutex);
-		
+
 		if(size > pointer_size)
 			memcpy_asm((u8*)new_ptr, (u8*)pointer, pointer_size);
 		else

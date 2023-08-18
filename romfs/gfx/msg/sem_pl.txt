@@ -1,4 +1,4 @@
-﻿<0>Aktualizacje</0>
+<0>Aktualizacje</0>
 <1>Języki</1>
 <2>Ekran LCD</2>
 <3>Sterowanie</3>

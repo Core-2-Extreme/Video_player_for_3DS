@@ -11,7 +11,7 @@
 /**
  * @brief Convert color format and/or size.
  * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -28,7 +28,7 @@ Result_with_string Util_converter_convert_color(Color_converter_parameters* para
 /**
  * @brief Convert audio format and/or sample rate.
  * @param paraeters (in) Pointer for parameters. (See types.hpp for explanation).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -48,7 +48,7 @@ Result_with_string Util_converter_convert_audio(Audio_converter_parameters* para
  * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -60,7 +60,7 @@ Result_with_string Util_converter_yuv420p_to_rgb565le(u8* yuv420p, u8** rgb565, 
  * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -71,7 +71,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le(u8* yuv420p, u8** rgb888, 
  * @param rgb8888 (in&out) Pointer for rgb888 data.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -82,7 +82,7 @@ Result_with_string Util_converter_rgba8888be_to_rgba8888le(u8* rgba8888, int wid
  * @param rgb888 (in&out) Pointer for rgb888 data.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -96,7 +96,7 @@ Result_with_string Util_converter_rgb888be_to_rgb888le(u8* rgb888, int width, in
  * @param height (in) Picture height.
  * @param rotated_width (out) new(after rotated) picture width.
  * @param rotated_height (out) new(after rotated) picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -124,7 +124,7 @@ Result_with_string Util_converter_rgb888_rotate_90_degree(u8* rgb888, u8** rotat
  * @param rgb888 (out) Pointer for rgb888 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -136,7 +136,7 @@ Result_with_string Util_converter_yuv420p_to_rgb888le_asm(u8* yuv420p, u8** rgb8
  * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -153,7 +153,7 @@ Result_with_string Util_converter_yuv420p_to_rgb565le_asm(u8* yuv420p, u8** rgb5
 
 /**
  * @brief Initialize a y2r(hardware color converter).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -165,9 +165,9 @@ Result_with_string Util_converter_y2r_init(void);
  * @param rgb565 (out) Pointer for rgb565 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @param texture_format (in) When true, rgb565 data will be outputted as texture format that 
+ * @param texture_format (in) When true, rgb565 data will be outputted as texture format that
  * can be used for Draw_set_texture_data_direct().
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

@@ -30,7 +30,7 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 	memset(utf16_path, 0x0, 4096);
 	utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
 	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
-	
+
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if(result.code != 0)
 	{
@@ -71,7 +71,7 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 			goto nintendo_api_failed;
 		}
 	}
-	
+
 	result.code = FSFILE_Write(handle, &written_size, offset, write_data, size, FS_WRITE_FLUSH);
 	if (result.code != 0)
 	{
@@ -141,7 +141,7 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
 	utf16_path = (u16*)malloc(4096);
 	if(!utf16_path)
 		goto out_of_memory;
-	
+
 	memset(utf16_path, 0x0, 4096);
 	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
 
@@ -307,10 +307,10 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
 	utf16_path = (u16*)malloc(4096);
 	if(!utf16_path)
 		goto out_of_memory;
-	
+
 	memset(utf16_path, 0x0, 4096);
 	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
-	
+
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
 	{
@@ -364,7 +364,7 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 	utf16_path = (u16*)malloc(4096);
 	if(!utf16_path)
 		goto out_of_memory;
-	
+
 	memset(utf16_path, 0x0, 4096);
 	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
 
@@ -430,10 +430,10 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 	utf16_path = (u16*)malloc(4096);
 	if(!utf16_path)
 		goto out_of_memory;
-	
+
 	memset(utf16_path, 0x0, 4096);
 	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
-	
+
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
 	{
@@ -500,7 +500,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	utf8_file_name = (char*)malloc(256);
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
-	
+
 	memset(utf16_dir_path, 0x0, 4096);
 	utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
 
@@ -532,7 +532,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 
 		if (read_entry == 0)
 			break;
-		
+
 		memset(utf8_file_name, 0x0, 256);
 		utf16_to_utf8((u8*)utf8_file_name, fs_entry.name, 256);
 		file_name[count] = utf8_file_name;

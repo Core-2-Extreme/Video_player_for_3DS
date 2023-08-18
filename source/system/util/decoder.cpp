@@ -9,7 +9,7 @@
 
 #if DEF_ENABLE_VIDEO_AUDIO_DECODER_API
 
-extern "C" 
+extern "C"
 {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
@@ -94,7 +94,7 @@ AVPacket* util_decoder_cache_packet[DEF_DECODER_MAX_SESSIONS][DEF_DECODER_MAX_CA
 AVFormatContext* util_decoder_format_context[DEF_DECODER_MAX_SESSIONS];
 
 //Translation table for AVPixelFormat -> Pixel_format.
-Pixel_format util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] = 
+Pixel_format util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
 {
 	PIXEL_FORMAT_YUV420P,
 	PIXEL_FORMAT_YUYV422,
@@ -321,7 +321,7 @@ Pixel_format util_video_decoder_pixel_format_table[AV_PIX_FMT_NB] =
 };
 
 //Translation table for AVSampleFormat -> Sample_format.
-Sample_format util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] = 
+Sample_format util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 {
 	SAMPLE_FORMAT_U8,
 	SAMPLE_FORMAT_S16,
@@ -337,20 +337,20 @@ Sample_format util_audio_decoder_sample_format_table[AV_SAMPLE_FMT_NB] =
 	SAMPLE_FORMAT_S64P,
 };
 
-u8 util_audio_decoder_sample_format_size_table[] = 
+u8 util_audio_decoder_sample_format_size_table[] =
 {
-    sizeof(u8),
-    sizeof(s16),
-    sizeof(s32),
-    sizeof(float),
-    sizeof(double),
-    sizeof(u8),
-    sizeof(s16),
-    sizeof(s32),
-    sizeof(float),
-    sizeof(double),
-    sizeof(s64),
-    sizeof(s64),
+	sizeof(u8),
+	sizeof(s16),
+	sizeof(s32),
+	sizeof(float),
+	sizeof(double),
+	sizeof(u8),
+	sizeof(s16),
+	sizeof(s32),
+	sizeof(float),
+	sizeof(double),
+	sizeof(s64),
+	sizeof(s64),
 };
 
 // void Util_video_decoder_log_callback(void *avcl, int level, const char *fmt, va_list list)
@@ -385,7 +385,7 @@ int Util_video_decoder_allocate_buffer(AVCodecContext *avctx, AVFrame *frame, in
 
 	if(avctx->codec_type == AVMEDIA_TYPE_VIDEO)
 	{
-		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++) 
+		for (int i = 0; i < AV_NUM_DATA_POINTERS; i++)
 		{
 			frame->data[i] = NULL;
 			frame->linesize[i] = 0;
@@ -562,7 +562,7 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 
 	for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
 		util_video_decoder_stream_num[session][i] = -1;
-	
+
 	util_decoder_format_context[session] = avformat_alloc_context();
 	if(!util_decoder_format_context[session])
 	{
@@ -576,7 +576,7 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 		result.error_description = "[Error] avformat_open_input() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	ffmpeg_result = avformat_find_stream_info(util_decoder_format_context[session], NULL);
 	if(!util_decoder_format_context[session])
 	{
@@ -622,12 +622,12 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	avformat_free_context(util_decoder_format_context[session]);
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
@@ -650,7 +650,7 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 
 	if(num_of_audio_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
-	
+
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
 
@@ -700,7 +700,7 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -744,7 +744,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 
 	if(num_of_video_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
-	
+
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
 
@@ -850,7 +850,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -880,13 +880,13 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
-	
+
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0])
 		goto not_inited;
 
 	if(util_mvd_video_decoder_init)
 		goto already_inited;
-	
+
 	width = util_video_decoder_context[session][0]->width;
 	height = util_video_decoder_context[session][0]->height;
 
@@ -932,7 +932,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -963,7 +963,7 @@ Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int se
 
 	if(num_of_subtitle_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
-	
+
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
 
@@ -1012,7 +1012,7 @@ Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int se
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1165,10 +1165,10 @@ void Util_decoder_clear_cache_packet(int session)
 
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		return;
-	
+
 	if(!util_decoder_opened_file[session])
 		return;
-	
+
 	for(int i = 0; i < DEF_DECODER_MAX_CACHE_PACKETS; i++)
 		av_packet_free(&util_decoder_cache_packet[session][i]);
 
@@ -1184,7 +1184,7 @@ int Util_decoder_get_available_packet_num(int session)
 
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		return 0;
-	
+
 	if(!util_decoder_opened_file[session])
 		return 0;
 	else
@@ -1200,7 +1200,7 @@ Result_with_string Util_decoder_read_packet(int session)
 
 	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
-	
+
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
 
@@ -1241,7 +1241,7 @@ Result_with_string Util_decoder_read_packet(int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1272,7 +1272,7 @@ Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_inde
 
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
-	
+
 	*key_frame = false;
 	*packet_index = -1;
 	*type = PACKET_TYPE_UNKNOWN;
@@ -1375,7 +1375,7 @@ Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_inde
 		util_decoder_cache_packet_current_index[session]++;
 	else
 		util_decoder_cache_packet_current_index[session] = 0;
-	
+
 	LightLock_Lock(&util_decoder_cache_packet_mutex[session]);
 	util_decoder_available_cache_packet[session]--;
 	LightLock_Unlock(&util_decoder_cache_packet_mutex[session]);
@@ -1385,7 +1385,7 @@ Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_inde
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1453,7 +1453,7 @@ Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1521,7 +1521,7 @@ Result_with_string Util_decoder_ready_video_packet(int packet_index, int session
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1589,7 +1589,7 @@ Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int sess
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1620,7 +1620,7 @@ void Util_decoder_skip_audio_packet(int packet_index, int session)
 
 	if(!util_audio_decoder_cache_packet_ready[session][packet_index])
 		return;
-	
+
 	av_packet_free(&util_audio_decoder_cache_packet[session][packet_index]);
 	util_audio_decoder_cache_packet_ready[session][packet_index] = false;
 }
@@ -1656,7 +1656,7 @@ void Util_decoder_skip_subtitle_packet(int packet_index, int session)
 
 	if(!util_subtitle_decoder_cache_packet_ready[session][packet_index])
 		return;
-	
+
 	av_packet_free(&util_subtitle_decoder_cache_packet[session][packet_index]);
 	util_subtitle_decoder_cache_packet_ready[session][packet_index] = false;
 }
@@ -1748,14 +1748,14 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 
 	*samples = 0;
 	*current_pos = 0;
-	
+
 	util_audio_decoder_raw_data[session][packet_index] = av_frame_alloc();
 	if(!util_audio_decoder_raw_data[session][packet_index])
 	{
 		result.error_description = "[Error] av_frame_alloc() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	ffmpeg_result = avcodec_send_packet(util_audio_decoder_context[session][packet_index], util_audio_decoder_packet[session][packet_index]);
 	if(ffmpeg_result != 0)
 	{
@@ -1802,7 +1802,7 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1851,9 +1851,9 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 		result.error_description = "[Error] Queues are full. ";
 		goto try_again;
 	}
-	
+
 	buffer_num = util_video_decoder_raw_image_current_index[session][packet_index];
-	
+
 	util_video_decoder_raw_image[session][packet_index][buffer_num] = av_frame_alloc();
 	if(!util_video_decoder_raw_image[session][packet_index][buffer_num])
 	{
@@ -1904,7 +1904,7 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -1968,7 +1968,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 		result.error_description = "[Error] Queues are full. ";
 		goto try_again;
 	}
-	
+
 	buffer_num = util_mvd_video_decoder_raw_image_current_index[session];
 	width = util_video_decoder_context[session][0]->width;
 	height = util_video_decoder_context[session][0]->height;
@@ -2042,7 +2042,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 			// Util_log_save("debug", "unexpected nal size : " + std::to_string(size));
 			goto ffmpeg_api_failed;
 		}
-		
+
 		//set nal prefix 0x0 0x0 0x1
 		memset(util_mvd_video_decoder_packet + offset, 0x0, 0x2);
 		offset += 2;
@@ -2190,7 +2190,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -2280,14 +2280,14 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	subtitle_data->text = "";
 	subtitle_data->start_time = 0;
 	subtitle_data->end_time = 0;
-	
+
 	util_subtitle_decoder_raw_data[session][packet_index] = (AVSubtitle*)Util_safe_linear_alloc(sizeof(AVSubtitle));
 	if(!util_subtitle_decoder_raw_data[session][packet_index])
 	{
 		result.error_description = "[Error] av_subtitle_alloc() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	ffmpeg_result = avcodec_decode_subtitle2(util_subtitle_decoder_context[session][packet_index], util_subtitle_decoder_raw_data[session][packet_index], &decoded, util_subtitle_decoder_packet[session][packet_index]);
 	if(ffmpeg_result < 0)
 	{
@@ -2385,7 +2385,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -2437,7 +2437,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session)
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		return;
-	
+
 	for(int k = 0; k < util_video_decoder_max_raw_image[session][packet_index]; k++)
 		av_frame_free(&util_video_decoder_raw_image[session][packet_index][k]);
 
@@ -2456,7 +2456,7 @@ void Util_mvd_video_decoder_clear_raw_image(int session)
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		return;
-	
+
 	for(int i = 0; i < util_mvd_video_decoder_max_raw_image[session]; i++)
 	{
 		if(util_mvd_video_decoder_raw_image[session][i])
@@ -2530,7 +2530,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		goto not_inited;
-	
+
 	if(util_video_decoder_available_raw_image[session][packet_index] <= 0)
 	{
 		result.error_description = "[Error] No raw image available. ";
@@ -2635,7 +2635,7 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -2674,7 +2674,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		goto not_inited;
-	
+
 	if(util_mvd_video_decoder_available_raw_image[session] <= 0)
 	{
 		result.error_description = "[Error] No raw image available. ";
@@ -2686,7 +2686,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	*raw_data = (u8*)Util_safe_linear_alloc(width * height * 2);
 	if(!*raw_data)
 		goto out_of_memory;
-	
+
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
@@ -2741,7 +2741,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
@@ -2773,7 +2773,7 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
 		return;
-	
+
 	if(util_video_decoder_available_raw_image[session][packet_index] <= 0)
 		return;
 
@@ -2820,10 +2820,10 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
 		return;
-	
+
 	if(util_mvd_video_decoder_available_raw_image[session] <= 0)
 		return;
-	
+
 	*current_pos = 0;
 	buffer_num = util_mvd_video_decoder_raw_image_ready_index[session];
 	framerate = (double)util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.num / util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][0]]->avg_frame_rate.den;
@@ -2843,7 +2843,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 			util_mvd_video_decoder_raw_image[session][buffer_num]->data[i] = NULL;
 	}
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
-	
+
 	if(util_mvd_video_decoder_raw_image_ready_index[session] + 1 < util_mvd_video_decoder_max_raw_image[session])
 		util_mvd_video_decoder_raw_image_ready_index[session]++;
 	else
@@ -2867,7 +2867,7 @@ Result_with_string Util_decoder_seek(u64 seek_pos, Seek_flag flag, int session)
 
 	if(!util_decoder_opened_file[session])
 		goto not_inited;
-	
+
 	if(flag & SEEK_FLAG_BACKWARD)
 		ffmpeg_seek_flag |= AVSEEK_FLAG_BACKWARD;
 	if(flag & SEEK_FLAG_BYTE)
@@ -2890,7 +2890,7 @@ Result_with_string Util_decoder_seek(u64 seek_pos, Seek_flag flag, int session)
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	not_inited:
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;

@@ -165,7 +165,7 @@ Result_with_string Util_cam_take_a_picture(u8** raw_data, int* width, int* heigh
 
 	if(!raw_data || !width || !height)
 		goto invalid_arg;
-	
+
 	Util_safe_linear_free(*raw_data);
 	*raw_data = (u8*)Util_safe_linear_alloc(util_cam_width * util_cam_height * 2);
 	if(*raw_data == NULL)
@@ -338,7 +338,7 @@ Result_with_string Util_cam_set_fps(Camera_framerate fps_mode)
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
+
 	if (fps_mode <= CAM_FPS_INVALID || fps_mode >= CAM_FPS_MAX)
 		goto invalid_arg;
 
@@ -397,7 +397,7 @@ Result_with_string Util_cam_set_contrast(Camera_contrast contrast_mode)
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
+
 	if (contrast_mode <= CAM_CONTRAST_INVALID || contrast_mode >= CAM_CONTRAST_MAX)
 		goto invalid_arg;
 
@@ -454,7 +454,7 @@ Result_with_string Util_cam_set_white_balance(Camera_white_balance white_balance
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
+
 	if (white_balance_mode <= CAM_WHITE_BALANCE_INVALID || white_balance_mode >= CAM_WHITE_BALANCE_MAX)
 		goto invalid_arg;
 
@@ -545,7 +545,7 @@ Result_with_string Util_cam_set_camera(Camera_port camera_port)
 
 	if (camera_port <= CAM_PORT_INVALID || camera_port >= CAM_PORT_MAX)
 		goto invalid_arg;
-	
+
 	if(camera_port == CAM_PORT_OUT_LEFT)
 		camera = SELECT_OUT2;
 	else if(camera_port == CAM_PORT_OUT_RIGHT)
@@ -588,7 +588,7 @@ Result_with_string Util_cam_set_exposure(Camera_exposure exposure_mode)
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
-	
+
 	if(exposure <= CAM_EXPOSURE_INVALID || exposure >= CAM_EXPOSURE_MAX)
 		goto invalid_arg;
 
@@ -645,7 +645,7 @@ void Util_cam_exit(void)
 {
 	if(!util_cam_init)
 		return;
-	
+
 	camExit();
 	util_cam_init = false;
 }

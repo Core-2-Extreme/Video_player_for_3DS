@@ -7,7 +7,7 @@
 /**
  * @brief Initialize a mic.
  * @param buffer_size (in) Internal mic buffer size.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -16,7 +16,7 @@ Result_with_string Util_mic_init(int buffer_size);
 /**
  * @brief Start recording.
  * @param sample_rate_mode (in) Audio sample rate.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */
@@ -51,7 +51,7 @@ int Util_mic_query_remaining_buffer_time(void);
  * @brief Get audio data.
  * @param raw_data (out) Pointer for raw audio data (PCM_S16LE), the pointer will be allocated inside of function.
  * @param size (out) Audio data size.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

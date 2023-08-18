@@ -189,7 +189,7 @@ Result_with_string Util_hid_query_key_state(Hid_info* out_key_state)
 	Result_with_string result;
 	if(!util_hid_init)
 		goto not_inited;
-	
+
 	out_key_state->p_a = util_hid_key_A_pressed;
 	out_key_state->p_b = util_hid_key_B_pressed;
 	out_key_state->p_x = util_hid_key_X_pressed;
@@ -502,7 +502,7 @@ void Util_hid_scan_hid_thread(void* arg)
 			util_hid_held_time++;
 		else
 			util_hid_held_time = 0;
-		
+
 		util_hid_ts = osGetTime();
 
 		LightLock_Lock(&util_hid_callback_mutex);

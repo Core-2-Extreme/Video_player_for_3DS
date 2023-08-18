@@ -78,7 +78,7 @@ void Util_cpu_usage_monitor_exit(void)
 			threadJoin(util_cpu_usage_thread_handle[i], DEF_THREAD_WAIT_TIME);
 			threadFree(util_cpu_usage_thread_handle[i]);
 		}
-	}	
+	}
 }
 
 float Util_cpu_usage_monitor_get_cpu_usage(s8 core_id)

@@ -1,4 +1,4 @@
-﻿<0>Frissítések</0>
+<0>Frissítések</0>
 <1>Nyelvek</1>
 <2>LCD</2>
 <3>Irányítás</3>

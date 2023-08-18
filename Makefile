@@ -40,38 +40,36 @@ GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
-APP_VER					:= 1
-APP_TITLE				:= Video player for 3DS
-APP_DESCRIPTION				:= Video player for 3DS v1.6.0 (nightly build)
-APP_AUTHOR				:= Core_2_Extreme
-PRODUCT_CODE				:= CTR-Vid
-UNIQUE_ID				:= 0xEC600
+APP_VER				:= 1
+APP_TITLE			:= Video player for 3DS
+APP_DESCRIPTION		:= Video player for 3DS v1.6.0 (nightly build)
+APP_AUTHOR			:= Core_2_Extreme
+PRODUCT_CODE		:= CTR-Vid
+UNIQUE_ID			:= 0xEC600
 
-BANNER_AUDIO				:= resource/banner.wav
-BANNER_IMAGE				:= resource/banner.png
-ICON        				:= resource/icon.png
-RSF_PATH				:= resource/app.rsf
+BANNER_AUDIO		:= resource/banner.wav
+BANNER_IMAGE		:= resource/banner.png
+ICON				:= resource/icon.png
+RSF_PATH			:= resource/app.rsf
 
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
+ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:= -Wall -O3 -mword-relocations \
-		-fomit-frame-pointer -ffunction-sections \
-		$(ARCH)
+CFLAGS		:= -Wall -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -D__3DS__
+CFLAGS		+= $(INCLUDE) -D__3DS__
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
-ASFLAGS	:= $(ARCH)
-LDFLAGS	=	-specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign
-LDFLAGS	+=  -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+ASFLAGS		:= $(ARCH)
+LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign
+LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
 
-LIBS	:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lm -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru
+LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lm -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -120,7 +118,7 @@ endif
 #---------------------------------------------------------------------------------
 ifeq ($(GFXBUILD),$(BUILD))
 #---------------------------------------------------------------------------------
-export T3XFILES :=  $(GFXFILES:.t3s=.t3x)
+export T3XFILES := $(GFXFILES:.t3s=.t3x)
 #---------------------------------------------------------------------------------
 else
 #---------------------------------------------------------------------------------
@@ -174,8 +172,8 @@ endif
 .PHONY: all clean
 
 #---------------------------------------------------------------------------------
-MAKEROM      ?= makerom
-MAKEROM_ARGS := -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
+MAKEROM			?= makerom
+MAKEROM_ARGS 	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
 
 ifneq ($(strip $(LOGO)),)
 	MAKEROM_ARGS	+=	 -logo "$(LOGO)"
@@ -184,7 +182,7 @@ ifneq ($(strip $(ROMFS)),)
 	MAKEROM_ARGS	+=	 -DAPP_ROMFS="$(ROMFS)"
 endif
 
-BANNERTOOL   ?= bannertool
+BANNERTOOL		?= bannertool
 
 ifeq ($(suffix $(BANNER_IMAGE)),.cgfx)
 	BANNER_IMAGE_ARG := -ci

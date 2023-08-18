@@ -1,4 +1,4 @@
-﻿#ifndef MENU_HPP
+#ifndef MENU_HPP
 #define MENU_HPP
 
 #include "types.hpp"

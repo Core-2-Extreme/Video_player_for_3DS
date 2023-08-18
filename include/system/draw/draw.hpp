@@ -8,7 +8,7 @@
  * It is NOT possible to enable 800px mode and 3D mode at the same time.
  * @param wide (in) When true, enable 800px mode.
  * @param _3d (in) When true, enable 3D mode.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
@@ -20,7 +20,7 @@ Result_with_string Draw_init(bool wide, bool _3d);
  * It is NOT possible to enable 800px mode and 3D mode at the same time.
  * @param wide (in) When true, enable 800px mode.
  * @param _3d (in) When true, enable 3D mode.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
  * @warning Call it from only drawing thread.
@@ -73,7 +73,7 @@ double Draw_query_fps(void);
  * @param tex_size_x (in) Texture width (must be power of 2).
  * @param tex_size_y (in) Texture height (must be power of 2).
  * @param color_format (in) Color format (PIXEL_FORMAT_ABGR8888, PIXEL_FORMAT_BGR888 or PIXEL_FORMAT_RGB565LE).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -83,7 +83,7 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
  * @brief Uninitialize a texture.
  * Do nothing if draw api is not initialized.
  * @param image (in&out) Pointer for texture.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -95,7 +95,7 @@ void Draw_texture_free(Image_data* image);
  * @param buf (in) Pointer for raw image data (must be texture format).
  * @param pic_width (in) Raw image width (up to 1024).
  * @param pic_height (in) Raw image height (up to 1024).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -107,7 +107,7 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
  * @param buf (in) Pointer for raw image data.
  * @param pic_width (in) Raw image width.
  * @param pic_height (in) Raw image height.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -121,7 +121,7 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
  * @param pic_height (in) Raw image height.
  * @param width_offset (in) Width offset.
  * @param height_offset (in) Height offset.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -241,7 +241,7 @@ int Draw_get_free_sheet_num(void);
  * @param return_image (out) Array for texture data, the array will be allocated inside of function.
  * @param start_num (in) Array offset.
  * @param num_of_array (in) Array size.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @warning Thread dangerous (untested)
 */
@@ -400,7 +400,7 @@ void Draw_cpu_usage_info(void);
 /**
  * @brief Load system font.
  * @param system_font_num (in) System font index.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

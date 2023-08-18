@@ -5287,7 +5287,7 @@ void Vid_main(void)
 							Draw("*When thread_type == frame, the red graph is unusable", 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
 						else
 							Draw("avg/min/max/recent avg " + std::to_string(1000 / (vid_player.decoding_total_time / vid_player.total_frames)).substr(0, 5) + "/" + std::to_string(1000 / vid_player.decoding_max_time).substr(0, 5)
-							+  "/" + std::to_string(1000 / vid_player.decoding_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_player.decoding_recent_total_time/ 90)).substr(0, 5) +  " fps", 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+							+ "/" + std::to_string(1000 / vid_player.decoding_min_time).substr(0, 5) + "/" + std::to_string(1000 / (vid_player.decoding_recent_total_time/ 90)).substr(0, 5) + " fps", 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
 					}
 
 					Draw_texture(&vid_player.menu_button[0], vid_player.menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);

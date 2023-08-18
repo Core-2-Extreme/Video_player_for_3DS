@@ -1,4 +1,4 @@
-﻿<0>basic_latin</0>
+<0>basic_latin</0>
 <1>latin_1_supplement</1>
 <2>latin_extended-a</2>
 <3>latin_extended-b</3>

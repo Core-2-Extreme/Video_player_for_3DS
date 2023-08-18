@@ -1,4 +1,4 @@
-﻿#include "definitions.hpp"
+#include "definitions.hpp"
 
 #if DEF_ENABLE_EXPL_API
 #include <algorithm>
@@ -104,7 +104,7 @@ std::string Util_expl_generate_file_type_string(int type)
 		type_string += "read only,";
 	if(type & FILE_TYPE_HIDDEN)
 		type_string += "hidden,";
-	
+
 	if(type_string.length() > 0)
 		return type_string.substr(0, type_string.length() - 1);
 	else
@@ -115,7 +115,7 @@ std::string Util_expl_query_current_dir(void)
 {
 	if(!util_expl_init)
 		return "";
-	
+
 	return util_expl_current_dir;
 }
 
@@ -123,7 +123,7 @@ int Util_expl_query_num_of_file(void)
 {
 	if(!util_expl_init)
 		return 0;
-	
+
 	return util_expl_num_of_file;
 }
 
@@ -131,7 +131,7 @@ int Util_expl_query_current_file_index(void)
 {
 	if(!util_expl_init)
 		return -1;
-	
+
 	return (int)util_expl_selected_file_num + (int)util_expl_y_offset;
 }
 
@@ -169,7 +169,7 @@ bool Util_expl_query_show_flag(void)
 {
 	if(!util_expl_init)
 		return false;
-	
+
 	return util_expl_show_flag;
 }
 
@@ -177,7 +177,7 @@ void Util_expl_set_callback(void (*callback)(std::string, std::string))
 {
 	if(!util_expl_init)
 		return;
-	
+
 	util_expl_callback = callback;
 }
 
@@ -314,7 +314,7 @@ void Util_expl_main(Hid_info key)
 						{
 							if(util_expl_callback)
 								util_expl_callback(Util_expl_query_file_name((int)util_expl_selected_file_num + (int)util_expl_y_offset), util_expl_current_dir);
-							
+
 							util_expl_show_flag = false;
 							var_need_reflesh = true;
 						}
@@ -325,11 +325,11 @@ void Util_expl_main(Hid_info key)
 					{
 						if (util_expl_num_of_file > (i + (int)util_expl_y_offset))
 							util_expl_selected_file_num = i;
-						
+
 						var_need_reflesh = true;
 					}
 				}
-				else if(!Util_hid_is_held(key, util_expl_file_button[i]) &&  util_expl_file_button[i].selected)
+				else if(!Util_hid_is_held(key, util_expl_file_button[i]) && util_expl_file_button[i].selected)
 				{
 					util_expl_file_button[i].selected = false;
 					util_expl_scroll_mode = true;
@@ -395,7 +395,7 @@ void Util_expl_main(Hid_info key)
 			{
 				if(util_expl_file_button[i].selected)
 					var_need_reflesh = true;
-				
+
 				util_expl_file_button[i].selected = false;
 			}
 			util_expl_scroll_mode = false;
@@ -558,7 +558,7 @@ void Util_expl_read_dir_callback(void)
 				util_expl_num_of_file = 1;
 				util_expl_check_file_size_index = 1;
 			}
-			
+
 			var_need_reflesh = true;
 			util_expl_read_dir_request = false;
 		}

@@ -8,7 +8,7 @@
 
 #if DEF_ENABLE_VIDEO_AUDIO_ENCODER_API
 
-extern "C" 
+extern "C"
 {
 #include "libswscale/swscale.h"
 #include "libavcodec/avcodec.h"
@@ -65,7 +65,7 @@ void Util_encoder_init_variables(void)
 {
 	if(util_encoder_init)
 		return;
-	
+
 	for(int i = 0; i < DEF_ENCODER_MAX_SESSIONS; i++)
 	{
 		util_audio_encoder_init[i] = false;
@@ -112,7 +112,7 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
 
 	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS || file_path == "")
 		goto invalid_arg;
-	
+
 	if(util_encoder_created_file[session])
 		goto already_inited;
 
@@ -144,12 +144,12 @@ Result_with_string Util_encoder_create_output_file(std::string file_path, int se
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	avio_close(util_encoder_format_context[session]->pb);
 
@@ -165,7 +165,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	int ffmpeg_result = 0;
 	Result_with_string result;
 	AVCodecID codec_id = AV_CODEC_ID_NONE;
-	
+
 	if(!util_encoder_init)
 		Util_encoder_init_variables();
 
@@ -178,7 +178,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 
 	if(util_audio_encoder_init[session] || util_encoder_wrote_header[session])
 		goto already_inited;
-	
+
 	if(codec == AUDIO_CODEC_AAC)
 		codec_id = AV_CODEC_ID_AAC;
 	else if(codec == AUDIO_CODEC_AC3)
@@ -211,7 +211,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 		util_audio_encoder_context[session]->sample_fmt = AV_SAMPLE_FMT_S16P;
 	else
 		util_audio_encoder_context[session]->sample_fmt = AV_SAMPLE_FMT_FLT;
-	
+
 	util_audio_encoder_context[session]->bit_rate = bitrate;
 	util_audio_encoder_context[session]->sample_rate = encode_sample_rate;
 	util_audio_encoder_context[session]->ch_layout = AV_CHANNEL_LAYOUT_MONO;
@@ -226,7 +226,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 		result.error_description = "[Error] avcodec_open2() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_audio_increase_pts[session] = util_audio_encoder_context[session]->frame_size;
 	util_audio_encoder_packet[session] = av_packet_alloc();
 	util_audio_encoder_raw_data[session] = av_frame_alloc();
@@ -235,7 +235,7 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 		result.error_description = "[Error] av_packet_alloc() / av_frame_alloc() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_audio_encoder_raw_data[session]->nb_samples = util_audio_encoder_context[session]->frame_size;
 	util_audio_encoder_raw_data[session]->format = util_audio_encoder_context[session]->sample_fmt;
 
@@ -305,12 +305,12 @@ Result_with_string Util_audio_encoder_init(Audio_codec codec, int original_sampl
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
@@ -361,7 +361,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		result.error_description = "[Error] avcodec_alloc_context3() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_video_encoder_context[session]->bit_rate = bitrate;
 	util_video_encoder_context[session]->width = width;
 	util_video_encoder_context[session]->height = height;
@@ -371,7 +371,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUVJ420P;
 	else
 		util_video_encoder_context[session]->pix_fmt = AV_PIX_FMT_YUV420P;
-	
+
 	if(video_codec == AV_CODEC_ID_H264)
 	{
 		ffmpeg_result = av_opt_set(util_video_encoder_context[session]->priv_data, "crf", "32", 0);
@@ -409,7 +409,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		result.error_description = "[Error] avcodec_open2() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_video_increase_pts[session] = 90000 / fps;
 
 	util_video_encoder_packet[session] = av_packet_alloc();
@@ -419,14 +419,14 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		result.error_description = "[Error] av_packet_alloc() / av_frame_alloc() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	util_video_encoder_raw_data[session]->format = util_video_encoder_context[session]->pix_fmt;
 	util_video_encoder_raw_data[session]->width = util_video_encoder_context[session]->width;
 	util_video_encoder_raw_data[session]->height = util_video_encoder_context[session]->height;
 	ffmpeg_result = av_frame_get_buffer(util_video_encoder_raw_data[session], 0);
 	if(ffmpeg_result < 0)
 	{
-		result.error_description = "[Error]  av_image_alloc() failed. " + std::to_string(ffmpeg_result) + " ";
+		result.error_description = "[Error] av_image_alloc() failed. " + std::to_string(ffmpeg_result) + " ";
 		goto ffmpeg_api_failed;
 	}
 
@@ -443,7 +443,7 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 		result.error_description = "[Error] avformat_new_stream() failed. ";
 		goto ffmpeg_api_failed;
 	}
-	
+
 	ffmpeg_result = avcodec_parameters_from_context(util_video_encoder_stream[session]->codecpar, util_video_encoder_context[session]);
 	if(ffmpeg_result != 0)
 	{
@@ -466,12 +466,12 @@ Result_with_string Util_video_encoder_init(Video_codec codec, int width, int hei
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
-	
+
 	already_inited:
 	result.code = DEF_ERR_ALREADY_INITIALIZED;
 	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
@@ -492,10 +492,10 @@ Result_with_string Util_encoder_write_header(int session)
 
 	if(util_encoder_wrote_header[session])
 		goto already_inited;
-	
+
 	if(!util_encoder_created_file[session])
 		goto not_inited;
-	
+
 
 	util_encoder_format_context[session]->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 	ffmpeg_result = avformat_write_header(util_encoder_format_context[session], NULL);
@@ -556,7 +556,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 
 	one_frame_size = av_samples_get_buffer_size(NULL, util_audio_encoder_context[session]->ch_layout.nb_channels, util_audio_encoder_context[session]->frame_size, util_audio_encoder_context[session]->sample_fmt, 0);
 	bytes_per_sample = av_get_bytes_per_sample(util_audio_encoder_context[session]->sample_fmt);
-	
+
 	in_samples = size / 2;
 	swr_in_cache[0] = raw_data;
 	max_out_samples = in_samples * util_audio_encoder_conversion_size_rate[session];
@@ -571,7 +571,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	}
 	else
 		swr_out_cache[0] = raw_audio;
-	
+
 	out_samples = swr_convert(util_audio_encoder_swr_context[session], (uint8_t**)swr_out_cache, max_out_samples, (const uint8_t**)swr_in_cache, in_samples);
 	if(out_samples < 0)
 	{
@@ -624,7 +624,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	util_audio_encoder_cache[session] = (u8*)Util_safe_linear_alloc(out_size);
 	if(!util_audio_encoder_cache[session])
 		goto out_of_memory;
-	
+
 	memcpy(util_audio_encoder_cache[session], raw_audio + encode_offset, out_size);
 	util_audio_encoder_cache_size[session] = out_size;
 
@@ -652,7 +652,7 @@ Result_with_string Util_audio_encoder_encode(int size, u8* raw_data, int session
 	result.code = DEF_ERR_OUT_OF_MEMORY;
 	result.string = DEF_ERR_OUT_OF_MEMORY_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	util_audio_encoder_cache_size[session] = 0;
 	Util_safe_linear_free(util_audio_encoder_cache[session]);
@@ -679,10 +679,10 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
 
 	if(!util_video_encoder_init[session] || !util_encoder_wrote_header[session])
 		goto not_inited;
-	
+
 	width = util_video_encoder_raw_data[session]->width;
 	height = util_video_encoder_raw_data[session]->height;
-	
+
 	memcpy(util_video_encoder_raw_data[session]->data[0], raw_image, width * height);
 	memcpy(util_video_encoder_raw_data[session]->data[1], raw_image + width * height, width * height / 4);
 	memcpy(util_video_encoder_raw_data[session]->data[2], raw_image + width * height + width * height / 4, width * height / 4);
@@ -730,7 +730,7 @@ Result_with_string Util_video_encoder_encode(u8* raw_image, int session)
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
-	
+
 	ffmpeg_api_failed:
 	result.code = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 	result.string = DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS_STR;
@@ -741,7 +741,7 @@ void Util_encoder_close_output_file(int session)
 {
 	if(!util_encoder_init)
 		Util_encoder_init_variables();
-	
+
 	if(session < 0 || session >= DEF_ENCODER_MAX_SESSIONS)
 		return;
 
@@ -752,7 +752,7 @@ void Util_encoder_close_output_file(int session)
 
 		if(util_encoder_wrote_header[session])
 			av_write_trailer(util_encoder_format_context[session]);
-		
+
 		avio_close(util_encoder_format_context[session]->pb);
 		avformat_free_context(util_encoder_format_context[session]);
 		util_encoder_created_file[session] = false;

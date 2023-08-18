@@ -29,7 +29,7 @@ Result_with_string Util_mic_init(int buffer_size)
 	util_mic_buffer = (u8*)__real_memalign(0x1000, buffer_size);
 	if(!util_mic_buffer)
 		goto out_of_memory;
-	
+
 	memset(util_mic_buffer, 0x0, buffer_size);
 	result.code = micInit(util_mic_buffer, buffer_size);
 	if(result.code != 0)
@@ -211,7 +211,7 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
 	*raw_data = (u8*)Util_safe_linear_alloc(buffer_size);
 	if(!*raw_data)
 		goto out_of_memory;
-	
+
 	*size = buffer_size;
 	if(util_mic_last_pos < last_pos)
 		memcpy(*raw_data, util_mic_buffer + util_mic_last_pos, buffer_size);
@@ -229,7 +229,7 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
 	result.code = DEF_ERR_NOT_INITIALIZED;
 	result.string = DEF_ERR_NOT_INITIALIZED_STR;
 	return result;
-	
+
 	invalid_arg:
 	result.code = DEF_ERR_INVALID_ARG;
 	result.string = DEF_ERR_INVALID_ARG_STR;
@@ -250,7 +250,7 @@ void Util_mic_exit(void)
 {
 	if(!util_mic_init)
 		return;
-	
+
 	Util_mic_stop_recording();
 	MICU_SetAllowShellClosed(false);
 	MICU_SetPower(false);

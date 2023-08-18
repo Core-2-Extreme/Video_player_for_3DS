@@ -20,7 +20,7 @@ Result_with_string Util_speaker_init(void)
 
 	for(int i = 0; i < 24; i++)
 		util_speaker_music_ch[i] = -1;
-	
+
 	result.code = ndspInit();//0xd880A7FA
 	if(result.code != 0)
 	{
@@ -46,10 +46,10 @@ Result_with_string Util_speaker_set_audio_info(int play_ch, int music_ch, int sa
 	Result_with_string result;
 	if(!util_speaker_init)
 		goto not_inited;
-	
+
 	if(play_ch < 0 || play_ch > 23 || music_ch <= 0 || music_ch > 2 || sample_rate <= 0)
 		goto invalid_arg;
-	
+
 	ndspChnReset(play_ch);
 	ndspChnWaveBufClear(play_ch);
 	ndspChnSetMix(play_ch, mix);
@@ -93,7 +93,7 @@ Result_with_string Util_speaker_add_buffer(int play_ch, u8* buffer, int size)
 	Result_with_string result;
 	if(!util_speaker_init)
 		goto not_inited;
-	
+
 	if(play_ch < 0 || play_ch > 23 || !buffer || size <= 0)
 		goto invalid_arg;
 
@@ -198,7 +198,7 @@ void Util_speaker_clear_buffer(int play_ch)
 		return;
 	if(play_ch < 0 || play_ch > 23)
 		return;
-	
+
 	ndspChnWaveBufClear(play_ch);
 	for(int i = 0; i < DEF_SPEAKER_MAX_BUFFERS; i++)
 	{
@@ -251,7 +251,7 @@ void Util_speaker_exit(void)
 {
 	if(!util_speaker_init)
 		return;
-	
+
 	for(int i = 0; i < 24; i++)
 		Util_speaker_clear_buffer(i);
 

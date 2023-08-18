@@ -58,7 +58,7 @@ void Util_httpc_close(httpcContext* httpc_context)
 {
 	if(httpc_context)
 		httpcCloseContext(httpc_context);
-		
+
 	httpc_context = NULL;
 }
 
@@ -70,7 +70,7 @@ Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string u
 		result.code = httpcOpenContext(httpc_context, HTTPC_METHOD_POST, url.c_str(), 0);
 	else
 		result.code = httpcOpenContext(httpc_context, HTTPC_METHOD_GET, url.c_str(), 0);
-	
+
 	if (result.code != 0)
 	{
 		result.error_description = "[Error] httpcOpenContext() failed. ";
@@ -153,7 +153,7 @@ void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std:
 	result.code = httpcGetResponseStatusCode(httpc_context, status_code);
 	if(result.code != 0)
 		*status_code = 0;
-	
+
 	result.code = httpcGetResponseHeader(httpc_context, "location", moved_url, 0x1000);
 	if (result.code == 0)
 	{
@@ -200,13 +200,13 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 			{
 				if(buffer_size >= max_size)
 					goto out_of_memory;
-				
+
 				buffer_size = max_size > buffer_size + 0x40000 ? buffer_size + 0x40000 : max_size;
 				new_buffer = (u8*)Util_safe_linear_realloc(*data, buffer_size);
 				remain_buffer_size = buffer_size - buffer_offset;
 				if(!new_buffer)
 					goto out_of_memory;
-				
+
 				*data = new_buffer;
 				memset((*data) + buffer_offset, 0x0, remain_buffer_size);
 			}
@@ -269,7 +269,7 @@ Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_
 			else
 			{
 				Util_file_delete_file(file_name, dir_path);
-				
+
 				result.error_description = "[Error] httpcDownloadData() failed. ";
 				goto nintendo_api_failed;
 			}
@@ -346,10 +346,10 @@ int max_redirect, std::string* last_url)
 
 	if(!util_httpc_init)
 		goto not_inited;
-	
+
 	if(url == "" || !data || max_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = url;
 	*downloaded_size = 0;
 
@@ -358,10 +358,10 @@ int max_redirect, std::string* last_url)
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -456,10 +456,10 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 
 	if(!util_httpc_init)
 		goto not_inited;
-	
+
 	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = url;
 	*downloaded_size = 0;
 
@@ -468,10 +468,10 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -487,7 +487,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 			goto api_failed;
 
 		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
-		
+
 		if (redirect && follow_redirect && max_redirect > redirected)
 		{
 			url = new_url;
@@ -567,11 +567,11 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, 
 
 	if(!util_httpc_init)
 		goto not_inited;
-	
-	if(url == "" || !post_data || post_size <= 0 || !dl_data || max_dl_size <= 0 || !downloaded_size || !status_code 
+
+	if(url == "" || !post_data || post_size <= 0 || !dl_data || max_dl_size <= 0 || !downloaded_size || !status_code
 	|| (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = url;
 	*downloaded_size = 0;
 
@@ -580,10 +580,10 @@ u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, 
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -686,11 +686,11 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 
 	if(!util_httpc_init)
 		goto not_inited;
-	
-	if(url == "" || !post_data || post_size <= 0 || buffer_size <= 0 || !downloaded_size || !status_code 
+
+	if(url == "" || !post_data || post_size <= 0 || buffer_size <= 0 || !downloaded_size || !status_code
 	|| (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = url;
 	*downloaded_size = 0;
 
@@ -699,10 +699,10 @@ u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url,
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";

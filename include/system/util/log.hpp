@@ -1,11 +1,11 @@
-﻿#ifndef LOG_HPP
+#ifndef LOG_HPP
 #define LOG_HPP
 
 #include "system/types.hpp"
 
 /**
  * @brief Initialize a log api.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested)
 */

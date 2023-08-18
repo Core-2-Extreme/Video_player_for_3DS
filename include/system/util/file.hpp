@@ -10,7 +10,7 @@
  * @param write_data (in) Pointer for write data.
  * @param size (in) Write data size (in byte).
  * @param delete_old_file (in) When true, old file will be deleted if exist otherwise data will be written end of the file.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -20,10 +20,10 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
  * @brief Load data from a file.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1 
+ * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1
  * (for null terminator) depends on file size inside of function.
  * @param max_size (in) Max read size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -33,11 +33,11 @@ Result_with_string Util_file_load_from_file(std::string file_name, std::string d
  * @brief Load data from a file.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1 
+ * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1
  * (for null terminator) depends on file size inside of function.
  * @param max_size (in) Max read size (in byte).
  * @param read_size (out) Actuall read size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -47,12 +47,12 @@ Result_with_string Util_file_load_from_file(std::string file_name, std::string d
  * @brief Load data from a file.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1 
+ * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1
  * (for null terminator) depends on file size inside of function.
  * @param max_size (in) Max read size (in byte).
  * @param read_offset (in) Read offset (in byte).
  * @param read_size (out) Actuall read size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -62,10 +62,10 @@ Result_with_string Util_file_load_from_file_with_range(std::string file_name, st
  * @brief Load data from a file in romfs:/.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1 
+ * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1
  * (for null terminator) depends on file size inside of function.
  * @param max_size (in) Max read size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -75,11 +75,11 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
  * @brief Load data from a file in romfs:/.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1 
+ * @param read_data (out) Pointer for read data, the pointer will be allocated up to max_size+1
  * (for null terminator) depends on file size inside of function.
  * @param max_size (in) Max read size (in byte).
  * @param read_size (out) Actuall read size (in byte).
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_*.
  * @note Thread safe
 */
@@ -89,7 +89,7 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
  * @brief Delete a file.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -100,7 +100,7 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
  * @param file_size (out) File size.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -111,7 +111,7 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
  * If file exist, return DEF_SUCCESS
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */
@@ -124,7 +124,7 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
  * @param file_name (out) Array for file name.
  * @param type (out) Array for file type.
  * @param array_length (in) Array length for file name and file type.
- * @return On success DEF_SUCCESS, 
+ * @return On success DEF_SUCCESS,
  * on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe
 */

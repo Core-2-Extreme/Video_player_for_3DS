@@ -200,7 +200,7 @@ void Draw_exit(void)
 {
 	if(!util_draw_init)
 		return;
-	
+
 	util_draw_init = false;
 	for (int i = 0; i < 128; i++)
 		Draw_free_texture(i);
@@ -280,7 +280,7 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
 	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex*));
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
-	
+
 	if (!C3D_TexInit(image->c2d.tex, (u16)tex_size_x, (u16)tex_size_y, color))
 		goto out_of_linear_memory;
 
@@ -318,7 +318,7 @@ void Draw_texture_free(Image_data* image)
 
 	if(!image)
 		return;
-	
+
 	if(image->c2d.tex)
 	{
 		Util_safe_linear_free(image->c2d.tex->data);
@@ -349,18 +349,18 @@ Result_with_string Draw_set_texture_data_direct(Image_data* image, u8* buf, int 
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > 1024 || pic_width <= 0 
+	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > 1024 || pic_width <= 0
 	|| pic_height > 1024 || pic_height <= 0 || pic_width > image->c2d.tex->width || pic_height > image->c2d.tex->height
 	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
-	
+
 	if(image->c2d.tex->fmt == GPU_RGBA8)
 		pixel_size = 4;
 	else if(image->c2d.tex->fmt == GPU_RGB8)
 		pixel_size = 3;
 	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
-	
+
 	image->subtex->width = (u16)pic_width;
 	image->subtex->height = (u16)pic_height;
 	image->subtex->left = 0.0;
@@ -465,7 +465,7 @@ Result_with_string Draw_set_texture_data(Image_data* image, u8* buf, int pic_wid
 		increase_list_y[i + 6] = 2 * pixel_size;
 		increase_list_y[i + 7] = (image->c2d.tex->width * 8 - 42) * pixel_size;
 	}
-	
+
 	y_max = pic_height - (u32)height_offset;
 	x_max = pic_width - (u32)width_offset;
 	if (image->c2d.tex->height < y_max)
@@ -551,10 +551,10 @@ void Draw_set_texture_filter(Image_data* image, bool filter)
 {
 	if(!util_draw_init)
 		return;
-	
+
 	if(!image || !image->c2d.tex)
 		return;
-	
+
 	if(filter)
 		C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
 	else
@@ -648,7 +648,7 @@ float box_size_x, float box_size_y, Background texture_position, void* backgroun
 
 	if(!util_draw_init)
 		return;
-	
+
 	if(x_align <= X_ALIGN_INVALID || x_align >= X_ALIGN_MAX || y_align <= Y_ALIGN_INVALID || y_align >= Y_ALIGN_MAX
 	|| texture_position <= BACKGROUND_INVALID || texture_position >= BACKGROUND_MAX)
 		return;
@@ -842,7 +842,7 @@ int Draw_get_free_sheet_num(void)
 {
 	if(!util_draw_init)
 		return -1;
-	
+
 	for(int i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
 	{
 		if(util_draw_sheet_texture_free[i])
@@ -853,9 +853,9 @@ int Draw_get_free_sheet_num(void)
 
 Result_with_string Draw_load_texture(std::string file_path, int sheet_map_num, C2D_Image return_image[], int start_num, int num_of_array)
 {
-	size_t num_of_images  = 0;
+	size_t num_of_images = 0;
 	Result_with_string result;
-	
+
 	if(file_path == "" || sheet_map_num < 0 || sheet_map_num > DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS || !return_image
 	|| start_num < 0 || num_of_array < 0 || !util_draw_sheet_texture_free[sheet_map_num])
 		goto invalid_arg;
@@ -1046,7 +1046,7 @@ void Draw_debug_info(void)
 	int color = DEF_DRAW_BLACK;
 	Hid_info key;
 	Util_hid_query_key_state(&key);
-	
+
 	if (var_night_mode)
 		color = DEF_DRAW_WHITE;
 
@@ -1079,7 +1079,7 @@ Result_with_string Draw_load_system_font(int system_font_num)
 	Result_with_string result;
 	if(!util_draw_init)
 		goto not_inited;
-	
+
 	if(system_font_num < 0 || system_font_num > 3)
 		goto invalid_arg;
 

@@ -140,7 +140,7 @@ Result_with_string Util_cset_sleep_system(Wake_up_event wake_up_events)
 	PtmWakeEvents wake_up_event_mask;
 	Result_with_string result;
 
-	if(!(wake_up_events & WAKE_UP_EVENT_PRESS_HOME_BUTTON) && !(wake_up_events & WAKE_UP_EVENT_OPEN_SHELL)) 
+	if(!(wake_up_events & WAKE_UP_EVENT_PRESS_HOME_BUTTON) && !(wake_up_events & WAKE_UP_EVENT_OPEN_SHELL))
 		goto invalid_arg;
 
 	if(!aptIsSleepAllowed())

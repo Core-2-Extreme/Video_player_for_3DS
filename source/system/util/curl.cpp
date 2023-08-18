@@ -6,7 +6,7 @@
 #include "system/util/file.hpp"
 #include "system/util/util.hpp"
 
-extern "C" 
+extern "C"
 {
 #include "curl/curl.h"
 }
@@ -97,7 +97,7 @@ void Util_curl_close(CURL* curl_handle)
 {
 	if(curl_handle)
 		curl_easy_cleanup(curl_handle);
-		
+
 	curl_handle = NULL;
 }
 
@@ -118,12 +118,12 @@ size_t Util_curl_write_callback(char* input_data, size_t size, size_t nmemb, voi
 	//Need to realloc memory
 	if((*http_data->used_size) + input_size > http_data->current_size)
 	{
-		buffer_size = http_data->max_size > http_data->current_size + 0x40000 ? http_data->current_size  + 0x40000 : http_data->max_size;
+		buffer_size = http_data->max_size > http_data->current_size + 0x40000 ? http_data->current_size + 0x40000 : http_data->max_size;
 
 		http_data->data = (u8*)Util_safe_linear_realloc(http_data->data, buffer_size);
 		if (!http_data->data)
 			goto error;
-		
+
 		allocated_size = buffer_size - http_data->current_size;
 		memset(http_data->data + http_data->current_size, 0x0, allocated_size);
 		http_data->current_size = buffer_size;
@@ -154,7 +154,7 @@ size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmemb, void
 		return -1;
 
 	*http_data->used_size += input_size;
-	
+
 	//If libcurl buffer size is bigger than our buffer size, save it directly without buffering
 	if(input_size > http_data->max_size)
 	{
@@ -293,7 +293,7 @@ int max_redirect, Upload_data* upload_data)
 		goto curl_api_failed;
 	}
 
-	if(method == CURLOPT_HTTPPOST) 
+	if(method == CURLOPT_HTTPPOST)
 	{
 		result.code = curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, NULL);
 		if (result.code != CURLE_OK)
@@ -521,10 +521,10 @@ int max_redirect, std::string* last_url)
 
 	if(!util_curl_init)
 		goto not_inited;
-	
+
 	if(url == "" || !data || max_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = "";
 	*downloaded_size = 0;
 
@@ -533,10 +533,10 @@ int max_redirect, std::string* last_url)
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -555,7 +555,7 @@ int max_redirect, std::string* last_url)
 	result = Util_curl_get_request(curl_handle, url, follow_redirect, max_redirect);
 	if(result.code != 0)
 		goto api_failed;
-	
+
 	result = Util_curl_download_data(curl_handle, &http_data);
 	if(result.code != 0)
 		goto api_failed;
@@ -625,10 +625,10 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 
 	if(!util_curl_init)
 		goto not_inited;
-	
+
 	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
-	
+
 	*last_url = "";
 	*downloaded_size = 0;
 
@@ -637,10 +637,10 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -661,7 +661,7 @@ int max_redirect, std::string* last_url, std::string dir_path, std::string file_
 	result = Util_curl_get_request(curl_handle, url, follow_redirect, max_redirect);
 	if(result.code != 0)
 		goto api_failed;
-	
+
 	result = Util_curl_save_data(curl_handle, &http_data);
 	if(result.code != 0)
 		goto api_failed;
@@ -756,8 +756,8 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 
 	if(!util_curl_init)
 		goto not_inited;
-	
-	if(url == "" || !dl_data || max_dl_size <= 0 || !downloaded_size || !uploaded_size 
+
+	if(url == "" || !dl_data || max_dl_size <= 0 || !downloaded_size || !uploaded_size
 	|| !status_code || (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
 
@@ -773,10 +773,10 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -806,7 +806,7 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 	result = Util_curl_post_request(curl_handle, url, &upload_data, follow_redirect, max_redirect);
 	if(result.code != 0)
 		goto api_failed;
-	
+
 	result = Util_curl_download_data(curl_handle, &http_data);
 	if(result.code != 0)
 		goto api_failed;
@@ -903,8 +903,8 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 
 	if(!util_curl_init)
 		goto not_inited;
-	
-	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code 
+
+	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code
 	|| (follow_redirect && max_redirect < 0) || !last_url)
 		goto invalid_arg;
 
@@ -920,10 +920,10 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 		result.code = acWaitInternetConnection();
 		if(result.code != 0xE0A09D2E)
 			break;
-		
+
 		Util_sleep(100000);
 	}
-	
+
 	if(result.code != 0)
 	{
 		result.error_description = "[Error] acWaitInternetConnection() failed. ";
@@ -956,7 +956,7 @@ int (*read_callback)(void* buffer, int max_size, void* user_data), void* user_da
 	result = Util_curl_post_request(curl_handle, url, &upload_data, follow_redirect, max_redirect);
 	if(result.code != 0)
 		goto api_failed;
-	
+
 	result = Util_curl_save_data(curl_handle, &http_data);
 	if(result.code != 0)
 		goto api_failed;

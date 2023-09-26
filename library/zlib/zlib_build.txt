@@ -3,7 +3,7 @@
 //*install devkitpro (libctru) first*
 //It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
 
-git clone https://github.com/madler/zlib; cd zlib
+git clone https://github.com/madler/zlib; cd zlib; git reset --hard ac8f12c97d1afd9bafa9c710f827d40a407d3266
 
 CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" LDFLAGS="-mfloat-abi=hard" ./configure --static --prefix="/opt/devkitpro/extra_lib"
 

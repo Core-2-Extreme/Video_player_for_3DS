@@ -32,6 +32,13 @@ typedef struct
 	float angle;
 } C2D_DrawParams;
 
+typedef enum
+{
+	C2D_TintSolid, ///< Plain solid tint color
+	C2D_TintMult,  ///< Tint color multiplied by texture color
+	C2D_TintLuma,  ///< Tint color multiplied by grayscale converted texture color
+} C2D_TintMode;
+
 typedef struct
 {
 	u32   color; ///< RGB tint color and Alpha transparency
@@ -222,6 +229,50 @@ static inline void C2D_SceneTarget(C3D_RenderTarget* target)
 	C2D_SceneSize(target->frameBuf.width, target->frameBuf.height, target->linked);
 }
 
+/** @brief Resets the model transformation matrix. */
+void C2D_ViewReset(void);
+
+/** @brief Saves the current model transformation matrix.
+ * @param[out] matrix Pointer to save the current matrix to
+ */
+void C2D_ViewSave(C3D_Mtx* matrix);
+
+/** @brief Restores a previously saved model transformation matrix.
+ * @param[in] matrix Pointer to matrix to restor
+ */
+void C2D_ViewRestore(const C3D_Mtx* matrix);
+
+/** @brief Translates everything drawn via the model matrix.
+ * @param[in] x Translation in the x direction
+ * @param[in] y Translation in the y direction
+ */
+void C2D_ViewTranslate(float x, float y);
+
+/** @brief Rotates everything drawn via the model matrix.
+ * @param[in] rotation Rotation in the counterclockwise direction in radians
+ */
+void C2D_ViewRotate(float rotation);
+
+/** @brief Rotates everything drawn via the model matrix.
+ * @param[in] rotation Rotation in the counterclockwise direction in degrees
+ */
+static inline void C2D_ViewRotateDegrees(float rotation)
+{
+	C2D_ViewRotate(C3D_AngleFromDegrees(rotation));
+}
+
+/** @brief Shears everything drawn via the model matrix.
+ * @param[in] x Shear factor in the x direction
+ * @param[in] y Shear factor in the y direction
+ */
+void C2D_ViewShear(float x, float y);
+
+/** @brief Scales everything drawn via the model matrix.
+ * @param[in] x Scale factor in the x direction
+ * @param[in] y Scale factor in the y direction
+ */
+void C2D_ViewScale(float x, float y);
+
 /** @brief Helper function to create a render target for a screen
  *  @param[in] screen Screen (GFX_TOP or GFX_BOTTOM)
  *  @param[in] side Side (GFX_LEFT or GFX_RIGHT)
@@ -259,6 +310,15 @@ static inline void C2D_SceneBegin(C3D_RenderTarget* target)
  *          rendered as a blend of the original pixel color and the fading color.
  */
 void C2D_Fade(u32 color);
+
+/** @brief Configures the formula used to calculate the tinted texture color
+ *  @param[in] mode Tinting mode
+ *  @remark Texture tinting works by linearly interpolating between the regular texture color
+ *          and the tinted texture color according to the blending strength parameter.
+ *          This function can be used to change how the tinted texture color is precisely
+ *          calculated, refer to \ref C2D_TintMode for a list of available tinting modes.
+ */
+void C2D_SetTintMode(C2D_TintMode mode);
 
 /** @} */
 
@@ -313,7 +373,7 @@ static inline bool C2D_DrawImageAtRotated(C2D_Image img, float x, float y, float
 	C2D_DrawParams params =
 	{
 		{ x, y, scaleX*img.subtex->width, scaleY*img.subtex->height },
-		{ img.subtex->width/2.0f, img.subtex->height/2.0f },
+		{ (scaleX*img.subtex->width)/2.0f, (scaleY*img.subtex->height)/2.0f },
 		depth, angle
 	};
 	return C2D_DrawImage(img, &params, tint);
@@ -382,7 +442,7 @@ static inline bool C2D_DrawRectSolid(
 	return C2D_DrawRectangle(x,y,z,w,h,clr,clr,clr,clr);
 }
 
-/** @brief Draws an ellipse using the GPU 
+/** @brief Draws an ellipse using the GPU
  *  @param[in] x X coordinate of the top-left vertex of the ellipse
  *  @param[in] y Y coordinate of the top-left vertex of the ellipse
  *  @param[in] z Z coordinate (depth value) to draw the ellipse with
@@ -395,7 +455,7 @@ static inline bool C2D_DrawRectSolid(
  *  @note Switching to and from "circle mode" internally requires an expensive state change. As such, the recommended usage of this feature is to draw all non-circular objects first, then draw all circular objects.
 */
 bool C2D_DrawEllipse(
-	float x, float y, float z, float w, float h, 
+	float x, float y, float z, float w, float h,
 	u32 clr0, u32 clr1, u32 clr2, u32 clr3);
 
 /** @brief Draws a ellipse using the GPU (with a solid color)
@@ -408,7 +468,7 @@ bool C2D_DrawEllipse(
  *  @note Switching to and from "circle mode" internally requires an expensive state change. As such, the recommended usage of this feature is to draw all non-circular objects first, then draw all circular objects.
 */
 static inline bool C2D_DrawEllipseSolid(
-	float x, float y, float z, float w, float h, 
+	float x, float y, float z, float w, float h,
 	u32 clr)
 {
 	return C2D_DrawEllipse(x,y,z,w,h,clr,clr,clr,clr);
@@ -439,14 +499,11 @@ static inline bool C2D_DrawCircle(
  *  @param[in] y Y coordinate of the center of the circle
  *  @param[in] z Z coordinate (depth value) to draw the ellipse with
  *  @param[in] radius Radius of the circle
- *  @param[in] clr0 32-bit RGBA color of the top-left corner of the ellipse
- *  @param[in] clr1 32-bit RGBA color of the top-right corner of the ellipse
- *  @param[in] clr2 32-bit RGBA color of the bottom-left corner of the ellipse
- *  @param[in] clr3 32-bit RGBA color of the bottom-right corner of the ellipse
+ *  @param[in] clr 32-bit RGBA color of the ellipse
  *  @note Switching to and from "circle mode" internally requires an expensive state change. As such, the recommended usage of this feature is to draw all non-circular objects first, then draw all circular objects.
 */
 static inline bool C2D_DrawCircleSolid(
-	float x, float y, float z, float radius, 
+	float x, float y, float z, float radius,
 	u32 clr)
 {
 	return C2D_DrawCircle(x,y,z,radius,clr,clr,clr,clr);

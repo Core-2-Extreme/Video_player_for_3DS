@@ -161,9 +161,10 @@ You should see something like :
 .....
 Thread model: posix
 Supported LTO compression algorithms: zlib zstd
-gcc version 12.2.0 (devkitARM release 60)
+gcc version 13.2.0 (devkitARM release 62)
 ```
-Make sure you have release 60 or later. \
+Make sure you have release 62. \
+(later version may work but sometimes later version has incompatibility) \
 If you have older devkitpro, update it or compilation will fail.
 
 * Clone this repository

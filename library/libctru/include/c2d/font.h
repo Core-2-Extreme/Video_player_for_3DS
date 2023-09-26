@@ -54,6 +54,13 @@ C2D_Font C2D_FontLoadSystem(CFG_Region region);
  */
 void C2D_FontFree(C2D_Font font);
 
+/** @brief Set a font's texture filter
+ * @param[in] font Font handle
+ * @param[in] magFilter the magnification filter
+ * @param[in] minFilter the minification filter
+ */
+void C2D_FontSetFilter(C2D_Font font, GPU_TEXTURE_FILTER_PARAM magFilter, GPU_TEXTURE_FILTER_PARAM minFilter);
+
 /** @brief Find the glyph index of a codepoint, or returns the default
  * @param[in] font Font to search, or NULL for system font
  * @param[in] codepoint Codepoint to search for

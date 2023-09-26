@@ -52,7 +52,7 @@ static inline void C2D_SpriteScale(C2D_Sprite* sprite, float x, float y)
 	sprite->params.pos.w *= x;
 	sprite->params.pos.h *= y;
 	sprite->params.center.x *= x;
-	sprite->params.center.y *= x;
+	sprite->params.center.y *= y;
 }
 
 /** @brief Rotate sprite (relative)

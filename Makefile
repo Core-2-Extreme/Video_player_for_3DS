@@ -52,7 +52,6 @@ BANNER_IMAGE		:= resource/banner.png
 ICON				:= resource/icon.png
 RSF_PATH			:= resource/app.rsf
 
-
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -173,7 +172,7 @@ endif
 
 #---------------------------------------------------------------------------------
 MAKEROM			?= makerom
-MAKEROM_ARGS 	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
+MAKEROM_ARGS	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
 
 ifneq ($(strip $(LOGO)),)
 	MAKEROM_ARGS	+=	 -logo "$(LOGO)"

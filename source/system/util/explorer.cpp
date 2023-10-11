@@ -458,8 +458,8 @@ void Util_expl_read_dir_callback(void)
 					name_of_file[i] = "";
 					name_of_unknown[i] = "";
 					name_cache[i] = "";
-					dir_type[DEF_EXPL_MAX_FILES] = FILE_TYPE_NONE;
-					file_type[DEF_EXPL_MAX_FILES] = FILE_TYPE_NONE;
+					dir_type[i] = FILE_TYPE_NONE;
+					file_type[i] = FILE_TYPE_NONE;
 				}
 
 				for (int i = 0; i < util_expl_num_of_file; i++)

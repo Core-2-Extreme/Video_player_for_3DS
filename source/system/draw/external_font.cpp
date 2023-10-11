@@ -291,6 +291,7 @@ void Exfont_text_parse(std::string source_string, std::string part_string[], int
 		free(rtl_index_list);
 		cache_part_string = NULL;
 		rtl_index_list = NULL;
+		return;
 	}
 
 	*out_element = 0;

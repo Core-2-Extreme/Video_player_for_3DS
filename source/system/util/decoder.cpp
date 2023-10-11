@@ -545,7 +545,7 @@ Result_with_string Util_decoder_open_file(std::string file_path, int* num_of_aud
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(file_path == "" || !num_of_audio_tracks || !num_of_video_tracks || !num_of_subtitle_tracks || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(file_path == "" || !num_of_audio_tracks || !num_of_video_tracks || !num_of_subtitle_tracks || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(util_decoder_opened_file[session])
@@ -648,7 +648,7 @@ Result_with_string Util_audio_decoder_init(int num_of_audio_tracks, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(num_of_audio_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(num_of_audio_tracks <= 0 || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -742,7 +742,7 @@ Result_with_string Util_video_decoder_init(int low_resolution, int num_of_video_
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(num_of_video_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(num_of_video_tracks <= 0 || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -878,7 +878,7 @@ Result_with_string Util_mvd_video_decoder_init(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0])
@@ -961,7 +961,7 @@ Result_with_string Util_subtitle_decoder_init(int num_of_subtitle_tracks, int se
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(num_of_subtitle_tracks <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(num_of_subtitle_tracks <= 0 || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -1040,7 +1040,7 @@ void Util_audio_decoder_get_info(Audio_info* audio_info, int audio_index, int se
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!audio_info || audio_index < 0 || audio_index > DEF_DECODER_MAX_AUDIO_TRACKS || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!audio_info || audio_index < 0 || audio_index >= DEF_DECODER_MAX_AUDIO_TRACKS || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_audio_decoder_init[session][audio_index])
@@ -1076,14 +1076,14 @@ void Util_video_decoder_get_info(Video_info* video_info, int video_index, int se
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!video_info || video_index < 0 || video_index > DEF_DECODER_MAX_VIDEO_TRACKS || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!video_info || video_index < 0 || video_index >= DEF_DECODER_MAX_VIDEO_TRACKS || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][video_index])
 		return;
 
 	sar = av_guess_sample_aspect_ratio(util_decoder_format_context[session], util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]], NULL);
-	if(sar.num == 0 && sar.den == 1)
+	if(sar.num == 0)
 	{
 		video_info->sar_width = 1;
 		video_info->sar_height = 1;
@@ -1139,7 +1139,7 @@ void Util_subtitle_decoder_get_info(Subtitle_info* subtitle_info, int subtitle_i
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!subtitle_info || subtitle_index < 0 || subtitle_index > DEF_DECODER_MAX_SUBTITLE_TRACKS || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!subtitle_info || subtitle_index < 0 || subtitle_index >= DEF_DECODER_MAX_SUBTITLE_TRACKS || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_subtitle_decoder_init[session][subtitle_index])
@@ -1163,7 +1163,7 @@ void Util_decoder_clear_cache_packet(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session])
@@ -1182,7 +1182,7 @@ int Util_decoder_get_available_packet_num(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return 0;
 
 	if(!util_decoder_opened_file[session])
@@ -1198,7 +1198,7 @@ Result_with_string Util_decoder_read_packet(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -1267,7 +1267,7 @@ Result_with_string Util_decoder_parse_packet(Packet_type* type, int* packet_inde
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || !type || !packet_index || !key_frame)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || !type || !packet_index || !key_frame)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -1410,7 +1410,7 @@ Result_with_string Util_decoder_ready_audio_packet(int packet_index, int session
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_AUDIO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_AUDIO_TRACKS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_audio_decoder_init[session][packet_index])
@@ -1478,7 +1478,7 @@ Result_with_string Util_decoder_ready_video_packet(int packet_index, int session
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -1546,7 +1546,7 @@ Result_with_string Util_decoder_ready_subtitle_packet(int packet_index, int sess
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_SUBTITLE_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_SUBTITLE_TRACKS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_subtitle_decoder_init[session][packet_index])
@@ -1612,7 +1612,7 @@ void Util_decoder_skip_audio_packet(int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_AUDIO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_AUDIO_TRACKS)
 		return;
 
 	if(!util_decoder_opened_file[session])
@@ -1630,7 +1630,7 @@ void Util_decoder_skip_video_packet(int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return;
 
 	if(!util_decoder_opened_file[session])
@@ -1648,7 +1648,7 @@ void Util_decoder_skip_subtitle_packet(int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_SUBTITLE_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_SUBTITLE_TRACKS)
 		return;
 
 	if(!util_decoder_opened_file[session])
@@ -1666,7 +1666,7 @@ void Util_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int pac
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS
 	|| max_num_of_buffer < 3 || max_num_of_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 		return;
 
@@ -1682,7 +1682,7 @@ void Util_mvd_video_decoder_set_raw_image_buffer_size(int max_num_of_buffer, int
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || max_num_of_buffer < 3 || max_num_of_buffer > DEF_DECODER_MAX_RAW_IMAGE)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || max_num_of_buffer < 3 || max_num_of_buffer > DEF_DECODER_MAX_RAW_IMAGE)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init
@@ -1697,7 +1697,7 @@ int Util_video_decoder_get_raw_image_buffer_size( int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return 0;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -1711,7 +1711,7 @@ int Util_mvd_video_decoder_get_raw_image_buffer_size(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return 0;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -1730,7 +1730,7 @@ Result_with_string Util_audio_decoder_decode(int* samples, u8** raw_data, double
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_AUDIO_TRACKS
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_AUDIO_TRACKS
 	|| !samples || !raw_data || !current_pos)
 		goto invalid_arg;
 
@@ -1833,7 +1833,7 @@ Result_with_string Util_video_decoder_decode(int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -1950,7 +1950,7 @@ Result_with_string Util_mvd_video_decoder_decode(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -2265,7 +2265,7 @@ Result_with_string Util_subtitle_decoder_decode(Subtitle_data* subtitle_data, in
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_SUBTITLE_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_SUBTITLE_TRACKS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_subtitle_decoder_init[session][packet_index])
@@ -2432,7 +2432,7 @@ void Util_video_decoder_clear_raw_image(int packet_index, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -2451,7 +2451,7 @@ void Util_mvd_video_decoder_clear_raw_image(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -2478,7 +2478,7 @@ int Util_video_decoder_get_available_raw_image_num(int packet_index, int session
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS)
 		return 0;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -2492,7 +2492,7 @@ int Util_mvd_video_decoder_get_available_raw_image_num(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return 0;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -2524,8 +2524,8 @@ Result_with_string Util_video_decoder_get_image(u8** raw_data, double* current_p
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!raw_data || !current_pos || width <= 0 || height <= 0 || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS
-	|| session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!raw_data || !current_pos || width <= 0 || height <= 0 || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS
+	|| session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -2669,7 +2669,7 @@ Result_with_string Util_mvd_video_decoder_get_image(u8** raw_data, double* curre
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!raw_data || !current_pos || width <= 0 || height <= 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!raw_data || !current_pos || width <= 0 || height <= 0 || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -2767,8 +2767,8 @@ void Util_video_decoder_skip_image(double* current_pos, int packet_index, int se
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!current_pos || packet_index < 0 || packet_index > DEF_DECODER_MAX_VIDEO_TRACKS
-	|| session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!current_pos || packet_index < 0 || packet_index >= DEF_DECODER_MAX_VIDEO_TRACKS
+	|| session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][packet_index])
@@ -2815,7 +2815,7 @@ void Util_mvd_video_decoder_skip_image(double* current_pos, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(!current_pos || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(!current_pos || session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session] || !util_video_decoder_init[session][0] || !util_mvd_video_decoder_init)
@@ -2862,7 +2862,7 @@ Result_with_string Util_decoder_seek(u64 seek_pos, Seek_flag flag, int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(seek_pos < 0 || session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_decoder_opened_file[session])
@@ -2991,7 +2991,7 @@ void Util_decoder_close_file(int session)
 	if(!util_decoder_init)
 		Util_decoder_init_variables();
 
-	if(session < 0 || session > DEF_DECODER_MAX_SESSIONS)
+	if(session < 0 || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
 
 	if(!util_decoder_opened_file[session])

@@ -115,8 +115,6 @@ Result_with_string Util_mic_start_recording(Mic_sample_rate sample_rate_mode)
 		sample_rate = 8182;
 		mic_sample_rate = MICU_SAMPLE_RATE_8180;
 	}
-	else
-		goto invalid_arg;
 
 	result.code = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, mic_sample_rate, 0, micGetSampleDataSize() - 4, true);
 	if(result.code != 0)
@@ -188,13 +186,14 @@ Result_with_string Util_mic_get_audio_data(u8** raw_data, int* size)
 	int buffer_offset = 0;
 	int last_pos = 0;
 	int buffer_size = 0;
-	*size = 0;
 
 	if(!util_mic_init)
 		goto not_inited;
 
 	if(!raw_data || !size)
 		goto invalid_arg;
+
+	*size = 0;
 
 	last_pos = micGetLastSampleOffset();
 	if(last_pos == util_mic_last_pos)

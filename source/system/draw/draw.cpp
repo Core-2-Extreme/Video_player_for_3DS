@@ -276,8 +276,8 @@ Result_with_string Draw_texture_init(Image_data* image, int tex_size_x, int tex_
 	else if(color_format == PIXEL_FORMAT_RGB565LE)
 		color = GPU_RGB565;
 
-	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture*));
-	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex*));
+	image->subtex = (Tex3DS_SubTexture*)Util_safe_linear_alloc(sizeof(Tex3DS_SubTexture));
+	image->c2d.tex = (C3D_Tex*)Util_safe_linear_alloc(sizeof(C3D_Tex));
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
 
@@ -856,7 +856,7 @@ Result_with_string Draw_load_texture(std::string file_path, int sheet_map_num, C
 	size_t num_of_images = 0;
 	Result_with_string result;
 
-	if(file_path == "" || sheet_map_num < 0 || sheet_map_num > DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS || !return_image
+	if(file_path == "" || sheet_map_num < 0 || sheet_map_num >= DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS || !return_image
 	|| start_num < 0 || num_of_array < 0 || !util_draw_sheet_texture_free[sheet_map_num])
 		goto invalid_arg;
 
@@ -1094,8 +1094,8 @@ Result_with_string Draw_load_system_font(int system_font_num)
 
 	if(!util_draw_system_fonts[system_font_num])
 	{
-		goto other;
 		result.error_description = "[Error] Couldn't load font : " + std::to_string(system_font_num) + " ";
+		goto other;
 	}
 
 	return result;

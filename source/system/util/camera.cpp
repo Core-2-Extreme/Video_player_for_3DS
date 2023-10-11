@@ -584,15 +584,14 @@ Result_with_string Util_cam_set_camera(Camera_port camera_port)
 
 Result_with_string Util_cam_set_exposure(Camera_exposure exposure_mode)
 {
-	int exposure = 0;
 	Result_with_string result;
 	if(!util_cam_init)
 		goto not_inited;
 
-	if(exposure <= CAM_EXPOSURE_INVALID || exposure >= CAM_EXPOSURE_MAX)
+	if(exposure_mode <= CAM_EXPOSURE_INVALID || exposure_mode >= CAM_EXPOSURE_MAX)
 		goto invalid_arg;
 
-	result.code = CAMU_SetExposure(SELECT_ALL, (s8)exposure);
+	result.code = CAMU_SetExposure(SELECT_ALL, (s8)exposure_mode);
 	if (result.code != 0)
 	{
 		result.error_description = "[Error] CAMU_SetExposure() failed. ";

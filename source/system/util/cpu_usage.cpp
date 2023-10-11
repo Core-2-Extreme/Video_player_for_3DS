@@ -100,7 +100,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 {
 	u8 core_id = 0;
 
-	if(!arg || *(u8*)arg < 0 || *(u8*)arg > 3)
+	if(!arg || *(u8*)arg > 3)
 	{
 		Util_log_save(DEF_CPU_COUNTER_THREAD_STR, "Invalid arg!!!!!");
 		threadExit(0);

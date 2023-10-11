@@ -35,7 +35,7 @@ Result_with_string Util_muxer_open_audio_file(std::string file_path, int session
 	int ffmpeg_result = 0;
 	Result_with_string result;
 
-	if(file_path == "" || session < 0 || session > DEF_MUXER_MAX_SESSIONS)
+	if(file_path == "" || session < 0 || session >= DEF_MUXER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(util_audio_muxer_init[session])
@@ -106,7 +106,7 @@ Result_with_string Util_muxer_open_video_file(std::string file_path, int session
 	int ffmpeg_result = 0;
 	Result_with_string result;
 
-	if(file_path == "" || session < 0 || session > DEF_MUXER_MAX_SESSIONS)
+	if(file_path == "" || session < 0 || session >= DEF_MUXER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(util_video_muxer_init[session])
@@ -177,7 +177,7 @@ Result_with_string Util_muxer_mux(std::string file_path, int session)
 	Result_with_string result;
 	int ffmpeg_result = 0;
 
-	if(file_path == "" || session < 0 || session > DEF_MUXER_MAX_SESSIONS)
+	if(file_path == "" || session < 0 || session >= DEF_MUXER_MAX_SESSIONS)
 		goto invalid_arg;
 
 	if(!util_audio_muxer_init[session] || !util_video_muxer_init[session])

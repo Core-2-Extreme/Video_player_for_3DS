@@ -157,7 +157,7 @@ void Util_log_add(int log_index, std::string text, int result)
 	if(!util_log_init)
 		return;
 
-	if(log_index < 0 || log_index > DEF_LOG_BUFFER_LINES)
+	if(log_index < 0 || log_index >= DEF_LOG_BUFFER_LINES)
 		return;
 
 	app_log_add_cache = (char*)malloc(text.length() + 32);

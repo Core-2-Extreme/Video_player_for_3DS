@@ -12,6 +12,7 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 	u16* utf16_path = NULL;
 	u32 written_size = 0;
 	u64 offset = 0;
+	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
 	FS_Archive archive = 0;
@@ -21,15 +22,16 @@ Result_with_string Util_file_save_to_file(std::string file_name, std::string dir
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_dir_path = (u16*)malloc(4096);
-	utf16_path = (u16*)malloc(4096);
+	utf16_dir_path = (u16*)malloc(4096 + 2);
+	utf16_path = (u16*)malloc(4096 + 2);
 	if(!utf16_dir_path || !utf16_path)
 		goto out_of_memory;
 
-	memset(utf16_dir_path, 0x0, 4096);
-	memset(utf16_path, 0x0, 4096);
-	utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
-	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
+	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
+
+	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if(result.code != 0)
@@ -296,6 +298,7 @@ Result_with_string Util_file_load_from_rom(std::string file_name, std::string di
 Result_with_string Util_file_delete_file(std::string file_name, std::string dir_path)
 {
 	u16* utf16_path = NULL;
+	ssize_t utf_out_size = 0;
 	std::string path = "";
 	FS_Archive archive = 0;
 	Result_with_string result;
@@ -304,12 +307,12 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096);
+	utf16_path = (u16*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	memset(utf16_path, 0x0, 4096);
-	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
@@ -352,6 +355,7 @@ Result_with_string Util_file_delete_file(std::string file_name, std::string dir_
 Result_with_string Util_file_check_file_size(std::string file_name, std::string dir_path, u64* file_size)
 {
 	u16* utf16_path = NULL;
+	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
 	FS_Archive archive = 0;
@@ -361,12 +365,12 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096);
+	utf16_path = (u16*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	memset(utf16_path, 0x0, 4096);
-	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
@@ -418,6 +422,7 @@ Result_with_string Util_file_check_file_size(std::string file_name, std::string 
 Result_with_string Util_file_check_file_exist(std::string file_name, std::string dir_path)
 {
 	u16* utf16_path = NULL;
+	ssize_t utf_out_size = 0;
 	std::string path = "";
 	Handle handle = 0;
 	FS_Archive archive = 0;
@@ -427,12 +432,12 @@ Result_with_string Util_file_check_file_exist(std::string file_name, std::string
 		goto invalid_arg;
 
 	path = dir_path + file_name;
-	utf16_path = (u16*)malloc(4096);
+	utf16_path = (u16*)malloc(4096 + 2);
 	if(!utf16_path)
 		goto out_of_memory;
 
-	memset(utf16_path, 0x0, 4096);
-	utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_path, (u8*)path.c_str(), 2048);
+	utf16_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
@@ -480,6 +485,7 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	u16* utf16_dir_path = NULL;
 	u32 read_entry = 0;
 	u32 read_entry_count = 1;
+	ssize_t utf_out_size = 0;
 	char* utf8_file_name = NULL;
 	FS_DirectoryEntry fs_entry;
 	Handle handle = 0;
@@ -496,13 +502,13 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 	}
 	*detected = 0;
 
-	utf16_dir_path = (u16*)malloc(4096);
-	utf8_file_name = (char*)malloc(256);
+	utf16_dir_path = (u16*)malloc(4096 + 2);
+	utf8_file_name = (char*)malloc(256 + 1);
 	if(!utf16_dir_path || !utf8_file_name)
 		goto out_of_memory;
 
-	memset(utf16_dir_path, 0x0, 4096);
-	utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
+	utf_out_size = utf8_to_utf16(utf16_dir_path, (u8*)dir_path.c_str(), 2048);
+	utf16_dir_path[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 
 	result.code = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
 	if (result.code != 0)
@@ -533,8 +539,8 @@ Result_with_string Util_file_read_dir(std::string dir_path, int* detected, std::
 		if (read_entry == 0)
 			break;
 
-		memset(utf8_file_name, 0x0, 256);
-		utf16_to_utf8((u8*)utf8_file_name, fs_entry.name, 256);
+		utf_out_size = utf16_to_utf8((u8*)utf8_file_name, fs_entry.name, 256);
+		utf8_file_name[(utf_out_size < 0 ? 0 : utf_out_size)] = 0x00;//Add a null terminator.
 		file_name[count] = utf8_file_name;
 
 		if (fs_entry.attributes & FS_ATTRIBUTE_HIDDEN)

@@ -631,7 +631,7 @@ void Draw_get_text_size(std::string text, float text_size_x, float text_size_y, 
 	part_text = nullptr;
 }
 
-void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align, Text_align_y y_align,
+void Draw_internal(std::string&& text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align, Text_align_y y_align,
 float box_size_x, float box_size_y, Background texture_position, void* background_image, int texture_abgr8888, bool c2d_image_pointer)
 {
 	bool new_line = false;
@@ -815,27 +815,34 @@ float box_size_x, float box_size_y, Background texture_position, void* backgroun
 	x_start = NULL;
 }
 
+//Use std::move for better performance.
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, X_ALIGN_LEFT, Y_ALIGN_TOP, 0, 0, BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
+	Draw_internal(std::move(text), x, y, text_size_x, text_size_y, abgr8888, X_ALIGN_LEFT, Y_ALIGN_TOP, 0, 0, BACKGROUND_NONE, &var_null_image, DEF_DRAW_NO_COLOR, true);
 }
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
 Text_align_y y_align, float box_size_x, float box_size_y)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, BACKGROUND_NONE, var_null_image, DEF_DRAW_NO_COLOR);
+	Draw_internal(std::move(text), x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, BACKGROUND_NONE, &var_null_image, DEF_DRAW_NO_COLOR, true);
 }
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
 Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, C2D_Image background_image, int texture_abgr8888)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, &background_image, texture_abgr8888, true);
+	Draw_internal(std::move(text), x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, &background_image, texture_abgr8888, true);
 }
 
 void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align,
 Text_align_y y_align, float box_size_x, float box_size_y, Background texture_position, Image_data* background_image, int texture_abgr8888)
 {
-	Draw(text, x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888, false);
+	Draw_internal(std::move(text), x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888, false);
+}
+
+void Draw(std::string text, float x, float y, float text_size_x, float text_size_y, int abgr8888, Text_align_x x_align, Text_align_y y_align,
+float box_size_x, float box_size_y, Background texture_position, void* background_image, int texture_abgr8888, bool c2d_image_pointer)
+{
+	Draw_internal(std::move(text), x, y, text_size_x, text_size_y, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888, c2d_image_pointer);
 }
 
 int Draw_get_free_sheet_num(void)

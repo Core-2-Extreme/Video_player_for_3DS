@@ -33,7 +33,10 @@ std::string util_expl_files[DEF_EXPL_MAX_FILES];
 Image_data util_expl_file_button[16];
 File_type util_expl_type[DEF_EXPL_MAX_FILES];
 
-void Util_expl_read_dir_callback(void);
+
+static std::string Util_expl_generate_file_type_string(int type);
+static void Util_expl_read_dir_callback(void);
+
 
 Result_with_string Util_expl_init(void)
 {
@@ -89,26 +92,6 @@ void Util_expl_exit(void)
 
 	util_expl_init = false;
 	Menu_remove_worker_thread_callback(Util_expl_read_dir_callback);
-}
-
-std::string Util_expl_generate_file_type_string(int type)
-{
-	std::string type_string = "";
-	if(type == FILE_TYPE_NONE)
-		type_string += "unknown,";
-	if(type & FILE_TYPE_FILE)
-		type_string += "file,";
-	if(type & FILE_TYPE_DIR)
-		type_string += "dir,";
-	if(type & FILE_TYPE_READ_ONLY)
-		type_string += "read only,";
-	if(type & FILE_TYPE_HIDDEN)
-		type_string += "hidden,";
-
-	if(type_string.length() > 0)
-		return type_string.substr(0, type_string.length() - 1);
-	else
-		return type_string;
 }
 
 std::string Util_expl_query_current_dir(void)
@@ -194,7 +177,7 @@ void Util_expl_set_current_dir(std::string dir)
 	if(!util_expl_init)
 		return;
 
-	util_expl_current_dir = dir;
+	util_expl_current_dir = std::move(dir);
 	util_expl_read_dir_request = true;
 }
 
@@ -414,7 +397,27 @@ void Util_expl_main(Hid_info key)
 	}
 }
 
-void Util_expl_read_dir_callback(void)
+static std::string Util_expl_generate_file_type_string(int type)
+{
+	std::string type_string = "";
+	if(type == FILE_TYPE_NONE)
+		type_string += "unknown,";
+	if(type & FILE_TYPE_FILE)
+		type_string += "file,";
+	if(type & FILE_TYPE_DIR)
+		type_string += "dir,";
+	if(type & FILE_TYPE_READ_ONLY)
+		type_string += "read only,";
+	if(type & FILE_TYPE_HIDDEN)
+		type_string += "hidden,";
+
+	if(type_string.length() > 0)
+		return type_string.substr(0, type_string.length() - 1);
+	else
+		return type_string;
+}
+
+static void Util_expl_read_dir_callback(void)
 {
 	if (util_expl_init)
 	{

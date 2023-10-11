@@ -11,6 +11,20 @@
 
 bool util_httpc_init = false;
 
+
+static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, u8* post_data, int post_data_size);
+static Result_with_string Util_httpc_get_request(httpcContext* httpc_context, std::string&& url);
+static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, u8* post_data, int post_data_size);
+static void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std::string* new_url, bool* redirected);
+static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** data, int max_size, u32* downloaded_size);
+static void Util_httpc_close(httpcContext* httpc_context);
+static Result_with_string Util_httpc_dl_data_internal(std::string&& url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
+static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
+static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, u8* post_data, int post_size, u8** dl_data, int max_dl_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url);
+static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name);
+static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, u32* downloaded_size, std::string&& dir_path, std::string&& file_name);
+
+
 Result_with_string Util_httpc_init(int buffer_size)
 {
 	Result_with_string result;
@@ -54,15 +68,131 @@ void Util_httpc_exit(void)
 	httpcExit();
 }
 
-void Util_httpc_close(httpcContext* httpc_context)
+Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+int max_redirect)
 {
-	if(httpc_context)
-		httpcCloseContext(httpc_context);
-
-	httpc_context = NULL;
+	std::string last_url = "";
+	u32 status_code = 0;
+	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, &last_url);
 }
 
-Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string url, HTTPC_RequestMethod method, u8* post_data, int post_data_size)
+Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
+int max_redirect, std::string* last_url)
+{
+	u32 status_code = 0;
+	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, last_url);
+}
+
+Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect)
+{
+	std::string last_url = "";
+	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, &last_url);
+}
+
+Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect, std::string* last_url)
+{
+	return Util_httpc_dl_data_internal(std::move(url), data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, last_url);
+}
+
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+int max_redirect, std::string dir_path, std::string file_name)
+{
+	std::string last_url = "";
+	u32 status_code = 0;
+	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
+	&last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
+int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+{
+	u32 status_code = 0;
+	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
+	last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect, std::string dir_path, std::string file_name)
+{
+	std::string last_url = "";
+	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
+	&last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+{
+	return Util_httpc_save_data_internal(std::move(url), buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
+	last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+u32* downloaded_size, bool follow_redirect, int max_redirect)
+{
+	std::string last_url = "";
+	u32 status_code = 0;
+	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
+	&status_code, follow_redirect, max_redirect, &last_url);
+}
+
+Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+u32* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
+{
+	u32 status_code = 0;
+	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
+	&status_code, follow_redirect, max_redirect, last_url);
+}
+
+Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect)
+{
+	std::string last_url = "";
+	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
+	status_code, follow_redirect, max_redirect, &last_url);
+}
+
+Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
+{
+	return Util_httpc_post_and_dl_data_internal(std::move(url), post_data, post_size, dl_data, max_dl_size, downloaded_size,
+	status_code, follow_redirect, max_redirect, last_url);
+}
+
+Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
+{
+	std::string last_url = "";
+	u32 status_code = 0;
+	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
+	&status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+{
+	u32 status_code = 0;
+	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
+	&status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
+{
+	std::string last_url = "";
+	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
+	status_code, follow_redirect, max_redirect, &last_url, std::move(dir_path), std::move(file_name));
+}
+
+Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
+{
+	return Util_httpc_post_and_save_data_internal(std::move(url), post_data, post_size, buffer_size, downloaded_size,
+	status_code, follow_redirect, max_redirect, last_url, std::move(dir_path), std::move(file_name));
+}
+
+static Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string&& url, HTTPC_RequestMethod method, u8* post_data, int post_data_size)
 {
 	Result_with_string result;
 
@@ -130,17 +260,17 @@ Result_with_string Util_httpc_request(httpcContext* httpc_context, std::string u
 	return result;
 }
 
-Result_with_string Util_httpc_get_request(httpcContext* httpc_context, std::string url)
+static Result_with_string Util_httpc_get_request(httpcContext* httpc_context, std::string&& url)
 {
-	return Util_httpc_request(httpc_context, url, HTTPC_METHOD_GET, NULL, 0);
+	return Util_httpc_request(httpc_context, std::move(url), HTTPC_METHOD_GET, NULL, 0);
 }
 
-Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string url, u8* post_data, int post_data_size)
+static Result_with_string Util_httpc_post_request(httpcContext* httpc_context, std::string&& url, u8* post_data, int post_data_size)
 {
-	return Util_httpc_request(httpc_context, url, HTTPC_METHOD_POST, post_data, post_data_size);
+	return Util_httpc_request(httpc_context, std::move(url), HTTPC_METHOD_POST, post_data, post_data_size);
 }
 
-void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std::string* new_url, bool* redirected)
+static void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std::string* new_url, bool* redirected)
 {
 	char moved_url[4096];
 	Result_with_string result;
@@ -171,7 +301,7 @@ void Util_httpc_get_response(httpcContext* httpc_context, u32* status_code, std:
 	}
 }
 
-Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** data, int max_size, u32* downloaded_size)
+static Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** data, int max_size, u32* downloaded_size)
 {
 	u8* new_buffer = NULL;
 	u32 dl_size = 0;
@@ -238,7 +368,373 @@ Result_with_string Util_httpc_download_data(httpcContext* httpc_context, u8** da
 	return result;
 }
 
-Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, u32* downloaded_size, std::string dir_path, std::string file_name)
+static void Util_httpc_close(httpcContext* httpc_context)
+{
+	if(httpc_context)
+		httpcCloseContext(httpc_context);
+
+	httpc_context = NULL;
+}
+
+static Result_with_string Util_httpc_dl_data_internal(std::string&& url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect, std::string* last_url)
+{
+	bool redirect = false;
+	int redirected = 0;
+	std::string new_url = "";
+	httpcContext httpc_context;
+	Result_with_string result;
+
+	if(!util_httpc_init)
+		goto not_inited;
+
+	if(url == "" || !data || max_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
+		goto invalid_arg;
+
+	*last_url = url;
+	*downloaded_size = 0;
+
+	for(int i = 0; i < 40; i++)
+	{
+		result.code = acWaitInternetConnection();
+		if(result.code != 0xE0A09D2E)
+			break;
+
+		Util_sleep(100000);
+	}
+
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] acWaitInternetConnection() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	while (true)
+	{
+		redirect = false;
+
+		result = Util_httpc_get_request(&httpc_context, std::move(url));
+		if(result.code != 0)
+			goto api_failed;
+
+		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
+
+		if (redirect && follow_redirect && max_redirect > redirected)
+		{
+			url = new_url;
+			*last_url = url;
+			redirected++;
+		}
+		else
+			redirect = false;
+
+		if (!redirect)
+		{
+			result = Util_httpc_download_data(&httpc_context, data, max_size, downloaded_size);
+			if(result.code != 0)
+				goto api_failed;
+		}
+
+		Util_httpc_close(&httpc_context);
+
+		if (!redirect)
+			break;
+	}
+
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	api_failed:
+	return result;
+}
+
+static Result_with_string Util_httpc_save_data_internal(std::string&& url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
+int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
+{
+	bool redirect = false;
+	int redirected = 0;
+	std::string new_url = "";
+	httpcContext httpc_context;
+	Result_with_string result;
+
+	if(!util_httpc_init)
+		goto not_inited;
+
+	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
+		goto invalid_arg;
+
+	*last_url = url;
+	*downloaded_size = 0;
+
+	for(int i = 0; i < 40; i++)
+	{
+		result.code = acWaitInternetConnection();
+		if(result.code != 0xE0A09D2E)
+			break;
+
+		Util_sleep(100000);
+	}
+
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] acWaitInternetConnection() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	while (true)
+	{
+		redirect = false;
+
+		result = Util_httpc_get_request(&httpc_context, std::move(url));
+		if(result.code != 0)
+			goto api_failed;
+
+		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
+
+		if (redirect && follow_redirect && max_redirect > redirected)
+		{
+			url = new_url;
+			*last_url = url;
+			redirected++;
+		}
+		else
+			redirect = false;
+
+		if (!redirect)
+		{
+			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, std::move(dir_path), std::move(file_name));
+			if(result.code != 0)
+				goto api_failed;
+		}
+
+		Util_httpc_close(&httpc_context);
+
+		if (!redirect)
+			break;
+	}
+
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	api_failed:
+	return result;
+}
+
+static Result_with_string Util_httpc_post_and_dl_data_internal(std::string&& url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
+u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
+{
+	bool post = true;
+	bool redirect = false;
+	int redirected = 0;
+	std::string new_url = "";
+	httpcContext httpc_context;
+	Result_with_string result;
+
+	if(!util_httpc_init)
+		goto not_inited;
+
+	if(url == "" || !post_data || post_size <= 0 || !dl_data || max_dl_size <= 0 || !downloaded_size || !status_code
+	|| (follow_redirect && max_redirect < 0) || !last_url)
+		goto invalid_arg;
+
+	*last_url = url;
+	*downloaded_size = 0;
+
+	for(int i = 0; i < 40; i++)
+	{
+		result.code = acWaitInternetConnection();
+		if(result.code != 0xE0A09D2E)
+			break;
+
+		Util_sleep(100000);
+	}
+
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] acWaitInternetConnection() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	while (true)
+	{
+		redirect = false;
+
+		if(post)
+		{
+			result = Util_httpc_post_request(&httpc_context, std::move(url), post_data, post_size);
+			post = false;
+		}
+		else
+			result = Util_httpc_get_request(&httpc_context, std::move(url));
+
+		if(result.code != 0)
+			goto api_failed;
+
+		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
+
+		if (redirect && follow_redirect && max_redirect > redirected)
+		{
+			url = new_url;
+			*last_url = url;
+			redirected++;
+		}
+		else
+			redirect = false;
+
+		if (!redirect)
+		{
+			result = Util_httpc_download_data(&httpc_context, dl_data, max_dl_size, downloaded_size);
+			if(result.code != 0)
+				goto api_failed;
+		}
+
+		Util_httpc_close(&httpc_context);
+
+		if (!redirect)
+			break;
+	}
+
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	api_failed:
+	return result;
+}
+
+static Result_with_string Util_httpc_post_and_save_data_internal(std::string&& url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
+u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string&& dir_path, std::string&& file_name)
+{
+	bool post = true;
+	bool redirect = false;
+	int redirected = 0;
+	std::string new_url = "";
+	httpcContext httpc_context;
+	Result_with_string result;
+
+	if(!util_httpc_init)
+		goto not_inited;
+
+	if(url == "" || !post_data || post_size <= 0 || buffer_size <= 0 || !downloaded_size || !status_code
+	|| (follow_redirect && max_redirect < 0) || !last_url)
+		goto invalid_arg;
+
+	*last_url = url;
+	*downloaded_size = 0;
+
+	for(int i = 0; i < 40; i++)
+	{
+		result.code = acWaitInternetConnection();
+		if(result.code != 0xE0A09D2E)
+			break;
+
+		Util_sleep(100000);
+	}
+
+	if(result.code != 0)
+	{
+		result.error_description = "[Error] acWaitInternetConnection() failed. ";
+		goto nintendo_api_failed;
+	}
+
+	while (true)
+	{
+		redirect = false;
+
+		if(post)
+		{
+			result = Util_httpc_post_request(&httpc_context, std::move(url), post_data, post_size);
+			post = false;
+		}
+		else
+			result = Util_httpc_get_request(&httpc_context, std::move(url));
+
+		if(result.code != 0)
+			goto api_failed;
+
+		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
+
+		if (redirect && follow_redirect && max_redirect > redirected)
+		{
+			url = new_url;
+			*last_url = url;
+			redirected++;
+		}
+		else
+			redirect = false;
+
+		if (!redirect)
+		{
+			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, std::move(dir_path), std::move(file_name));
+			if(result.code != 0)
+				goto api_failed;
+		}
+
+		Util_httpc_close(&httpc_context);
+
+		if (!redirect)
+			break;
+	}
+
+	return result;
+
+	not_inited:
+	result.code = DEF_ERR_NOT_INITIALIZED;
+	result.string = DEF_ERR_NOT_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
+
+	nintendo_api_failed:
+	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
+	return result;
+
+	api_failed:
+	return result;
+}
+
+static Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_size, u32* downloaded_size, std::string&& dir_path, std::string&& file_name)
 {
 	bool first = true;
 	u8* cache = NULL;
@@ -310,461 +806,6 @@ Result_with_string Util_httpc_save_data(httpcContext* httpc_context, int buffer_
 	api_failed:
 	Util_safe_linear_free(cache);
 	cache = NULL;
-	return result;
-}
-
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
-int max_redirect)
-{
-	std::string last_url = "";
-	u32 status_code = 0;
-	return Util_httpc_dl_data(url, data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, &last_url);
-}
-
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, bool follow_redirect,
-int max_redirect, std::string* last_url)
-{
-	u32 status_code = 0;
-	return Util_httpc_dl_data(url, data, max_size, downloaded_size, &status_code, follow_redirect, max_redirect, last_url);
-}
-
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
-int max_redirect)
-{
-	std::string last_url = "";
-	return Util_httpc_dl_data(url, data, max_size, downloaded_size, status_code, follow_redirect, max_redirect, &last_url);
-}
-
-Result_with_string Util_httpc_dl_data(std::string url, u8** data, int max_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url)
-{
-	bool redirect = false;
-	int redirected = 0;
-	std::string new_url = "";
-	httpcContext httpc_context;
-	Result_with_string result;
-
-	if(!util_httpc_init)
-		goto not_inited;
-
-	if(url == "" || !data || max_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	*last_url = url;
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	while (true)
-	{
-		redirect = false;
-
-		result = Util_httpc_get_request(&httpc_context, url);
-		if(result.code != 0)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
-
-		if (redirect && follow_redirect && max_redirect > redirected)
-		{
-			url = new_url;
-			*last_url = url;
-			redirected++;
-		}
-		else
-			redirect = false;
-
-		if (!redirect)
-		{
-			result = Util_httpc_download_data(&httpc_context, data, max_size, downloaded_size);
-			if(result.code != 0)
-				goto api_failed;
-		}
-
-		Util_httpc_close(&httpc_context);
-
-		if (!redirect)
-			break;
-	}
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
-	return result;
-}
-
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
-int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	u32 status_code = 0;
-	return Util_httpc_save_data(url, buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
-	&last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, bool follow_redirect,
-int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	u32 status_code = 0;
-	return Util_httpc_save_data(url, buffer_size, downloaded_size, &status_code, follow_redirect, max_redirect,
-	last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
-int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	return Util_httpc_save_data(url, buffer_size, downloaded_size, status_code, follow_redirect, max_redirect,
-	&last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_save_data(std::string url, int buffer_size, u32* downloaded_size, u32* status_code, bool follow_redirect,
-int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	bool redirect = false;
-	int redirected = 0;
-	std::string new_url = "";
-	httpcContext httpc_context;
-	Result_with_string result;
-
-	if(!util_httpc_init)
-		goto not_inited;
-
-	if(url == "" || buffer_size <= 0 || !downloaded_size || !status_code || (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	*last_url = url;
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	while (true)
-	{
-		redirect = false;
-
-		result = Util_httpc_get_request(&httpc_context, url);
-		if(result.code != 0)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
-
-		if (redirect && follow_redirect && max_redirect > redirected)
-		{
-			url = new_url;
-			*last_url = url;
-			redirected++;
-		}
-		else
-			redirect = false;
-
-		if (!redirect)
-		{
-			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
-			if(result.code != 0)
-				goto api_failed;
-		}
-
-		Util_httpc_close(&httpc_context);
-
-		if (!redirect)
-			break;
-	}
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
-	return result;
-}
-
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	u32 status_code = 0;
-	return Util_httpc_post_and_dl_data(url, post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	&status_code, follow_redirect, max_redirect, &last_url);
-}
-
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, bool follow_redirect, int max_redirect, std::string* last_url)
-{
-	u32 status_code = 0;
-	return Util_httpc_post_and_dl_data(url, post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	&status_code, follow_redirect, max_redirect, last_url);
-}
-
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect)
-{
-	std::string last_url = "";
-	return Util_httpc_post_and_dl_data(url, post_data, post_size, dl_data, max_dl_size, downloaded_size,
-	status_code, follow_redirect, max_redirect, &last_url);
-}
-
-Result_with_string Util_httpc_post_and_dl_data(std::string url, u8* post_data, int post_size, u8** dl_data, int max_dl_size,
-u32* downloaded_size, u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url)
-{
-	bool post = true;
-	bool redirect = false;
-	int redirected = 0;
-	std::string new_url = "";
-	httpcContext httpc_context;
-	Result_with_string result;
-
-	if(!util_httpc_init)
-		goto not_inited;
-
-	if(url == "" || !post_data || post_size <= 0 || !dl_data || max_dl_size <= 0 || !downloaded_size || !status_code
-	|| (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	*last_url = url;
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	while (true)
-	{
-		redirect = false;
-
-		if(post)
-		{
-			result = Util_httpc_post_request(&httpc_context, url, post_data, post_size);
-			post = false;
-		}
-		else
-			result = Util_httpc_get_request(&httpc_context, url);
-
-		if(result.code != 0)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
-
-		if (redirect && follow_redirect && max_redirect > redirected)
-		{
-			url = new_url;
-			*last_url = url;
-			redirected++;
-		}
-		else
-			redirect = false;
-
-		if (!redirect)
-		{
-			result = Util_httpc_download_data(&httpc_context, dl_data, max_dl_size, downloaded_size);
-			if(result.code != 0)
-				goto api_failed;
-		}
-
-		Util_httpc_close(&httpc_context);
-
-		if (!redirect)
-			break;
-	}
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
-	return result;
-}
-
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	u32 status_code = 0;
-	return Util_httpc_post_and_save_data(url, post_data, post_size, buffer_size, downloaded_size,
-	&status_code, follow_redirect, max_redirect, &last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	u32 status_code = 0;
-	return Util_httpc_post_and_save_data(url, post_data, post_size, buffer_size, downloaded_size,
-	&status_code, follow_redirect, max_redirect, last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string dir_path, std::string file_name)
-{
-	std::string last_url = "";
-	return Util_httpc_post_and_save_data(url, post_data, post_size, buffer_size, downloaded_size,
-	status_code, follow_redirect, max_redirect, &last_url, dir_path, file_name);
-}
-
-Result_with_string Util_httpc_post_and_save_data(std::string url, u8* post_data, int post_size, int buffer_size, u32* downloaded_size,
-u32* status_code, bool follow_redirect, int max_redirect, std::string* last_url, std::string dir_path, std::string file_name)
-{
-	bool post = true;
-	bool redirect = false;
-	int redirected = 0;
-	std::string new_url = "";
-	httpcContext httpc_context;
-	Result_with_string result;
-
-	if(!util_httpc_init)
-		goto not_inited;
-
-	if(url == "" || !post_data || post_size <= 0 || buffer_size <= 0 || !downloaded_size || !status_code
-	|| (follow_redirect && max_redirect < 0) || !last_url)
-		goto invalid_arg;
-
-	*last_url = url;
-	*downloaded_size = 0;
-
-	for(int i = 0; i < 40; i++)
-	{
-		result.code = acWaitInternetConnection();
-		if(result.code != 0xE0A09D2E)
-			break;
-
-		Util_sleep(100000);
-	}
-
-	if(result.code != 0)
-	{
-		result.error_description = "[Error] acWaitInternetConnection() failed. ";
-		goto nintendo_api_failed;
-	}
-
-	while (true)
-	{
-		redirect = false;
-
-		if(post)
-		{
-			result = Util_httpc_post_request(&httpc_context, url, post_data, post_size);
-			post = false;
-		}
-		else
-			result = Util_httpc_get_request(&httpc_context, url);
-
-		if(result.code != 0)
-			goto api_failed;
-
-		Util_httpc_get_response(&httpc_context, status_code, &new_url, &redirect);
-
-		if (redirect && follow_redirect && max_redirect > redirected)
-		{
-			url = new_url;
-			*last_url = url;
-			redirected++;
-		}
-		else
-			redirect = false;
-
-		if (!redirect)
-		{
-			result = Util_httpc_save_data(&httpc_context, buffer_size, downloaded_size, dir_path, file_name);
-			if(result.code != 0)
-				goto api_failed;
-		}
-
-		Util_httpc_close(&httpc_context);
-
-		if (!redirect)
-			break;
-	}
-
-	return result;
-
-	not_inited:
-	result.code = DEF_ERR_NOT_INITIALIZED;
-	result.string = DEF_ERR_NOT_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
-
-	nintendo_api_failed:
-	result.string = DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR;
-	return result;
-
-	api_failed:
 	return result;
 }
 

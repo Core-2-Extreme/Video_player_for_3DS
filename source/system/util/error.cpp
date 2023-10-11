@@ -22,7 +22,8 @@ std::string util_err_place = "N/A";
 std::string util_err_code = "N/A";
 Image_data util_err_ok_button, util_err_save_button;
 
-void Util_err_save_callback(void);
+static void Util_err_set_error_message_internal(std::string&& summary, std::string&& description, std::string&& place, int error_code);
+static void Util_err_save_callback(void);
 
 Result_with_string Util_err_init(void)
 {
@@ -72,27 +73,12 @@ bool Util_err_query_error_show_flag(void)
 
 void Util_err_set_error_message(std::string summary, std::string description, std::string place)
 {
-	Util_err_set_error_message(summary, description, place, 1234567890);
+	Util_err_set_error_message_internal(std::move(summary), std::move(description), std::move(place), 1234567890);
 }
 
 void Util_err_set_error_message(std::string summary, std::string description, std::string place, int error_code)
 {
-	if(!util_err_init)
-		return;
-
-	char cache[32];
-	memset(cache, 0x0, 32);
-	Util_err_clear_error_message();
-	util_err_summary = summary;
-	util_err_description = description;
-	util_err_place = place;
-	if (error_code == 1234567890)
-		util_err_code = "N/A";
-	else
-	{
-		sprintf(cache, "0x%x", error_code);
-		util_err_code = cache;
-	}
+	Util_err_set_error_message_internal(std::move(summary), std::move(description), std::move(place), error_code);
 }
 
 void Util_err_set_error_show_flag(bool flag)
@@ -189,7 +175,27 @@ void Util_err_draw(void)
 	Draw("SAVE(X)", 212.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
 }
 
-void Util_err_save_callback(void)
+static void Util_err_set_error_message_internal(std::string&& summary, std::string&& description, std::string&& place, int error_code)
+{
+	if(!util_err_init)
+		return;
+
+	char cache[32];
+	memset(cache, 0x0, 32);
+	Util_err_clear_error_message();
+	util_err_summary = std::move(summary);
+	util_err_description = std::move(description);
+	util_err_place = std::move(place);
+	if (error_code == 1234567890)
+		util_err_code = "N/A";
+	else
+	{
+		sprintf(cache, "0x%x", error_code);
+		util_err_code = cache;
+	}
+}
+
+static void Util_err_save_callback(void)
 {
 	char file_name[64];
 	std::string save_data = "";

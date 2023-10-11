@@ -15,62 +15,35 @@ SwkbdLearningData util_swkbd_learn_data;
 SwkbdDictWord util_swkbd_user_words[DEF_SWKBD_MAX_DIC_WORDS];
 SwkbdState util_swkbd;
 
+
+static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text, SwkbdPasswordMode password_mode, u32 feature);
+
+
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text)
 {
 	u32 feature = 0;
 	SwkbdPasswordMode password_mode = SWKBD_PASSWORD_NONE;
-	return Util_swkbd_init(type, valid_type, num_of_button, max_length, hint_text, init_text, password_mode, feature);
+	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
 u32 feature)
 {
 	SwkbdPasswordMode password_mode = SWKBD_PASSWORD_NONE;
-	return Util_swkbd_init(type, valid_type, num_of_button, max_length, hint_text, init_text, password_mode, feature);
+	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
 SwkbdPasswordMode password_mode)
 {
 	u32 feature = 0;
-	return Util_swkbd_init(type, valid_type, num_of_button, max_length, hint_text, init_text, password_mode, feature);
+	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_init(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string hint_text, std::string init_text,
 SwkbdPasswordMode password_mode, u32 feature)
 {
-	Result_with_string result;
-	if(util_swkbd_init)
-		goto already_init;
-
-	if(type < 0 || type > 3 || valid_type < 0 || valid_type > 4 || num_of_button <= 0 || num_of_button > 3 || max_length <= 0
-	|| password_mode < 0 || password_mode > 2)
-		goto invalid_arg;
-
-	util_swkbd_hint_text = hint_text;
-	util_swkbd_init_text = init_text;
-	util_swkbd_max_length = max_length;
-	swkbdInit(&util_swkbd, type, num_of_button, max_length);
-	swkbdSetHintText(&util_swkbd, util_swkbd_hint_text.c_str());
-	swkbdSetValidation(&util_swkbd, valid_type, 0, 0);
-	swkbdSetInitialText(&util_swkbd, util_swkbd_init_text.c_str());
-	swkbdSetStatusData(&util_swkbd, &util_swkbd_state, true, true);
-	swkbdSetLearningData(&util_swkbd, &util_swkbd_learn_data, true, true);
-	swkbdSetPasswordMode(&util_swkbd, password_mode);
-	swkbdSetFeatures(&util_swkbd, feature);
-	util_swkbd_init = true;
-
-	return result;
-
-	already_init:
-	result.code = DEF_ERR_ALREADY_INITIALIZED;
-	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
-	return result;
-
-	invalid_arg:
-	result.code = DEF_ERR_INVALID_ARG;
-	result.string = DEF_ERR_INVALID_ARG_STR;
-	return result;
+	return Util_swkbd_init_internal(type, valid_type, num_of_button, max_length, std::move(hint_text), std::move(init_text), password_mode, feature);
 }
 
 Result_with_string Util_swkbd_set_dic_word(std::string first_spell[], std::string full_spell[], int num_of_word)
@@ -172,6 +145,43 @@ void Util_swkbd_exit(void)
 	swkbdSetPasswordMode(&util_swkbd, SWKBD_PASSWORD_NONE);
 	swkbdSetFeatures(&util_swkbd, 0);
 	swkbdSetDictionary(&util_swkbd, util_swkbd_user_words, 0);
+}
+
+static Result_with_string Util_swkbd_init_internal(SwkbdType type, SwkbdValidInput valid_type, int num_of_button, int max_length, std::string&& hint_text, std::string&& init_text,
+SwkbdPasswordMode password_mode, u32 feature)
+{
+	Result_with_string result;
+	if(util_swkbd_init)
+		goto already_init;
+
+	if(type < 0 || type > 3 || valid_type < 0 || valid_type > 4 || num_of_button <= 0 || num_of_button > 3 || max_length <= 0
+	|| password_mode < 0 || password_mode > 2)
+		goto invalid_arg;
+
+	util_swkbd_hint_text = std::move(hint_text);
+	util_swkbd_init_text = std::move(init_text);
+	util_swkbd_max_length = max_length;
+	swkbdInit(&util_swkbd, type, num_of_button, max_length);
+	swkbdSetHintText(&util_swkbd, util_swkbd_hint_text.c_str());
+	swkbdSetValidation(&util_swkbd, valid_type, 0, 0);
+	swkbdSetInitialText(&util_swkbd, util_swkbd_init_text.c_str());
+	swkbdSetStatusData(&util_swkbd, &util_swkbd_state, true, true);
+	swkbdSetLearningData(&util_swkbd, &util_swkbd_learn_data, true, true);
+	swkbdSetPasswordMode(&util_swkbd, password_mode);
+	swkbdSetFeatures(&util_swkbd, feature);
+	util_swkbd_init = true;
+
+	return result;
+
+	already_init:
+	result.code = DEF_ERR_ALREADY_INITIALIZED;
+	result.string = DEF_ERR_ALREADY_INITIALIZED_STR;
+	return result;
+
+	invalid_arg:
+	result.code = DEF_ERR_INVALID_ARG;
+	result.string = DEF_ERR_INVALID_ARG_STR;
+	return result;
 }
 
 #endif

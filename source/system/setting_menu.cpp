@@ -2237,7 +2237,7 @@ void Sem_update_thread(void* arg)
 			}
 			else
 			{
-				if (sem_check_update_request)
+				if (sem_check_update_request && buffer)
 				{
 					parse_cache = (char*)buffer;
 

@@ -94,11 +94,13 @@ Result_with_string Menu_update_main_directory(void)
 	FS_Archive archive = 0;
 	Result_with_string result;
 
-	FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
-	if(FSUSER_OpenDirectory(&fs_handle, archive, fsMakePath(PATH_ASCII, old_main_dir.c_str())) == 0)
+	if(FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, "")) == 0)
 	{
-		FSDIR_Close(fs_handle);
-		result.code = FSUSER_RenameDirectory(archive, fsMakePath(PATH_ASCII, old_main_dir.c_str()), archive, fsMakePath(PATH_ASCII, new_main_dir.c_str()));
+		if(FSUSER_OpenDirectory(&fs_handle, archive, fsMakePath(PATH_ASCII, old_main_dir.c_str())) == 0)
+		{
+			FSDIR_Close(fs_handle);
+			result.code = FSUSER_RenameDirectory(archive, fsMakePath(PATH_ASCII, old_main_dir.c_str()), archive, fsMakePath(PATH_ASCII, new_main_dir.c_str()));
+		}
 	}
 	FSUSER_CloseArchive(archive);
 

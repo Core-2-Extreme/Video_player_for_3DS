@@ -277,6 +277,24 @@ long Util_min(long value_0, long value_1);
 long Util_max(long value_0, long value_1);
 
 /**
+ * @brief Compare double values and return minimum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Minimum value.
+ * @note Thread safe
+*/
+double Util_min_d(double value_0, double value_1);
+
+/**
+ * @brief Compare double values and return maximum value.
+ * @param value_0 (in) Value to compare.
+ * @param value_1 (in) Value to compare.
+ * @return Maximum value.
+ * @note Thread safe
+*/
+double Util_max_d(double value_0, double value_1);
+
+/**
  * @brief To prevent 'statement has no effect' warning in unused functions.
 */
 bool Util_return_bool(bool value);

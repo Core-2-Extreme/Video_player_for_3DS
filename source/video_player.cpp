@@ -29,16 +29,13 @@
 	snprintf(log_buffer, sizeof(log_buffer), "Util_queue_add() %s...%s%s", #event, queue_result.string.c_str(), queue_result.error_description.c_str()); \
 	Util_log_save(thread_name, log_buffer, queue_result.code); \
 }
-
-void Vid_init_hidden_settings(void);
-void Vid_init_debug_view_mode(void);
-void Vid_init_debug_view_data(void);
-void Vid_init_player_data(void);
-void Vid_init_media_data(void);
-void Vid_init_video_data(void);
-void Vid_init_audio_data(void);
-void Vid_init_subtitle_data(void);
-void Vid_init_ui_data(void);
+#define DEF_VID_DROP_THRESHOLD_ALLOWED_DURATION(frametime)	(double)(frametime * 7)
+#define DEF_VID_DROP_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * 0.8)
+#define DEF_VID_FORCE_DROP_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * 2.2)
+#define DEF_VID_WAIT_THRESHOLD_ALLOWED_DURATION(frametime)	(double)(frametime * 5)
+#define DEF_VID_WAIT_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * -1.4)
+#define DEF_VID_FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
+#define DEF_VID_DELAY_SAMPLES								(uint8_t)(60)
 
 struct Large_image
 {
@@ -183,6 +180,13 @@ struct Vid_player
 	double audio_decoding_time_list[320];			//List for audio decoding time in ms.
 	double conversion_time_list[320];				//List for color conversion time in ms.
 
+	//A/V desync management.
+	uint64_t wait_threshold_exceeded_ts = 0;		//Timestamp that "wait threshold" has been exceeded (video is fast).
+	uint64_t drop_threshold_exceeded_ts = 0;		//Timestamp that "skip threshold" has been exceeded (video is slow).
+	uint64_t last_video_frame_updated_ts = 0;		//Timestamp for last video frame update.
+	double video_delay_ms[DEF_DECODER_MAX_VIDEO_TRACKS][DEF_VID_DELAY_SAMPLES] = { { 0, }, };	//Raw video delay (A/V desync) data.
+	double video_delay_avg_ms[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, };							//Average video delay (A/V desync) data.
+
 	//Player.
 	Vid_player_main_state state = PLAYER_STATE_IDLE;		//Main state.
 	Vid_player_sub_state sub_state = PLAYER_SUB_STATE_NONE;	//Sub state.
@@ -282,7 +286,37 @@ struct Vid_player
 
 	//Mutexs.
 	LightLock texture_init_free_lock = 0;			//Mutex for initializing and freeing texture buffers.
+	LightLock delay_update_lock = 0;				//Mutex for updating video delay information.
 };
+
+static int Vid_get_min_texture_size(int width_or_height);
+static void Vid_large_texture_free(Large_image* large_image_data);
+static void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter);
+static void Vid_large_texture_crop(Large_image* large_image_data, int width, int height);
+static Result_with_string Vid_large_texture_init(Large_image* large_image_data, int width, int height, Pixel_format color_format, bool zero_initialize);
+static Result_with_string Vid_large_texture_set_data(Large_image* large_image_data, u8* raw_image, int width, int height, bool use_direct);
+static void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height);
+static void Vid_fit_to_screen(int screen_width, int screen_height);
+static void Vid_change_video_size(double change_px);
+static void Vid_enter_full_screen(int bottom_screen_timeout);
+static void Vid_exit_full_screen(void);
+static void Vid_increase_screen_brightness(void);
+static void Vid_decrease_screen_brightness(void);
+static void Vid_control_full_screen(void);
+static void Vid_update_sleep_policy(void);
+static void Vid_update_performance_graph(double decoding_time, bool is_key_frame, double* total_delay);
+static void Vid_update_video_delay(uint8_t packet_index);
+static void Vid_init_variable(void);
+static void Vid_init_hidden_settings(void);
+static void Vid_init_debug_view_mode(void);
+static void Vid_init_debug_view_data(void);
+static void Vid_init_player_data(void);
+static void Vid_init_desync_data(void);
+static void Vid_init_media_data(void);
+static void Vid_init_video_data(void);
+static void Vid_init_audio_data(void);
+static void Vid_init_subtitle_data(void);
+static void Vid_init_ui_data(void);
 
 bool vid_main_run = false;
 bool vid_thread_run = false;
@@ -292,8 +326,6 @@ std::string vid_status = "";
 std::string vid_msg[DEF_VID_NUM_OF_MSG];
 Thread vid_init_thread, vid_exit_thread;
 Vid_player vid_player;
-
-void Vid_suspend(void);
 
 void Vid_callback(std::string file, std::string dir)
 {
@@ -325,7 +357,7 @@ bool Vid_query_running_flag(void)
 	return vid_main_run;
 }
 
-int Vid_get_min_texture_size(int width_or_height)
+static int Vid_get_min_texture_size(int width_or_height)
 {
 	if(width_or_height <= 16)
 		return 16;
@@ -343,7 +375,7 @@ int Vid_get_min_texture_size(int width_or_height)
 		return 1024;
 }
 
-void Vid_large_texture_free(Large_image* large_image_data)
+static void Vid_large_texture_free(Large_image* large_image_data)
 {
 	if(!large_image_data || !large_image_data->images)
 		return;
@@ -358,7 +390,7 @@ void Vid_large_texture_free(Large_image* large_image_data)
 	large_image_data->images = NULL;
 }
 
-void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter)
+static void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter)
 {
 	if(!large_image_data || !large_image_data->images)
 		return;
@@ -367,7 +399,7 @@ void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter)
 		Draw_set_texture_filter(&large_image_data->images[i], filter);
 }
 
-void Vid_large_texture_crop(Large_image* large_image_data, int width, int height)
+static void Vid_large_texture_crop(Large_image* large_image_data, int width, int height)
 {
 	int width_offset = 0;
 	int height_offset = 0;
@@ -413,7 +445,7 @@ void Vid_large_texture_crop(Large_image* large_image_data, int width, int height
 	}
 }
 
-Result_with_string Vid_large_texture_init(Large_image* large_image_data, int width, int height, Pixel_format color_format, bool zero_initialize)
+static Result_with_string Vid_large_texture_init(Large_image* large_image_data, int width, int height, Pixel_format color_format, bool zero_initialize)
 {
 	int loop = 0;
 	int width_offset = 0;
@@ -493,7 +525,7 @@ Result_with_string Vid_large_texture_init(Large_image* large_image_data, int wid
 	return result;
 }
 
-Result_with_string Vid_large_texture_set_data(Large_image* large_image_data, u8* raw_image, int width, int height, bool use_direct)
+static Result_with_string Vid_large_texture_set_data(Large_image* large_image_data, u8* raw_image, int width, int height, bool use_direct)
 {
 	int loop = 0;
 	int width_offset = 0;
@@ -557,7 +589,7 @@ Result_with_string Vid_large_texture_set_data(Large_image* large_image_data, u8*
 	return result;
 }
 
-void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height)
+static void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height)
 {
 	int width_offset = 0;
 	int height_offset = 0;
@@ -592,11 +624,11 @@ void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, doub
 	}
 }
 
-void Vid_fit_to_screen(int screen_width, int screen_height)
+static void Vid_fit_to_screen(int screen_width, int screen_height)
 {
 	if(vid_player.video_info[0].width != 0 && vid_player.video_info[0].height != 0 && vid_player.video_info[0].sar_width != 0 && vid_player.video_info[0].sar_height != 0)
 	{
-		//fit to screen size
+		//Fit to screen size.
 		if((((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1)) / screen_width) >= (((double)vid_player.video_info[0].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1)) / screen_height))
 			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1)) / screen_width);
 		else
@@ -612,14 +644,14 @@ void Vid_fit_to_screen(int screen_width, int screen_height)
 	vid_player.subtitle_zoom = 1;
 }
 
-void Vid_change_video_size(double change_px)
+static void Vid_change_video_size(double change_px)
 {
 	double current_width = (double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1) * vid_player.video_zoom;
 	if(vid_player.video_info[0].width != 0 && vid_player.video_info[0].height != 0 && vid_player.video_info[0].sar_width != 0 && vid_player.video_info[0].sar_height != 0)
 		vid_player.video_zoom = 1.0 / ((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1) / (current_width + change_px));
 }
 
-void Vid_enter_full_screen(int bottom_screen_timeout)
+static void Vid_enter_full_screen(int bottom_screen_timeout)
 {
 	vid_player.turn_off_bottom_screen_count = bottom_screen_timeout;
 	vid_player.is_full_screen = true;
@@ -627,7 +659,7 @@ void Vid_enter_full_screen(int bottom_screen_timeout)
 	var_bottom_lcd_brightness = var_lcd_brightness;
 }
 
-void Vid_exit_full_screen(void)
+static void Vid_exit_full_screen(void)
 {
 	vid_player.turn_off_bottom_screen_count = 0;
 	vid_player.is_full_screen = false;
@@ -636,7 +668,7 @@ void Vid_exit_full_screen(void)
 	var_bottom_lcd_brightness = var_lcd_brightness;
 }
 
-void Vid_increase_screen_brightness(void)
+static void Vid_increase_screen_brightness(void)
 {
 	if(var_lcd_brightness + 1 <= 180)
 	{
@@ -649,7 +681,7 @@ void Vid_increase_screen_brightness(void)
 	}
 }
 
-void Vid_decrease_screen_brightness(void)
+static void Vid_decrease_screen_brightness(void)
 {
 	if(var_lcd_brightness - 1 >= 0)
 	{
@@ -662,7 +694,7 @@ void Vid_decrease_screen_brightness(void)
 	}
 }
 
-void Vid_control_full_screen(void)
+static void Vid_control_full_screen(void)
 {
 	if(vid_player.turn_off_bottom_screen_count > 0)
 	{
@@ -674,7 +706,7 @@ void Vid_control_full_screen(void)
 	}
 }
 
-void Vid_update_sleep_policy(void)
+static void Vid_update_sleep_policy(void)
 {
 	//Disallow sleep if headset is connected and media is playing.
 	if(vid_player.state != PLAYER_STATE_IDLE && vid_player.state != PLAYER_STATE_PAUSE && osIsHeadsetConnected())
@@ -693,7 +725,7 @@ void Vid_update_sleep_policy(void)
 	}
 }
 
-void Vid_update_performance_graph(double decoding_time, bool is_key_frame, double* total_delay)
+static void Vid_update_performance_graph(double decoding_time, bool is_key_frame, double* total_delay)
 {
 	if(vid_player.video_frametime - decoding_time < 0 && vid_player.allow_skip_frames && vid_player.video_frametime != 0)
 		*total_delay -= vid_player.video_frametime - decoding_time;
@@ -720,11 +752,43 @@ void Vid_update_performance_graph(double decoding_time, bool is_key_frame, doubl
 		vid_player.decoding_recent_total_time += vid_player.video_decoding_time_list[i];
 }
 
-void Vid_init_variable(void)
+static void Vid_update_video_delay(uint8_t packet_index)
+{
+	uint8_t array_size = DEF_VID_DELAY_SAMPLES;
+	uint8_t buffer_health = 0;
+	uint16_t next_store_index = vid_player.next_store_index[packet_index];
+	uint16_t next_draw_index = vid_player.next_draw_index[packet_index];
+	uint64_t current_ts = osGetTime();
+	double buffered_video_ms = 0;
+	double total_delay = 0;
+
+	if(next_draw_index <= next_store_index)
+		buffer_health = next_store_index - next_draw_index;
+	else
+		buffer_health = DEF_VID_VIDEO_BUFFERS - next_draw_index + next_store_index;
+
+	buffered_video_ms = buffer_health * vid_player.video_frametime;
+
+	if((vid_player.last_video_frame_updated_ts + vid_player.video_frametime) > current_ts)
+		buffered_video_ms += (vid_player.last_video_frame_updated_ts + vid_player.video_frametime) - current_ts;
+
+	for(uint8_t i = 0; i < array_size - 1; i++)
+		vid_player.video_delay_ms[packet_index][i] = vid_player.video_delay_ms[packet_index][i + 1];
+
+	vid_player.video_delay_ms[packet_index][array_size - 1] = vid_player.audio_current_pos - (vid_player.video_current_pos[packet_index] - buffered_video_ms);
+
+	for(uint8_t i = 0; i < array_size; i++)
+		total_delay += vid_player.video_delay_ms[packet_index][i];
+
+	vid_player.video_delay_avg_ms[packet_index] = (total_delay / array_size);
+}
+
+static void Vid_init_variable(void)
 {
 	Vid_init_hidden_settings();
 	Vid_init_debug_view_mode();
 	Vid_init_debug_view_data();
+	Vid_init_desync_data();
 	Vid_init_player_data();
 	Vid_init_media_data();
 	Vid_init_video_data();
@@ -733,7 +797,7 @@ void Vid_init_variable(void)
 	Vid_init_ui_data();
 }
 
-void Vid_init_hidden_settings(void)
+static void Vid_init_hidden_settings(void)
 {
 	bool frame_cores[4] = { false, false, false, false, };
 	bool slice_cores[4] = { false, false, false, false, };
@@ -765,7 +829,7 @@ void Vid_init_hidden_settings(void)
 	Util_video_decoder_set_enabled_cores(frame_cores, slice_cores);
 }
 
-void Vid_init_debug_view_mode(void)
+static void Vid_init_debug_view_mode(void)
 {
 	vid_player.show_decoding_graph = true;
 	vid_player.show_color_conversion_graph = true;
@@ -774,7 +838,7 @@ void Vid_init_debug_view_mode(void)
 	vid_player.show_raw_audio_buffer_graph = true;
 }
 
-void Vid_init_debug_view_data(void)
+static void Vid_init_debug_view_data(void)
 {
 	vid_player.total_frames = 0;
 	vid_player.total_rendered_frames = 0;
@@ -799,7 +863,7 @@ void Vid_init_debug_view_data(void)
 	}
 }
 
-void Vid_init_player_data(void)
+static void Vid_init_player_data(void)
 {
 	vid_player.state = PLAYER_STATE_IDLE;
 	vid_player.sub_state = PLAYER_SUB_STATE_NONE;
@@ -808,7 +872,20 @@ void Vid_init_player_data(void)
 	vid_player.file.index = 0;
 }
 
-void Vid_init_media_data(void)
+static void Vid_init_desync_data(void)
+{
+	vid_player.wait_threshold_exceeded_ts = 0;
+	vid_player.drop_threshold_exceeded_ts = 0;
+	vid_player.last_video_frame_updated_ts = 0;
+	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	{
+		vid_player.video_delay_avg_ms[i] = 0;
+		for(uint16_t k = 0; k < DEF_VID_DELAY_SAMPLES; k++)
+			vid_player.video_delay_ms[i][k] = 0;
+	}
+}
+
+static void Vid_init_media_data(void)
 {
 	vid_player.media_duration = 0;
 	vid_player.media_current_pos = 0;
@@ -816,7 +893,7 @@ void Vid_init_media_data(void)
 	vid_player.seek_pos = 0;
 }
 
-void Vid_init_video_data(void)
+static void Vid_init_video_data(void)
 {
 	vid_player.num_of_video_tracks = 0;
 	vid_player.next_frame_update_time = osGetTime();
@@ -856,7 +933,7 @@ void Vid_init_video_data(void)
 	LightLock_Unlock(&vid_player.texture_init_free_lock);
 }
 
-void Vid_init_audio_data(void)
+static void Vid_init_audio_data(void)
 {
 	vid_player.num_of_audio_tracks = 0;
 	vid_player.selected_audio_track_cache = 0;
@@ -877,7 +954,7 @@ void Vid_init_audio_data(void)
 	}
 }
 
-void Vid_init_subtitle_data(void)
+static void Vid_init_subtitle_data(void)
 {
 	vid_player.num_of_subtitle_tracks = 0;
 	vid_player.selected_subtitle_track_cache = 0;
@@ -906,7 +983,7 @@ void Vid_init_subtitle_data(void)
 	}
 }
 
-void Vid_init_ui_data(void)
+static void Vid_init_ui_data(void)
 {
 	vid_player.is_full_screen = false;
 	vid_player.is_pause_for_home_menu = false;
@@ -1084,7 +1161,7 @@ void Vid_hid(Hid_info key)
 		{
 			if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_0)
 			{
-				//scroll
+				//Scroll.
 				if(vid_player.menu_background.selected)
 					vid_player.ui_y_move = key.touch_y_move * var_scroll_speed;
 				else if(Util_hid_is_pressed(key, vid_player.scroll_bar))
@@ -1107,7 +1184,7 @@ void Vid_hid(Hid_info key)
 					else
 						vid_player.restart_playback_threshold = (DEF_DECODER_MAX_RAW_IMAGE - 1) * (key.touch_x - 12) / 290;
 				}
-				//audio track button
+				//Audio track button.
 				else if(Util_hid_is_pressed(key, vid_player.select_audio_track_button))
 					vid_player.select_audio_track_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.select_audio_track_button) && vid_player.select_audio_track_button.selected)
@@ -1117,7 +1194,7 @@ void Vid_hid(Hid_info key)
 					vid_player.select_audio_track_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//subtitle track button
+				//Subtitle track button.
 				else if(Util_hid_is_pressed(key, vid_player.select_subtitle_track_button))
 					vid_player.select_subtitle_track_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.select_subtitle_track_button) && vid_player.select_subtitle_track_button.selected)
@@ -1127,7 +1204,7 @@ void Vid_hid(Hid_info key)
 					vid_player.select_subtitle_track_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//texture filter button
+				//Texture filter button.
 				else if(Util_hid_is_pressed(key, vid_player.texture_filter_button))
 					vid_player.texture_filter_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.texture_filter_button) && vid_player.texture_filter_button.selected)
@@ -1146,7 +1223,7 @@ void Vid_hid(Hid_info key)
 					vid_player.texture_filter_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//allow skip frames button
+				//Allow skip frames button.
 				else if(Util_hid_is_pressed(key, vid_player.allow_skip_frames_button))
 					vid_player.allow_skip_frames_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.allow_skip_frames_button) && vid_player.allow_skip_frames_button.selected)
@@ -1160,7 +1237,7 @@ void Vid_hid(Hid_info key)
 					vid_player.allow_skip_frames_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//allow skip key frames button
+				//Allow skip key frames button.
 				else if(Util_hid_is_pressed(key, vid_player.allow_skip_key_frames_button) && vid_player.allow_skip_frames)
 					vid_player.allow_skip_key_frames_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.allow_skip_key_frames_button) && vid_player.allow_skip_key_frames_button.selected && vid_player.allow_skip_frames)
@@ -1170,7 +1247,7 @@ void Vid_hid(Hid_info key)
 					vid_player.allow_skip_key_frames_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//change volume button
+				//Change volume button.
 				else if(Util_hid_is_pressed(key, vid_player.volume_button))
 					vid_player.volume_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.volume_button) && vid_player.volume_button.selected)
@@ -1180,7 +1257,7 @@ void Vid_hid(Hid_info key)
 					vid_player.volume_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//change seek duration button
+				//Change seek duration button.
 				else if(Util_hid_is_pressed(key, vid_player.seek_duration_button))
 					vid_player.seek_duration_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.seek_duration_button) && vid_player.seek_duration_button.selected)
@@ -1190,7 +1267,7 @@ void Vid_hid(Hid_info key)
 					vid_player.seek_duration_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//correct aspect ratio button
+				//Correct aspect ratio button.
 				else if(Util_hid_is_pressed(key, vid_player.correct_aspect_ratio_button))
 					vid_player.correct_aspect_ratio_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.correct_aspect_ratio_button) && vid_player.correct_aspect_ratio_button.selected)
@@ -1203,7 +1280,7 @@ void Vid_hid(Hid_info key)
 					vid_player.correct_aspect_ratio_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//disable resize and move button
+				//Disable resize and move button.
 				else if(Util_hid_is_pressed(key, vid_player.move_content_button))
 					vid_player.move_content_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.move_content_button) && vid_player.move_content_button.selected)
@@ -1218,7 +1295,7 @@ void Vid_hid(Hid_info key)
 					vid_player.move_content_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//remember video pos button
+				//Remember video pos button.
 				else if(Util_hid_is_pressed(key, vid_player.remember_video_pos_button))
 					vid_player.remember_video_pos_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.remember_video_pos_button) && vid_player.remember_video_pos_button.selected)
@@ -1228,7 +1305,7 @@ void Vid_hid(Hid_info key)
 					vid_player.remember_video_pos_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//playback mode button
+				//Playback mode button.
 				else if(Util_hid_is_pressed(key, vid_player.playback_mode_button))
 					vid_player.playback_mode_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.playback_mode_button) && vid_player.playback_mode_button.selected)
@@ -1243,13 +1320,13 @@ void Vid_hid(Hid_info key)
 					vid_player.playback_mode_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//restart playback threshold button
+				//Restart playback threshold button.
 				else if(Util_hid_is_pressed(key, vid_player.restart_playback_threshold_bar))
 					vid_player.restart_playback_threshold_bar.selected = true;
-				//background
+				//Background.
 				else if(Util_hid_is_pressed(key, vid_player.menu_background))
 					vid_player.menu_background.selected = true;
-				//menu mode button
+				//Menu mode button.
 				else if(Util_hid_is_pressed(key, vid_player.menu_button[1]))
 					vid_player.menu_button[1].selected = true;
 				else if(Util_hid_is_released(key, vid_player.menu_button[1]) && vid_player.menu_button[1].selected)
@@ -1434,7 +1511,7 @@ void Vid_hid(Hid_info key)
 			}
 			else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
 			{
-				//scroll
+				//Scroll.
 				if(vid_player.menu_background.selected)
 					vid_player.ui_y_move = key.touch_y_move * var_scroll_speed;
 				else if(Util_hid_is_pressed(key, vid_player.scroll_bar))
@@ -1448,7 +1525,7 @@ void Vid_hid(Hid_info key)
 					else
 						vid_player.ui_y_offset = vid_player.ui_y_offset_max * (50 - key.touch_y) / -125;
 				}
-				//decoding graph button
+				//Decoding graph button.
 				else if(Util_hid_is_pressed(key, vid_player.show_decode_graph_button))
 					vid_player.show_decode_graph_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.show_decode_graph_button) && vid_player.show_decode_graph_button.selected)
@@ -1458,7 +1535,7 @@ void Vid_hid(Hid_info key)
 					vid_player.show_decode_graph_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//color conversion graph button
+				//Color conversion graph button.
 				else if(Util_hid_is_pressed(key, vid_player.show_color_conversion_graph_button))
 					vid_player.show_color_conversion_graph_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.show_color_conversion_graph_button) && vid_player.show_color_conversion_graph_button.selected)
@@ -1468,7 +1545,7 @@ void Vid_hid(Hid_info key)
 					vid_player.show_color_conversion_graph_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//packet buffer graph button
+				//Packet buffer graph button.
 				else if(Util_hid_is_pressed(key, vid_player.show_packet_buffer_graph_button))
 					vid_player.show_packet_buffer_graph_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.show_packet_buffer_graph_button) && vid_player.show_packet_buffer_graph_button.selected)
@@ -1478,7 +1555,7 @@ void Vid_hid(Hid_info key)
 					vid_player.show_packet_buffer_graph_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//raw video buffer graph button
+				//Raw video buffer graph button.
 				else if(Util_hid_is_pressed(key, vid_player.show_raw_video_buffer_graph_button))
 					vid_player.show_raw_video_buffer_graph_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.show_raw_video_buffer_graph_button) && vid_player.show_raw_video_buffer_graph_button.selected)
@@ -1488,7 +1565,7 @@ void Vid_hid(Hid_info key)
 					vid_player.show_raw_video_buffer_graph_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//raw audio buffer graph button
+				//Raw audio buffer graph button.
 				else if(Util_hid_is_pressed(key, vid_player.show_raw_audio_buffer_graph_button))
 					vid_player.show_raw_audio_buffer_graph_button.selected = true;
 				else if(Util_hid_is_released(key, vid_player.show_raw_audio_buffer_graph_button) && vid_player.show_raw_audio_buffer_graph_button.selected)
@@ -1498,10 +1575,10 @@ void Vid_hid(Hid_info key)
 					vid_player.show_raw_audio_buffer_graph_button.selected = false;
 					vid_player.menu_background.selected = true;
 				}
-				//background
+				//Background.
 				else if(Util_hid_is_pressed(key, vid_player.menu_background))
 					vid_player.menu_background.selected = true;
-				//menu mode button
+				//Menu mode button.
 				else if(Util_hid_is_pressed(key, vid_player.menu_button[0]))
 					vid_player.menu_button[0].selected = true;
 				else if(Util_hid_is_released(key, vid_player.menu_button[0]) && vid_player.menu_button[0].selected)
@@ -1983,6 +2060,7 @@ void Vid_decode_thread(void* arg)
 						std::string path = "";
 
 						Vid_init_debug_view_data();
+						Vid_init_desync_data();
 						Vid_init_media_data();
 						Vid_init_video_data();
 						Vid_init_audio_data();
@@ -2553,7 +2631,7 @@ void Vid_decode_thread(void* arg)
 						if(file_data)
 						{
 							//Create a message.
-							file_data->index = Util_expl_query_current_file_index();
+							file_data->index = vid_player.file.index;
 							snprintf(file_data->name, sizeof(file_data->name), "%s", Util_expl_query_file_name(file_data->index).c_str());
 							snprintf(file_data->directory, sizeof(file_data->directory), "%s", Util_expl_query_current_dir().c_str());
 						}
@@ -2827,9 +2905,17 @@ void Vid_decode_thread(void* arg)
 					Util_sleep(1000);
 					continue;
 				}
-				else if(vid_player.num_of_video_tracks <= 0)
+				else if(num_of_audio_buffers + 1 >= DEF_SPEAKER_MAX_BUFFERS)
 				{
-					//No video tracks, speaker buffer must be full.
+					//Speaker buffer is full.
+					if(vid_player.state == PLAYER_STATE_BUFFERING)
+					{
+						//Notify we've done buffering (can't buffer anymore).
+						DEF_VID_QUEUE_ADD_WITH_LOG(DEF_VID_DECODE_VIDEO_THREAD_STR, &vid_player.decode_thread_notification_queue,
+						DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE)
+						continue;
+					}
+
 					Util_sleep(10000);
 					continue;
 				}
@@ -3308,7 +3394,6 @@ void Vid_convert_thread(void* arg)
 
 	bool should_convert = false;
 	int packet_index = 0;
-	double video_delay_ms[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
 	TickCounter conversion_time_counter;
 	Result_with_string result;
 
@@ -3316,9 +3401,8 @@ void Vid_convert_thread(void* arg)
 
 	while (vid_thread_run)
 	{
+		bool drop = false;
 		int num_of_cached_raw_images = 0;
-		double drop_threshold = 0;
-		double max_drop = 0;
 		u64 timeout_us = DEF_ACTIVE_THREAD_SLEEP_TIME;
 		Vid_command event = NONE_REQUEST;
 
@@ -3347,8 +3431,6 @@ void Vid_convert_thread(void* arg)
 
 					should_convert = true;
 					packet_index = 0;
-					for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-						video_delay_ms[i] = 0;
 
 					break;
 				}
@@ -3357,8 +3439,6 @@ void Vid_convert_thread(void* arg)
 				{
 					should_convert = false;
 					packet_index = 0;
-					for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-						video_delay_ms[i] = 0;
 
 					//Flush the command queue.
 					while(true)
@@ -3380,15 +3460,10 @@ void Vid_convert_thread(void* arg)
 			}
 		}
 
-		//Do nothing if player state is idle, prepare playing, pause, prepare seeking or should_convert flag is not set.
+		//Do nothing if player state is idle, prepare playing, prepare seeking or should_convert flag is not set.
 		if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
 		|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || !should_convert)
-		{
-			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-				video_delay_ms[i] = 0;
-
 			continue;
-		}
 
 		//Check if we have cached raw images.
 		if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
@@ -3398,22 +3473,61 @@ void Vid_convert_thread(void* arg)
 
 		if(vid_player.video_frametime != 0)
 		{
-			//Calc video frame drop threshold.
-			drop_threshold = (vid_player.video_frametime * DEF_VID_VIDEO_BUFFERS / 2);
-			if(vid_player.num_of_video_tracks >= 2)
-				drop_threshold *= 2;
+			if(vid_player.num_of_audio_tracks > 0)
+			{
+				u64 current_ts = osGetTime();
+				double drop_threshold = 0;
+				double force_drop_threshold = 0;
+				double video_delay = 0;
 
-			//Don't skip too many frames at onece.
-			max_drop = (vid_player.video_frametime * DEF_VID_VIDEO_BUFFERS * 2);
-			if(vid_player.num_of_video_tracks >= 2)
-				max_drop *= 2;
+				//Calc video frame drop threshold.
+				drop_threshold = DEF_VID_DROP_THRESHOLD(vid_player.video_frametime);
+				if(vid_player.num_of_video_tracks >= 2)
+					drop_threshold *= 2;
+
+				force_drop_threshold = DEF_VID_FORCE_DROP_THRESHOLD(vid_player.video_frametime);
+				if(vid_player.num_of_video_tracks >= 2)
+					force_drop_threshold *= 2;
+
+				LightLock_Lock(&vid_player.delay_update_lock);
+				Vid_update_video_delay(packet_index);
+				video_delay = vid_player.video_delay_ms[packet_index][DEF_VID_DELAY_SAMPLES - 1];
+				LightLock_Unlock(&vid_player.delay_update_lock);
+
+				if(video_delay > drop_threshold)
+				{
+					if(vid_player.drop_threshold_exceeded_ts == 0)
+						vid_player.drop_threshold_exceeded_ts = current_ts;
+
+					if((current_ts - vid_player.drop_threshold_exceeded_ts) > DEF_VID_DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+						drop = true;
+				}
+				else
+					vid_player.drop_threshold_exceeded_ts = 0;
+
+				if(video_delay > force_drop_threshold)
+					drop = true;
+			}
+			else
+			{
+				//When there are no audio, only force drop threshold is used.
+				double force_drop_threshold = DEF_VID_FORCE_DROP_THRESHOLD(vid_player.video_frametime);
+
+				if(vid_player.num_of_video_tracks >= 2)
+					force_drop_threshold *= 2;
+
+				LightLock_Lock(&vid_player.delay_update_lock);
+				if(vid_player.video_delay_ms[packet_index][DEF_VID_DELAY_SAMPLES - 1] > force_drop_threshold)
+				{
+					vid_player.video_delay_ms[packet_index][DEF_VID_DELAY_SAMPLES - 1] -= vid_player.video_frametime;
+					drop = true;
+				}
+				LightLock_Unlock(&vid_player.delay_update_lock);
+			}
 		}
 
-		if(video_delay_ms[packet_index] > max_drop)
-			video_delay_ms[packet_index] = max_drop;
-
 		//Skip video frame if we can't keep up or we are seeking.
-		if((video_delay_ms[packet_index] > drop_threshold || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime != 0)
+		if((drop || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime != 0)
 		{
 			if(num_of_cached_raw_images > 0)
 			{
@@ -3435,8 +3549,18 @@ void Vid_convert_thread(void* arg)
 					vid_player.video_current_pos[packet_index] = pos;
 				}
 			}
-			else if(vid_player.state == PLAYER_STATE_SEEKING)
-				Util_sleep(3000);
+			else
+			{
+				if(vid_player.state == PLAYER_STATE_SEEKING)
+					Util_sleep(3000);
+				else if(num_of_cached_raw_images <= 0 && vid_player.video_frametime != 0 && (Util_speaker_get_available_buffer_num(0) + 1) < DEF_SPEAKER_MAX_BUFFERS)
+				{
+					//Notify we've run out of buffer.
+					DEF_VID_QUEUE_ADD_WITH_LOG(DEF_VID_CONVERT_THREAD_STR, &vid_player.decode_thread_notification_queue,
+					CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST)
+					Util_sleep(3000);
+				}
+			}
 
 			osTickCounterUpdate(&conversion_time_counter);
 
@@ -3444,14 +3568,6 @@ void Vid_convert_thread(void* arg)
 			if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
 			|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
 				vid_player.media_current_pos = vid_player.video_current_pos[0];
-
-			if(vid_player.state == PLAYER_STATE_SEEKING)
-			{
-				for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-					video_delay_ms[i] = 0;
-			}
-			else
-				video_delay_ms[packet_index] -= vid_player.video_frametime;
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
@@ -3492,20 +3608,17 @@ void Vid_convert_thread(void* arg)
 				if(buffer_health + 1 >= DEF_VID_VIDEO_BUFFERS)
 				{
 					//Buffer is full.
+					Util_sleep(vid_player.video_frametime * 1000);
+
 					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
 					{
 						//Audio exist, sync with audio time.
 						//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / num_of_ch / sample_rate) * 1000).
 						double audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_player.audio_info[vid_player.selected_audio_track].ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
-						video_delay_ms[packet_index] = (vid_player.last_decoded_audio_pos - audio_buffer_health_ms) - vid_player.video_current_pos[packet_index];
-					}
-					else
-					{
-						//Audio doesn't exist, no time reference exist just add 1ms.
-						video_delay_ms[packet_index]++;
+						audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / vid_player.audio_info[vid_player.selected_audio_track].ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+						vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 					}
 
-					Util_sleep(1000);
 					continue;
 				}
 
@@ -3620,17 +3733,15 @@ void Vid_convert_thread(void* arg)
 				osTickCounterUpdate(&conversion_time_counter);
 				vid_player.conversion_time_list[319] = osTickCounterRead(&conversion_time_counter);
 
-				if(result.code == 0 && vid_player.video_frametime != 0)
+				if(vid_player.video_frametime != 0 && vid_player.num_of_audio_tracks == 0)
 				{
-					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
+					//Audio doesn't exist, calculate video delay based on conversion time.
+					double delay = vid_player.conversion_time_list[319] - vid_player.video_frametime;
+					if(delay > 0)
 					{
-						//Audio exist, sync with audio time.
-						video_delay_ms[packet_index] = vid_player.audio_current_pos - vid_player.video_current_pos[packet_index];
-					}
-					else
-					{
-						//Audio doesn't exist, calculate video delay based on conversion time.
-						video_delay_ms[packet_index] += vid_player.conversion_time_list[319] - vid_player.video_frametime;
+						LightLock_Lock(&vid_player.delay_update_lock);
+						vid_player.video_delay_ms[packet_index][DEF_VID_DELAY_SAMPLES - 1] += delay;
+						LightLock_Unlock(&vid_player.delay_update_lock);
 					}
 				}
 
@@ -3640,6 +3751,10 @@ void Vid_convert_thread(void* arg)
 		}
 		else if(vid_player.state == PLAYER_STATE_BUFFERING)
 		{
+			LightLock_Lock(&vid_player.delay_update_lock);
+			Vid_init_desync_data();
+			LightLock_Unlock(&vid_player.delay_update_lock);
+
 			if(num_of_cached_raw_images >= vid_player.restart_playback_threshold
 			|| Util_speaker_get_available_buffer_num(0) + 1 >= DEF_SPEAKER_MAX_BUFFERS)
 			{
@@ -3647,9 +3762,6 @@ void Vid_convert_thread(void* arg)
 				DEF_VID_QUEUE_ADD_WITH_LOG(DEF_VID_CONVERT_THREAD_STR, &vid_player.decode_thread_notification_queue,
 				CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE)
 			}
-
-			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
-				video_delay_ms[i] = 0;
 		}
 		else
 			Util_sleep(1000);
@@ -3977,18 +4089,18 @@ void Vid_init_thread(void* arg)
 
 	if(result.code == 0)
 	{
-		result = Util_parse_file((char*)cache, 17, out_data);//settings file for v1.5.1
+		result = Util_parse_file((char*)cache, 17, out_data);//Settings file for v1.5.1.
 		Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 
 		if(result.code != 0)
 		{
-			result = Util_parse_file((char*)cache, 16, out_data);//settings file for v1.5.0
+			result = Util_parse_file((char*)cache, 16, out_data);//Settings file for v1.5.0.
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[16] = "48";
 		}
 		if(result.code != 0)
 		{
-			result = Util_parse_file((char*)cache, 13, out_data);//settings file for v1.4.2
+			result = Util_parse_file((char*)cache, 13, out_data);//Settings file for v1.4.2.
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[13] = "0";
 			out_data[14] = "0";
@@ -3997,7 +4109,7 @@ void Vid_init_thread(void* arg)
 		}
 		if(result.code != 0)
 		{
-			result = Util_parse_file((char*)cache, 12, out_data);//settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1
+			result = Util_parse_file((char*)cache, 12, out_data);//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[12] = "0";
 			out_data[13] = "0";
@@ -4007,7 +4119,7 @@ void Vid_init_thread(void* arg)
 		}
 		if(result.code != 0)
 		{
-			result = Util_parse_file((char*)cache, 9, out_data);//settings file for v1.3.1
+			result = Util_parse_file((char*)cache, 9, out_data);//Settings file for v1.3.1.
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[9] = "1";
 			out_data[10] = "0";
@@ -4020,7 +4132,7 @@ void Vid_init_thread(void* arg)
 		}
 		if(result.code != 0)
 		{
-			result = Util_parse_file((char*)cache, 7, out_data);//settings file for v1.3.0
+			result = Util_parse_file((char*)cache, 7, out_data);//Settings file for v1.3.0.
 			Util_log_save(DEF_VID_INIT_STR , "Util_parse_file()..." + result.string + result.error_description, result.code);
 			out_data[7] = "100";
 			out_data[8] = "10";
@@ -4386,17 +4498,15 @@ void Vid_main(void)
 
 	if(vid_player.state == PLAYER_STATE_PLAYING && vid_player.num_of_video_tracks > 0)
 	{
-		if(vid_player.next_frame_update_time <= osGetTime())
+		uint64_t current_ts = osGetTime();
+
+		if(vid_player.next_frame_update_time <= current_ts)
 		{
 			//Array 0 == for left eye, array 1 == for right eye.
 			bool is_both_buffer_ready = false;
 			bool is_buffer_full = false;
 			int buffer_health[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
-
-			//Update next frame update timestamp.
-			vid_player.next_frame_update_time += vid_player.video_frametime;
-			if(vid_player.num_of_video_tracks >= 2)
-				vid_player.next_frame_update_time += vid_player.video_frametime;
+			double next_ts = 0;
 
 			//Check for buffer health.
 			for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
@@ -4424,42 +4534,86 @@ void Vid_main(void)
 			//2. Any of buffer is full.
 			if(is_both_buffer_ready || is_buffer_full)
 			{
-				double av_difference = 0;
+				bool wait = false;
+				double video_delay = 0;
+				double wait_threshold = 0;
+				double force_wait_threshold = 0;
 
-				if(vid_player.num_of_audio_tracks > 0)
-					av_difference = vid_player.video_current_pos[0] - vid_player.audio_current_pos;
-
-				for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+				if(vid_player.num_of_audio_tracks > 0 && vid_player.num_of_video_tracks > 0)
 				{
-					if(vid_player.num_of_video_tracks <= i)
-						break;
+					//We only use track 0 for delay checking.
+					LightLock_Lock(&vid_player.delay_update_lock);
+					Vid_update_video_delay(0);
+					if(vid_player.num_of_video_tracks > 1)
+						Vid_update_video_delay(1);
 
-					//If no buffer is available, don't update it.
-					if(buffer_health[i] == 0)
-						continue;
+					video_delay = vid_player.video_delay_ms[0][DEF_VID_DELAY_SAMPLES - 1];
+					LightLock_Unlock(&vid_player.delay_update_lock);
+				}
+				else
+					video_delay = 0;
 
-					//Update buffer index.
-					image_index[i] = vid_player.next_draw_index[i];
+				//Calc video frame drop threshold.
+				wait_threshold = DEF_VID_WAIT_THRESHOLD(vid_player.video_frametime);
+				if(vid_player.num_of_video_tracks >= 2)
+					wait_threshold *= 2;
 
-					if(vid_player.next_draw_index[i] + 1 < DEF_VID_VIDEO_BUFFERS)
-						vid_player.next_draw_index[i]++;
-					else
-						vid_player.next_draw_index[i] = 0;
+				force_wait_threshold = DEF_VID_FORCE_WAIT_THRESHOLD(vid_player.video_frametime);
+				if(vid_player.num_of_video_tracks >= 2)
+					force_wait_threshold *= 2;
+
+				if(video_delay < wait_threshold)
+				{
+					if(vid_player.wait_threshold_exceeded_ts == 0)
+						vid_player.wait_threshold_exceeded_ts = current_ts;
+
+					if((current_ts - vid_player.wait_threshold_exceeded_ts) > DEF_VID_WAIT_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+						wait = true;
+				}
+				else
+					vid_player.wait_threshold_exceeded_ts = 0;
+
+				if(video_delay < force_wait_threshold)
+					wait = true;
+
+				if(wait && Util_speaker_get_available_buffer_num(0) > 0)
+				{
+					//Video is too fast, don't update a video frame to wait for audio.
+				}
+				else
+				{
+					for(int i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+					{
+						if(vid_player.num_of_video_tracks <= i)
+							break;
+
+						//If no buffer is available, don't update it.
+						if(buffer_health[i] == 0)
+							continue;
+
+						//Update buffer index.
+						image_index[i] = vid_player.next_draw_index[i];
+
+						if(vid_player.next_draw_index[i] + 1 < DEF_VID_VIDEO_BUFFERS)
+							vid_player.next_draw_index[i]++;
+						else
+							vid_player.next_draw_index[i] = 0;
+					}
+
+					var_need_reflesh = true;
+					vid_player.vfps_cache++;
+					vid_player.last_video_frame_updated_ts = current_ts;
 				}
 
-				var_need_reflesh = true;
-				vid_player.vfps_cache++;
+				//Update next frame update timestamp.
+				next_ts = vid_player.next_frame_update_time + vid_player.video_frametime;
+				if(vid_player.num_of_video_tracks >= 2)
+					next_ts += vid_player.video_frametime;
 
-				//If video goes too fast, increase next frame update timestamp.
-				//The reason threshold is multiple of 16.8ms here is this function (Vid_main())
-				//is called approximately every 16.7ms (60fps) so that frame update
-				//won't be performed next time this function is called.
-				if(av_difference > (16.8 * 2))
-				{
-					double extra_wait = (av_difference > 168 ? 168 : av_difference);//Add time up to 168ms.
-					extra_wait = 16.8 * (int)(extra_wait / 16.8);
-					vid_player.next_frame_update_time += extra_wait;
-				}
+				if(osGetTime() >= next_ts + (vid_player.video_frametime * 10))
+					vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
+				else
+					vid_player.next_frame_update_time = next_ts;
 			}
 			else
 			{
@@ -4790,11 +4944,11 @@ void Vid_main(void)
 
 				if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_0)
 				{
-					//scroll bar
+					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
 
 					y_offset = 60;
-					//playback mode
+					//Playback mode.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_PLAY_METHOD_MSG] + vid_msg[DEF_VID_NO_REPEAT_MSG + vid_player.playback_mode], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4807,7 +4961,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//volume
+					//Volume.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_VOLUME_MSG] + std::to_string(vid_player.volume) + "%", 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, (vid_player.sub_state & PLAYER_SUB_STATE_TOO_BIG) ? DEF_DRAW_RED : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4820,7 +4974,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//select audio track
+					//Select audio track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_AUDIO_TRACK_MSG], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4833,7 +4987,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//select subtitle track
+					//Select subtitle track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_SUBTITLE_TRACK_MSG], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4846,7 +5000,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//seek duration
+					//Seek duration.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_SEEK_MSG] + std::to_string(vid_player.seek_duration) + "s", 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4859,7 +5013,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//remember video pos
+					//Remember video pos.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_REMEMBER_POS_MSG] + (vid_player.remember_video_pos ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4872,7 +5026,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//texture filter
+					//Texture filter.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_TEX_FILTER_MSG] + (vid_player.use_linear_texture_filter ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4885,7 +5039,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//correct aspect ratio
+					//Correct aspect ratio.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_ASPECT_RATIO_MSG] + (vid_player.correct_aspect_ratio ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4898,7 +5052,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//move content mode
+					//Move content mode.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_MOVE_MODE_MSG] + vid_msg[DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_player.move_content_mode], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4911,7 +5065,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//allow skip frames
+					//Allow skip frames.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_SKIP_FRAME_MSG] + (vid_player.allow_skip_frames ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4924,7 +5078,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//allow skip key frames
+					//Allow skip key frames.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_SKIP_KEY_FRAME_MSG] + (vid_player.allow_skip_key_frames ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, vid_player.allow_skip_frames ? color : disabled_color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 15,
@@ -4937,7 +5091,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 35;
-					//restart playback threshold
+					//Restart playback threshold.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						snprintf(msg_cache, sizeof(msg_cache), vid_msg[DEF_VID_RESTART_PLAYBACK_THRESHOLD_MSG].c_str(), vid_player.restart_playback_threshold);
@@ -4958,11 +5112,11 @@ void Vid_main(void)
 				}
 				else if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_1)
 				{
-					//scroll bar
+					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
 
 					y_offset = 60;
-					//disable audio
+					//Disable audio.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_DISABLE_AUDIO_MSG] + (vid_player.disable_audio ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -4975,7 +5129,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//disable video
+					//Disable video.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_DISABLE_VIDEO_MSG] + (vid_player.disable_video ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -4988,7 +5142,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//disable subtitle
+					//Disable subtitle.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_DISABLE_SUBTITLE_MSG] + (vid_player.disable_subtitle ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -5001,7 +5155,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//use hw decoding
+					//Use hw decoding.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_HW_DECODER_MSG] + (vid_player.use_hw_decoding ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425,
@@ -5015,7 +5169,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//use hw color conversion
+					//Use hw color conversion.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_HW_CONVERTER_MSG] + (vid_player.use_hw_color_conversion ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -5028,7 +5182,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//use multi-threaded decoding (in software decoding)
+					//Use multi-threaded decoding (in software decoding).
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_MULTI_THREAD_MSG] + (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"), 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -5041,7 +5195,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 30;
-					//lower resolution
+					//Lower resolution.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Draw(vid_msg[DEF_VID_LOWER_RESOLUTION_MSG] + lower_resolution_mode[vid_player.lower_resolution], 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, X_ALIGN_LEFT, Y_ALIGN_CENTER, 300, 20,
@@ -5059,17 +5213,17 @@ void Vid_main(void)
 				}
 				else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
 				{
-					//scroll bar
+					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
 
 					y_offset = 160;
-					//color conversion time
+					//Color conversion time.
 					if(vid_player.show_color_conversion_graph)
 					{
 						for(int i = 0; i < 319; i++)
 							Draw_line(i, y_offset - (vid_player.conversion_time_list[i] / 2) + vid_player.ui_y_offset, DEF_DRAW_BLUE, i + 1, y_offset - (vid_player.conversion_time_list[i + 1] / 2) + vid_player.ui_y_offset, DEF_DRAW_BLUE, 1);
 					}
-					//decoding time
+					//Decoding time.
 					if(vid_player.show_decoding_graph)
 					{
 						for(int i = 0; i < 319; i++)
@@ -5079,13 +5233,13 @@ void Vid_main(void)
 						y_offset + vid_player.ui_y_offset - 110, DEF_DRAW_WEAK_RED, 320 - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_mvd_video_decoder_get_available_raw_image_num(0) : Util_video_decoder_get_available_raw_image_num(0, 0)),
 						y_offset + vid_player.ui_y_offset + 8, DEF_DRAW_WEAK_RED, 2);
 					}
-					//compressed buffer
+					//Compressed buffer.
 					if(vid_player.show_packet_buffer_graph)
 					{
 						for(int i = 0; i < 319; i++)
 							Draw_line(i, y_offset - vid_player.packet_buffer_list[i] / 3.0 + vid_player.ui_y_offset, 0xFFFF00FF, i + 1, y_offset - vid_player.packet_buffer_list[i + 1] / 3.0 + vid_player.ui_y_offset, 0xFFFF00FF, 1);
 					}
-					//raw video buffer
+					//Raw video buffer.
 					if(vid_player.show_raw_video_buffer_graph)
 					{
 						for(int i = 0; i < 319; i++)
@@ -5094,19 +5248,19 @@ void Vid_main(void)
 						for(int i = 0; i < 319; i++)
 							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
 					}
-					//raw audio buffer
+					//Raw audio buffer.
 					if(vid_player.show_raw_audio_buffer_graph)
 					{
 						for(int i = 0; i < 319; i++)
 							Draw_line(i, y_offset - vid_player.raw_audio_buffer_list[i] / 6.0 + vid_player.ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_player.raw_audio_buffer_list[i + 1] / 6.0 + vid_player.ui_y_offset, 0xFF00A000, 1);
 					}
 
-					//bottom line
+					//Bottom line.
 					Draw_line(0, y_offset + vid_player.ui_y_offset, color, 320, y_offset + vid_player.ui_y_offset, color, 1);
-					//deadline
+					//Deadline.
 					Draw_line(0, y_offset + vid_player.ui_y_offset - (vid_player.video_frametime / 2), 0xFF606060, 320, y_offset - (vid_player.video_frametime / 2) + vid_player.ui_y_offset, 0xFF606060, 1);
 
-					//key frame
+					//Key frame.
 					if(vid_player.show_decoding_graph)
 					{
 						for(int i = 0; i < 319; i++)
@@ -5116,7 +5270,7 @@ void Vid_main(void)
 						}
 					}
 
-					//compressed buffer button
+					//Compressed buffer button.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
 						Draw_texture(&vid_player.show_packet_buffer_graph_button, vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 160, 10);
@@ -5129,7 +5283,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 10;
-					//raw video and audio buffer button
+					//Raw video and audio buffer button.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
 						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 160, 10);
@@ -5295,7 +5449,7 @@ void Vid_main(void)
 					Draw_texture(var_square_image[0], DEF_DRAW_YELLOW, 220, 180, 100, 8);
 				}
 
-				//controls
+				//Controls.
 				Draw(vid_msg[DEF_VID_CONTROLS_MSG], 167.5, 195, 0.425, 0.425, color, X_ALIGN_CENTER, Y_ALIGN_CENTER, 145, 10,
 				BACKGROUND_ENTIRE_BOX, &vid_player.control_button, vid_player.control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 

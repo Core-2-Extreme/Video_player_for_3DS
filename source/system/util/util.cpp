@@ -855,6 +855,16 @@ long Util_max(long value_0, long value_1)
 	return (value_0 > value_1 ? value_0 : value_1);
 }
 
+double Util_min_d(double value_0, double value_1)
+{
+	return (value_0 > value_1 ? value_1 : value_0);
+}
+
+double Util_max_d(double value_0, double value_1)
+{
+	return (value_0 > value_1 ? value_0 : value_1);
+}
+
 bool Util_return_bool(bool value)
 {
 	return value;

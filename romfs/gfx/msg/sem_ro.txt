@@ -53,9 +53,9 @@
 <52>Începeți filmarea (ecranul de jos)</52>
 <53>Opriți filmarea</53>
 <54>Opriți fimlarea (ecranul de sus)</54>
-<55>Pentru a filma ecranul, trebuie să
-oprești 'modul 800px'
-(Setări->LCD->Mod ecran).</55>
+<55>To record screen, you must
+turn off the '800px(auto) mode'
+(Settings->LCD->Screen mode).</55>
 <56>800px</56>
 <57>3D</57>
 <58>Nimic</58>

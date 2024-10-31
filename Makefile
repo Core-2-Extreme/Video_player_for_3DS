@@ -33,9 +33,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/system source/system/util source/system/draw library/base64
+SOURCES		:=	source source/system source/system/util source/system/draw
 DATA		:=	data
-INCLUDES	:=	include library library/ffmpeg/include library/libctru/include library/curl/include library/portlibs/include
+INCLUDES	:=	include library/include
 GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
@@ -58,23 +58,47 @@ RSF_PATH			:= resource/app.rsf
 #---------------------------------------------------------------------------------
 ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS		:= -Wall -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH)
+# We don't use :
+# -Wfloat-equal -Wunsuffixed-float-constants -Wpacked -Wpadded -Waggregate-return -Wdate-time -Wconversion -Wcast-align
+# -Wbad-function-cast -Wtraditional -Wstrict-overflow=5 -Wuseless-cast -Wformat-nonliteral
+CFLAGS		:= -Wall -Wextra -Wpedantic -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
+CFLAGS		+= -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wnull-dereference -Winit-self -Wimplicit-fallthrough=3 -Wshift-overflow=2
+CFLAGS		+= -Wunused-const-variable=2 -Wuse-after-free=3 -Wuninitialized -Wstrict-aliasing=3 -Wstring-compare -Wstringop-overflow=4
+CFLAGS		+= -Walloca -Warith-conversion -Warray-bounds=2 -Wbidi-chars=any -Wduplicated-cond -Wtrampolines -Wshadow -Wundef -Wunused-macros
+CFLAGS		+= -Wwrite-strings -Wdangling-else -Wdangling-pointer=2 -Wflex-array-member-not-at-end -Wlogical-op -Winvalid-utf8
+CFLAGS		+= -Wdouble-promotion -Wdisabled-optimization -Winline -Winvalid-pch -Wredundant-decls -Wcast-qual -Wduplicated-branches
+CFLAGS		+= -Walloc-zero -Wformat-truncation=1 -Wstack-usage=16384 -Wno-format-nonliteral
 
-CFLAGS		+= $(INCLUDE) -D__3DS__
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+#C only flags.
+#-U__STRICT_ANSI__ is needed for citro2d.
+CFLAGS		+= -U__STRICT_ANSI__ -std=c99
+CFLAGS		+= -Wjump-misses-init -Wstrict-prototypes -Wnested-externs -Wmissing-prototypes -Wmissing-variable-declarations
 
 ASFLAGS		:= $(ARCH)
-LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--wrap,malloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign
-LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -z noexecstack
 
-LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lm -lx264 -lmp3lame -ldav1d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lctru
+#Wrap everything.
+#Allocator related.
+LDFLAGS		+= -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc
+LDFLAGS		+= -Wl,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree
+#CPU usage limit related.
+LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+#pthread related.
+LDFLAGS		+= -Wl,--wrap,pthread_mutex_init,--wrap,pthread_mutex_lock,--wrap,pthread_mutex_unlock,--wrap,pthread_mutex_destroy
+LDFLAGS		+= -Wl,--wrap,pthread_once,--wrap,pthread_cond_init,--wrap,pthread_cond_wait,--wrap,pthread_cond_signal
+LDFLAGS		+= -Wl,--wrap,pthread_cond_broadcast,--wrap,pthread_cond_destroy,--wrap,pthread_create,--wrap,pthread_join
+LDFLAGS		+= -Wl,--wrap,pthread_attr_init,--wrap,pthread_attr_destroy,--wrap,pthread_attr_setstacksize
+
+LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame
+LIBS		+= -ldav1d -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS := library/ffmpeg/lib library/libctru/lib library/x264/lib library/mp3lame/lib library/dav1d/lib library/portlibs/lib library/zlib/lib
+LIBDIRS := library/lib
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -168,7 +192,7 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: all clean
+.PHONY: all 3dsx clean
 
 #---------------------------------------------------------------------------------
 MAKEROM			?= makerom
@@ -206,6 +230,10 @@ all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@$(BANNERTOOL) makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $(BUILD)/banner.bnr
 	@$(BANNERTOOL) makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p $(APP_AUTHOR) -i $(APP_ICON) -o $(BUILD)/icon.icn
 	@$(MAKEROM) -f cia -o $(OUTPUT).cia -target t -exefslogo $(MAKEROM_ARGS) -ver $(APP_VER)
+
+3dsx: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
+	@echo Building 3dsx...
+	@$(MAKE) -j -s --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(BUILD):
 	@mkdir -p $@

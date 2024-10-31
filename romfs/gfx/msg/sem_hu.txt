@@ -1,4 +1,4 @@
-<0>Frissítések</0>
+﻿<0>Frissítések</0>
 <1>Nyelvek</1>
 <2>LCD</2>
 <3>Irányítás</3>
@@ -53,9 +53,9 @@
 <52>Rögzítés (alsó képernyö)</52>
 <53>Rögzítés leállítása</53>
 <54>Képernyö mód (felsö képernyö)</54>
-<55>A képernyö rögzítéshez ki kell 
-kapcsolnod a '800px' módot
-(Beállítások->LCD->Képernyö mód).</55>
+<55>To record screen, you must
+turn off the '800px(auto) mode'
+(Settings->LCD->Screen mode).</55>
 <56>800px</56>
 <57>3D</57>
 <58>Semmi</58>

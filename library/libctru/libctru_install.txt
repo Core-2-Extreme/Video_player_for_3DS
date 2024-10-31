@@ -1,9 +1,0 @@
-//How to install devkitpro
-//It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
-
-wget https://apt.devkitpro.org/install-devkitpro-pacman; chmod +x ./install-devkitpro-pacman; sudo ./install-devkitpro-pacman
-
-export DEVKITPRO=/opt/devkitpro; export DEVKITARM=${DEVKITPRO}/devkitARM; export PATH=${DEVKITPRO}/tools/bin:$PATH
-
-//Continue with default settings (install all)
-sudo dkp-pacman -S 3ds-dev

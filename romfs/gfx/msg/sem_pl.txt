@@ -1,4 +1,4 @@
-<0>Aktualizacje</0>
+﻿<0>Aktualizacje</0>
 <1>Języki</1>
 <2>Ekran LCD</2>
 <3>Sterowanie</3>
@@ -53,9 +53,9 @@
 <52>Zacznij nagrywać (dolny ekran)</52>
 <53>Wyłącz nagrywanie</53>
 <54>Tryby Ekranu(górny ekran)</54>
-<55>By nagrywać ekran musisz
-wyłączyć tryb '800px'
-(Opcje-> Ekran LCD-> Tryby Ekranu).</55>
+<55>To record screen, you must
+turn off the '800px(auto) mode'
+(Settings->LCD->Screen mode).</55>
 <56>800px</56>
 <57>3D</57>
 <58>Nic</58>

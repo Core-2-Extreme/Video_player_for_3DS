@@ -1,0 +1,2 @@
+#Ignore 3rd-party libraries from language detection.
+library/** linguist-vendored

@@ -148,28 +148,57 @@ for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe
 
 ## Build
 You need : 
-* [devkitpro](https://devkitpro.org/wiki/Getting_Started)
+* [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide](library/00_devkitpro_install.md))
 
 If you want to build .cia, then you also need : 
-* [bannertool](https://github.com/Steveice10/bannertool/releases) and [makerom](https://github.com/3DSGuy/Project_CTR/releases) (Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
+* [bannertool](https://github.com/diasurgical/bannertool/releases/tag/1.2.0)
+  * Broken links? Try our [backup](https://github.com/Core-2-Extreme/bannertool_fork/releases/tag/1.2.0).
+* [makerom](https://github.com/3DSGuy/Project_CTR/releases/tag/makerom-v0.18.4)
+  * Broken links? Try our [backup](https://github.com/Core-2-Extreme/Project_CTR_fork/releases/tag/makerom-v0.18.4).
 
-If you already have devkitpro, type `{devkitPro_install_dir}\devkitARM\bin\arm-none-eabi-gcc -v`. \
-You should see something like : 
-```
-.....
-.....
-.....
-Thread model: posix
-Supported LTO compression algorithms: zlib zstd
-gcc version 13.2.0 (devkitARM release 62)
-```
-Make sure you have release 62. \
-(later version may work but sometimes later version has incompatibility) \
-If you have older devkitpro, update it or compilation will fail.
+(Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
 
-* Clone this repository
-  * On windows run `build.bat`
-  * On other system, type `make` (`make -j` for faster build)
+As of this writing, we use these packages to build this project. \
+Note : Not all of them are necessary e.g. `devkitARM-gdb` is not required to build and we don't use \
+standard `libctru` and `citro2(3)d`, but we just document all of them in case someone need these information. \
+For more information, see [here](library/00_devkitpro_install.md#install-devkitpro).
+```
+$ dkp-pacman -Q
+3ds-cmake 1.5.1-1
+3ds-examples 20230610-1
+3ds-pkg-config 0.28-5
+3dslink 0.6.2-1
+3dstools 1.3.1-3
+catnip 0.1.0-1
+citro2d 1.6.0-1
+citro3d 1.7.1-2
+devkit-env 1.0.1-2
+devkitARM r64-2
+devkitARM-gdb 14.1-2
+devkitarm-cmake 1.2.2-1
+devkitarm-crtls 1.2.6-1
+devkitarm-rules 1.5.1-1
+devkitpro-keyring 20180316-1
+dkp-cmake-common-utils 1.5.2-1
+general-tools 1.4.4-1
+libctru 2.3.1-1
+pacman 6.0.1-7
+picasso 2.7.2-3
+tex3ds 2.3.0-4
+```
+
+For .cia build
+```
+bannertool 1.2.0
+makerom v0.18.4
+```
+
+If you want to make changes to the libraries, then follow [this guide](library/00_devkitpro_install.md#build-libraries-usually-optional).
+
+After having all dependencies, do :
+* Clone this repository (`git clone https://github.com/core-2-extreme/{project_name}`).
+  * On windows run `build_3dsx.bat` for `.3dsx` only build or `build.bat` for `.3dsx`+`.cia` build.
+  * On other system, run `make 3dsx` for `.3dsx` only build or `make all` for `.3dsx`+`.cia` build.
 
 ## Recommended resolution
 On NEW 3(2)DS, it is recommended to use [patched Luma3DS](https://github.com/Core-2-Extreme/Luma3DS/releases/) for better performance. 
@@ -355,24 +384,27 @@ Added allow skip frames option.
 Initial release.
 
 ## License
-This software is licensed as GNU General Public License v3.0.
+This software is licensed under GNU General Public License v3.0 or later.
 
-Third party libraries are licensed as :
+Note : As of this writing, `zlib` is not used in this project \
+(once it was used), however it may be used in the future.
 
-| Library | License |
-| ------- | ------- |
-| [Base64](https://github.com/ReneNyffenegger/cpp-base64/blob/master/LICENSE) | No specific license name               |
-| [citro2d](https://github.com/devkitPro/citro2d/blob/master/LICENSE)         | zlib License                           |
-| [citro3d](https://github.com/devkitPro/citro3d/blob/master/LICENSE)         | zlib License                           |
-| [curl](https://github.com/curl/curl/blob/master/COPYING)                    | No specific license name               |
-| [dav1d](https://github.com/videolan/dav1d/blob/master/COPYING)              | BSD 2-Clause                           |
-| [ffmpeg](https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv2)        | GNU General Public License v2.0        |
+Third party libraries are licensed under :
+
+| Library                                                                     | License                                |
+| --------------------------------------------------------------------------- | -------------------------------------- |
 | [libctru](https://github.com/devkitPro/libctru#license)                     | zlib License                           |
-| [mbedtls](https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE)     | Apache License 2.0                     |
-| [mp3lame](https://github.com/gypified/libmp3lame/blob/master/COPYING)       | GNU Lesser General Public License v2.0 |
-| [stb_image](https://github.com/nothings/stb/blob/master/LICENSE)            | Public Domain                          |
+| [citro3d](https://github.com/devkitPro/citro3d/blob/master/LICENSE)         | zlib License                           |
+| [citro2d](https://github.com/devkitPro/citro2d/blob/master/LICENSE)         | zlib License                           |
 | [x264](https://github.com/mirror/x264/blob/master/COPYING)                  | GNU General Public License v2.0        |
+| [libmp3lame](https://github.com/gypified/libmp3lame/blob/master/COPYING)    | GNU Lesser General Public License v2.0 |
+| [dav1d](https://github.com/videolan/dav1d/blob/master/COPYING)              | BSD 2-Clause                           |
+| [ffmpeg](https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv3)        | GNU General Public License v3.0        |
 | [zlib](https://github.com/madler/zlib/blob/master/LICENSE)                  | zlib License                           |
+| [mbedtls](https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE)     | Apache License 2.0                     |
+| [nghttp2](https://github.com/nghttp2/nghttp2/blob/master/COPYING)           | MIT License                            |
+| [curl](https://github.com/curl/curl/blob/master/COPYING)                    | The curl license                       |
+| [stb_image](https://github.com/nothings/stb/blob/master/LICENSE)            | Public Domain                          |
 
 ## Credits
 * Core 2 Extreme

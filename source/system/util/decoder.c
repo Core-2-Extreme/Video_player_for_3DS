@@ -1634,6 +1634,8 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 	free(*raw_data);
 	*raw_data = NULL;
 	*raw_data = (uint8_t*)linearAlloc(copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
+	if(!*raw_data)
+		goto out_of_memory;
 
 	if(util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_U8P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S16P
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S32P || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_S64P
@@ -1660,6 +1662,12 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 
 	try_again:
 	return DEF_ERR_TRY_AGAIN;
+
+	out_of_memory:
+	util_audio_decoder_packet_ready[session][packet_index] = false;
+	av_packet_free(&util_audio_decoder_packet[session][packet_index]);
+	av_frame_free(&util_audio_decoder_raw_data[session][packet_index]);
+	return DEF_ERR_OUT_OF_MEMORY;
 
 	ffmpeg_api_failed:
 	util_audio_decoder_packet_ready[session][packet_index] = false;

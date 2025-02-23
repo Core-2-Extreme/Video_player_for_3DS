@@ -15,13 +15,13 @@ For more information, see [README](../README.md#build).
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/dav1d_for_3DS && cd dav1d_for_3DS && git reset --hard 77086ffb99c33da9adfb497802195b0434126753 && mkdir build && cd build && meson setup --cross-file=../package/crossfiles/arm-3ds.meson --default-library=static && ninja && sudo meson install && cd ../../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/dav1d_for_3DS && cd dav1d_for_3DS && git reset --hard b814d3329b13f14457ad4990fb9ce2b0b611b464 && mkdir build && cd build && meson setup --cross-file=../package/crossfiles/arm-3ds.meson --default-library=static && ninja && sudo meson install && cd ../../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `Added ld flags` (`77086ffb99c33da9adfb497802195b0434126753`).
+Used commit : `Fixed frame handle` (`b814d3329b13f14457ad4990fb9ce2b0b611b464`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/dav1d_for_3DS && cd dav1d_for_3DS && git reset --hard 77086ffb99c33da9adfb497802195b0434126753
+git clone -b 3ds https://github.com/Core-2-Extreme/dav1d_for_3DS && cd dav1d_for_3DS && git reset --hard b814d3329b13f14457ad4990fb9ce2b0b611b464
 ```
 
 ## Configure

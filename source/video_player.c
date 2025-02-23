@@ -374,7 +374,7 @@ typedef struct
 	double video_decoding_time_list[320];			//List for video decoding time in ms.
 	double audio_decoding_time_list[320];			//List for audio decoding time in ms.
 	double conversion_time_list[320];				//List for color conversion time in ms.
-	const void* thread_list[32];					//Decoding thread list.
+	const void* frame_list[32];						//Decoding frame list (for multi-threaded software decoding).
 	TickCounter decoding_time_tick[32];				//Decoding time (for multi-threaded software decoding).
 
 	//A/V desync management.
@@ -3398,7 +3398,7 @@ static void Vid_init_debug_view_data(void)
 	for(uint8_t i = 0; i < 32; i++)
 	{
 		osTickCounterStart(&vid_player.decoding_time_tick[i]);
-		vid_player.thread_list[i] = NULL;
+		vid_player.frame_list[i] = NULL;
 	}
 }
 
@@ -3550,18 +3550,18 @@ static void Vid_init_ui_data(void)
 	vid_player.ui_y_move = 0;
 }
 
-void frame_worker_thread_start(const void* ptr)
+void frame_worker_thread_start(const void* frame_handle)
 {
 	uint8_t index = UINT8_MAX;
 
-	if(!ptr)
+	if(!frame_handle)
 		return;
 
 	LightLock_Lock(&vid_player.delay_update_lock);
-	//Search for stopwatch index using thread ptr.
+	//Search for stopwatch index using frame handle.
 	for(uint8_t i = 0; i < 32; i++)
 	{
-		if(vid_player.thread_list[i] == ptr)
+		if(vid_player.frame_list[i] == frame_handle)
 		{
 			index = i;
 			break;
@@ -3573,10 +3573,10 @@ void frame_worker_thread_start(const void* ptr)
 	{
 		for(uint8_t i = 0; i < 32; i++)
 		{
-			if(!vid_player.thread_list[i])
+			if(!vid_player.frame_list[i])
 			{
 				index = i;
-				vid_player.thread_list[i] = ptr;
+				vid_player.frame_list[i] = frame_handle;
 				break;
 			}
 		}
@@ -3590,22 +3590,24 @@ void frame_worker_thread_start(const void* ptr)
 	osTickCounterUpdate(&vid_player.decoding_time_tick[index]);
 }
 
-void frame_worker_thread_end(const void* ptr)
+void frame_worker_thread_end(const void* frame_handle)
 {
 	uint8_t index = UINT8_MAX;
 	double time = 0;
 	double dummy = 0;
 
-	if(!ptr)
+	if(!frame_handle)
 		return;
 
 	LightLock_Lock(&vid_player.delay_update_lock);
-	//Search for stopwatch index using thread ptr.
+	//Search for stopwatch index using frame handle.
 	for(uint8_t i = 0; i < 32; i++)
 	{
-		if(vid_player.thread_list[i] == ptr)
+		if(vid_player.frame_list[i] == frame_handle)
 		{
 			index = i;
+			//Unregister it.
+			vid_player.frame_list[i] = NULL;
 			break;
 		}
 	}
@@ -3622,14 +3624,14 @@ void frame_worker_thread_end(const void* ptr)
 	LightLock_Unlock(&vid_player.delay_update_lock);
 }
 
-void dav1d_worker_task_start(const void* ptr)
+void dav1d_worker_task_start(const void* frame_handle)
 {
-	frame_worker_thread_start(ptr);
+	frame_worker_thread_start(frame_handle);
 }
 
-void dav1d_worker_task_end(const void* ptr)
+void dav1d_worker_task_end(const void* frame_handle)
 {
-	frame_worker_thread_end(ptr);
+	frame_worker_thread_end(frame_handle);
 }
 
 void Vid_init_thread(void* arg)

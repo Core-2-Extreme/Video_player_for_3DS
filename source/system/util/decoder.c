@@ -1953,7 +1953,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		// DEF_LOG_STRING("got_a_frame is not set, so call mvdstdRenderVideoFrame()");
 		while(true)
 		{
-			//You need to use a custom libctru to use NULL here. https://github.com/Core-2-Extreme/libctru/tree/master
+			//You need to use a custom libctru to use NULL here. https://github.com/Core-2-Extreme/libctru_custom/tree/3ds
 			result = mvdstdRenderVideoFrame(NULL, false);
 
 			//If any of them got changed, it means mvd service wrote the frame data to the buffer.

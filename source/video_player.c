@@ -35,6 +35,9 @@
 #define DEF_VID_WAIT_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * -1.4)
 #define DEF_VID_FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DEF_VID_DELAY_SAMPLES								(uint8_t)(60)
+#define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)	//6MB.
+#define DEF_VID_HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
+#define DEF_VID_SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
@@ -245,6 +248,7 @@ typedef enum
 	DECODE_THREAD_PLAY_NEXT_REQUEST,				//Change file (or repeat) request.
 	DECODE_THREAD_ABORT_REQUEST,					//Stop request.
 	DECODE_THREAD_SHUTDOWN_REQUEST,					//Exit request.
+	DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,		//Increase amount of RAM to keep request.
 
 	READ_PACKET_THREAD_READ_PACKET_REQUEST,			//Read a file request.
 	READ_PACKET_THREAD_SEEK_REQUEST,				//Seek request (from decode theread).
@@ -350,6 +354,7 @@ typedef struct
 	//Other settings (user doesn't have permission to change).
 	bool show_full_screen_msg;						//Whether show how to exit full screen msg.
 	uint8_t num_of_threads;							//Number of threads to use for multi-threaded software decoding.
+	uint32_t ram_to_keep_base;						//RAM amount to keep in bytes.
 	Media_thread_type thread_mode;					//Thread mode to use for multi-threaded software decoding.
 
 	//Debug view.
@@ -3335,6 +3340,7 @@ static void Vid_init_hidden_settings(void)
 
 	vid_player.show_full_screen_msg = true;
 	vid_player.thread_mode = MEDIA_THREAD_TYPE_AUTO;
+	vid_player.ram_to_keep_base = DEF_VID_RAM_TO_KEEP_BASE;
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 	{
@@ -4442,6 +4448,11 @@ void Vid_decode_thread(void* arg)
 							vid_player.state = PLAYER_STATE_BUFFERING;
 						}
 
+						{
+							double ram_to_keep_base = (vid_player.ram_to_keep_base / 1000.0 / 1000.0);
+							DEF_LOG_DOUBLE(ram_to_keep_base);
+						}
+
 						//Start reading packets.
 						is_read_packet_thread_active = true;
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue,
@@ -4775,6 +4786,25 @@ void Vid_decode_thread(void* arg)
 					break;
 				}
 
+				case DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST:
+				{
+					uint32_t previous_size = vid_player.ram_to_keep_base;
+					uint32_t raw_image_size = 0;
+
+					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+						raw_image_size = DEF_VID_HW_DECODER_RAW_IMAGE_SIZE;
+					else
+						raw_image_size = DEF_VID_SW_DECODER_RAW_IMAGE_SIZE;
+
+					//Increase RAM amount to keep to reduce the chance of out of memory loop.
+					vid_player.ram_to_keep_base = (previous_size + raw_image_size);
+
+					DEF_LOG_STRING("Out of memory has been detected!!!!!");
+					DEF_LOG_FORMAT("Increasing RAM amount to keep (%.3fMB->%.3fMB)",
+					(previous_size / 1000.0 / 1000.0), ((previous_size + raw_image_size) / 1000.0 / 1000.0));
+
+					break;
+				}
 				default:
 					break;
 			}
@@ -4912,18 +4942,21 @@ void Vid_decode_thread(void* arg)
 
 			//Calculate how much free RAM we need and check buffer health.
 			//To prevent out of memory on other tasks, make sure we have at least :
-			//6MB + (raw image size * 2) for hardware decoding.
-			//7MB + (raw image size * (1 + num_of_threads)) for software decoding.
+			//ram_to_keep_base + (raw image size * 2) for hardware decoding.
+			//ram_to_keep_base + (raw image size * (1 + num_of_threads)) for software decoding.
 			if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 			{
-				//Hardware decoder always returns raw image in RGB565LE.
-				required_free_ram = (1024 * 1024 * 6) + (vid_player.video_info[0].width * vid_player.video_info[0].height * 2 * 2);
+				required_free_ram = (vid_player.ram_to_keep_base + (DEF_VID_HW_DECODER_RAW_IMAGE_SIZE * 2));
 				num_of_video_buffers = Util_decoder_mvd_get_available_raw_image_num(0);
 			}
 			else
 			{
-				//We are assuming raw image format is YUV420P because it is the most common format.
-				required_free_ram = (1024 * 1024 * 7) + (vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5 * (1 + (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 1)));
+				uint8_t num_of_active_threads = 1;
+
+				if(vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME)
+					num_of_active_threads = vid_player.num_of_threads;
+
+				required_free_ram = (vid_player.ram_to_keep_base + (DEF_VID_SW_DECODER_RAW_IMAGE_SIZE * (num_of_active_threads + 1)));
 				num_of_video_buffers = Util_decoder_video_get_available_raw_image_num(0, 0);
 
 				if(vid_player.num_of_video_tracks > 1 && Util_decoder_video_get_available_raw_image_num(1, 0) > num_of_video_buffers)
@@ -5436,6 +5469,13 @@ void Vid_decode_video_thread(void* arg)
 							Util_decoder_skip_video_packet(packet_index, 0);
 							DEF_LOG_RESULT(Util_decoder_ready_video_packet, false, result);
 						}
+
+						if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
+						{
+							//Request to increase amount of RAM to keep.
+							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
+							DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						}
 					}
 
 					break;
@@ -5848,6 +5888,15 @@ void Vid_convert_thread(void* arg)
 						DEF_LOG_RESULT(Util_decoder_mvd_get_image, false, result);
 					else
 						DEF_LOG_RESULT(Util_decoder_video_get_image, false, result);
+
+					if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
+					{
+						//Give up on this image on memory allocation failure.
+						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+							Util_decoder_mvd_skip_image(&pos, 0);
+						else
+							Util_decoder_video_skip_image(&pos, packet_index, 0);
+					}
 				}
 
 				if(result == DEF_SUCCESS)
@@ -5864,6 +5913,13 @@ void Vid_convert_thread(void* arg)
 				}
 				else
 				{
+					if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
+					{
+						//Request to increase amount of RAM to keep.
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
+						DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+					}
+
 					vid_player.total_dropped_frames++;
 					Util_sleep(1000);
 				}

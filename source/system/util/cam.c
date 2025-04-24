@@ -231,6 +231,8 @@ uint32_t Util_cam_take_a_picture(uint8_t** raw_data, uint16_t* width, uint16_t* 
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	nintendo_api_failed:
+	linearFree(*raw_data);
+	*raw_data = NULL;
 	svcCloseHandle(receive);
 	return result;
 }

@@ -13,7 +13,7 @@
 
 typedef struct
 {
-	uint8_t sequencial_id;	//Used to detect string buffer changes.
+	uint8_t sequential_id;	//Used to detect string buffer changes.
 	uint32_t capacity;		//Current buffer capacity (without NULL terminator, so (capacity + 1) bytes are allocated).
 	uint32_t length;		//Current string length (without NULL terminator).
 	char* buffer;			//String buffer.

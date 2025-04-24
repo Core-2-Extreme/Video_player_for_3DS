@@ -8,36 +8,36 @@
 
 /**
  * @brief Open the audio file.
- * @param file_name (in) File path.
+ * @param file_path (in) File path.
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 uint32_t Util_muxer_open_audio_file(const char* file_path, uint8_t session);
 
 /**
  * @brief Open the video file.
- * @param file_name (in) File path.
+ * @param file_path (in) File path.
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 uint32_t Util_muxer_open_video_file(const char* file_path, uint8_t session);
 
 /**
  * @brief Mux file.
- * @param file_name (in) Output file path.
+ * @param file_path (in) Output file path.
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 uint32_t Util_muxer_mux(const char* file_path, uint8_t session);
 
 /**
  * @brief Close the file.
- * Do nothing if file is not opend.
+ * Do nothing if file is not opened.
  * @param session (in) Session number.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 void Util_muxer_close(uint8_t session);
 

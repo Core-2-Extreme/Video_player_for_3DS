@@ -78,7 +78,7 @@ uint32_t Util_err_init(void)
 	Util_watch_add(WATCH_HANDLE_ERR, &util_err_save_button.selected, sizeof(util_err_save_button.selected));
 
 	util_err_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
@@ -255,7 +255,7 @@ void Util_err_draw(void)
 	if(!util_err_init)
 	{
 		Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
-		Draw_c("Error api is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
+		Draw_c("Error API is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 

@@ -8,11 +8,11 @@
 
 /**
  * @brief Convert color format and/or size.
- * @param paraeters (in) Pointer for parameters.
+ * @param parameters (in) Pointer for parameters.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Util_converter_convert_color(Converter_color_parameters* paraeters);
+uint32_t Util_converter_convert_color(Converter_color_parameters* parameters);
 
 #else
 
@@ -24,7 +24,7 @@ uint32_t Util_converter_convert_color(Converter_color_parameters* paraeters);
 
 /**
  * @brief Convert audio format and/or sample rate.
- * @param paraeters (in) Pointer for parameters.
+ * @param parameters (in) Pointer for parameters.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
@@ -61,8 +61,8 @@ uint32_t Util_converter_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rg
 uint32_t Util_converter_yuv420p_to_rgb888le(const uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height);
 
 /**
- * @brief Convert RGB8888BE to RGB8888LE.
- * @param rgb8888 (in&out) Pointer for rgb888 data.
+ * @brief Convert RGBA8888BE to RGBA8888LE.
+ * @param rgba8888 (in/out) Pointer for rgba888 data.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
@@ -72,11 +72,11 @@ uint32_t Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, uint32_t wid
 
 /**
  * @brief Convert RGB888BE to RGB888LE.
- * @param rgb888 (in&out) Pointer for rgb888 data.
+ * @param rgb888 (in/out) Pointer for rgb888 data.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, uint32_t height);
 
@@ -86,10 +86,10 @@ uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, ui
  * @param rotated_rgb888 (out) Pointer for rotated_rgb888 data, the pointer will be allocated inside of function.
  * @param width (in) Picture width.
  * @param height (in) Picture height.
- * @param rotated_width (out) new(after rotated) picture width.
- * @param rotated_height (out) new(after rotated) picture height.
+ * @param rotated_width (out) new (after rotated) picture width.
+ * @param rotated_height (out) new (after rotated) picture height.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t** rotated_rgb888, uint32_t width, uint32_t height, uint32_t* rotated_width, uint32_t* rotated_height);
 
@@ -116,7 +116,7 @@ uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t**
  * @param width (in) Picture width.
  * @param height (in) Picture height.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_converter_yuv420p_to_rgb888le_asm(const uint8_t* yuv420p, uint8_t** rgb888, uint32_t width, uint32_t height);
 
@@ -127,7 +127,7 @@ uint32_t Util_converter_yuv420p_to_rgb888le_asm(const uint8_t* yuv420p, uint8_t*
  * @param width (in) Picture width.
  * @param height (in) Picture height.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_converter_yuv420p_to_rgb565le_asm(const uint8_t* yuv420p, uint8_t** rgb565, uint32_t width, uint32_t height);
 
@@ -143,7 +143,7 @@ uint32_t Util_converter_yuv420p_to_rgb565le_asm(const uint8_t* yuv420p, uint8_t*
 /**
  * @brief Initialize a y2r(hardware color converter).
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 uint32_t Util_converter_y2r_init(void);
 
@@ -156,14 +156,14 @@ uint32_t Util_converter_y2r_init(void);
  * @param texture_format (in) When true, rgb565 data will be outputted as texture format that
  * can be used for Draw_set_texture_data_direct().
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
- * @warning Thread dangerous (untested)
+ * @warning Thread dangerous (untested).
 */
 uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rgb565, uint16_t width, uint16_t height, bool texture_format);
 
 /**
  * @brief Uninitialize a y2r(hardware color converter).
- * Do nothing if y2r api is not initialized.
- * @warning Thread dangerous (untested)
+ * Do nothing if y2r API is not initialized.
+ * @warning Thread dangerous (untested).
 */
 void Util_converter_y2r_exit(void);
 

@@ -216,7 +216,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 		uint8_t div = 0;
 		float total_cpu_usage = 0;
 
-		//Update cpu usage every 1000ms.
+		//Update CPU usage every 1000ms.
 		svcWaitSynchronization(util_cpu_usage_timer_handle, U64_MAX);
 
 		for(uint8_t i = 0; i < 4; i++)

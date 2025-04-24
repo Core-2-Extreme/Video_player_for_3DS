@@ -97,7 +97,7 @@ uint32_t Util_curl_init(uint32_t buffer_size)
 	DEF_CURL_USER_AGENT_FMT, system_ver, curl_version());
 
 	util_curl_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
@@ -169,11 +169,11 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 	if(!user_data)
 		return -1;
 
-	//Out of memory
+	//Out of memory.
 	if((http_data->used_size_internal + input_size) > http_data->max_size)
 		goto error;
 
-	//Need to realloc memory
+	//Need to realloc memory.
 	if((http_data->used_size_internal + input_size) > http_data->current_size)
 	{
 		buffer_size = ((http_data->max_size > (http_data->current_size + 0x40000)) ? (http_data->current_size + 0x40000) : http_data->max_size);
@@ -220,7 +220,7 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 	if(http_data->used_size)
 		*http_data->used_size = http_data->used_size_internal;
 
-	//If libcurl buffer size is bigger than our buffer size, save it directly without buffering
+	//If libcurl buffer size is bigger than our buffer size, save it directly without buffering.
 	if(input_size > http_data->max_size)
 	{
 		result = Util_file_save_to_file(http_data->filename, http_data->dir_path, (uint8_t*)input_data, input_size, false);
@@ -233,7 +233,7 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 			return -1;
 		}
 	}
-	//If we run out of buffer, save it
+	//If we run out of buffer, save it.
 	else if(http_data->current_size + input_size > http_data->max_size)
 	{
 		memcpy(http_data->data + http_data->current_size, input_data, http_data->max_size - http_data->current_size);
@@ -269,21 +269,21 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 	if(!user_data)
 		return -1;
 
-	//if call back is provided, use it
+	//If callback is provided, use it.
 	if(upload_data->callback)
 	{
 		int32_t read_size = upload_data->callback(output_buffer, buffer_size, upload_data->user_data);
-		if(upload_data->uploaded_size)
+		if(upload_data->uploaded_size && read_size > 0)
 			*upload_data->uploaded_size += read_size;
 
 		return read_size;
 	}
 
-	//EOF
+	//We've reached EOF.
 	if(upload_data->upload_size - upload_data->offset == 0)
 		return 0;
 
-	//if buffer size is smaller than available post data size
+	//If buffer size is smaller than available post data size.
 	if(buffer_size < upload_data->upload_size - upload_data->offset)
 		copy_size = buffer_size;
 	else
@@ -441,7 +441,7 @@ static uint32_t Util_curl_request(CURL** curl_handle, const char* url, const cha
 		}
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	curl_api_failed:
 	return DEF_ERR_CURL_RETURNED_NOT_SUCCESS;
@@ -589,7 +589,7 @@ static uint32_t Util_curl_sv_data_internal(CURL** curl_handle, Http_data* http_d
 
 	free(http_data->data);
 	http_data->data = NULL;
-	return result;
+	return DEF_SUCCESS;
 
 	out_of_memory:
 	http_data->current_size = 0;

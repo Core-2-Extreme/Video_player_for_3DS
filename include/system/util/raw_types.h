@@ -296,7 +296,7 @@ DEF_LOG_ENUM_DEBUG
 	RAW_PIXEL_MAX
 )
 
-//These definitions are based on (stolen from) library\ffmpeg\include\libavutil\smaplefmt.h see it for more information.
+//These definitions are based on (stolen from) library\ffmpeg\include\libavutil\samplefmt.h see it for more information.
 typedef enum
 {
 	RAW_SAMPLE_INVALID = -1,

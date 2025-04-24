@@ -352,7 +352,7 @@ uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t
 
 	image->c2d.subtex = image->subtex;
 	C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
-	image->c2d.tex->border = 0xFFFFFF;
+	image->c2d.tex->border = 0x00FFFFFF;
 	C3D_TexSetWrap(image->c2d.tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
 
 	return DEF_SUCCESS;
@@ -928,7 +928,7 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	key.cs_up.click_count, key.cs_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_left.state), key.cs_left.click_count, key.cs_left.held_ms);
 	Draw_with_background(&temp, 0, 130, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 
-	Util_str_format(&temp, "START:%s (%" PRIu16 ", %" PRIu32 "ms) SELET:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.start.state),
+	Util_str_format(&temp, "START:%s (%" PRIu16 ", %" PRIu32 "ms) SELECT:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.start.state),
 	key.start.click_count, key.start.held_ms, Short_hid_state_get_name((Short_hid_state)key.select.state), key.select.click_count, key.select.held_ms);
 	Draw_with_background(&temp, 0, 140, 0.35, 0.35, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
 

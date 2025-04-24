@@ -8,7 +8,7 @@ typedef uint8_t Media_seek_flag;
 #define MEDIA_SEEK_FLAG_NONE		(Media_seek_flag)(0 << 0)	//No seek flag.
 #define MEDIA_SEEK_FLAG_BACKWARD	(Media_seek_flag)(1 << 0)	//Seek backward.
 #define MEDIA_SEEK_FLAG_BYTE		(Media_seek_flag)(1 << 1)	//Seek to given byte offset instead of time.
-#define MEDIA_SEEK_FLAG_ANY			(Media_seek_flag)(1 << 2)	//Seek to any location including non key frame.
+#define MEDIA_SEEK_FLAG_ANY			(Media_seek_flag)(1 << 2)	//Seek to any location including non-key frame.
 #define MEDIA_SEEK_FLAG_FRAME		(Media_seek_flag)(1 << 3)	//Seek to given frame number instead of time.
 
 typedef enum
@@ -17,8 +17,8 @@ typedef enum
 
 	MEDIA_V_CODEC_MJPEG,		//Motion jpeg.
 	MEDIA_V_CODEC_H264,			//Advanced video coding.
-	MEDIA_V_CODEC_MPEG4,		//Mpeg4 part 2.
-	MEDIA_V_CODEC_MPEG2VIDEO,	//Mpeg2 video.
+	MEDIA_V_CODEC_MPEG4,		//MPEG4 part 2.
+	MEDIA_V_CODEC_MPEG2VIDEO,	//MPEG2 video.
 
 	MEDIA_V_CODEC_MAX,
 } Media_v_codec;
@@ -40,8 +40,8 @@ typedef enum
 
 	MEDIA_A_CODEC_AAC,	//Advanced audio coding.
 	MEDIA_A_CODEC_AC3,	//Audio codec 3.
-	MEDIA_A_CODEC_MP2,	//Mpeg audio layer 2.
-	MEDIA_A_CODEC_MP3,	//Mpeg audio layer 3.
+	MEDIA_A_CODEC_MP2,	//MPEG audio layer 2.
+	MEDIA_A_CODEC_MP3,	//MPEG audio layer 3.
 
 	MEDIA_A_CODEC_MAX,
 } Media_a_codec;
@@ -61,7 +61,7 @@ typedef enum
 {
 	MEDIA_I_CODEC_INVALID = -1,
 
-	MEDIA_I_CODEC_PNG,	//Portable network graphic.
+	MEDIA_I_CODEC_PNG,	//Portable network graphics.
 	MEDIA_I_CODEC_JPG,	//Joint photographic experts group.
 	MEDIA_I_CODEC_BMP,	//Bitmap.
 	MEDIA_I_CODEC_TGA,	//Truevision TGA.
@@ -110,7 +110,7 @@ typedef enum
 	MEDIA_THREAD_TYPE_NONE,		//No multi-threading, using single thread.
 	MEDIA_THREAD_TYPE_FRAME,	//Frame level multi-threading.
 	MEDIA_THREAD_TYPE_SLICE,	//Slice level multi-threading.
-	MEDIA_THREAD_TYPE_AUTO,		//Auto (only used when request multi-threading mode).
+	MEDIA_THREAD_TYPE_AUTO,		//Auto (only used when requesting multi-threading mode).
 
 	MEDIA_THREAD_TYPE_MAX,
 } Media_thread_type;
@@ -128,8 +128,8 @@ DEF_LOG_ENUM_DEBUG
 
 typedef struct
 {
-	uint32_t bitrate;				//(out) Audio bitrate in Bps.
-	uint32_t sample_rate;			//(out) Audio smaple rate in Hz.
+	uint32_t bitrate;				//(out) Audio bitrate in bps.
+	uint32_t sample_rate;			//(out) Audio sample rate in Hz.
 	uint8_t ch;						//(out) Number of audio channels.
 	double duration;				//(out) Audio track duration in seconds.
 	char format_name[96];			//(out) Audio codec name.
@@ -163,13 +163,13 @@ typedef struct
 
 typedef struct
 {
-	uint8_t* bitmap;			//(out) Subtitle bitmap, this may NULL.
+	uint8_t* bitmap;			//(out) Subtitle bitmap, this may be NULL.
 	uint32_t bitmap_x;			//(out) X (horizontal) position, this field will be set if bitmap is not NULL.
 	uint32_t bitmap_y;			//(out) Y (vertical) position, this field will be set if bitmap is not NULL.
 	uint32_t bitmap_width;		//(out) Bitmap width, this field will be set if bitmap is not NULL.
 	uint32_t bitmap_height;		//(out) Bitmap height, this field will be set if bitmap is not NULL.
-	double start_time;			//(out) Start time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
-	double end_time;			//(out) End time in ms for this subtitle data. subtitle should be displayed if (start_time <= current_time <= end_time).
+	double start_time;			//(out) Start time in ms for this subtitle data, subtitle should be displayed if (start_time <= current_time <= end_time).
+	double end_time;			//(out) End time in ms for this subtitle data, subtitle should be displayed if (start_time <= current_time <= end_time).
 	char* text;					//(out) Subtitle text.
 } Media_s_data;
 

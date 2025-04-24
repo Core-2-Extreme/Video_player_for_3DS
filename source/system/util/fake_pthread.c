@@ -9,11 +9,12 @@
 #include "3ds.h"
 
 #include "system/util/err_types.h"
+#include "system/util/log.h"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 
 //Defines.
-//N/A.
+#define DEF_FAKE_PTHREAD_STACK_SIZE_MIN		(uint32_t)(16384)
 
 //Typedefs.
 //N/A.
@@ -28,7 +29,7 @@ int	__wrap_pthread_cond_init(pthread_cond_t* __cond, const pthread_condattr_t* _
 int	__wrap_pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex);
 int	__wrap_pthread_cond_signal(pthread_cond_t* __cond);
 int	__wrap_pthread_cond_broadcast(pthread_cond_t* __cond);
-int	__wrap_pthread_cond_destroy(pthread_cond_t* __mutex);
+int	__wrap_pthread_cond_destroy(pthread_cond_t* __cond);
 int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg);
 int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr);
 int __wrap_pthread_attr_init(pthread_attr_t* attr);
@@ -134,9 +135,9 @@ int	__wrap_pthread_cond_broadcast(pthread_cond_t* __cond)
 	return 0;
 }
 
-int	__wrap_pthread_cond_destroy(pthread_cond_t* __mutex)
+int	__wrap_pthread_cond_destroy(pthread_cond_t* __cond)
 {
-	(void)__mutex;
+	(void)__cond;
 	return 0;
 }
 
@@ -162,17 +163,21 @@ int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, v
 	else
 		handle = threadCreate(entry_point, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 
-	*__pthread = (pthread_t)handle;
-
 	if(util_fake_pthread_core_offset + 1 < util_fake_pthread_enabled_cores)
 		util_fake_pthread_core_offset++;
 	else
 		util_fake_pthread_core_offset = 0;
 
 	if(!handle)
+	{
+		DEF_LOG_RESULT(threadCreate, false, 0);
 		return -1;
+	}
 	else
+	{
+		*__pthread = (pthread_t)handle;
 		return 0;
+	}
 }
 
 int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr)
@@ -209,7 +214,7 @@ int __wrap_pthread_attr_destroy(pthread_attr_t* attr)
 
 int __wrap_pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize)
 {
-	if(!attr || stacksize < 16384)
+	if(!attr || stacksize < DEF_FAKE_PTHREAD_STACK_SIZE_MIN)
 		return -1;
 
 	attr->stacksize = stacksize;

@@ -740,7 +740,7 @@ uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t*
 	svcWaitSynchronization(conversion_finish_event_handle, 200000000);//Wait up to 200ms.
 	svcCloseHandle(conversion_finish_event_handle);
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;

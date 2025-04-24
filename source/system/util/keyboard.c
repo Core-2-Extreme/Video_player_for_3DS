@@ -139,7 +139,7 @@ uint32_t Util_keyboard_launch(Str_data* out_data, Keyboard_button* pressed_butto
 			*pressed_button = KEYBOARD_BUTTON_NONE;
 	}
 
-	return result;
+	return DEF_SUCCESS;
 
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;

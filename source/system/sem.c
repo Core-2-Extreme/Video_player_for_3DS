@@ -661,7 +661,7 @@ void Sem_init(void)
 		config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 
 	if((state.console_model == DEF_SEM_MODEL_OLD2DS || state.console_model == DEF_SEM_MODEL_NEW2DSXL)
-	&& config.screen_mode == DEF_SEM_SCREEN_MODE_3D)//2DSs don't support 3d mode.
+	&& config.screen_mode == DEF_SEM_SCREEN_MODE_3D)//2DSs don't support 3D mode.
 		config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 
 	result = Util_hw_config_set_wifi_state(wifi_state);
@@ -2562,7 +2562,7 @@ static void Sem_worker_callback(void)
 				}
 				else
 				{
-					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start cpu usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start CPU usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 					Util_err_set_show_flag(true);
 					sem_should_cpu_usage_monitor_running = false;
 					//Reset key state on scene change.

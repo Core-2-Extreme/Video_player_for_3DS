@@ -1425,7 +1425,7 @@ void Vid_init(bool draw)
 	Sem_get_state(&state);
 	DEF_LOG_RESULT_SMART(result, Util_str_init(&vid_status), (result == DEF_SUCCESS), result);
 
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequencial_id, sizeof(vid_status.sequencial_id));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequential_id, sizeof(vid_status.sequential_id));
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
 		vid_init_thread = threadCreate(Vid_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
@@ -1477,7 +1477,7 @@ void Vid_exit(bool draw)
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(vid_exit_thread);
 
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequencial_id);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequential_id);
 	Util_str_free(&vid_status);
 	Draw_set_refresh_needed(true);
 
@@ -1910,7 +1910,7 @@ void Vid_main(void)
 
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
-					//Draw 3d videos (right eye).
+					//Draw 3D videos (right eye).
 					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
 					{
 						Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset[1], video_y_offset[1], image_width[1], image_height[1]);

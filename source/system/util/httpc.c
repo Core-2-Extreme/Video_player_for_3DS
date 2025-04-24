@@ -63,7 +63,7 @@ uint32_t Util_httpc_init(uint32_t buffer_size)
 	DEF_HTTPC_USER_AGENT_FMT, system_ver);
 
 	util_httpc_init = true;
-	return result;
+	return DEF_SUCCESS;
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;

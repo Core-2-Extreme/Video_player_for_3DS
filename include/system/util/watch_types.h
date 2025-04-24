@@ -16,7 +16,7 @@ typedef enum
 	WATCH_HANDLE_LOG,				//(log.c) Watch handle for log API.
 	WATCH_HANDLE_MAIN_MENU,			//(menu.c) Watch handle for main menu.
 	WATCH_HANDLE_SETTINGS_MENU,		//(setting_menu.c) Watch handle for settings menu.
-	WATCH_HANDLE_VIDEO_PLAYER,		//(video_player.cpp) Watch handle for video player.
+	WATCH_HANDLE_VIDEO_PLAYER,		//(video_player.p) Watch handle for video player.
 
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT = INT8_MAX,

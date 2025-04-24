@@ -38,7 +38,7 @@
 #define DEF_ERR_TRY_AGAIN_STR						(const char*)"Try again later."
 #define DEF_ERR_ALREADY_INITIALIZED_STR				(const char*)"Already initialized."
 #define DEF_ERR_NOT_INITIALIZED_STR					(const char*)"Not initialized."
-#define DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR	(const char*)"Nintendo api returned NOT success."
+#define DEF_ERR_NINTENDO_RETURNED_NOT_SUCCESS_STR	(const char*)"Nintendo API returned NOT success."
 #define DEF_ERR_CURL_RETURNED_NOT_SUCCESS_STR		(const char*)"Curl returned NOT success."
 #define DEF_ERR_NEED_MORE_INPUT_STR					(const char*)"Need more input to produce the output."
 #define DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR		(const char*)"Try again (video output was made)."

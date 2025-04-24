@@ -89,7 +89,7 @@ uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_
 		LightEvent_WaitTimeout(&queue->send_wait_event, wait_us * 1000);
 		LightLock_Lock(&util_queue_mutex);
 
-		//It may possible to start delting this queue on different thread while waiting.
+		//It may possible to start deleting this queue on different thread while waiting.
 		if(queue->deleting)
 			goto deleting;
 	}
@@ -205,8 +205,8 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 				free(queue->data[0]);
 		}
 
-		//Delete old data as it no longer necessary.
-		queue->data[0] = 0;
+		//Delete old data as it is no longer necessary.
+		queue->data[0] = NULL;
 		queue->event_id[0] = 0;
 
 		//Move rest of the data to front.
@@ -217,7 +217,7 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 		}
 
 		//Delete the last data.
-		queue->data[queue->next_index - 1] = 0;
+		queue->data[queue->next_index - 1] = NULL;
 		queue->event_id[queue->next_index - 1] = 0;
 
 		queue->next_index--;
@@ -290,7 +290,7 @@ uint32_t Util_queue_get_free_space(const Queue_data* queue)
 	if(!queue->data || !queue->event_id || queue->deleting)
 	{
 		LightLock_Unlock(&util_queue_mutex);
-		return false;
+		return 0;
 	}
 
 	free = queue->max_items - queue->next_index;

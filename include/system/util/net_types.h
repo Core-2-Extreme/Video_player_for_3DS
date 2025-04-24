@@ -25,7 +25,7 @@ typedef struct
 	uint16_t max_redirect;		//(in)  Maximum allowed number of redirects (0 to disallow redirect).
 	uint32_t max_size;			//(in)  Maximum allowed download size in bytes.
 	uint32_t* downloaded_size;	//(out) Actual downloaded size in bytes, can be NULL.
-	Str_data* last_url;			//(out) Last url (data contains response of last url), can be NULL.
+	Str_data* last_url;			//(out) Last URL (data contains response of last URL), can be NULL.
 } Net_dl_parameters;
 
 typedef struct
@@ -38,7 +38,7 @@ typedef struct
 	uint16_t max_redirect;		//(in)  Maximum allowed number of redirects (0 to disallow redirect).
 	uint32_t buffer_size;		//(in)  Internal work buffer size in bytes.
 	uint32_t* downloaded_size;	//(out) Actual downloaded size in bytes, can be NULL.
-	Str_data* last_url;			//(out) Last url (data contains response of last url), can be NULL.
+	Str_data* last_url;			//(out) Last URL (data contains response of last URL), can be NULL.
 } Net_save_parameters;
 
 typedef struct

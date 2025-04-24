@@ -9,15 +9,14 @@
  * @brief Initialize a string struct.
  * @param string (in/out) Pointer for target struct.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_init(Str_data* string);
 
 /**
  * @brief Free a string struct.
  * @param string (in/out) Pointer for target struct.
- * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 void Util_str_free(Str_data* string);
 
@@ -25,7 +24,7 @@ void Util_str_free(Str_data* string);
  * @brief Clear string data.
  * @param string (in/out) Pointer for target struct.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_clear(Str_data* string);
 
@@ -34,7 +33,7 @@ uint32_t Util_str_clear(Str_data* string);
  * @param string (in/out) Pointer for target struct.
  * @param source_string (in) Pointer for source string.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_set(Str_data* string, const char* source_string);
 
@@ -43,7 +42,7 @@ uint32_t Util_str_set(Str_data* string, const char* source_string);
  * @param string (in/out) Pointer for target struct.
  * @param source_string (in) Pointer for source string to add.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_add(Str_data* string, const char* source_string);
 
@@ -53,7 +52,7 @@ uint32_t Util_str_add(Str_data* string, const char* source_string);
  * @param format_string (in) Pointer for format string.
  * @param additional_parameters (in) Additional parameters for format_string.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_format(Str_data* string, const char* format_string, ...) DEF_STR_GCC_FMT_CHECK;
 
@@ -63,7 +62,7 @@ uint32_t Util_str_format(Str_data* string, const char* format_string, ...) DEF_S
  * @param format_string (in) Pointer for format string.
  * @param args (in) Additional parameters for format_string.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list args);
 
@@ -73,7 +72,7 @@ uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list a
  * @param format_string (in) Pointer for format string.
  * @param additional_parameters (in) Additional parameters for format_string.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...) DEF_STR_GCC_FMT_CHECK;
 
@@ -83,7 +82,7 @@ uint32_t Util_str_format_append(Str_data* string, const char* format_string, ...
  * @param format_string (in) Pointer for format string.
  * @param args (in) Additional parameters for format_string.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_vformat_append(Str_data* string, const char* format_string, va_list args);
 
@@ -94,7 +93,7 @@ uint32_t Util_str_vformat_append(Str_data* string, const char* format_string, va
  * @param string (in/out) Pointer for target struct.
  * @param new_capacity (in) New buffer capacity.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
- * @note Thread safe
+ * @note Thread safe.
 */
 uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity);
 
@@ -104,7 +103,7 @@ uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity);
  * this will return true.
  * @param string (in) Pointer for target struct.
  * @return True if struct is valid, otherwise false.
- * @note Thread safe
+ * @note Thread safe.
 */
 bool Util_str_is_valid(const Str_data* string);
 
@@ -114,7 +113,7 @@ bool Util_str_is_valid(const Str_data* string);
  * this will return false.
  * @param string (in) Pointer for target struct.
  * @return True if struct is valid AND contains at least 1 character, otherwise false.
- * @note Thread safe
+ * @note Thread safe.
 */
 bool Util_str_has_data(const Str_data* string);
 

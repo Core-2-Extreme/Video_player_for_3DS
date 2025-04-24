@@ -895,7 +895,7 @@ uint32_t Util_check_free_ram(void)
 	for (uint32_t i = 0; i < 1024; i++)
 		malloc_check[i] = NULL;
 
-	//Block malloc opetations while we are checking for available heap size.
+	//Block malloc operation while we are checking for available heap size.
 	LightLock_Lock(&util_malloc_mutex);
 	while(true)
 	{

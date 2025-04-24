@@ -50,7 +50,7 @@ static const uint16_t util_exfont_font_hangul_syllables_characters[11] =
 {
 	1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024,  944,
 };
-static uint32_t util_exfont_num_of_right_left_charcters = 0;
+static uint32_t util_exfont_num_of_right_left_characters = 0;
 static uint32_t util_exfont_font_start_num[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static Str_data util_exfont_font_name[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, };
 static Exfont_one_char util_exfont_font_right_to_left_samples[257] = { 0, };
@@ -130,7 +130,7 @@ uint32_t Exfont_init(void)
 	free(fs_buffer);
 	fs_buffer = NULL;
 
-	util_exfont_num_of_right_left_charcters = characters - 1;
+	util_exfont_num_of_right_left_characters = characters - 1;
 
 	util_exfont_font_start_num[0] = 0;
 	for (uint16_t i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
@@ -323,10 +323,10 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 			if((parse_string_length == 2 && strcmp(one_char.buffer, right_to_left_sample[0].buffer) > 0
 			&& strcmp(one_char.buffer, right_to_left_sample[1].buffer) < 0))
 			{
-				int32_t increment = util_exfont_num_of_right_left_charcters / 10;
+				int32_t increment = (util_exfont_num_of_right_left_characters / 10);
 				uint32_t give_up_pos = 0;
 
-				for(uint32_t i = 0; i < util_exfont_num_of_right_left_charcters; i += increment)
+				for(uint32_t i = 0; i < util_exfont_num_of_right_left_characters; i += increment)
 				{
 					int32_t strcmp_result = 0;
 					if(increment == -1 && (i == give_up_pos))
@@ -437,7 +437,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 	for (uint32_t s = 0; s < num_of_characters; s++)
 	{
 		bool unknown = true;
-		uint8_t block = UINT8_MAX;
+		uint16_t block = UINT16_MAX;
 		uint32_t base_index = 0;
 		uint32_t offset = 0;
 		uint32_t length = strlen(in_part_string[s].buffer);
@@ -517,13 +517,13 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 				if(strcmp(util_exfont_ignore_chars[i].buffer, in_part_string[s].buffer) == 0)
 				{
 					unknown = false;
-					block = UINT8_MAX;
+					block = UINT16_MAX;
 					break;
 				}
 			}
 		}
 
-		if (block != UINT8_MAX && util_exfont_loaded_external_font[block])
+		if (block != UINT16_MAX && util_exfont_loaded_external_font[block])
 		{
 			unknown = false;
 			base_index = util_exfont_font_start_num[block];
@@ -1345,7 +1345,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 				unknown = true;
 		}
 
-		if(unknown)
+		if(unknown || (base_index + offset) >= (sizeof(util_exfont_font_images) / sizeof(util_exfont_font_images[0])))
 		{
 			base_index = 0;
 			offset = 0;

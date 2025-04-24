@@ -347,7 +347,7 @@ void Util_log_draw(void)
 {
 	if(!util_log_init)
 	{
-		Draw_c("Log api is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
+		Draw_c("Log API is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
 		return;
 	}
 

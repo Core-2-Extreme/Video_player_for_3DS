@@ -66,7 +66,7 @@ If not, you can use these tools :
 Replace `{input_file_name}` with your input file name and `{output_file_name}` with your output file name. \
 e.g. : `ffmpeg -i original_video.mp4 -acodec aac -vcodec libx264 -s 800x240 -preset medium -crf 25 converted_video.mp4`
 
-for 3D video, referer this : [How to convert your 3d video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
+for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
 ## Controls
 * In normal mode
@@ -263,7 +263,7 @@ OLD3DS :
 Audio files more than 2ch (e.g. 2.1ch) has been supported. \
 Many pixel formats have been supported, however, YUV420P is recommended for performance reason. \
 Ryukyuan(琉球諸語) translation has been added (by kuragehimekurara1). \
-Auto mode for top screen mode has been added, when this is enabled (settings -> LCD -> screen mode -> auto) you can just use 3d slider to change between 3D <-> 800px mode. \
+Auto mode for top screen mode has been added, when this is enabled (settings -> LCD -> screen mode -> auto) you can just use 3D slider to change between 3D <-> 800px mode. \
 Simplified Chinese(简体中文) translation has been updated.
 
 **Fixed bugs** \

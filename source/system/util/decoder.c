@@ -924,7 +924,7 @@ uint32_t Util_decoder_subtitle_init(uint8_t num_of_subtitle_tracks, uint8_t sess
 void Util_decoder_audio_get_info(Media_a_info* audio_info, uint8_t audio_index, uint8_t session)
 {
 	uint32_t size = 0;
-	const char lamg_und[] = "und";
+	const char lang_und[] = "und";
 	AVDictionaryEntry *data = NULL;
 
 	if(!audio_info || audio_index >= DEF_DECODER_MAX_AUDIO_TRACKS || session >= DEF_DECODER_MAX_SESSIONS)
@@ -945,12 +945,12 @@ void Util_decoder_audio_get_info(Media_a_info* audio_info, uint8_t audio_index, 
 	if(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata)
 		data = av_dict_get(util_decoder_format_context[session]->streams[util_audio_decoder_stream_num[session][audio_index]]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
 
-	size = (data ? strlen(data->value) : strlen(lamg_und));
+	size = (data ? strlen(data->value) : strlen(lang_und));
 	size = Util_min(size, (sizeof(audio_info->track_lang) - 1));
 	if(data)
 		memcpy(audio_info->track_lang, data->value, size);
 	else
-		memcpy(audio_info->track_lang, lamg_und, size);
+		memcpy(audio_info->track_lang, lang_und, size);
 
 	audio_info->track_lang[size] = 0x00;
 
@@ -1051,7 +1051,7 @@ void Util_decoder_video_get_info(Media_v_info* video_info, uint8_t video_index, 
 void Util_decoder_subtitle_get_info(Media_s_info* subtitle_info, uint8_t subtitle_index, uint8_t session)
 {
 	uint32_t size = 0;
-	const char lamg_und[] = "und";
+	const char lang_und[] = "und";
 	AVDictionaryEntry *data = NULL;
 
 	if(!subtitle_info || subtitle_index >= DEF_DECODER_MAX_SUBTITLE_TRACKS || session >= DEF_DECODER_MAX_SESSIONS)
@@ -1063,12 +1063,12 @@ void Util_decoder_subtitle_get_info(Media_s_info* subtitle_info, uint8_t subtitl
 	if(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][subtitle_index]]->metadata)
 		data = av_dict_get(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][subtitle_index]]->metadata, "language", data, AV_DICT_IGNORE_SUFFIX);
 
-	size = (data ? strlen(data->value) : strlen(lamg_und));
+	size = (data ? strlen(data->value) : strlen(lang_und));
 	size = Util_min(size, (sizeof(subtitle_info->track_lang) - 1));
 	if(data)
 		memcpy(subtitle_info->track_lang, data->value, size);
 	else
-		memcpy(subtitle_info->track_lang, lamg_und, size);
+		memcpy(subtitle_info->track_lang, lang_und, size);
 
 	subtitle_info->track_lang[size] = 0x00;
 
@@ -1129,7 +1129,7 @@ uint32_t Util_decoder_read_packet(uint8_t session)
 	LightLock_Lock(&util_decoder_cache_packet_mutex[session]);
 	if(util_decoder_available_cache_packet[session] + 1 >= DEF_DECODER_MAX_CACHE_PACKETS)
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 	LightLock_Unlock(&util_decoder_cache_packet_mutex[session]);
@@ -1191,7 +1191,7 @@ uint32_t Util_decoder_parse_packet(Media_packet_type* type, uint8_t* packet_inde
 	LightLock_Lock(&util_decoder_cache_packet_mutex[session]);
 	if(util_decoder_available_cache_packet[session] == 0)
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 	LightLock_Unlock(&util_decoder_cache_packet_mutex[session]);
@@ -1327,13 +1327,13 @@ uint32_t Util_decoder_ready_audio_packet(uint8_t packet_index, uint8_t session)
 
 	if(!util_audio_decoder_cache_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
 	if(util_audio_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 
@@ -1384,13 +1384,13 @@ uint32_t Util_decoder_ready_video_packet(int8_t packet_index, int8_t session)
 
 	if(!util_video_decoder_cache_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
 	if(util_video_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 
@@ -1441,13 +1441,13 @@ uint32_t Util_decoder_ready_subtitle_packet(uint8_t packet_index, uint8_t sessio
 
 	if(!util_subtitle_decoder_cache_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
 	if(util_subtitle_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 
@@ -1593,7 +1593,7 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 
 	if(!util_audio_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
@@ -1692,14 +1692,14 @@ uint32_t Util_decoder_video_decode(uint8_t packet_index, uint8_t session)
 
 	if(!util_video_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
 	util_video_decoder_changeable_buffer_size[session][packet_index] = false;
 	if(util_video_decoder_available_raw_image[session][packet_index] + 1 >= util_video_decoder_max_raw_image[session][packet_index])
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 
@@ -1791,14 +1791,14 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	if(!util_video_decoder_packet_ready[session][0])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
 	util_mvd_video_decoder_changeable_buffer_size = false;
 	if(util_mvd_video_decoder_available_raw_image[session] + 1 >= util_mvd_video_decoder_max_raw_image[session])
 	{
-		DEF_LOG_STRING("Queues are full.");
+		//DEF_LOG_STRING("Queues are full!!!!!");
 		goto try_again;
 	}
 
@@ -1925,7 +1925,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 			util_mvd_video_decoder_first = false;
 		}
 
-		//If any of them got changed, it means mvd service wrote the frame data to the buffer.
+		//If any of them got changed, it means MVD service wrote the frame data to the buffer.
 		if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
 		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
 		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
@@ -1956,7 +1956,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 			//You need to use a custom libctru to use NULL here. https://github.com/Core-2-Extreme/libctru_custom/tree/3ds
 			result = mvdstdRenderVideoFrame(NULL, false);
 
-			//If any of them got changed, it means mvd service wrote the frame data to the buffer.
+			//If any of them got changed, it means MVD service wrote the frame data to the buffer.
 			if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
 			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
 			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
@@ -2089,7 +2089,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 
 	if(!util_subtitle_decoder_packet_ready[session][packet_index])
 	{
-		DEF_LOG_STRING("No packets are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
@@ -2373,7 +2373,7 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 
 	if(util_video_decoder_available_raw_image[session][packet_index] == 0)
 	{
-		DEF_LOG_STRING("No raw images are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 
@@ -2505,7 +2505,7 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 
 	if(util_mvd_video_decoder_available_raw_image[session] == 0)
 	{
-		DEF_LOG_STRING("No raw images are available.");
+		//DEF_LOG_STRING("No packets are available!!!!!");
 		goto try_again;
 	}
 

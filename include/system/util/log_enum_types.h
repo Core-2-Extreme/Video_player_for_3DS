@@ -24,7 +24,7 @@ a120, a121, a122, a123, a124, a125, ...) a125
 
 #if defined(DEF_LOG_ENUM_DEBUG_ENABLE)
 
-#define DEF_LOG_ENUM_DEBUG_INVALID_VALUE_MSG		(const char*)("(Value is not registerd or out of range.)")
+#define DEF_LOG_ENUM_DEBUG_INVALID_VALUE_MSG		(const char*)("(Value is not registered or out of range.)")
 
 //This also works, but wastes memory because it always generates "const char* names[125]".
 /*

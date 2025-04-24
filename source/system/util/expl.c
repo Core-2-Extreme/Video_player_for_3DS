@@ -350,7 +350,7 @@ void Util_expl_draw(void)
 	if(!util_expl_init)
 	{
 		Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-		Draw_c("Explorer api is not initialized.\nPress A to close.", 12.5, 30.0, 0.45, 0.45, DEF_DRAW_RED);
+		Draw_c("Explorer API is not initialized.\nPress A to close.", 12.5, 30.0, 0.45, 0.45, DEF_DRAW_RED);
 		return;
 	}
 
@@ -758,7 +758,7 @@ static int Util_expl_compare_name(const void* a, const void* b)
 			else
 			{
 				//Both characters have the different type.
-				//Special charcters should go first, then numbers, finally alphabets.
+				//Special characters should go first, then numbers, finally alphabets.
 				if(a_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
 					result = -1;
 				else if(b_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)

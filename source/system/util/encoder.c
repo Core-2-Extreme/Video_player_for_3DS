@@ -585,13 +585,13 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }
 
-uint32_t Util_encoder_video_encode(const uint8_t* raw_image, uint8_t session)
+uint32_t Util_encoder_video_encode(const uint8_t* raw_data, uint8_t session)
 {
 	int32_t ffmpeg_result = 0;
 	uint32_t width = 0;
 	uint32_t height = 0;
 
-	if(session >= DEF_ENCODER_MAX_SESSIONS || !raw_image)
+	if(session >= DEF_ENCODER_MAX_SESSIONS || !raw_data)
 		goto invalid_arg;
 
 	if(!util_video_encoder_init[session] || !util_encoder_wrote_header[session])
@@ -600,9 +600,9 @@ uint32_t Util_encoder_video_encode(const uint8_t* raw_image, uint8_t session)
 	width = util_video_encoder_raw_data[session]->width;
 	height = util_video_encoder_raw_data[session]->height;
 
-	memcpy(util_video_encoder_raw_data[session]->data[0], raw_image, width * height);
-	memcpy(util_video_encoder_raw_data[session]->data[1], raw_image + width * height, width * height / 4);
-	memcpy(util_video_encoder_raw_data[session]->data[2], raw_image + width * height + width * height / 4, width * height / 4);
+	memcpy(util_video_encoder_raw_data[session]->data[0], raw_data, width * height);
+	memcpy(util_video_encoder_raw_data[session]->data[1], raw_data + width * height, width * height / 4);
+	memcpy(util_video_encoder_raw_data[session]->data[2], raw_data + width * height + width * height / 4, width * height / 4);
 	util_video_encoder_raw_data[session]->linesize[0] = width;
 	util_video_encoder_raw_data[session]->linesize[1] = width / 2;
 	util_video_encoder_raw_data[session]->linesize[2] = width / 2;
@@ -701,7 +701,7 @@ uint32_t Util_encoder_image_encode(const char* path, const uint8_t* raw_data, ui
 	int32_t stbi_result = 0;
 
 	if(!path || !raw_data || width == 0 || height == 0 || codec <= MEDIA_I_CODEC_INVALID
-	|| codec >= MEDIA_I_CODEC_MAX || (codec == MEDIA_I_CODEC_JPG && quality > 100))
+	|| codec >= MEDIA_I_CODEC_MAX || (codec == MEDIA_I_CODEC_JPG && (quality < 1 || quality > 100)))
 		goto invalid_arg;
 
 	if(codec == MEDIA_I_CODEC_PNG)

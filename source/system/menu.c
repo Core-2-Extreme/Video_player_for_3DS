@@ -211,7 +211,7 @@ void Menu_init(void)
 	{
 		const char* msg = ("/Video_player/ -> " DEF_MENU_MAIN_DIR "\nMaybe destination directory already exist?");
 
-		//We need to call error api after calling Util_err_init().
+		//We need to call error API after calling Util_err_init().
 		Util_err_set_error_message("Failed to move app data directory.", msg, DEF_LOG_GET_SYMBOL(), update_main_dir_result);
 		Util_err_set_show_flag(true);
 	}

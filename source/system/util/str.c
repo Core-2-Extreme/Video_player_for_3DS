@@ -37,7 +37,7 @@ uint32_t Util_str_init(Str_data* string)
 
 	string->capacity = DEF_STR_INITIAL_CAPACITY;
 	Util_str_clear(string);
-	string->sequencial_id = 0;
+	string->sequential_id = 0;
 
 	return DEF_SUCCESS;
 
@@ -53,7 +53,7 @@ void Util_str_free(Str_data* string)
 	if(!string)
 		return;
 
-	string->sequencial_id = 0;
+	string->sequential_id = 0;
 	string->capacity = 0;
 	string->length = 0;
 	free(string->buffer);
@@ -67,7 +67,7 @@ uint32_t Util_str_clear(Str_data* string)
 
 	string->buffer[0] = 0x00;//NULL terminator.
 	string->length = 0;
-	string->sequencial_id++;
+	string->sequential_id++;
 
 	//Don't waste too much memory.
 	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));
@@ -93,7 +93,6 @@ uint32_t Util_str_set(Str_data* string, const char* source_string)
 
 	if(source_string_length > string->capacity)
 	{
-		//Source string is too large, try to enlarge our string buffer.
 		//We need more buffer, try to enlarge it.
 		result = Util_str_resize(string, source_string_length);
 		if(result != DEF_SUCCESS)
@@ -103,7 +102,7 @@ uint32_t Util_str_set(Str_data* string, const char* source_string)
 	memcpy(string->buffer, source_string, source_string_length);
 	string->buffer[source_string_length] = 0x00;//NULL terminator.
 	string->length = source_string_length;
-	string->sequencial_id++;
+	string->sequential_id++;
 
 	//Don't waste too much memory.
 	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));
@@ -143,7 +142,7 @@ uint32_t Util_str_add(Str_data* string, const char* source_string)
 	memcpy((string->buffer + string->length), source_string, source_string_length);
 	string->buffer[new_length] = 0x00;//NULL terminator.
 	string->length = new_length;
-	string->sequencial_id++;
+	string->sequential_id++;
 
 	//Don't waste too much memory.
 	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));
@@ -295,7 +294,7 @@ static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, cons
 
 	//NULL terminator was added by vsnprintf().
 	string->length = new_length;
-	string->sequencial_id++;
+	string->sequential_id++;
 
 	//Don't waste too much memory.
 	Util_str_resize(string, Util_str_get_optimal_buffer_capacity(string));

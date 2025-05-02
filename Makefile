@@ -92,7 +92,7 @@ LDFLAGS		+= -Wl,--wrap,pthread_cond_broadcast,--wrap,pthread_cond_destroy,--wrap
 LDFLAGS		+= -Wl,--wrap,pthread_attr_init,--wrap,pthread_attr_destroy,--wrap,pthread_attr_setstacksize
 
 LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame
-LIBS		+= -ldav1d -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
+LIBS		+= -ldav1d -ltheora -ltheoradec -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -195,7 +195,7 @@ endif
 .PHONY: all 3dsx clean
 
 #---------------------------------------------------------------------------------
-MAKEROM			?= makerom
+MAKEROM			?= /home/Devin/Code/Video_player_for_3DS/makerom
 MAKEROM_ARGS	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
 
 ifneq ($(strip $(LOGO)),)
@@ -205,7 +205,7 @@ ifneq ($(strip $(ROMFS)),)
 	MAKEROM_ARGS	+=	 -DAPP_ROMFS="$(ROMFS)"
 endif
 
-BANNERTOOL		?= bannertool
+BANNERTOOL		?= /home/Devin/Code/Video_player_for_3DS/bannertool
 
 ifeq ($(suffix $(BANNER_IMAGE)),.cgfx)
 	BANNER_IMAGE_ARG := -ci

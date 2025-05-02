@@ -195,7 +195,7 @@ endif
 .PHONY: all 3dsx clean
 
 #---------------------------------------------------------------------------------
-MAKEROM			?= /home/Devin/Code/Video_player_for_3DS/makerom
+MAKEROM			?= makerom
 MAKEROM_ARGS	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
 
 ifneq ($(strip $(LOGO)),)
@@ -205,7 +205,7 @@ ifneq ($(strip $(ROMFS)),)
 	MAKEROM_ARGS	+=	 -DAPP_ROMFS="$(ROMFS)"
 endif
 
-BANNERTOOL		?= /home/Devin/Code/Video_player_for_3DS/bannertool
+BANNERTOOL		?= bannertool
 
 ifeq ($(suffix $(BANNER_IMAGE)),.cgfx)
 	BANNER_IMAGE_ARG := -ci

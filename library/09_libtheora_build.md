@@ -38,4 +38,4 @@ make -j && sudo make install
 cd ../
 ```
 
-Then, continue to : [build ffmpeg](08_ffmpeg_build.md)
+Then, continue to : [build ffmpeg](10_ffmpeg_build.md)

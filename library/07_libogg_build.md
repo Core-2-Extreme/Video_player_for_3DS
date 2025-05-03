@@ -38,4 +38,4 @@ make -j && sudo make install
 cd ../
 ```
 
-Then, continue to : [build theora](09_libtheora_build.md)
+Then, continue to : [build theora](08_libtheora_build.md)

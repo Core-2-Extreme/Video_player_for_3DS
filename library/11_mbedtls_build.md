@@ -39,4 +39,4 @@ make lib -j CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=a
 cd ../
 ```
 
-Then, continue to : [build nghttp2](13_nghttp2_build.md)
+Then, continue to : [build nghttp2](12_nghttp2_build.md)

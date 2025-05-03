@@ -40,4 +40,4 @@ make -j && sudo make install
 cd ../
 ```
 
-Then, continue to : [build curl](14_curl_build.md)
+Then, continue to : [build curl](13_curl_build.md)

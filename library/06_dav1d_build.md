@@ -40,4 +40,4 @@ ninja && sudo meson install
 cd ../../
 ```
 
-Then, continue to : [build theora](07_libtheora_build.md)
+Then, continue to : [build libogg](07_libogg_build.md)

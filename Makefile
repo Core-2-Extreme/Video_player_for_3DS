@@ -92,7 +92,7 @@ LDFLAGS		+= -Wl,--wrap,pthread_cond_broadcast,--wrap,pthread_cond_destroy,--wrap
 LDFLAGS		+= -Wl,--wrap,pthread_attr_init,--wrap,pthread_attr_destroy,--wrap,pthread_attr_setstacksize
 
 LIBS		:= -lswresample -lavformat -lswscale -lavcodec -lavutil -lcitro2d -lcitro3d -lx264 -lmp3lame
-LIBS		+= -ldav1d -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
+LIBS		+= -ldav1d -logg -ltheora -ltheoradec -lcurl -lnghttp2 -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

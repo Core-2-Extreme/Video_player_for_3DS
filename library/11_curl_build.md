@@ -40,4 +40,4 @@ make -j && sudo make install
 cd ../
 ```
 
-Then, continue to : [stb](14_stb.md)
+Then, continue to : [stb](12_stb.md)

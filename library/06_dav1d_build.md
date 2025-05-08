@@ -40,4 +40,4 @@ ninja && sudo meson install
 cd ../../
 ```
 
-Then, continue to : [build libogg](07_libogg_build.md)
+Then, continue to : [build ffmpeg](07_ffmpeg_build.md)

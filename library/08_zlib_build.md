@@ -39,4 +39,4 @@ make -j && sudo make install
 cd ../
 ```
 
-Then, continue to : [build mbedtls](11_mbedtls_build.md)
+Then, continue to : [build mbedtls](09_mbedtls_build.md)

@@ -160,28 +160,29 @@ If you want to build .cia, then you also need :
 
 As of this writing, we use these packages to build this project. \
 Note : Not all of them are necessary e.g. `devkitARM-gdb` is not required to build and we don't use \
-standard `libctru` and `citro2(3)d`, but we just document all of them in case someone need these information. \
+standard `libctru` and `citro2(3)d` (that means you don't need them to build this project), \
+but we just document all of them in case someone need these information. \
 For more information, see [here](library/00_devkitpro_install.md#install-devkitpro).
 ```
 $ dkp-pacman -Q
 3ds-cmake 1.5.1-1
-3ds-examples 20230610-1
+3ds-examples 20240917-1
 3ds-pkg-config 0.28-5
-3dslink 0.6.2-1
+3dslink 0.6.3-1
 3dstools 1.3.1-3
 catnip 0.1.0-1
 citro2d 1.6.0-1
 citro3d 1.7.1-2
 devkit-env 1.0.1-2
-devkitARM r64-2
+devkitARM r65-1
 devkitARM-gdb 14.1-2
 devkitarm-cmake 1.2.2-1
 devkitarm-crtls 1.2.6-1
 devkitarm-rules 1.5.1-1
-devkitpro-keyring 20180316-1
+devkitpro-keyring 20241017-2
 dkp-cmake-common-utils 1.5.2-1
 general-tools 1.4.4-1
-libctru 2.3.1-1
+libctru 2.4.1-1
 pacman 6.0.1-7
 picasso 2.7.2-3
 tex3ds 2.3.0-4

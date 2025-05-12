@@ -1,7 +1,7 @@
 # Build a dav1d library for 3DS
 
-It works on WSL Ubuntu 20.04, is should also work on real Ubuntu. \
-As of this writing, we are using `devkitARM r64-2`. \
+It works on Ubuntu 24.04, it should also work on WSL. \
+As of this writing, we are using `devkitARM r65-1`. \
 For more information, see [README](../README.md#build).
 
 * **⚠️Install [devkitpro](00_devkitpro_install.md) first.⚠️**

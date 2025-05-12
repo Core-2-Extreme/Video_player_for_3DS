@@ -87,6 +87,19 @@ Result PTMSYSM_GetWakeReason(PtmSleepConfig *outSleepConfig);
 /// Cancels the "half-awake" state and fully wakes up the 3DS after some delay.
 Result PTMSYSM_Awaken(void);
 
+/// Clear the "step history".
+Result PTMSYSM_ClearStepHistory(void);
+
+/**
+ * @brief Sets the system's step count history.
+ * @param hours Number of hours to set the step count history for.
+ * @param stepValue Pointer to read the step count history from. (The buffer size must be at least `hours` in length)
+ */
+Result PTMSYSM_SetStepHistory(u32 hours, const u16 *stepValue);
+
+/// Clear the "play history".
+Result PTMSYSM_ClearPlayHistory(void);
+
 /**
  * @brief Sets the user time by updating the user time offset.
  * @param msY2k The number of milliseconds since 01/01/2000.
@@ -109,9 +122,10 @@ Result PTMSYSM_GetRtcTime(s64 *outMsY2k);
 Result PTMSYSM_SetRtcTime(s64 msY2k);
 
 /**
- * @brief Returns 1 if it's a New 3DS, otherwise 0.
+ * @brief Checks whether the system is a New 3DS.
+ * @param[out] out Pointer to write the New 3DS flag to.
  */
-Result PTMSYSM_CheckNew3DS(void);
+Result PTMSYSM_CheckNew3DS(bool *out);
 
 /**
  * @brief Configures the New 3DS' CPU clock speed and L2 cache.

@@ -1,7 +1,7 @@
 # How to install devkitpro
 
-It works on WSL Ubuntu 20.04, is should also work on real Ubuntu.
-As of this writing, we are using `devkitARM r64-2`. \
+It works on Ubuntu 24.04, it should also work on WSL. \
+As of this writing, we are using `devkitARM r65-1`. \
 For more information, see [README](../README.md#build).
 
 ## Download the script
@@ -29,6 +29,21 @@ sudo dkp-pacman -S 3ds-dev
 	1)  3dslink  11) 3dstools  12) devkit-env  13) devkitARM  14) devkitARM-gdb  15) general-tools  16) picasso  17) tex3ds
 
 Enter a selection (default=all): 11,12,13,16
+
+...
+...
+...
+
+$ dkp-pacman -Q
+3dstools 1.3.1-3
+devkit-env 1.0.1-2
+devkitARM r65-1
+devkitarm-crtls 1.2.6-1
+devkitarm-rules 1.5.1-1
+devkitpro-keyring 20241017-2
+general-tools 1.4.4-1
+pacman 6.0.1-7
+picasso 2.7.2-3
 ```
 
 ## Setup path

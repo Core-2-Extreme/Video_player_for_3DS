@@ -20,6 +20,7 @@ extern "C" {
 #else
 //C only.
 #pragma GCC diagnostic ignored "-Wnested-externs"
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #endif //__cplusplus
 
 #endif //__GNUC__
@@ -51,6 +52,7 @@ extern "C" {
 #include <3ds/allocator/vram.h>
 
 #include <3ds/services/ac.h>
+#include <3ds/services/act.h>
 #include <3ds/services/am.h>
 #include <3ds/services/ampxi.h>
 #include <3ds/services/apt.h>
@@ -91,6 +93,7 @@ extern "C" {
 #include <3ds/services/nfc.h>
 #include <3ds/services/news.h>
 #include <3ds/services/qtm.h>
+#include <3ds/services/qtmc.h>
 #include <3ds/services/srvpm.h>
 #include <3ds/services/loader.h>
 #include <3ds/services/y2r.h>

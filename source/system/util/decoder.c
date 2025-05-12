@@ -777,7 +777,9 @@ uint32_t Util_decoder_mvd_init(uint8_t session)
 {
 	uint32_t width = 0;
 	uint32_t height = 0;
+	uint32_t size = 0;
 	uint32_t result = DEF_ERR_OTHER;
+	MVDSTD_CalculateWorkBufSizeConfig config = { 0, };
 
 	if(session >= DEF_DECODER_MAX_SESSIONS)
 		goto invalid_arg;
@@ -802,23 +804,67 @@ uint32_t Util_decoder_mvd_init(uint8_t session)
 	util_mvd_video_decoder_available_raw_image[session] = 0;
 	util_mvd_video_decoder_should_skip_process_nal_unit = false;
 
-	util_mvd_video_decoder_packet_size = 1000 * 256;
+	util_mvd_video_decoder_packet_size = (1000 * 256);
 	util_mvd_video_decoder_packet = (uint8_t*)linearAlloc(util_mvd_video_decoder_packet_size);
 	if(!util_mvd_video_decoder_packet)
 		goto out_of_linear_memory;
 
-	if(width % 16 != 0)
-		width += 16 - width % 16;
-	if(height % 16 != 0)
-		height += 16 - height % 16;
+	config.level.enable = true;
+	config.level.flag = (MVD_CALC_WITH_LEVEL_FLAG_ENABLE_CALC | MVD_CALC_WITH_LEVEL_FLAG_ENABLE_EXTRA_OP | MVD_CALC_WITH_LEVEL_FLAG_UNK);
+	config.level.level = 0xFF;
+	config.width = width;
+	config.height = height;
 
-	//NEW3DS Internet browser uses MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes) and supports up to 854*480.(864*480)
-	//864*480*23 = (9538560 Bytes) > MVD_DEFAULT_WORKBUF_SIZE(9438920 Bytes).
-	result = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, width * height * 23, NULL);
+	switch(util_video_decoder_context[session][0]->level)
+	{
+		case 10: config.level.level = MVD_H264_LEVEL_1_0; break; //Level 1.0.
+		case 9: config.level.level = MVD_H264_LEVEL_1_0B; break; //Level 1.0b.
+		case 11: config.level.level = MVD_H264_LEVEL_1_1; break; //Level 1.1.
+		case 12: config.level.level = MVD_H264_LEVEL_1_2; break; //Level 1.2.
+		case 13: config.level.level = MVD_H264_LEVEL_1_3; break; //Level 1.3.
+		case 20: config.level.level = MVD_H264_LEVEL_2_0; break; //Level 2.0.
+		case 21: config.level.level = MVD_H264_LEVEL_2_1; break; //Level 2.1.
+		case 22: config.level.level = MVD_H264_LEVEL_2_2; break; //Level 2.2.
+		case 30: config.level.level = MVD_H264_LEVEL_3_0; break; //Level 3.0.
+		case 31: config.level.level = MVD_H264_LEVEL_3_1; break; //Level 3.1.
+		case 32: config.level.level = MVD_H264_LEVEL_3_2; break; //Level 3.2.
+		case 40: config.level.level = MVD_H264_LEVEL_4_0; break; //Level 4.0.
+		case 41: config.level.level = MVD_H264_LEVEL_4_1; break; //Level 4.1.
+		case 42: config.level.level = MVD_H264_LEVEL_4_2; break; //Level 4.2.
+		case 50: config.level.level = MVD_H264_LEVEL_5_0; break; //Level 5.0.
+		case 51: config.level.level = MVD_H264_LEVEL_5_1; break; //Level 5.1.
+		case 52: config.level.level = MVD_H264_LEVEL_5_2; break; //Level 5.2.
+
+		case 60: DEF_LOG_STRING("Level 6.0 is NOT supported!!!!!"); break;
+		case 61: DEF_LOG_STRING("Level 6.1 is NOT supported!!!!!"); break;
+		case 62: DEF_LOG_STRING("Level 6.2 is NOT supported!!!!!"); break;
+
+		default:
+		{
+			DEF_LOG_STRING("Unknown level!!!!!");
+			DEF_LOG_INT(util_video_decoder_context[session][0]->level);
+			break;
+		}
+	}
+
+	if(config.level.level == 0xFF)
+		goto unsupported_levels;
+
+	DEF_LOG_FORMAT("%" PRIu8 "(%" PRIi32 ") %" PRIu32 "x%" PRIu32, config.level.level, util_video_decoder_context[session][0]->level, config.width, config.height);
+	result = mvdstdCalculateBufferSize(&config, &size);
+
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(mvdstdCalculateBufferSize, false, result);
+		goto nintendo_api_failed;
+	}
+
+	DEF_LOG_FORMAT("%fMB (%" PRIu32 "B)", (size / 1000.0 / 1000.0), size);
+	result = mvdstdInit(MVDMODE_VIDEOPROCESSING, MVD_INPUT_H264, MVD_OUTPUT_BGR565, size, NULL);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(mvdstdInit, false, result);
-		goto nintendo_api_failed;
+		goto nintendo_api_failed_1;
 	}
 
 	LightLock_Init(&util_mvd_video_decoder_raw_image_mutex[session]);
@@ -841,7 +887,19 @@ uint32_t Util_decoder_mvd_init(uint8_t session)
 	out_of_linear_memory:
 	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
 
+	unsupported_levels:
+	free(util_mvd_video_decoder_packet);
+	util_mvd_video_decoder_packet = NULL;
+	return DEF_ERR_OTHER;
+
 	nintendo_api_failed:
+	free(util_mvd_video_decoder_packet);
+	util_mvd_video_decoder_packet = NULL;
+	return result;
+
+	nintendo_api_failed_1:
+	free(util_mvd_video_decoder_packet);
+	util_mvd_video_decoder_packet = NULL;
 	mvdstdExit();
 	return result;
 }

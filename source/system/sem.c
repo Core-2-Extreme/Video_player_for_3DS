@@ -22,6 +22,7 @@
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
@@ -276,7 +277,7 @@ static double sem_touch_y_move_left = 0;
 static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
 static Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
 static Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
-static LightLock sem_config_state_mutex = 1;//Initially unlocked state.
+static Sync_data sem_config_state_mutex = { 0, };
 static Thread sem_hw_config_thread = NULL;
 static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
 sem_japanese_button = { 0, }, sem_hungarian_button = { 0, }, sem_chinese_button = { 0, }, sem_italian_button = { 0, },
@@ -379,9 +380,9 @@ void Sem_get_config(Sem_config* config)
 	if(!config)
 		return;
 
-	LightLock_Lock(&sem_config_state_mutex);
+	Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 	memcpy(config, &sem_config, sizeof(Sem_config));
-	LightLock_Unlock(&sem_config_state_mutex);
+	Util_sync_unlock(&sem_config_state_mutex);
 }
 
 void Sem_set_config(Sem_config* new_config)
@@ -394,7 +395,7 @@ void Sem_set_config(Sem_config* new_config)
 	if(!new_config)
 		return;
 
-	LightLock_Lock(&sem_config_state_mutex);
+	Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 
 	// if(sem_config.is_debug != new_config->is_debug)
 		//Do nothing.
@@ -465,7 +466,7 @@ void Sem_set_config(Sem_config* new_config)
 	if(reload_msg)
 		sem_reload_msg_request = true;
 
-	LightLock_Unlock(&sem_config_state_mutex);
+	Util_sync_unlock(&sem_config_state_mutex);
 }
 
 void Sem_get_state(Sem_state* state)
@@ -476,9 +477,9 @@ void Sem_get_state(Sem_state* state)
 	if(!state)
 		return;
 
-	LightLock_Lock(&sem_config_state_mutex);
+	Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 	memcpy(state, &sem_state, sizeof(Sem_state));
-	LightLock_Unlock(&sem_config_state_mutex);
+	Util_sync_unlock(&sem_config_state_mutex);
 }
 
 void Sem_init(void)
@@ -530,10 +531,15 @@ void Sem_init(void)
 	memset(state.msg, 0x00, sizeof(state.msg));
 	sem_state = state;
 
+	result = Util_sync_create(&sem_config_state_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		return;
+	}
+
 	for(uint8_t i = 0; i < (sizeof(sem_newest_ver_data) / sizeof(sem_newest_ver_data[0])); i++)
 		Util_str_init(&sem_newest_ver_data[i]);
-
-	LightLock_Init(&sem_config_state_mutex);
 
 	if(CFGU_GetSystemModel(&model) == DEF_SUCCESS)
 	{
@@ -1076,6 +1082,8 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_both_lcd_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected);
+
+	Util_sync_destroy(&sem_config_state_mutex);
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -2471,9 +2479,9 @@ static void Sem_get_system_info(void)
 	snprintf(state.msg, sizeof(state.msg), "%02" PRIu32 "fps %04" PRIu16 "/%02" PRIu8 "/%02" PRIu8 " %02" PRIu8 ":%02" PRIu8 ":%02" PRIu8 " ",
 	(uint32_t)Draw_query_fps(), state.time.years, state.time.months, state.time.days, state.time.hours, state.time.minutes, state.time.seconds);
 
-	LightLock_Lock(&sem_config_state_mutex);
+	Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 	sem_state = state;
-	LightLock_Unlock(&sem_config_state_mutex);
+	Util_sync_unlock(&sem_config_state_mutex);
 }
 
 static void Sem_worker_callback(void)
@@ -2649,9 +2657,9 @@ void Sem_hw_config_thread(void* arg)
 			{
 				//We need to directly update wifi state here, otherwise
 				//(i.e. with Sem_set_config()) it'll try to send a request again.
-				LightLock_Lock(&sem_config_state_mutex);
+				Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 				sem_config.is_wifi_on = sem_should_wifi_enabled;
-				LightLock_Unlock(&sem_config_state_mutex);
+				Util_sync_unlock(&sem_config_state_mutex);
 			}
 			else
 				sem_should_wifi_enabled = !sem_should_wifi_enabled;

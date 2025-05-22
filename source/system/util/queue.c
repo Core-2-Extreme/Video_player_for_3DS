@@ -9,6 +9,8 @@
 #include "3ds.h"
 
 #include "system/util/err_types.h"
+#include "system/util/log.h"
+#include "system/util/sync.h"
 #include "system/util/util.h"
 
 //Defines.
@@ -21,18 +23,55 @@
 //N/A.
 
 //Variables.
-static LightLock util_queue_mutex = 1;//Initially unlocked state.
+static bool util_queue_init = false;
+static Sync_data util_queue_mutex = { 0, };
 
 //Code.
+uint32_t Util_queue_init(void)
+{
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(util_queue_init)
+		goto already_inited;
+
+	result = Util_sync_create(&util_queue_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
+
+	util_queue_init = true;
+	return DEF_SUCCESS;
+
+	already_inited:
+	return DEF_ERR_ALREADY_INITIALIZED;
+
+	error_other:
+	return result;
+}
+
+void Util_queue_exit(void)
+{
+	if(!util_queue_init)
+		return;
+
+	util_queue_init = false;
+	Util_sync_destroy(&util_queue_mutex);
+}
+
 uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)
 {
+	if(!util_queue_init)
+		goto api_not_inited;
+
 	if(!queue || max_items == 0 || max_items == UINT32_MAX)
 		goto invalid_arg;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 	if(queue->data || queue->event_id)
-		goto already_inited;
+		goto queue_already_inited;
 
 	memset(queue, 0x0, sizeof(Queue_data));
 
@@ -50,15 +89,18 @@ uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)
 	LightEvent_Init(&queue->receive_wait_event, RESET_ONESHOT);
 	LightEvent_Init(&queue->send_wait_event, RESET_ONESHOT);
 
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 
 	return DEF_SUCCESS;
+
+	api_not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
 
-	already_inited:
-	LightLock_Unlock(&util_queue_mutex);
+	queue_already_inited:
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_ALREADY_INITIALIZED;
 
 	out_of_memory:
@@ -66,28 +108,31 @@ uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)
 	free(queue->event_id);
 	queue->data = NULL;
 	queue->event_id = NULL;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
 uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_t wait_us, Queue_option option)
 {
+	if(!util_queue_init)
+		goto api_not_inited;
+
 	if(!queue)
 		goto invalid_arg;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 	if(!queue->data || !queue->event_id || queue->deleting)
-		goto not_inited;
+		goto queue_not_inited;
 
 	queue->reference_count++;
 
 	if(queue->next_index >= queue->max_items && wait_us > 0)
 	{
 		//No spaces are available, wait for a space.
-		LightLock_Unlock(&util_queue_mutex);
+		Util_sync_unlock(&util_queue_mutex);
 		LightEvent_WaitTimeout(&queue->send_wait_event, wait_us * 1000);
-		LightLock_Lock(&util_queue_mutex);
+		Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 		//It may possible to start deleting this queue on different thread while waiting.
 		if(queue->deleting)
@@ -137,51 +182,57 @@ uint32_t Util_queue_add(Queue_data* queue, uint32_t event_id, void* data, int64_
 	}
 
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 
 	return DEF_SUCCESS;
+
+	api_not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
 
-	not_inited:
-	LightLock_Unlock(&util_queue_mutex);
+	queue_not_inited:
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_NOT_INITIALIZED;
 
 	deleting:
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_NOT_INITIALIZED;
 
 	out_of_memory:
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_OUT_OF_MEMORY;
 
 	already_exist://Treat it as success.
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_SUCCESS;
 }
 
 uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int64_t wait_us)
 {
+	if(!util_queue_init)
+		goto api_not_inited;
+
 	if(!queue || !event_id)
 		goto invalid_arg;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 	if(!queue->data || !queue->event_id || queue->deleting)
-		goto not_inited;
+		goto queue_not_inited;
 
 	queue->reference_count++;
 
 	if(queue->next_index == 0 && wait_us > 0)
 	{
 		//No messages are available, wait for a message.
-		LightLock_Unlock(&util_queue_mutex);
+		Util_sync_unlock(&util_queue_mutex);
 		LightEvent_WaitTimeout(&queue->receive_wait_event, wait_us * 1000);
-		LightLock_Lock(&util_queue_mutex);
+		Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 		//It may possible to start delting this queue on different thread while waiting.
 		if(queue->deleting)
@@ -227,25 +278,28 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 	}
 
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 
 	return DEF_SUCCESS;
+
+	api_not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
 
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
 
-	not_inited:
-	LightLock_Unlock(&util_queue_mutex);
+	queue_not_inited:
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_NOT_INITIALIZED;
 
 	deleting:
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_NOT_INITIALIZED;
 
 	try_again:
 	queue->reference_count--;
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 	return DEF_ERR_TRY_AGAIN;
 }
 
@@ -253,14 +307,17 @@ bool Util_queue_check_event_exist(const Queue_data* queue, uint32_t event_id)
 {
 	bool exist = false;
 
+	if(!util_queue_init)
+		return false;
+
 	if(!queue)
 		return false;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 	if(!queue->data || !queue->event_id || queue->deleting)
 	{
-		LightLock_Unlock(&util_queue_mutex);
+		Util_sync_unlock(&util_queue_mutex);
 		return false;
 	}
 
@@ -273,7 +330,7 @@ bool Util_queue_check_event_exist(const Queue_data* queue, uint32_t event_id)
 		}
 	}
 
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 
 	return exist;
 }
@@ -282,40 +339,46 @@ uint32_t Util_queue_get_free_space(const Queue_data* queue)
 {
 	uint32_t free = 0;
 
+	if(!util_queue_init)
+		return 0;
+
 	if(!queue)
 		return 0;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
 	if(!queue->data || !queue->event_id || queue->deleting)
 	{
-		LightLock_Unlock(&util_queue_mutex);
+		Util_sync_unlock(&util_queue_mutex);
 		return 0;
 	}
 
 	free = queue->max_items - queue->next_index;
 
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 
 	return free;
 }
 
 void Util_queue_delete(Queue_data* queue)
 {
+	if(!util_queue_init)
+		return;
+
 	if(!queue || !queue->data || !queue->event_id || queue->deleting)
 		return;
 
-	LightLock_Lock(&util_queue_mutex);
+	Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 	queue->deleting = true;
 
 	//Wait for all threads to exit Util_queue*() functions.
 	while(queue->reference_count > 0)
 	{
-		LightLock_Unlock(&util_queue_mutex);
+		Util_sync_unlock(&util_queue_mutex);
 		LightEvent_Signal(&queue->receive_wait_event);
 		LightEvent_Signal(&queue->send_wait_event);
 		Util_sleep(1000);
-		LightLock_Lock(&util_queue_mutex);
+		Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 	}
 
 	for(uint32_t i = 0; i < queue->max_items; i++)
@@ -331,5 +394,5 @@ void Util_queue_delete(Queue_data* queue)
 	queue->event_id = NULL;
 	memset(queue, 0x0, sizeof(Queue_data));
 
-	LightLock_Unlock(&util_queue_mutex);
+	Util_sync_unlock(&util_queue_mutex);
 }

@@ -11,6 +11,7 @@
 #include "system/util/file.h"
 #include "system/util/hid.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/watch.h"
 
 //Defines.
@@ -42,8 +43,8 @@ static double util_log_x = 0;
 static double util_log_uptime_ms = 0;
 static double util_log_spend_time[DEF_LOG_BUFFER_LINES] = { 0, };
 static Str_data util_log_logs[DEF_LOG_BUFFER_LINES] = { 0, };
+static Sync_data util_log_mutex = { 0, };
 static TickCounter util_log_uptime_stopwatch = { 0, };
-static LightLock util_log_mutex = 1;//Initially unlocked state.
 
 //Code.
 uint32_t Util_log_init(void)
@@ -58,6 +59,14 @@ uint32_t Util_log_init(void)
 	util_log_y = 0;
 	util_log_x = 0.0;
 	util_log_uptime_ms = 0;
+
+	result = Util_sync_create(&util_log_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
+
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 	{
 		util_log_spend_time[i] = 0;
@@ -69,8 +78,6 @@ uint32_t Util_log_init(void)
 			goto error_other;
 		}
 	}
-
-	LightLock_Init(&util_log_mutex);
 
 	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_log_show_flag, sizeof(util_log_show_flag));
 	Util_watch_add(WATCH_HANDLE_LOG, &util_log_x, sizeof(util_log_x));
@@ -86,6 +93,7 @@ uint32_t Util_log_init(void)
 	for(uint32_t i = 0; i < DEF_LOG_BUFFER_LINES; i++)
 		Util_str_free(&util_log_logs[i]);
 
+	Util_sync_destroy(&util_log_mutex);
 	return result;
 }
 
@@ -102,6 +110,7 @@ void Util_log_exit(void)
 	Util_watch_remove(WATCH_HANDLE_GLOBAL, &util_log_show_flag);
 	Util_watch_remove(WATCH_HANDLE_LOG, &util_log_x);
 	Util_watch_remove(WATCH_HANDLE_LOG, &util_log_y);
+	Util_sync_destroy(&util_log_mutex);
 }
 
 uint32_t Util_log_dump(const char* file_name, const char* dir_path)
@@ -377,7 +386,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 	Util_str_init(&temp_text);
 	Util_str_vformat(&temp_text, format_string, args);
 
-	LightLock_Lock(&util_log_mutex);
+	Util_sync_lock(&util_log_mutex, UINT64_MAX);
 
 	//Use next index if index is not specified.
 	if(log_index == DEF_LOG_INDEX_AUTO)
@@ -433,7 +442,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 	if(util_log_logs[log_index].length > DEF_LOG_MAX_LENGTH)
 		Util_str_resize(&util_log_logs[log_index], DEF_LOG_MAX_LENGTH);
 
-	LightLock_Unlock(&util_log_mutex);
+	Util_sync_unlock(&util_log_mutex);
 	Util_str_free(&temp_text);
 
 	if(util_log_show_flag)

@@ -15,13 +15,16 @@
 #include "system/util/curl.h"
 #include "system/util/err.h"
 #include "system/util/expl.h"
+#include "system/util/fake_pthread.h"
 #include "system/util/file.h"
 #include "system/util/hid.h"
 #include "system/util/httpc.h"
 #include "system/util/hw_config.h"
 #include "system/util/json_types.h"
 #include "system/util/log.h"
+#include "system/util/queue.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/thread_types.h"
 #include "system/util/watch.h"
 #include "system/util/util.h"
@@ -78,7 +81,7 @@ static uint32_t menu_icon_texture_num[DEF_MENU_NUM_OF_SUB_APP + 1] = { 0, };
 static void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { 0, };
 static Str_data menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
 static Thread menu_worker_thread = NULL;
-static LightLock menu_callback_mutex = 1;//Initially unlocked state.
+static Sync_data menu_callback_mutex = { 0, };
 static Draw_image_data menu_icon_image[DEF_MENU_NUM_OF_SUB_APP + 2] = { 0, };
 static Draw_image_data menu_sapp_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
 static Draw_image_data menu_sapp_close_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
@@ -125,6 +128,9 @@ void Menu_init(void)
 	bool is_800px = false;
 	bool is_3d = false;
 	uint8_t dummy = 0;
+	uint32_t sync_init_result = DEF_ERR_OTHER;
+	uint32_t queue_init_result = DEF_ERR_OTHER;
+	uint32_t watch_init_result = DEF_ERR_OTHER;
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t update_main_dir_result = DEF_ERR_OTHER;
 	C2D_Image cache[2] = { 0, };
@@ -137,10 +143,19 @@ void Menu_init(void)
 	for(uint16_t i = 0; i < (DEF_MENU_NUM_OF_SUB_APP + 1); i++)
 		menu_icon_texture_num[i] = UINT32_MAX;
 
-	Util_watch_init();
+	sync_init_result = Util_sync_init();
+	queue_init_result = Util_queue_init();
+	watch_init_result = Util_watch_init();
 	result = Util_log_init();
+
+	//We must log after initializing log API.
+	DEF_LOG_RESULT(Util_sync_init, (sync_init_result == DEF_SUCCESS), sync_init_result);
+	DEF_LOG_RESULT(Util_queue_init, (queue_init_result == DEF_SUCCESS), queue_init_result);
+	DEF_LOG_RESULT(Util_watch_init, (watch_init_result == DEF_SUCCESS), watch_init_result);
 	DEF_LOG_RESULT(Util_log_init, (result == DEF_SUCCESS), result);
 	DEF_LOG_FORMAT("Initializing...v%s", DEF_MENU_CURRENT_APP_VER);
+
+	DEF_LOG_RESULT_SMART(result, Util_sync_create(&menu_callback_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX), (result == DEF_SUCCESS), result);
 
 	osSetSpeedupEnable(true);
 	aptSetSleepAllowed(true);
@@ -206,6 +221,7 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Exfont_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_err_init(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_fake_pthread_init(), (result == DEF_SUCCESS), result);
 
 	if(update_main_dir_result != DEF_SUCCESS)
 	{
@@ -373,6 +389,7 @@ void Menu_exit(void)
 	Util_err_exit();
 	Util_exit();
 	Util_cpu_usage_exit();
+	Util_fake_pthread_exit();
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(menu_worker_thread);
@@ -410,12 +427,17 @@ void Menu_exit(void)
 	amExit();
 	Draw_exit();
 
+	Util_sync_destroy(&menu_callback_mutex);
+
+	Util_queue_exit();
+	Util_sync_exit();
+
 	DEF_LOG_STRING("Exited.");
 }
 
 bool Menu_add_worker_thread_callback(void (*const callback)(void))
 {
-	LightLock_Lock(&menu_callback_mutex);
+	Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
 	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 	{
@@ -433,17 +455,17 @@ bool Menu_add_worker_thread_callback(void (*const callback)(void))
 	}
 
 	//No free spaces left.
-	LightLock_Unlock(&menu_callback_mutex);
+	Util_sync_unlock(&menu_callback_mutex);
 	return false;
 
 	success:
-	LightLock_Unlock(&menu_callback_mutex);
+	Util_sync_unlock(&menu_callback_mutex);
 	return true;
 }
 
 void Menu_remove_worker_thread_callback(void (*const callback)(void))
 {
-	LightLock_Lock(&menu_callback_mutex);
+	Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
 	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
 	{
@@ -454,7 +476,7 @@ void Menu_remove_worker_thread_callback(void (*const callback)(void))
 		}
 	}
 
-	LightLock_Unlock(&menu_callback_mutex);
+	Util_sync_unlock(&menu_callback_mutex);
 }
 
 void Menu_main(void)
@@ -1226,7 +1248,7 @@ void Menu_worker_thread(void* arg)
 
 	while (menu_thread_run)
 	{
-		LightLock_Lock(&menu_callback_mutex);
+		Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
 		//Call callback functions.
 		for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
@@ -1235,7 +1257,7 @@ void Menu_worker_thread(void* arg)
 				menu_worker_thread_callbacks[i]();
 		}
 
-		LightLock_Unlock(&menu_callback_mutex);
+		Util_sync_unlock(&menu_callback_mutex);
 
 		gspWaitForVBlank();
 	}

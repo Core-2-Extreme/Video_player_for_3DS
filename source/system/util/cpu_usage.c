@@ -2,6 +2,7 @@
 #include "system/util/cpu_usage.h"
 
 #if DEF_CPU_USAGE_API_ENABLE
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>

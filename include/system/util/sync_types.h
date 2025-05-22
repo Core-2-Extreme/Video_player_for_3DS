@@ -2,14 +2,14 @@
 #define DEF_SYNC_TYPES_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "3ds.h"
 
 typedef enum
 {
 	SYNC_TYPE_INVALID = -1,
 
-	SYNC_TYPE_NON_RECURSIVE_MUTEX,
-	SYNC_TYPE_RECURSIVE_MUTEX,
+	SYNC_TYPE_NON_RECURSIVE_MUTEX,		//Non-recursive mutex.
+	SYNC_TYPE_RECURSIVE_MUTEX,			//Recursive mutex.
+	SYNC_TYPE_CONDITION,				//Condition variable.
 
 	SYNC_TYPE_MAX,
 } Sync_type;

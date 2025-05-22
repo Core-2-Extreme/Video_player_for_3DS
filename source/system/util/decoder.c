@@ -1,6 +1,7 @@
 //Includes.
 #include "system/util/decoder.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 

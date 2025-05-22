@@ -1,6 +1,5 @@
 #if !defined(DEF_LOG_H)
 #define DEF_LOG_H
-#include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>

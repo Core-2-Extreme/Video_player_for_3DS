@@ -3,6 +3,7 @@
 
 #if DEF_EXPL_API_ENABLE
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>

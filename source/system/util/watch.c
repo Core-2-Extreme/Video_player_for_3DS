@@ -10,6 +10,8 @@
 #include "3ds.h"
 
 #include "system/util/err_types.h"
+#include "system/util/log.h"
+#include "system/util/sync.h"
 
 //Defines.
 //N/A.
@@ -23,16 +25,23 @@
 //Variables.
 static bool util_watch_init = false;
 static uint32_t util_watch_num_of_active[WATCH_HANDLE_MAX] = { 0, };
-static LightLock util_watch_variables_mutex = 1;//Initially unlocked state.
+static Sync_data util_watch_variables_mutex = { 0, };
 static Watch_data util_watch_data[DEF_WATCH_MAX_VARIABLES] = { 0, };
 
 //Code.
 uint32_t Util_watch_init(void)
 {
+	uint32_t result = DEF_ERR_OTHER;
+
 	if(util_watch_init)
 		goto already_inited;
 
-	LightLock_Init(&util_watch_variables_mutex);
+	result = Util_sync_create(&util_watch_variables_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
 
 	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		util_watch_num_of_active[i] = 0;
@@ -50,6 +59,9 @@ uint32_t Util_watch_init(void)
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
+
+	error_other:
+	return result;
 }
 
 void Util_watch_exit(void)
@@ -59,14 +71,15 @@ void Util_watch_exit(void)
 
 	util_watch_init = false;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
 	{
 		free(util_watch_data[i].previous_data);
 		util_watch_data[i].previous_data = NULL;
 	}
 
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
+	Util_sync_destroy(&util_watch_variables_mutex);
 }
 
 uint32_t Util_watch_get_usage(Watch_handle handle)
@@ -79,9 +92,9 @@ uint32_t Util_watch_get_usage(Watch_handle handle)
 	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX)
 		return 0;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 	used = util_watch_num_of_active[handle];
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 
 	return used;
 }
@@ -93,11 +106,11 @@ uint32_t Util_watch_get_total_usage(void)
 	if(!util_watch_init)
 		return 0;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		used += util_watch_num_of_active[i];
 
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 
 	return used;
 }
@@ -112,7 +125,7 @@ uint32_t Util_watch_add(Watch_handle handle, const void* variable, uint32_t leng
 	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX || !variable || length == 0)
 		goto invalid_arg;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 
 	for(uint16_t i = 0; i < (uint16_t)WATCH_HANDLE_MAX; i++)
 		used += util_watch_num_of_active[i];
@@ -139,7 +152,7 @@ uint32_t Util_watch_add(Watch_handle handle, const void* variable, uint32_t leng
 		}
 	}
 
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 	return DEF_SUCCESS;
 
 	not_inited:
@@ -149,7 +162,7 @@ uint32_t Util_watch_add(Watch_handle handle, const void* variable, uint32_t leng
 	return DEF_ERR_INVALID_ARG;
 
 	out_of_memory:
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 	return DEF_ERR_OUT_OF_MEMORY;
 }
 
@@ -161,7 +174,7 @@ void Util_watch_remove(Watch_handle handle, const void* variable)
 	if(handle <= WATCH_HANDLE_INVALID || handle >= WATCH_HANDLE_MAX || !variable)
 		return;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 
 	//Search for specified address and remove it if exists.
 	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
@@ -179,7 +192,7 @@ void Util_watch_remove(Watch_handle handle, const void* variable)
 		}
 	}
 
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 }
 
 bool Util_watch_is_changed(Watch_handle_bit handles)
@@ -192,7 +205,7 @@ bool Util_watch_is_changed(Watch_handle_bit handles)
 	if(handles == DEF_WATCH_HANDLE_BIT_NONE)
 		return false;
 
-	LightLock_Lock(&util_watch_variables_mutex);
+	Util_sync_lock(&util_watch_variables_mutex, UINT64_MAX);
 
 	//Check if any data that is linked with specified handle were changed.
 	for(uint32_t i = 0; i < DEF_WATCH_MAX_VARIABLES; i++)
@@ -214,7 +227,7 @@ bool Util_watch_is_changed(Watch_handle_bit handles)
 		}
 	}
 
-	LightLock_Unlock(&util_watch_variables_mutex);
+	Util_sync_unlock(&util_watch_variables_mutex);
 
 	return is_changed;
 }

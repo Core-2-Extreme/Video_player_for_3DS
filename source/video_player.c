@@ -23,6 +23,7 @@
 #include "system/util/queue.h"
 #include "system/util/speaker.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
@@ -485,8 +486,8 @@ typedef struct
 	Queue_data read_packet_thread_command_queue;	//Read packet thread command queue.
 
 	//Mutexs.
-	LightLock texture_init_free_lock;				//Mutex for initializing and freeing texture buffers.
-	LightLock delay_update_lock;					//Mutex for updating video delay information.
+	Sync_data texture_init_free_lock;				//Mutex for initializing and freeing texture buffers.
+	Sync_data delay_update_lock;					//Mutex for updating video delay information.
 } Vid_player;
 
 //Prototypes.
@@ -542,8 +543,8 @@ static bool vid_already_init = false;
 static bool vid_thread_suspend = true;
 static Str_data vid_status = { 0, };
 static Str_data vid_msg[DEF_VID_NUM_OF_MSG] = { 0, };
-static Thread vid_init_thread, vid_exit_thread;
-static Vid_player vid_player;
+static Thread vid_init_thread = 0, vid_exit_thread = 0;
+static Vid_player vid_player = { 0, };
 
 //Code.
 bool Vid_query_init_flag(void)
@@ -1578,13 +1579,13 @@ void Vid_main(void)
 				if(vid_player.num_of_audio_tracks > 0 && vid_player.num_of_video_tracks > 0)
 				{
 					//We only use track 0 for delay checking.
-					LightLock_Lock(&vid_player.delay_update_lock);
+					Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 					Vid_update_video_delay(0);
 					if(vid_player.num_of_video_tracks > 1)
 						Vid_update_video_delay(1);
 
 					video_delay = vid_player.video_delay_ms[0][DEF_VID_DELAY_SAMPLES - 1];
-					LightLock_Unlock(&vid_player.delay_update_lock);
+					Util_sync_unlock(&vid_player.delay_update_lock);
 				}
 				else
 					video_delay = 0;
@@ -1797,21 +1798,21 @@ void Vid_main(void)
 			if(vid_player.state != PLAYER_STATE_IDLE)
 			{
 				//Draw videos.
-				if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+				if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 				{
 					Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[0], video_y_offset[0], image_width[0], image_height[0]);
-					LightLock_Unlock(&vid_player.texture_init_free_lock);
+					Util_sync_unlock(&vid_player.texture_init_free_lock);
 				}
 
 				//Draw subtitles.
 				if(subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
 				{
-					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
 						if(vid_player.subtitle_image[subtitle_index].subtex)
 							Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[0], bitmap_subtitle_y_offset[0], bitmap_subtitle_width, bitmap_subtitle_height);
 
-						LightLock_Unlock(&vid_player.texture_init_free_lock);
+						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
 					if(vid_player.subtitle_data[subtitle_index].text)
@@ -1911,21 +1912,21 @@ void Vid_main(void)
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
 					//Draw 3D videos (right eye).
-					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
 						Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset[1], video_y_offset[1], image_width[1], image_height[1]);
-						LightLock_Unlock(&vid_player.texture_init_free_lock);
+						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
 					//Draw subtitles.
 					if(subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
 					{
-						if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
 								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[1], bitmap_subtitle_y_offset[1], bitmap_subtitle_width, bitmap_subtitle_height);
 
-							LightLock_Unlock(&vid_player.texture_init_free_lock);
+							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
 
 						if(vid_player.subtitle_data[subtitle_index].text)
@@ -2004,21 +2005,21 @@ void Vid_main(void)
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
 					//Draw videos.
-					if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
 						Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[2], video_y_offset[2], image_width[0], image_height[0]);
-						LightLock_Unlock(&vid_player.texture_init_free_lock);
+						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
 					//Draw subtitles.
 					if(subtitle_index < DEF_VID_SUBTITLE_BUFFERS)
 					{
-						if(LightLock_TryLock(&vid_player.texture_init_free_lock) == 0)
+						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
 								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[2], bitmap_subtitle_y_offset[2], bitmap_subtitle_width, bitmap_subtitle_height);
 
-							LightLock_Unlock(&vid_player.texture_init_free_lock);
+							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
 
 						if(vid_player.subtitle_data[subtitle_index].text)
@@ -3471,13 +3472,13 @@ static void Vid_init_video_data(void)
 		vid_player.video_info[i].pixel_format = RAW_PIXEL_INVALID;
 	}
 
-	LightLock_Lock(&vid_player.texture_init_free_lock);
+	Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 	for(uint8_t i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 	{
 		for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 			Vid_large_texture_free(&vid_player.large_image[i][k]);
 	}
-	LightLock_Unlock(&vid_player.texture_init_free_lock);
+	Util_sync_unlock(&vid_player.texture_init_free_lock);
 }
 
 static void Vid_init_audio_data(void)
@@ -3563,7 +3564,7 @@ void frame_worker_thread_start(const void* frame_handle)
 	if(!frame_handle)
 		return;
 
-	LightLock_Lock(&vid_player.delay_update_lock);
+	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 	//Search for stopwatch index using frame handle.
 	for(uint8_t i = 0; i < 32; i++)
 	{
@@ -3587,7 +3588,7 @@ void frame_worker_thread_start(const void* frame_handle)
 			}
 		}
 	}
-	LightLock_Unlock(&vid_player.delay_update_lock);
+	Util_sync_unlock(&vid_player.delay_update_lock);
 
 	//No free spaces were found.
 	if(index == UINT8_MAX)
@@ -3605,7 +3606,7 @@ void frame_worker_thread_end(const void* frame_handle)
 	if(!frame_handle)
 		return;
 
-	LightLock_Lock(&vid_player.delay_update_lock);
+	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 	//Search for stopwatch index using frame handle.
 	for(uint8_t i = 0; i < 32; i++)
 	{
@@ -3617,7 +3618,7 @@ void frame_worker_thread_end(const void* frame_handle)
 			break;
 		}
 	}
-	LightLock_Unlock(&vid_player.delay_update_lock);
+	Util_sync_unlock(&vid_player.delay_update_lock);
 
 	//Not registerd.
 	if(index == UINT8_MAX)
@@ -3625,9 +3626,9 @@ void frame_worker_thread_end(const void* frame_handle)
 
 	osTickCounterUpdate(&vid_player.decoding_time_tick[index]);
 	time = osTickCounterRead(&vid_player.decoding_time_tick[index]);
-	LightLock_Lock(&vid_player.delay_update_lock);
+	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 	Vid_update_performance_graph(time, false, &dummy);
-	LightLock_Unlock(&vid_player.delay_update_lock);
+	Util_sync_unlock(&vid_player.delay_update_lock);
 }
 
 void dav1d_worker_task_start(const void* frame_handle)
@@ -3656,6 +3657,9 @@ void Vid_init_thread(void* arg)
 	memset(&vid_player, 0x00, sizeof(Vid_player));
 	Vid_init_variable();
 	Vid_exit_full_screen();
+
+	DEF_LOG_RESULT_SMART(result, Util_sync_create(&vid_player.texture_init_free_lock, SYNC_TYPE_NON_RECURSIVE_MUTEX), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_sync_create(&vid_player.delay_update_lock, SYNC_TYPE_NON_RECURSIVE_MUTEX), (result == DEF_SUCCESS), result);
 
 	vid_player.banner_texture_handle = UINT32_MAX;
 	vid_player.control_texture_handle = UINT32_MAX;
@@ -3778,9 +3782,6 @@ void Vid_init_thread(void* arg)
 
 	for(uint8_t i = 0; i < 3; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected, sizeof(vid_player.menu_button[i].selected));
-
-	LightLock_Init(&vid_player.texture_init_free_lock);
-	LightLock_Init(&vid_player.delay_update_lock);
 
 	Util_str_add(&vid_status, "\nInitializing queue...");
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.decode_thread_command_queue, 200), (result == DEF_SUCCESS), result);
@@ -4078,6 +4079,9 @@ void Vid_exit_thread(void* arg)
 	Util_queue_delete(&vid_player.decode_video_thread_command_queue);
 	Util_queue_delete(&vid_player.convert_thread_command_queue);
 
+	Util_sync_destroy(&vid_player.texture_init_free_lock);
+	Util_sync_destroy(&vid_player.delay_update_lock);
+
 	vid_already_init = false;
 
 	DEF_LOG_STRING("Thread exit.");
@@ -4316,9 +4320,9 @@ void Vid_decode_thread(void* arg)
 								{
 									for(uint8_t k = 0; k < loop; k++)
 									{
-										LightLock_Lock(&vid_player.texture_init_free_lock);
+										Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 										result = Vid_large_texture_init(&vid_player.large_image[i][k], vid_player.video_info[k].codec_width, vid_player.video_info[k].codec_height, RAW_PIXEL_RGB565LE, true);
-										LightLock_Unlock(&vid_player.texture_init_free_lock);
+										Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 										if(result != DEF_SUCCESS)
 										{
@@ -4706,13 +4710,13 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION)
 						Util_converter_y2r_exit();
 
-					LightLock_Lock(&vid_player.texture_init_free_lock);
+					Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 					for(uint8_t i = 0; i < DEF_VID_VIDEO_BUFFERS; i++)
 					{
 						for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
 							Vid_large_texture_free(&vid_player.large_image[i][k]);
 					}
-					LightLock_Unlock(&vid_player.texture_init_free_lock);
+					Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 					if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
 						Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos);
@@ -5263,11 +5267,11 @@ void Vid_decode_thread(void* arg)
 								uint32_t texture_width = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width);
 								uint32_t texture_height = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height);
 
-								LightLock_Lock(&vid_player.texture_init_free_lock);
+								Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 								Draw_texture_free(&vid_player.subtitle_image[vid_player.subtitle_index]);
 								result = Draw_texture_init(&vid_player.subtitle_image[vid_player.subtitle_index], texture_width, texture_height, RAW_PIXEL_ABGR8888);
 								memset(vid_player.subtitle_image[vid_player.subtitle_index].c2d.tex->data, 0x0, texture_width * texture_height * 4);
-								LightLock_Unlock(&vid_player.texture_init_free_lock);
+								Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 								if(result == DEF_SUCCESS)
 								{
@@ -5662,10 +5666,10 @@ void Vid_convert_thread(void* arg)
 				if(vid_player.num_of_video_tracks >= 2)
 					force_drop_threshold *= 2;
 
-				LightLock_Lock(&vid_player.delay_update_lock);
+				Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 				Vid_update_video_delay(packet_index);
 				video_delay = vid_player.video_delay_ms[packet_index][DEF_VID_DELAY_SAMPLES - 1];
-				LightLock_Unlock(&vid_player.delay_update_lock);
+				Util_sync_unlock(&vid_player.delay_update_lock);
 
 				if(video_delay > drop_threshold)
 				{
@@ -5944,9 +5948,9 @@ void Vid_convert_thread(void* arg)
 		}
 		else if(vid_player.state == PLAYER_STATE_BUFFERING)
 		{
-			LightLock_Lock(&vid_player.delay_update_lock);
+			Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 			Vid_init_desync_data();
-			LightLock_Unlock(&vid_player.delay_update_lock);
+			Util_sync_unlock(&vid_player.delay_update_lock);
 
 			if(num_of_cached_raw_images >= vid_player.restart_playback_threshold
 			|| Util_speaker_get_available_buffer_num(0) + 1 >= DEF_SPEAKER_MAX_BUFFERS)

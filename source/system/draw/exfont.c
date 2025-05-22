@@ -1,6 +1,7 @@
 //Includes.
 #include "system/draw/exfont.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>

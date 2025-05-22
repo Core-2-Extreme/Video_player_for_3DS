@@ -5,6 +5,20 @@
 #include "system/util/queue_types.h"
 
 /**
+ * @brief Initialize queue API.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @warning Thread dangerous (untested).
+*/
+uint32_t Util_queue_init(void);
+
+/**
+ * @brief Uninitialize queue API.
+ * Do nothing if queue API is not initialized.
+ * @warning Thread dangerous (untested).
+*/
+void Util_queue_exit(void);
+
+/**
  * @brief Create the queue.
  * @param queue (out) Pointer for the queue.
  * @param max_items (in) Max number of items this queue can hold.

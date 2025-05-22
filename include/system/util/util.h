@@ -141,4 +141,14 @@ double Util_min_d(double value_0, double value_1);
 */
 double Util_max_d(double value_0, double value_1);
 
+/**
+ * @brief Get difference (distance) between new value and old value.
+ * @param new_value (in) New value to use.
+ * @param old_value (in) Old value to use.
+ * @param max_value (in) Maximum value before wrapping to 0 (e.g. if max_value == 213, value range is 0-213).
+ * @return Difference (distance between new and old).
+ * @note Thread safe.
+*/
+uint64_t Util_get_diff(uint64_t new_value, uint64_t old_value, uint64_t max_value);
+
 #endif //!defined(DEF_UTIL_H)

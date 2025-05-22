@@ -1,6 +1,7 @@
 //Includes.
 #include "system/draw/draw.h"
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@
 #include "system/util/hid.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
 
@@ -59,10 +61,10 @@ static double util_draw_frametime = 0;
 static uint32_t util_draw_rendered_frames = 0;
 static uint32_t util_draw_rendered_frames_cache = 0;
 static uint64_t util_draw_reset_fps_counter_time = 0;
+static Sync_data util_draw_need_refresh_mutex = { 0, };
 static C3D_RenderTarget* util_draw_screen[3] = { 0, };
 static C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
 static TickCounter util_draw_frame_time_stopwatch = { 0, };
-static LightLock util_draw_need_refresh_mutex = 1;//Initially unlocked state.
 static Draw_image_data util_draw_wifi_icon_image[9] = { 0, };
 static Draw_image_data util_draw_battery_level_icon_image[21] = { 0, };
 static Draw_image_data util_draw_battery_charge_icon_image[1] = { 0, };
@@ -85,7 +87,12 @@ uint32_t Draw_init(bool wide, bool _3d)
 	util_draw_is_800px = false;
 	util_draw_is_3d = false;
 	util_draw_is_refresh_needed = false;
-	LightLock_Init(&util_draw_need_refresh_mutex);
+	result = Util_sync_create(&util_draw_need_refresh_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
 
 	if(wide)
 		gfxSetWide(wide);
@@ -96,14 +103,14 @@ uint32_t Draw_init(bool wide, bool _3d)
 	{
 		result = DEF_ERR_OTHER;
 		DEF_LOG_RESULT(C3D_Init, false, result);
-		goto other;
+		goto error_other;
 	}
 
 	if(!C2D_Init(C2D_DEFAULT_MAX_OBJECTS * 1.5))
 	{
 		result = DEF_ERR_OTHER;
 		DEF_LOG_RESULT(C2D_Init, false, result);
-		goto other;
+		goto error_other;
 	}
 
 	C2D_Prepare();
@@ -115,7 +122,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	{
 		result = DEF_ERR_OTHER;
 		DEF_LOG_RESULT(C2D_CreateScreenTarget, false, result);
-		goto other;
+		goto error_other;
 	}
 
 	C2D_TargetClear(util_draw_screen[DRAW_SCREEN_TOP_LEFT], C2D_Color32f(0, 0, 0, 0));
@@ -131,7 +138,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
-		goto other;
+		goto error_other;
 	}
 	for(uint8_t i = 0; i < (sizeof(util_draw_wifi_icon_image) / sizeof(util_draw_wifi_icon_image[0])); i++)
 		util_draw_wifi_icon_image[i].c2d = texture_cache[i];
@@ -140,7 +147,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
-		goto other;
+		goto error_other;
 	}
 	for(uint8_t i = 0; i < (sizeof(util_draw_battery_level_icon_image) / sizeof(util_draw_battery_level_icon_image[0])); i++)
 		util_draw_battery_level_icon_image[i].c2d = texture_cache[i];
@@ -149,7 +156,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
-		goto other;
+		goto error_other;
 	}
 	for(uint8_t i = 0; i < (sizeof(util_draw_battery_charge_icon_image) / sizeof(util_draw_battery_charge_icon_image[0])); i++)
 		util_draw_battery_charge_icon_image[i].c2d = texture_cache[i];
@@ -158,7 +165,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
-		goto other;
+		goto error_other;
 	}
 	for(uint8_t i = 0; i < (sizeof(util_draw_eco_image) / sizeof(util_draw_eco_image[0])); i++)
 		util_draw_eco_image[i].c2d = texture_cache[i];
@@ -167,7 +174,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
-		goto other;
+		goto error_other;
 	}
 
 	util_draw_bot_ui.c2d = texture_cache[0];
@@ -182,9 +189,10 @@ uint32_t Draw_init(bool wide, bool _3d)
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
 
-	other:
+	error_other:
 	C2D_Fini();
 	C3D_Fini();
+	Util_sync_destroy(&util_draw_need_refresh_mutex);
 	return result;
 }
 
@@ -213,13 +221,13 @@ uint32_t Draw_reinit(bool wide, bool _3d)
 	if(!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE * 1.5))
 	{
 		DEF_LOG_RESULT(C3D_Init, false, DEF_ERR_OTHER);
-		goto other;
+		goto error_other;
 	}
 
 	if(!C2D_Init(C2D_DEFAULT_MAX_OBJECTS * 1.5))
 	{
 		DEF_LOG_RESULT(C2D_Init, false, DEF_ERR_OTHER);
-		goto other;
+		goto error_other;
 	}
 
 	C2D_Prepare();
@@ -230,7 +238,7 @@ uint32_t Draw_reinit(bool wide, bool _3d)
 	|| !util_draw_screen[DRAW_SCREEN_TOP_RIGHT])
 	{
 		DEF_LOG_RESULT(C2D_CreateScreenTarget, false, DEF_ERR_OTHER);
-		goto other;
+		goto error_other;
 	}
 
 	util_draw_is_800px = wide;
@@ -240,10 +248,11 @@ uint32_t Draw_reinit(bool wide, bool _3d)
 	not_inited:
 	return DEF_ERR_NOT_INITIALIZED;
 
-	other:
+	error_other:
 	util_draw_init = false;
 	C2D_Fini();
 	C3D_Fini();
+	Util_sync_destroy(&util_draw_need_refresh_mutex);
 	return DEF_ERR_OTHER;
 }
 
@@ -263,6 +272,7 @@ void Draw_exit(void)
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
+	Util_sync_destroy(&util_draw_need_refresh_mutex);
 }
 
 bool Draw_is_800px_mode(void)
@@ -288,9 +298,9 @@ bool Draw_is_refresh_needed(void)
 	if(!util_draw_init)
 		return false;
 
-	LightLock_Lock(&util_draw_need_refresh_mutex);
+	Util_sync_lock(&util_draw_need_refresh_mutex, UINT64_MAX);
 	is_needed = util_draw_is_refresh_needed;
-	LightLock_Unlock(&util_draw_need_refresh_mutex);
+	Util_sync_unlock(&util_draw_need_refresh_mutex);
 
 	return is_needed;
 }
@@ -300,9 +310,9 @@ void Draw_set_refresh_needed(bool is_refresh_needed)
 	if(!util_draw_init)
 		return;
 
-	LightLock_Lock(&util_draw_need_refresh_mutex);
+	Util_sync_lock(&util_draw_need_refresh_mutex, UINT64_MAX);
 	util_draw_is_refresh_needed = is_refresh_needed;
-	LightLock_Unlock(&util_draw_need_refresh_mutex);
+	Util_sync_unlock(&util_draw_need_refresh_mutex);
 }
 
 double Draw_query_frametime(void)
@@ -755,7 +765,7 @@ uint32_t Draw_load_texture(const char* file_path, uint32_t sheet_map_num, C2D_Im
 	{
 		DEF_LOG_RESULT(C2D_SpriteSheetLoad, false, DEF_ERR_OTHER);
 		DEF_LOG_FORMAT("Couldn't load texture file : %s", file_path);
-		goto other;
+		goto error_other;
 	}
 
 	num_of_images = C2D_SpriteSheetCount(util_draw_sheet_texture[sheet_map_num]);
@@ -771,7 +781,7 @@ uint32_t Draw_load_texture(const char* file_path, uint32_t sheet_map_num, C2D_Im
 	invalid_arg:
 	return DEF_ERR_INVALID_ARG;
 
-	other:
+	error_other:
 	return DEF_ERR_OTHER;
 
 	out_of_memory:

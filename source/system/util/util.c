@@ -1,6 +1,7 @@
 //Includes.
 #include "system/util/util.h"
 
+#include <inttypes.h>
 #include <malloc.h>
 #include <math.h>
 #include <stdbool.h>
@@ -958,6 +959,14 @@ double Util_min_d(double value_0, double value_1)
 double Util_max_d(double value_0, double value_1)
 {
 	return (value_0 > value_1 ? value_0 : value_1);
+}
+
+uint64_t Util_get_diff(uint64_t new_value, uint64_t old_value, uint64_t max_value)
+{
+	if(new_value >= old_value)
+		return (new_value - old_value);
+	else
+		return (max_value - (old_value - new_value));
 }
 
 void Util_check_core_thread(void* arg)

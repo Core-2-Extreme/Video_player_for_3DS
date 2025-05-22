@@ -7,6 +7,7 @@
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/log.h"
+#include "system/util/sync.h"
 #include "system/util/thread_types.h"
 
 //Defines.
@@ -72,9 +73,9 @@ static bool util_hid_thread_run = false;
 static bool util_hid_init = false;
 static Hid_info util_hid_info = { 0, };
 static Hid_internal_keys util_hid_internal_keys = { 0, };
+static Sync_data util_hid_callback_mutex = { 0, }, util_hid_data_mutex = { 0, };
 static void (*util_hid_callbacks[DEF_HID_NUM_OF_CALLBACKS])(void) = { 0, };
 static Thread util_hid_scan_thread = NULL;
-static LightLock util_hid_callback_mutex = 0, util_hid_data_mutex = 0;
 
 //Code.
 uint32_t Util_hid_init(void)
@@ -86,6 +87,20 @@ uint32_t Util_hid_init(void)
 
 	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 		util_hid_callbacks[i] = NULL;
+
+	result = Util_sync_create(&util_hid_callback_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
+
+	result = Util_sync_create(&util_hid_data_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
 
 	result = hidInit();
 	if(result != DEF_SUCCESS)
@@ -103,9 +118,6 @@ uint32_t Util_hid_init(void)
 		goto nintendo_api_failed_0;
 	}
 
-	LightLock_Init(&util_hid_callback_mutex);
-	LightLock_Init(&util_hid_data_mutex);
-
 	util_hid_init = true;
 	return DEF_SUCCESS;
 
@@ -117,6 +129,9 @@ uint32_t Util_hid_init(void)
 	//Fallthrough.
 
 	nintendo_api_failed:
+	error_other:
+	Util_sync_destroy(&util_hid_callback_mutex);
+	Util_sync_destroy(&util_hid_data_mutex);
 	return result;
 }
 
@@ -130,6 +145,8 @@ void Util_hid_exit(void)
 	threadJoin(util_hid_scan_thread, DEF_THREAD_WAIT_TIME);
 	threadFree(util_hid_scan_thread);
 	hidExit();
+	Util_sync_destroy(&util_hid_callback_mutex);
+	Util_sync_destroy(&util_hid_data_mutex);
 }
 
 bool Util_hid_is_pressed(Hid_info hid_state, Draw_image_data image)
@@ -173,9 +190,9 @@ uint32_t Util_hid_query_key_state(Hid_info* out_key_state)
 	if(!out_key_state)
 		goto invalid_arg;
 
-	LightLock_Lock(&util_hid_data_mutex);
+	Util_sync_lock(&util_hid_data_mutex, UINT64_MAX);
 	*out_key_state = util_hid_info;
-	LightLock_Unlock(&util_hid_data_mutex);
+	Util_sync_unlock(&util_hid_data_mutex);
 
 	return DEF_SUCCESS;
 
@@ -191,9 +208,9 @@ void Util_hid_reset_afk_time(void)
 	if(!util_hid_init)
 		return;
 
-	LightLock_Lock(&util_hid_data_mutex);
+	Util_sync_lock(&util_hid_data_mutex, UINT64_MAX);
 	util_hid_info.afk_time_ms = 0;
-	LightLock_Unlock(&util_hid_data_mutex);
+	Util_sync_unlock(&util_hid_data_mutex);
 }
 
 void Util_hid_reset_key_state(Hid_key_bit keys)
@@ -207,7 +224,7 @@ void Util_hid_reset_key_state(Hid_key_bit keys)
 	//Set wait release flag so that user have to release the key first.
 	clean_internal.wait_release = true;
 
-	LightLock_Lock(&util_hid_data_mutex);
+	Util_sync_lock(&util_hid_data_mutex, UINT64_MAX);
 	if(keys & HID_KEY_BIT_A)
 	{
 		util_hid_info.a = clean;
@@ -324,7 +341,7 @@ void Util_hid_reset_key_state(Hid_key_bit keys)
 		util_hid_internal_keys.touch = clean_internal;
 	}
 
-	LightLock_Unlock(&util_hid_data_mutex);
+	Util_sync_unlock(&util_hid_data_mutex);
 }
 
 bool Util_hid_add_callback(void (*const callback)(void))
@@ -332,7 +349,7 @@ bool Util_hid_add_callback(void (*const callback)(void))
 	if(!util_hid_init)
 		return false;
 
-	LightLock_Lock(&util_hid_callback_mutex);
+	Util_sync_lock(&util_hid_callback_mutex, UINT64_MAX);
 
 	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 	{
@@ -350,11 +367,11 @@ bool Util_hid_add_callback(void (*const callback)(void))
 	}
 
 	//No free spaces left.
-	LightLock_Unlock(&util_hid_callback_mutex);
+	Util_sync_unlock(&util_hid_callback_mutex);
 	return false;
 
 	success:
-	LightLock_Unlock(&util_hid_callback_mutex);
+	Util_sync_unlock(&util_hid_callback_mutex);
 	return true;
 }
 
@@ -363,7 +380,7 @@ void Util_hid_remove_callback(void (*const callback)(void))
 	if(!util_hid_init)
 		return;
 
-	LightLock_Lock(&util_hid_callback_mutex);
+	Util_sync_lock(&util_hid_callback_mutex, UINT64_MAX);
 
 	for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
 	{
@@ -374,7 +391,7 @@ void Util_hid_remove_callback(void (*const callback)(void))
 		}
 	}
 
-	LightLock_Unlock(&util_hid_callback_mutex);
+	Util_sync_unlock(&util_hid_callback_mutex);
 }
 
 static void Util_hid_update_key_state(bool is_pressed, bool is_held, bool is_released, uint64_t current_ts, Hid_internal_info* internal_key, Hid_key* key)
@@ -636,7 +653,7 @@ void Util_hid_scan_hid_thread(void* arg)
 		key_held = hidKeysHeld();
 		key_released = hidKeysUp();
 
-		LightLock_Lock(&util_hid_data_mutex);
+		Util_sync_lock(&util_hid_data_mutex, UINT64_MAX);
 
 		util_hid_info.ts = osGetTime();
 		osTickCounterUpdate(&counter);
@@ -727,9 +744,9 @@ void Util_hid_scan_hid_thread(void* arg)
 		else
 			util_hid_info.afk_time_ms += osTickCounterRead(&counter);
 
-		LightLock_Unlock(&util_hid_data_mutex);
+		Util_sync_unlock(&util_hid_data_mutex);
 
-		LightLock_Lock(&util_hid_callback_mutex);
+		Util_sync_lock(&util_hid_callback_mutex, UINT64_MAX);
 
 		//Call callback functions.
 		for(uint16_t i = 0; i < DEF_HID_NUM_OF_CALLBACKS; i++)
@@ -738,7 +755,7 @@ void Util_hid_scan_hid_thread(void* arg)
 				util_hid_callbacks[i]();
 		}
 
-		LightLock_Unlock(&util_hid_callback_mutex);
+		Util_sync_unlock(&util_hid_callback_mutex);
 
 		gspWaitForVBlank();
 	}

@@ -14,7 +14,7 @@
 #include "system/util/util.h"
 
 //Defines.
-//N/A.
+#define DEF_SYNC_SPIN_MS		(uint16_t)(1000)
 
 //Typedefs.
 typedef struct
@@ -141,8 +141,6 @@ uint32_t Util_sync_create(Sync_data* sync_object, Sync_type type)
 
 uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 {
-	uint64_t wait_ms = 0;
-	uint64_t start_ms = 0;
 	Sync_internal_data* data = NULL;
 
 	if(!util_sync_init)
@@ -172,56 +170,60 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 
 	data->ref_count++;
 
-	//Set timeout then try to lock it.
-	start_ms = osGetTime();
-	if(wait_us == 0)
-		wait_ms = 0;
-	else
-	{
-		//Don't use this because it will overflow if wait_us is close to maximum value.
-		//wait_ms = ((wait_us + 999) / 1000);
-		wait_ms = ((wait_us / 1000) + ((wait_us % 1000) ? 1 : 0));
-	}
-
 	if(data->type == SYNC_TYPE_NON_RECURSIVE_MUTEX
 	|| data->type == SYNC_TYPE_RECURSIVE_MUTEX)
 	{
-		int32_t lock_result = -1;
+		Sync_type type = data->type;
 
-		while(true)
+		if(type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
 		{
-			if(data->type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
-			{
-				if(data->u.non_recursive.owner == getThreadLocalStorage())
-					goto already_locked;
-
-				lock_result = LightLock_TryLock(&data->u.non_recursive.lock);
-			}
-			else if(data->type == SYNC_TYPE_RECURSIVE_MUTEX)
-				lock_result = RecursiveLock_TryLock(&data->u.recursive.lock);
-
-			if(lock_result == 0)
-				break;
-
-			if(Util_get_diff(osGetTime(), start_ms, UINT64_MAX) <= wait_ms)
-			{
-				//Let other sync operations execute while we are sleeping.
-				LightLock_Unlock(&util_sync_mutex);
-
-				Util_sleep(1000);
-
-				LightLock_Lock(&util_sync_mutex);
-
-				//Check if lock object is still valid before continuing.
-				if(!Util_sync_is_valid_lock_object(lock_object))
-					goto no_longer_valid;
-
-				//Reload internal data.
-				data = (Sync_internal_data*)lock_object->internal_object;
-			}
-			else
-				goto try_again;//We couldn't lock it within the timeout.
+			if(data->u.non_recursive.owner == getThreadLocalStorage())
+				goto already_locked;
 		}
+
+		LightLock_Unlock(&util_sync_mutex);
+		if(wait_us == UINT64_MAX)
+		{
+			if(type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
+				LightLock_Lock(&data->u.non_recursive.lock);
+			else if(type == SYNC_TYPE_RECURSIVE_MUTEX)
+				RecursiveLock_Lock(&data->u.recursive.lock);
+		}
+		else
+		{
+			uint64_t remaining_us = wait_us;
+			uint32_t sleep_us = 0;
+			int32_t lock_result = -1;
+
+			do
+			{
+				if(remaining_us > (DEF_SYNC_SPIN_MS * 1000))
+				{
+					sleep_us = (DEF_SYNC_SPIN_MS * 1000);
+					remaining_us -= (DEF_SYNC_SPIN_MS * 1000);
+				}
+				else
+				{
+					sleep_us = remaining_us;
+					remaining_us = 0;
+				}
+
+				if(type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
+					lock_result = LightLock_TryLock(&data->u.non_recursive.lock);
+				else if(type == SYNC_TYPE_RECURSIVE_MUTEX)
+					lock_result = RecursiveLock_TryLock(&data->u.recursive.lock);
+
+				if(lock_result == 0)
+					break;//Success.
+
+				Util_sleep(sleep_us);
+			}
+			while(sleep_us > 0);
+
+			if(lock_result != 0)
+				goto try_again;
+		}
+		LightLock_Lock(&util_sync_mutex);
 	}
 	else
 		goto invalid_type;
@@ -261,11 +263,6 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 	LightLock_Unlock(&util_sync_mutex);
 	//Log API may use sync API, so log it after unlocking mutex.
 	DEF_LOG_FORMAT("Already locked by the same owner (0x%08" PRIXPTR ")!!!!!", (uintptr_t)getThreadLocalStorage());
-	return DEF_ERR_OTHER;
-
-	no_longer_valid:
-	data->ref_count--;
-	LightLock_Unlock(&util_sync_mutex);
 	return DEF_ERR_OTHER;
 
 	try_again:
@@ -429,7 +426,6 @@ uint32_t Util_sync_cond_wait(Sync_data* cond_object, Sync_data* lock_object, uin
 			}
 			while(remaining_us > 0);
 		}
-
 		LightLock_Lock(&util_sync_mutex);
 
 		//Mutex was relocked by CondVar_WaitTimeout().

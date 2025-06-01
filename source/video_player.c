@@ -5743,7 +5743,7 @@ void Vid_convert_thread(void* arg)
 			{
 				if(vid_player.state == PLAYER_STATE_SEEKING)
 					Util_sleep(3000);
-				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && (Util_speaker_get_available_buffer_num(0) + 1) < DEF_SPEAKER_MAX_BUFFERS)
+				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
 				{
 					//Notify we've run out of buffer.
 					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
@@ -5764,7 +5764,7 @@ void Vid_convert_thread(void* arg)
 			if(vid_player.num_of_video_tracks >= 2)
 				num_of_cached_raw_images = Util_max(Util_decoder_video_get_available_raw_image_num(0, 0), Util_decoder_video_get_available_raw_image_num(1, 0));
 
-			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && (Util_speaker_get_available_buffer_num(0) + 1) < DEF_SPEAKER_MAX_BUFFERS)
+			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
 			{
 				//Notify we've run out of buffer.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,

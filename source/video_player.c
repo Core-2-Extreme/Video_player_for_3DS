@@ -5233,12 +5233,12 @@ void Vid_decode_thread(void* arg)
 							}
 							else
 								DEF_LOG_RESULT(Util_converter_convert_audio, false, result);
+
+							//Update audio position.
+							vid_player.last_decoded_audio_pos = pos;
 						}
 						else if(result != DEF_SUCCESS)
 							DEF_LOG_RESULT(Util_decoder_audio_decode, false, result);
-
-						//Update audio position.
-						vid_player.last_decoded_audio_pos = pos;
 
 						free(parameters.converted);
 						free(audio);

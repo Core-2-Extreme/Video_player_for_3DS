@@ -173,6 +173,7 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 	if(data->type == SYNC_TYPE_NON_RECURSIVE_MUTEX
 	|| data->type == SYNC_TYPE_RECURSIVE_MUTEX)
 	{
+		int32_t lock_result = -1;
 		Sync_type type = data->type;
 
 		if(type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
@@ -185,15 +186,20 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 		if(wait_us == UINT64_MAX)
 		{
 			if(type == SYNC_TYPE_NON_RECURSIVE_MUTEX)
+			{
 				LightLock_Lock(&data->u.non_recursive.lock);
+				lock_result = 0;
+			}
 			else if(type == SYNC_TYPE_RECURSIVE_MUTEX)
+			{
 				RecursiveLock_Lock(&data->u.recursive.lock);
+				lock_result = 0;
+			}
 		}
 		else
 		{
 			uint64_t remaining_us = wait_us;
 			uint32_t sleep_us = 0;
-			int32_t lock_result = -1;
 
 			do
 			{
@@ -219,11 +225,11 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 				Util_sleep(sleep_us);
 			}
 			while(sleep_us > 0);
-
-			if(lock_result != 0)
-				goto try_again;
 		}
 		LightLock_Lock(&util_sync_mutex);
+
+		if(lock_result != 0)
+			goto try_again;
 	}
 	else
 		goto invalid_type;

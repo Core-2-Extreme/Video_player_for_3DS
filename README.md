@@ -148,7 +148,7 @@ for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe
 
 ## Build
 You need : 
-* [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide](library/00_devkitpro_install.md))
+* [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide](library/_devkitpro_install.md))
 
 If you want to build .cia, then you also need : 
 * [bannertool](https://github.com/diasurgical/bannertool/releases/tag/1.2.0)
@@ -162,7 +162,7 @@ As of this writing, we use these packages to build this project. \
 Note : Not all of them are necessary e.g. `devkitARM-gdb` is not required to build and we don't use \
 standard `libctru` and `citro2(3)d` (that means you don't need them to build this project), \
 but we just document all of them in case someone need these information. \
-For more information, see [here](library/00_devkitpro_install.md#install-devkitpro).
+For more information, see [here](library/_devkitpro_install.md#install-devkitpro).
 ```
 $ dkp-pacman -Q
 3ds-cmake 1.5.1-1
@@ -194,7 +194,7 @@ bannertool 1.2.0
 makerom v0.18.4
 ```
 
-If you want to make changes to the libraries, then follow [this guide](library/00_devkitpro_install.md#build-libraries-usually-optional).
+If you want to make changes to the libraries, then follow [this guide](library/_devkitpro_install.md#build-libraries-usually-optional).
 
 After having all dependencies, do :
 * Clone this repository (`git clone https://github.com/core-2-extreme/{project_name}`).
@@ -386,9 +386,6 @@ Initial release.
 
 ## License
 This software is licensed under GNU General Public License v3.0 or later.
-
-Note : As of this writing, `zlib` is not used in this project \
-(once it was used), however it may be used in the future.
 
 Third party libraries are licensed under :
 

@@ -4,7 +4,7 @@ It works on Ubuntu 24.04, it should also work on WSL. \
 As of this writing, we are using `devkitARM r65-1`. \
 For more information, see [README](../README.md#build).
 
-* **⚠️Install [devkitpro](00_devkitpro_install.md) first.⚠️**
+* **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.
 	* You may need to do this when :
 		* You want to make a change to the library or
@@ -39,4 +39,4 @@ make lib -j 8 CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march
 cd ../
 ```
 
-Then, continue to : [build nghttp2](10_nghttp2_build.md)
+Then, continue to : [build nghttp2](nghttp2_build.md)

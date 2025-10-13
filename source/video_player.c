@@ -119,9 +119,9 @@
 #define DEF_VID_HID_A_TRACK_ITEM_CFM(k, id)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(vid_player.audio_track_button[id], k))
 #define DEF_VID_HID_A_TRACK_ITEM_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
 //Select audio track : Next track.
-#define DEF_VID_HID_A_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM(k.d_down, 1) || DEF_HID_HD(k.d_down) || DEF_HID_PR_EM(k.c_down, 1) || DEF_HID_HD(k.c_down))
+#define DEF_VID_HID_A_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM(k.c_down, 1) || DEF_HID_HD(k.c_down))
 //Select audio track : Previous track.
-#define DEF_VID_HID_A_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM(k.d_up, 1) || DEF_HID_HD(k.d_up) || DEF_HID_PR_EM(k.c_up, 1) || DEF_HID_HD(k.c_up))
+#define DEF_VID_HID_A_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM(k.c_up, 1) || DEF_HID_HD(k.c_up))
 //Select subtitle track : Confirm.
 #define DEF_VID_HID_S_TRACK_CONFIRM_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(vid_player.subtitle_track_ok_button, k)) || DEF_HID_PHY_PR(k.a))
 #define DEF_VID_HID_S_TRACK_CONFIRM_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_ok_button, k)) || DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
@@ -131,9 +131,9 @@
 #define DEF_VID_HID_S_TRACK_ITEM_CFM(k, id)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_button[id], k))
 #define DEF_VID_HID_S_TRACK_ITEM_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
 //Select subtitle track : Next track.
-#define DEF_VID_HID_S_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM(k.d_down, 1) || DEF_HID_HD(k.d_down) || DEF_HID_PR_EM(k.c_down, 1) || DEF_HID_HD(k.c_down))
+#define DEF_VID_HID_S_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM(k.c_down, 1) || DEF_HID_HD(k.c_down))
 //Select subtitle track : Previous track.
-#define DEF_VID_HID_S_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM(k.d_up, 1) || DEF_HID_HD(k.d_up) || DEF_HID_PR_EM(k.c_up, 1) || DEF_HID_HD(k.c_up))
+#define DEF_VID_HID_S_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM(k.c_up, 1) || DEF_HID_HD(k.c_up))
 //Control : Close.
 #define DEF_VID_HID_CONTROL_CLOSE_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(vid_player.control_button, k))
 #define DEF_VID_HID_CONTROL_CLOSE_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, k))

@@ -1,0 +1,41 @@
+<0>Texturfilter: </0>
+<1>Steuerelemente</1>
+<2>Frames überspringen zulassen: </2>
+<3>Einstellungen</3>
+<4>Datei auswählen</4>
+<5>Wiedergabe/Pause</5>
+<6>Stopp</6>
+<7>Video verschieben</7>
+<8>Suchen</8>
+<9>Vergrößern/Verkleinern</9>
+<10>Audiospur auswählen</10>
+<11>Audiospur auswählen</11>
+<12>Drücke die Auswahltaste oder berühre den Bildschirm, um den Vollbildmodus zu verlassen</12>
+<13>Hardware-Decoder verwenden (falls verfügbar): </13>
+<14>Hardware-Farbkonvertierung verwenden (falls verfügbar): </14>
+<15>Multithread-Decodierung verwenden (falls verfügbar): </15>
+<16>Keyframes überspringen zulassen: </16>
+<17>Videoauflösung reduzieren (falls vom Codec unterstützt): </17>
+<18>Suchen...</18>
+<19>Suchdauer: </19>
+<20>Lautstärke: </20>
+<21>Seitenverhältnis korrigieren: </21>
+<22>Inhalt verkleinern/verschieben: </22>
+<23>Videoposition speichern: </23>
+<24>Wiedergabemethode: </24>
+<25>Keine Wiederholung</25>
+<26>Wiederholen</26>
+<27>In Reihenfolge</27>
+<28>Zufällig</28>
+<29>Deaktivieren</29>
+<30>Video und Untertitel</30>
+<31>Nur Video</31>
+<32>Nur Untertitel</32>
+<33>Auswahl der Untertitelspur</33>
+<34>Untertitelspur auswählen</34>
+<35>Helligkeit: </35>
+<36>Audio deaktivieren: </36>
+<37>Video deaktivieren: </37>
+<38>Untertitel deaktivieren: </38>
+<39>Schwellenwert für Neustart der Wiedergabe: %d</39>
+<40>Video wird verarbeitet...</40>

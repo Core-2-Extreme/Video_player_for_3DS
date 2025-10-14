@@ -1,0 +1,74 @@
+<0>Aktualisierungen</0>
+<1>Sprachen</1>
+<2>LCD</2>
+<3>Steuerung</3>
+<4>Schriftart</4>
+<5>Drahtlos</5>
+<6>Erweiterte Einstellungen</6>
+<7>Akku</7>
+<8>Nach Aktualisierungen suchen</8>
+<9>Englisch</9>
+<10>日本語</10>
+<11>Nachtmodus</11>
+<12>EIN</12>
+<13>AUS</13>
+<14>Blitz</14>
+<15>Bildschirmhelligkeit: </15>
+<16>Zeit bis zum Ausschalten der LCDs: </16>
+<17>s</17>
+<18>Bildlaufgeschwindigkeit: </18>
+<19>JPN</19>
+<20>CHN</20>
+<21>KOR</21>
+<22>TWN</22>
+<23>Alle laden</23>
+<24>Alle entladen</24>
+<25>Senden von App-Informationen zulassen</25>
+<26>ZULASSEN</26>
+<27>VERWEIGERN</27>
+<28>Debug-Modus</28>
+<29>Eco-Modus</29>
+<30>Zurück</30>
+<31>Wird überprüft...</31>
+<32>Überprüfung fehlgeschlagen.</32>
+<33>Auf dem neuesten Stand.</33>
+<34>Neue Version verfügbar.</34>
+<35>Zurück (B)</35>
+<36>Zur Auswahl der Editionen (A)</36>
+<37>.3dsx</37>
+<38>.cia</38>
+<39>Die Datei wird gespeichert unter </39>
+<40>Wird heruntergeladen...</40>
+<41>Installieren...</41>
+<42>Erfolgreich</42>
+<43>Fehlgeschlagen</43>
+<44>Bitte starte die App neu, um die Updates anzuwenden.</44>
+<45>Herunterladen & installieren (X)</45>
+<46>App schließen</46>
+<47>WLAN</47>
+<48>Verbunden mit: </48>
+<49>Bildschirmaufzeichnung</49>
+<50>Aufzeichnung starten (beide Bildschirme)</50>
+<51>Aufzeichnung starten (oberer Bildschirm)</51>
+<52>Aufzeichnung starten (unterer Bildschirm)</52>
+<53>Aufzeichnung beenden</53>
+<54>Bildschirmmodus (oberer Bildschirm)</54>
+<55>Um den Bildschirm aufzunehmen, müssen Sie
+den „800px(auto)-Modus”
+(Einstellungen->LCD->Bildschirmmodus) deaktivieren. </55>
+<56>800px</56>
+<57>3D</57>
+<58>Nichts</58>
+<59>Magyar</59>
+<60>简体中文</60>
+<61>Italienisch</61>
+<62>Fake-Modell verwenden (Neustart erforderlich, um
+einige Funktionen funktionieren möglicherweise nicht)</62>
+<63>Español</63>
+<64>Română</64>
+<65>Polski</65>
+<66>CPU-Auslastungsmonitor (möglicherweise ungenau)</66>
+<67>Protokolle ausgeben</67>
+<68>琉球諸語</68>
+<69>Auto</69>
+<70>Zeit bis zum Ruhezustand: </70>

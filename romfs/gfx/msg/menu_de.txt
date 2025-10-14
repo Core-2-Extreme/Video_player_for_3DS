@@ -1,0 +1,11 @@
+<0>Möchten Sie diese Software beenden?</0>
+<1>A zum Schließen</1>
+<2>B zum Zurückkehren</2>
+<3>☢Eine neue Version ist verfügbar!☢</3>
+<4>So aktualisieren Sie: 
+Einstellungen
+->Aktualisieren
+->Nach Updates suchen
+->Zu Editionen gehen und auswählen
+->.3dsx oder .cia auswählen
+->Herunterladen und installieren</4>

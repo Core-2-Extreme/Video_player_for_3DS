@@ -2727,7 +2727,7 @@ void Vid_main(void)
 		&dummy, &init_text, KEYBOARD_PASSWORD_MODE_OFF, KEYBOARD_FEATURES_BIT_NONE);
 
 		if(Util_keyboard_launch(&out, NULL) == DEF_SUCCESS)
-			vid_player.volume = (uint16_t)Util_max(atoi((char*)out.buffer), 0);
+			vid_player.volume = (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
 
 		Util_str_free(&dummy);
 		Util_str_free(&init_text);
@@ -2760,7 +2760,7 @@ void Vid_main(void)
 		&dummy, &init_text, KEYBOARD_PASSWORD_MODE_OFF, KEYBOARD_FEATURES_BIT_NONE);
 
 		if(Util_keyboard_launch(&out, NULL) == DEF_SUCCESS)
-			vid_player.seek_duration = (uint8_t)Util_max(atoi((char*)out.buffer), 0);
+			vid_player.seek_duration = (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
 
 		if(vid_player.seek_duration == 0)
 			vid_player.seek_duration = 1;
@@ -3645,6 +3645,7 @@ void Vid_init_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
+	uint8_t config_valid_until = 0;
 	uint8_t* cache = NULL;
 	uint32_t read_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
@@ -3812,84 +3813,48 @@ void Vid_init_thread(void* arg)
 
 	if(result == DEF_SUCCESS)
 	{
-		//Settings file for v1.5.1.
-		DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 17, out_data), (result == DEF_SUCCESS), result);
+		//todo define value rather than hard coded values.
+		const uint8_t config_element_list[] =
+		{
+			17,	//Settings file for v1.5.1, v1.5.2 and v1.5.3.
+			16,	//Settings file for v1.5.0.
+			13,	//Settings file for v1.4.2.
+			12,	//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
+			9,	//Settings file for v1.3.1.
+			7,	//Settings file for v1.3.0.
+		};
 
-		if(result != DEF_SUCCESS)
+		//Try to load config.
+		for(uint8_t i = 0; i < (sizeof(config_element_list) / sizeof(config_element_list[0])); i++)
 		{
-			//Settings file for v1.5.0.
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 16, out_data), (result == DEF_SUCCESS), result);
-			Util_str_set(&out_data[16], "48");
-		}
-		if(result != DEF_SUCCESS)
-		{
-			//Settings file for v1.4.2.
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 13, out_data), (result == DEF_SUCCESS), result);
-			Util_str_set(&out_data[13], "0");
-			Util_str_set(&out_data[14], "0");
-			Util_str_set(&out_data[15], "0");
-			Util_str_set(&out_data[16], "48");
-		}
-		if(result != DEF_SUCCESS)
-		{
-			//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 12, out_data), (result == DEF_SUCCESS), result);
-			Util_str_set(&out_data[12], "0");
-			Util_str_set(&out_data[13], "0");
-			Util_str_set(&out_data[14], "0");
-			Util_str_set(&out_data[15], "0");
-			Util_str_set(&out_data[16], "48");
-		}
-		if(result != DEF_SUCCESS)
-		{
-			//Settings file for v1.3.1.
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 9, out_data), (result == DEF_SUCCESS), result);
-			Util_str_set(&out_data[9], "1");
-			Util_str_set(&out_data[10], "0");
-			Util_str_set(&out_data[11], "1");
-			Util_str_set(&out_data[12], "0");
-			Util_str_set(&out_data[13], "0");
-			Util_str_set(&out_data[14], "0");
-			Util_str_set(&out_data[15], "0");
-			Util_str_set(&out_data[16], "48");
-		}
-		if(result != DEF_SUCCESS)
-		{
-			//Settings file for v1.3.0.
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, 7, out_data), (result == DEF_SUCCESS), result);
-			Util_str_set(&out_data[7], "100");
-			Util_str_set(&out_data[8], "10");
-			Util_str_set(&out_data[9], "1");
-			Util_str_set(&out_data[10], "0");
-			Util_str_set(&out_data[11], "1");
-			Util_str_set(&out_data[12], "0");
-			Util_str_set(&out_data[13], "0");
-			Util_str_set(&out_data[14], "0");
-			Util_str_set(&out_data[15], "0");
-			Util_str_set(&out_data[16], "48");
+			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, config_element_list[i], out_data), (result == DEF_SUCCESS), result);
+			if(result == DEF_SUCCESS)
+			{
+				config_valid_until = config_element_list[i];
+				DEF_LOG_INT(config_valid_until);
+				break;
+			}
 		}
 	}
 
-	if(result == DEF_SUCCESS)
-	{
-		vid_player.use_linear_texture_filter = (out_data[0].buffer[0] == '1');
-		vid_player.allow_skip_frames = (out_data[1].buffer[0] == '1');
-		vid_player.allow_skip_key_frames = (out_data[2].buffer[0] == '1');
-		vid_player.use_hw_decoding = (out_data[3].buffer[0] == '1');
-		vid_player.use_hw_color_conversion = (out_data[4].buffer[0] == '1');
-		vid_player.use_multi_threaded_decoding = (out_data[5].buffer[0] == '1');
-		vid_player.lower_resolution = (uint8_t)Util_max(atoi((char*)out_data[6].buffer), 0);
-		vid_player.volume = (uint16_t)Util_max(atoi((char*)out_data[7].buffer), 0);
-		vid_player.seek_duration = (uint8_t)Util_max(atoi((char*)out_data[8].buffer), 0);
-		vid_player.correct_aspect_ratio = (out_data[9].buffer[0] == '1');
-		vid_player.move_content_mode = (uint8_t)Util_max(atoi((char*)out_data[10].buffer), 0);
-		vid_player.remember_video_pos = (out_data[11].buffer[0] == '1');
-		vid_player.playback_mode = (uint8_t)Util_max(atoi((char*)out_data[12].buffer), 0);
-		vid_player.disable_audio = (out_data[13].buffer[0] == '1');
-		vid_player.disable_video = (out_data[14].buffer[0] == '1');
-		vid_player.disable_subtitle = (out_data[15].buffer[0] == '1');
-		vid_player.restart_playback_threshold = (uint16_t)Util_max(atoi((char*)out_data[16].buffer), 0);
-	}
+	//todo move to sub function.
+	vid_player.use_linear_texture_filter = ((config_valid_until > 0) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[0]), NULL, 10) != 0) : true);
+	vid_player.allow_skip_frames = ((config_valid_until > 1) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[1]), NULL, 10) != 0) : false);
+	vid_player.allow_skip_key_frames = ((config_valid_until > 2) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[2]), NULL, 10) != 0) : false);
+	vid_player.use_hw_decoding = ((config_valid_until > 3) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[3]), NULL, 10) != 0) : true);
+	vid_player.use_hw_color_conversion = ((config_valid_until > 4) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[4]), NULL, 10) != 0) : true);
+	vid_player.use_multi_threaded_decoding = ((config_valid_until > 5) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[5]), NULL, 10) != 0) : true);
+	vid_player.lower_resolution = ((config_valid_until > 6) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[6]), NULL, 10), 0) : 0);
+	vid_player.volume = ((config_valid_until > 7) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[7]), NULL, 10), 0) : 100);
+	vid_player.seek_duration = ((config_valid_until > 8) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[8]), NULL, 10), 0) : 10);
+	vid_player.correct_aspect_ratio = ((config_valid_until > 9) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[9]), NULL, 10) != 0) : true);
+	vid_player.move_content_mode = ((config_valid_until > 10) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : DEF_VID_MOVE_BOTH);
+	vid_player.remember_video_pos = ((config_valid_until > 11) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[11]), NULL, 10) != 0) : true);
+	vid_player.playback_mode = ((config_valid_until > 12) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : DEF_VID_NO_REPEAT);
+	vid_player.disable_audio = ((config_valid_until > 13) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[13]), NULL, 10) != 0) : false);
+	vid_player.disable_video = ((config_valid_until > 14) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[14]), NULL, 10) != 0) : false);
+	vid_player.disable_subtitle = ((config_valid_until > 15) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[15]), NULL, 10) != 0) : false);
+	vid_player.restart_playback_threshold = ((config_valid_until > 16) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[16]), NULL, 10), 0) : 48);
 
 	for(uint8_t i = 0; i < (sizeof(out_data) / sizeof(out_data[0])); i++)
 		Util_str_free(&out_data[i]);

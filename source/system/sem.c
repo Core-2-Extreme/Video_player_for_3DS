@@ -611,17 +611,17 @@ void Sem_init(void)
 			uint8_t length = Util_min(data[0].length, (sizeof(config.lang) - 1));
 
 			memcpy(config.lang, data[0].buffer, length);
-			brightness = atoi(data[1].buffer);
-			config.time_to_turn_off_lcd = atoi(data[2].buffer);
-			config.scroll_speed = strtod(data[3].buffer, NULL);
-			config.is_send_info_allowed = (data[4].buffer[0] == '1');
-			state.num_of_launch = atoi(data[5].buffer);
-			config.is_night = (data[6].buffer[0] == '1');
-			config.is_eco = (data[7].buffer[0] == '1');
-			wifi_state = (data[8].buffer[0] == '1');
+			brightness = (uint8_t)strtoul(DEF_STR_NEVER_NULL(&data[1]), NULL, 10);
+			config.time_to_turn_off_lcd = (uint16_t)strtoul(DEF_STR_NEVER_NULL(&data[2]), NULL, 10);
+			config.scroll_speed = strtod(DEF_STR_NEVER_NULL(&data[3]), NULL);
+			config.is_send_info_allowed = (strtoul(DEF_STR_NEVER_NULL(&data[4]), NULL, 10) != 0);
+			state.num_of_launch = (uint32_t)strtoul(DEF_STR_NEVER_NULL(&data[5]), NULL, 10);
+			config.is_night = (strtoul(DEF_STR_NEVER_NULL(&data[6]), NULL, 10) != 0);
+			config.is_eco = (strtoul(DEF_STR_NEVER_NULL(&data[7]), NULL, 10) != 0);
+			wifi_state = (strtoul(DEF_STR_NEVER_NULL(&data[8]), NULL, 10) != 0);
 			//9 and 10 is no longer used.
-			config.screen_mode = atoi(data[11].buffer);
-			config.time_to_enter_sleep = atoi(data[12].buffer);
+			config.screen_mode = (Sem_screen_mode)strtoul(DEF_STR_NEVER_NULL(&data[11]), NULL, 10);
+			config.time_to_enter_sleep = (uint16_t)strtoul(DEF_STR_NEVER_NULL(&data[12]), NULL, 10);
 
 			if(strcmp(config.lang, "jp") != 0 && strcmp(config.lang, "en") != 0
 			&& strcmp(config.lang, "hu") != 0 && strcmp(config.lang, "zh-cn") != 0
@@ -3168,7 +3168,7 @@ void Sem_update_thread(void* arg)
 
 					if(sem_update_progress != -1)
 					{
-						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(DEF_STR_NEVER_NULL(&sem_newest_ver_data[0])))
+						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]), NULL, 10))
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;

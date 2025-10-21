@@ -1386,7 +1386,7 @@ void Menu_update_thread(void* arg)
 				memcpy(ver, pos[0], size);
 				ver[size] = 0x00;
 
-				if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(ver))
+				if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(ver, NULL, 10))
 					menu_update_available = true;
 			}
 		}

@@ -980,7 +980,7 @@ void Vid_hid(Hid_info key)
 						if(vid_player.allow_skip_key_frames)
 							vid_player.allow_skip_key_frames = false;
 					}
-					else if(DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(key))//Allow skip key frames button.
+					else if(DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(key) && vid_player.allow_skip_frames)//Allow skip key frames button.
 						vid_player.allow_skip_key_frames = !vid_player.allow_skip_key_frames;
 					else if(DEF_VID_HID_SE0_VOLUME_CFM(key))//Change volume button.
 						vid_player.is_setting_volume = true;

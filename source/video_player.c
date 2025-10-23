@@ -3707,7 +3707,7 @@ void Vid_init_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		vid_player.subtitle_track_button[i] = Draw_get_empty_image();
 
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state, sizeof(&vid_player.state));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state, sizeof(vid_player.state));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_audio_track, sizeof(vid_player.is_selecting_audio_track));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_subtitle_track, sizeof(vid_player.is_selecting_subtitle_track));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_displaying_controls, sizeof(vid_player.is_displaying_controls));

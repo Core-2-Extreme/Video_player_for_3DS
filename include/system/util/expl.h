@@ -126,7 +126,7 @@ void Util_expl_draw(void);
  * @param scroll_speed (in) Scroll sensitivity.
  * @warning Thread dangerous (untested).
 */
-void Util_expl_main(Hid_info key, double scroll_speed);
+void Util_expl_main(const Hid_info* key, double scroll_speed);
 
 #else
 

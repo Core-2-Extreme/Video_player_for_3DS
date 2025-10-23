@@ -30,208 +30,208 @@
 
 //Defines.
 //System UI.
-#define DEF_SEM_HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
-#define DEF_SEM_HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
-#define DEF_SEM_HID_SYSTEM_UI_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
+#define DEF_SEM_HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
+#define DEF_SEM_HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
+#define DEF_SEM_HID_SYSTEM_UI_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
 //Sub menu selection.
-#define DEF_SEM_HID_SUB_MENU_SEL(k, id)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_menu_button[id], k))
-#define DEF_SEM_HID_SUB_MENU_CFM(k, id)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_menu_button[id], k))
-#define DEF_SEM_HID_SUB_MENU_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_SUB_MENU_SEL(k, id)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_menu_button[id], (k)))
+#define DEF_SEM_HID_SUB_MENU_CFM(k, id)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_menu_button[id], (k)))
+#define DEF_SEM_HID_SUB_MENU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Back to sub menu selection.
-#define DEF_SEM_HID_BACK_SEL(k)						(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_back_button, k))
-#define DEF_SEM_HID_BACK_CFM(k)						(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_back_button, k))
-#define DEF_SEM_HID_BACK_DESEL(k)					(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_BACK_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_button, (k)))
+#define DEF_SEM_HID_BACK_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_button, (k)))
+#define DEF_SEM_HID_BACK_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Scroll mode.
-#define DEF_SEM_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE(k.touch) && ((abs(k.touch_x_initial - k.touch_x) > 6) || (abs(k.touch_y_initial - k.touch_y) > 6)) && !DEF_SEM_HID_SCROLL_MODE_DESEL(k))
-#define DEF_SEM_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch) || sem_screen_brightness_bar.selected || sem_screen_off_time_bar.selected || sem_sleep_time_bar.selected || sem_scroll_speed_bar.selected || sem_scroll_bar.selected)
+#define DEF_SEM_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)) && !DEF_SEM_HID_SCROLL_MODE_DESEL((k)))
+#define DEF_SEM_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch) || sem_screen_brightness_bar.selected || sem_screen_off_time_bar.selected || sem_sleep_time_bar.selected || sem_scroll_speed_bar.selected || sem_scroll_bar.selected)
 //Scroll bar.
-#define DEF_SEM_HID_SCROLL_BAR_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_scroll_bar, k))
-#define DEF_SEM_HID_SCROLL_BAR_CFM(k)				(bool)(DEF_SEM_HID_SCROLL_BAR_SEL(k) || (DEF_HID_PHY_HE(k.touch) && sem_scroll_bar.selected))
-#define DEF_SEM_HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_SCROLL_BAR_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_scroll_bar, (k)))
+#define DEF_SEM_HID_SCROLL_BAR_CFM(k)				(bool)(DEF_SEM_HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
+#define DEF_SEM_HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Open updater (to check for update).
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_check_update_button, k))
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, k))
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_check_update_button, (k)))
+#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, (k)))
+#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Close updater.
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_close_updater_button, k))
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, k)) || (DEF_HID_PR_EM(k.b, 1) || DEF_HID_HD(k.b))
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.b))
+#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_updater_button, (k)))
+#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
+#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
 //Updater : Edition selection.
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_select_edtion_button, k))
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, k)) || (DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.a))
+#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_select_edtion_button, (k)))
+#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Updater : Edition list (.3dsx and .cia).
-#define DEF_SEM_HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_3dsx_button, k))
-#define DEF_SEM_HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, k))
-#define DEF_SEM_HID_UPDATE_3DSX_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
-#define DEF_SEM_HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_cia_button, k))
-#define DEF_SEM_HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, k))
-#define DEF_SEM_HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
+#define DEF_SEM_HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
+#define DEF_SEM_HID_UPDATE_3DSX_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_SEM_HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_cia_button, (k)))
+#define DEF_SEM_HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, (k)))
+#define DEF_SEM_HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Back to patch note.
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, k))
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, k)) || (DEF_HID_PR_EM(k.b, 1) || DEF_HID_HD(k.b)))
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.b))
+#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, (k)))
+#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b)))
+#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
 //Updater : Download and install an update.
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_dl_install_button, k))
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, k)) || (DEF_HID_PR_EM(k.x, 1) || DEF_HID_HD(k.x)))
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.x))
+#define DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dl_install_button, (k)))
+#define DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
+#define DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).x))
 //Updater : Close app to apply.
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_close_app_button, k))
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, k))
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_app_button, (k)))
+#define DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, (k)))
+#define DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : English.
-#define DEF_SEM_HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_english_button, k))
-#define DEF_SEM_HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, k))
-#define DEF_SEM_HID_LANG_EN_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_english_button, (k)))
+#define DEF_SEM_HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, (k)))
+#define DEF_SEM_HID_LANG_EN_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Japanese.
-#define DEF_SEM_HID_LANG_JP_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_japanese_button, k))
-#define DEF_SEM_HID_LANG_JP_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_japanese_button, k))
-#define DEF_SEM_HID_LANG_JP_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_JP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_japanese_button, (k)))
+#define DEF_SEM_HID_LANG_JP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_japanese_button, (k)))
+#define DEF_SEM_HID_LANG_JP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Hungarian.
-#define DEF_SEM_HID_LANG_HU_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_hungarian_button, k))
-#define DEF_SEM_HID_LANG_HU_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_hungarian_button, k))
-#define DEF_SEM_HID_LANG_HU_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_HU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_hungarian_button, (k)))
+#define DEF_SEM_HID_LANG_HU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_hungarian_button, (k)))
+#define DEF_SEM_HID_LANG_HU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Simplified Chinese.
-#define DEF_SEM_HID_LANG_ZHS_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_chinese_button, k))
-#define DEF_SEM_HID_LANG_ZHS_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_chinese_button, k))
-#define DEF_SEM_HID_LANG_ZHS_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_ZHS_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_chinese_button, (k)))
+#define DEF_SEM_HID_LANG_ZHS_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_chinese_button, (k)))
+#define DEF_SEM_HID_LANG_ZHS_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Italian.
-#define DEF_SEM_HID_LANG_IT_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_italian_button, k))
-#define DEF_SEM_HID_LANG_IT_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_italian_button, k))
-#define DEF_SEM_HID_LANG_IT_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_IT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_italian_button, (k)))
+#define DEF_SEM_HID_LANG_IT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_italian_button, (k)))
+#define DEF_SEM_HID_LANG_IT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Spanish.
-#define DEF_SEM_HID_LANG_ES_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_spanish_button, k))
-#define DEF_SEM_HID_LANG_ES_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_spanish_button, k))
-#define DEF_SEM_HID_LANG_ES_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_ES_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_spanish_button, (k)))
+#define DEF_SEM_HID_LANG_ES_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_spanish_button, (k)))
+#define DEF_SEM_HID_LANG_ES_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Romanian.
-#define DEF_SEM_HID_LANG_RO_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_romanian_button, k))
-#define DEF_SEM_HID_LANG_RO_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_romanian_button, k))
-#define DEF_SEM_HID_LANG_RO_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_RO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_romanian_button, (k)))
+#define DEF_SEM_HID_LANG_RO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_romanian_button, (k)))
+#define DEF_SEM_HID_LANG_RO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Polish.
-#define DEF_SEM_HID_LANG_PO_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_polish_button, k))
-#define DEF_SEM_HID_LANG_PO_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_polish_button, k))
-#define DEF_SEM_HID_LANG_PO_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_PO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_polish_button, (k)))
+#define DEF_SEM_HID_LANG_PO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_polish_button, (k)))
+#define DEF_SEM_HID_LANG_PO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Ryukyuan.
-#define DEF_SEM_HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, k))
-#define DEF_SEM_HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, k))
-#define DEF_SEM_HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, (k)))
+#define DEF_SEM_HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, (k)))
+#define DEF_SEM_HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Night mode on.
-#define DEF_SEM_HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, k))
-#define DEF_SEM_HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, k))
-#define DEF_SEM_HID_LCD_NIGHT_ON_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, (k)))
+#define DEF_SEM_HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, (k)))
+#define DEF_SEM_HID_LCD_NIGHT_ON_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Night mode off.
-#define DEF_SEM_HID_LCD_NIGHT_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_night_mode_off_button, k))
-#define DEF_SEM_HID_LCD_NIGHT_OFF_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_off_button, k))
-#define DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_NIGHT_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_off_button, (k)))
+#define DEF_SEM_HID_LCD_NIGHT_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_off_button, (k)))
+#define DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Flash mode.
-#define DEF_SEM_HID_LCD_FLASH_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_flash_mode_button, k))
-#define DEF_SEM_HID_LCD_FLASH_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_flash_mode_button, k))
-#define DEF_SEM_HID_LCD_FLASH_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_FLASH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_flash_mode_button, (k)))
+#define DEF_SEM_HID_LCD_FLASH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_flash_mode_button, (k)))
+#define DEF_SEM_HID_LCD_FLASH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Brightness level bar.
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && (DEF_HID_INIT_IN(sem_screen_brightness_bar, k) || DEF_HID_INIT_IN(sem_screen_brightness_slider, k)))
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(k)		(bool)(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(k) || (DEF_HID_PHY_HE(k.touch) && sem_screen_brightness_bar.selected))
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_brightness_bar, (k)) || DEF_HID_INIT_IN(sem_screen_brightness_slider, (k))))
+#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(k)		(bool)(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_brightness_bar.selected))
+#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Turn off LCD time bar.
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && (DEF_HID_INIT_IN(sem_screen_off_time_bar, k) || DEF_HID_INIT_IN(sem_screen_off_time_slider, k)))
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(k) || (DEF_HID_PHY_HE(k.touch) && sem_screen_off_time_bar.selected))
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_off_time_bar, (k)) || DEF_HID_INIT_IN(sem_screen_off_time_slider, (k))))
+#define DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_off_time_bar.selected))
+#define DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Sleep time bar.
-#define DEF_SEM_HID_LCD_SLEEP_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && (DEF_HID_INIT_IN(sem_sleep_time_bar, k) || DEF_HID_INIT_IN(sem_sleep_time_slider, k)))
-#define DEF_SEM_HID_LCD_SLEEP_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL(k) || (DEF_HID_PHY_HE(k.touch) && sem_sleep_time_bar.selected))
-#define DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_SLEEP_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_sleep_time_bar, (k)) || DEF_HID_INIT_IN(sem_sleep_time_slider, (k))))
+#define DEF_SEM_HID_LCD_SLEEP_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_sleep_time_bar.selected))
+#define DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 800px mode.
-#define DEF_SEM_HID_LCD_800PX_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_800px_mode_button, k))
-#define DEF_SEM_HID_LCD_800PX_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_800px_mode_button, k))
-#define DEF_SEM_HID_LCD_800PX_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_800PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_800px_mode_button, (k)))
+#define DEF_SEM_HID_LCD_800PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_800px_mode_button, (k)))
+#define DEF_SEM_HID_LCD_800PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 3D mode.
-#define DEF_SEM_HID_LCD_3D_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_3d_mode_button, k))
-#define DEF_SEM_HID_LCD_3D_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_3d_mode_button, k))
-#define DEF_SEM_HID_LCD_3D_DESEL(k)					(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_3D_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3d_mode_button, (k)))
+#define DEF_SEM_HID_LCD_3D_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3d_mode_button, (k)))
+#define DEF_SEM_HID_LCD_3D_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 400px mode.
-#define DEF_SEM_HID_LCD_400PX_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_400px_mode_button, k))
-#define DEF_SEM_HID_LCD_400PX_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_400px_mode_button, k))
-#define DEF_SEM_HID_LCD_400PX_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_400PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_400px_mode_button, (k)))
+#define DEF_SEM_HID_LCD_400PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_400px_mode_button, (k)))
+#define DEF_SEM_HID_LCD_400PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Auto mode.
-#define DEF_SEM_HID_LCD_AUTO_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_auto_mode_button, k))
-#define DEF_SEM_HID_LCD_AUTO_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_auto_mode_button, k))
-#define DEF_SEM_HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_LCD_AUTO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_auto_mode_button, (k)))
+#define DEF_SEM_HID_LCD_AUTO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_auto_mode_button, (k)))
+#define DEF_SEM_HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Control : Scroll speed bar.
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR(k.touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, k) || DEF_HID_INIT_IN(sem_scroll_speed_slider, k)))
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL(k) || (DEF_HID_PHY_HE(k.touch) && sem_scroll_speed_bar.selected))
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, (k)) || DEF_HID_INIT_IN(sem_scroll_speed_slider, (k))))
+#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
+#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Font loading (all fonts).
-#define DEF_SEM_HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, k))
-#define DEF_SEM_HID_FONT_LOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_load_all_ex_font_button, k))
-#define DEF_SEM_HID_FONT_LOAD_ALL_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, (k)))
+#define DEF_SEM_HID_FONT_LOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_load_all_ex_font_button, (k)))
+#define DEF_SEM_HID_FONT_LOAD_ALL_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Font unloading (all fonts except basic latin).
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_unload_all_ex_font_button, k))
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_unload_all_ex_font_button, k))
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_unload_all_ex_font_button, (k)))
+#define DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_unload_all_ex_font_button, (k)))
+#define DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Loading or unloading (selected font).
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(k, id)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_ex_font_button[id], k))
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(k, id)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_ex_font_button[id], k))
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(k, id)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ex_font_button[id], (k)))
+#define DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ex_font_button[id], (k)))
+#define DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Wireless : Wi-Fi on.
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_wifi_on_button, k))
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_on_button, k))
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_on_button, (k)))
+#define DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_on_button, (k)))
+#define DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Wireless : Wi-Fi off.
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_wifi_off_button, k))
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_off_button, k))
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_off_button, (k)))
+#define DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_off_button, (k)))
+#define DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Sending app info on.
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(k)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_allow_send_info_button, k))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(k)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_allow_send_info_button, k))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_allow_send_info_button, (k)))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_allow_send_info_button, (k)))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Sending app info off.
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(k)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_deny_send_info_button, k))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(k)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_deny_send_info_button, k))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_deny_send_info_button, (k)))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_deny_send_info_button, (k)))
+#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Debug on.
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_debug_mode_on_button, k))
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_on_button, k))
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_on_button, (k)))
+#define DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_on_button, (k)))
+#define DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Debug off.
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_debug_mode_off_button, k))
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_off_button, k))
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_off_button, (k)))
+#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_off_button, (k)))
+#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Fake model.
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_use_fake_model_button, k))
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_use_fake_model_button, k))
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_use_fake_model_button, (k)))
+#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_use_fake_model_button, (k)))
+#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Log dump.
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_dump_log_button, k))
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, k))
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dump_log_button, (k)))
+#define DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, (k)))
+#define DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : CPU monitor on.
-#define DEF_SEM_HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, k))
-#define DEF_SEM_HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, k))
-#define DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, (k)))
+#define DEF_SEM_HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, (k)))
+#define DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : CPU monitor off.
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, k))
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, k))
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, (k)))
+#define DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, (k)))
+#define DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Battery : Eco on.
-#define DEF_SEM_HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, k))
-#define DEF_SEM_HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, k))
-#define DEF_SEM_HID_BAT_ECO_ON_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
+#define DEF_SEM_HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
+#define DEF_SEM_HID_BAT_ECO_ON_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Battery : Eco off.
-#define DEF_SEM_HID_BAT_ECO_OFF_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_eco_mode_off_button, k))
-#define DEF_SEM_HID_BAT_ECO_OFF_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_off_button, k))
-#define DEF_SEM_HID_BAT_ECO_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_BAT_ECO_OFF_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_off_button, (k)))
+#define DEF_SEM_HID_BAT_ECO_OFF_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_off_button, (k)))
+#define DEF_SEM_HID_BAT_ECO_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 //Screen recording : Both LCDs.
-#define DEF_SEM_HID_REC_BOTH_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_record_both_lcd_button, k))
-#define DEF_SEM_HID_REC_BOTH_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_record_both_lcd_button, k))
-#define DEF_SEM_HID_REC_BOTH_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_REC_BOTH_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_both_lcd_button, (k)))
+#define DEF_SEM_HID_REC_BOTH_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_both_lcd_button, (k)))
+#define DEF_SEM_HID_REC_BOTH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Screen recording : Top LCD.
-#define DEF_SEM_HID_REC_TOP_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_record_top_lcd_button, k))
-#define DEF_SEM_HID_REC_TOP_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_record_top_lcd_button, k))
-#define DEF_SEM_HID_REC_TOP_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_REC_TOP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_top_lcd_button, (k)))
+#define DEF_SEM_HID_REC_TOP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_top_lcd_button, (k)))
+#define DEF_SEM_HID_REC_TOP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Screen recording : Bottom LCD.
-#define DEF_SEM_HID_REC_BOT_SEL(k)					(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(sem_record_bottom_lcd_button, k))
-#define DEF_SEM_HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, k))
-#define DEF_SEM_HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_SEM_HID_REC_BOT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_bottom_lcd_button, (k)))
+#define DEF_SEM_HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
+#define DEF_SEM_HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 //Typedefs.
@@ -1645,12 +1645,15 @@ void Sem_main(void)
 		gspWaitForVBlank();
 }
 
-void Sem_hid(Hid_info key)
+void Sem_hid(const Hid_info* key)
 {
 	const int8_t menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
 	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
+
+	if(!key)
+		return;
 
 	if(aptShouldJumpToHome())
 		return;
@@ -1679,179 +1682,179 @@ void Sem_hid(Hid_info key)
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 		//Notify user that button is being pressed.
-		if(DEF_SEM_HID_SYSTEM_UI_SEL(key))
+		if(DEF_SEM_HID_SYSTEM_UI_SEL(*key))
 			Draw_get_bot_ui_button()->selected = true;
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
 		{
 			for(uint8_t i = 0; i < 9; i++)
 			{
-				if(DEF_SEM_HID_SUB_MENU_SEL(key, menu_button_list[i]))
+				if(DEF_SEM_HID_SUB_MENU_SEL(*key, menu_button_list[i]))
 					sem_menu_button[menu_button_list[i]].selected = true;
 			}
 
-			if(DEF_SEM_HID_SCROLL_MODE_SEL(key))
+			if(DEF_SEM_HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
 		}
 		else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
 		{
-			if (DEF_SEM_HID_BACK_SEL(key) && enable_back_button)
+			if (DEF_SEM_HID_BACK_SEL(*key) && enable_back_button)
 				sem_back_button.selected = true;
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
 			{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 				if (sem_show_patch_note_request)
 				{
-					if (DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(key))
+					if (DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(*key))
 						sem_close_updater_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(key))
+					if (DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(*key))
 						sem_select_edtion_button.selected = true;
 				}
 				else if (sem_select_ver_request && !sem_dl_file_request)
 				{
-					if (DEF_SEM_HID_UPDATE_3DSX_SEL(key) && is_3dsx_available)
+					if (DEF_SEM_HID_UPDATE_3DSX_SEL(*key) && is_3dsx_available)
 						sem_3dsx_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_CIA_SEL(key) && is_cia_available)
+					if (DEF_SEM_HID_UPDATE_CIA_SEL(*key) && is_cia_available)
 						sem_cia_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(key))
+					if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(*key))
 						sem_back_to_patch_note_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
+					if (DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
 					&& is_available[sem_selected_edition_num])
 						sem_dl_install_button.selected = true;
-					if(DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(key) && sem_update_progress == 4)
+					if(DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == 4)
 						sem_close_app_button.selected = true;
 				}
 				else
 				{
-					if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(key))
+					if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(*key))
 						sem_check_update_button.selected = true;
 				}
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(key))
+				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
 				if(!sem_reload_msg_request)
 				{
-					if(DEF_SEM_HID_LANG_EN_SEL(key))
+					if(DEF_SEM_HID_LANG_EN_SEL(*key))
 						sem_english_button.selected = true;
-					if(DEF_SEM_HID_LANG_JP_SEL(key))
+					if(DEF_SEM_HID_LANG_JP_SEL(*key))
 						sem_japanese_button.selected = true;
-					if(DEF_SEM_HID_LANG_HU_SEL(key))
+					if(DEF_SEM_HID_LANG_HU_SEL(*key))
 						sem_hungarian_button.selected = true;
-					if(DEF_SEM_HID_LANG_ZHS_SEL(key))
+					if(DEF_SEM_HID_LANG_ZHS_SEL(*key))
 						sem_chinese_button.selected = true;
-					if(DEF_SEM_HID_LANG_IT_SEL(key))
+					if(DEF_SEM_HID_LANG_IT_SEL(*key))
 						sem_italian_button.selected = true;
-					if(DEF_SEM_HID_LANG_ES_SEL(key))
+					if(DEF_SEM_HID_LANG_ES_SEL(*key))
 						sem_spanish_button.selected = true;
-					if(DEF_SEM_HID_LANG_RO_SEL(key))
+					if(DEF_SEM_HID_LANG_RO_SEL(*key))
 						sem_romanian_button.selected = true;
-					if(DEF_SEM_HID_LANG_PO_SEL(key))
+					if(DEF_SEM_HID_LANG_PO_SEL(*key))
 						sem_polish_button.selected = true;
-					if(DEF_SEM_HID_LANG_RYU_SEL(key))
+					if(DEF_SEM_HID_LANG_RYU_SEL(*key))
 						sem_ryukyuan_button.selected = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(key))
+				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
-				if(DEF_SEM_HID_LCD_NIGHT_ON_SEL(key))
+				if(DEF_SEM_HID_LCD_NIGHT_ON_SEL(*key))
 					sem_night_mode_on_button.selected = true;
-				if(DEF_SEM_HID_LCD_NIGHT_OFF_SEL(key))
+				if(DEF_SEM_HID_LCD_NIGHT_OFF_SEL(*key))
 					sem_night_mode_off_button.selected = true;
-				if(DEF_SEM_HID_LCD_FLASH_SEL(key))
+				if(DEF_SEM_HID_LCD_FLASH_SEL(*key))
 					sem_flash_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(key))
+				if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(*key))
 					sem_screen_brightness_bar.selected = true;
-				if(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(key))
+				if(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(*key))
 					sem_screen_off_time_bar.selected = true;
-				if(DEF_SEM_HID_LCD_SLEEP_BAR_SEL(key))
+				if(DEF_SEM_HID_LCD_SLEEP_BAR_SEL(*key))
 					sem_sleep_time_bar.selected = true;
-				if(DEF_SEM_HID_LCD_800PX_SEL(key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
+				if(DEF_SEM_HID_LCD_800PX_SEL(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
 					sem_800px_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_3D_SEL(key) && !record_request
+				if(DEF_SEM_HID_LCD_3D_SEL(*key) && !record_request
 				&& state.console_model != DEF_SEM_MODEL_OLD2DS && state.console_model != DEF_SEM_MODEL_NEW2DSXL)
 					sem_3d_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_400PX_SEL(key) && !record_request)
+				if(DEF_SEM_HID_LCD_400PX_SEL(*key) && !record_request)
 					sem_400px_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_AUTO_SEL(key) && !record_request)
+				if(DEF_SEM_HID_LCD_AUTO_SEL(*key) && !record_request)
 					sem_auto_mode_button.selected = true;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
 			{
-				if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(key))
+				if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(*key))
 					sem_scroll_speed_bar.selected = true;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(key))
+				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
-				if(DEF_SEM_HID_FONT_LOAD_ALL_SEL(key) && !is_exfont_busy)
+				if(DEF_SEM_HID_FONT_LOAD_ALL_SEL(*key) && !is_exfont_busy)
 					sem_load_all_ex_font_button.selected = true;
-				if(DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(key) && !is_exfont_busy)
+				if(DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(*key) && !is_exfont_busy)
 					sem_unload_all_ex_font_button.selected = true;
 
 				for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				{
-					if (DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(key, i) && !is_exfont_busy)
+					if (DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(*key, i) && !is_exfont_busy)
 						sem_ex_font_button[i].selected = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
 			{
-				if(DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(key))
+				if(DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(*key))
 					sem_wifi_on_button.selected = true;
-				if(DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(key))
+				if(DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(*key))
 					sem_wifi_off_button.selected = true;
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
 			{
-				if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(*key))
 					sem_allow_send_info_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(*key))
 					sem_deny_send_info_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(*key))
 					sem_debug_mode_on_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(*key))
 					sem_debug_mode_off_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(*key))
 					sem_use_fake_model_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(key) && !sem_dump_log_request)
+				if(DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(*key) && !sem_dump_log_request)
 					sem_dump_log_button.selected = true;
 #if DEF_CPU_USAGE_API_ENABLE
-				if(DEF_SEM_HID_ADVANCED_CPU_ON_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_CPU_ON_SEL(*key))
 					sem_monitor_cpu_usage_on_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(key))
+				if(DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(*key))
 					sem_monitor_cpu_usage_off_button.selected = true;
 #endif //DEF_CPU_USAGE_API_ENABLE
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 			{
-				if(DEF_SEM_HID_BAT_ECO_ON_SEL(key))
+				if(DEF_SEM_HID_BAT_ECO_ON_SEL(*key))
 					sem_eco_mode_on_button.selected = true;
-				if(DEF_SEM_HID_BAT_ECO_OFF_SEL(key))
+				if(DEF_SEM_HID_BAT_ECO_OFF_SEL(*key))
 					sem_eco_mode_off_button.selected = true;
 			}
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 			{
-				if(DEF_SEM_HID_REC_BOTH_SEL(key) && can_record)
+				if(DEF_SEM_HID_REC_BOTH_SEL(*key) && can_record)
 					sem_record_both_lcd_button.selected = true;
-				if(DEF_SEM_HID_REC_TOP_SEL(key) && can_record)
+				if(DEF_SEM_HID_REC_TOP_SEL(*key) && can_record)
 					sem_record_top_lcd_button.selected = true;
-				if(DEF_SEM_HID_REC_BOT_SEL(key) && can_record)
+				if(DEF_SEM_HID_REC_BOT_SEL(*key) && can_record)
 					sem_record_bottom_lcd_button.selected = true;
 			}
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
-			if(DEF_SEM_HID_SCROLL_MODE_SEL(key))
+			if(DEF_SEM_HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
 		}
 
 		//Execute functions if conditions are satisfied.
-		if(DEF_SEM_HID_SYSTEM_UI_CFM(key))
+		if(DEF_SEM_HID_SYSTEM_UI_CFM(*key))
 			Sem_suspend();
 		else if(!sem_scroll_mode)
 		{
@@ -1859,7 +1862,7 @@ void Sem_hid(Hid_info key)
 			{
 				for(uint8_t i = 0; i < 9; i++)
 				{
-					if(DEF_SEM_HID_SUB_MENU_CFM(key, menu_button_list[i]))
+					if(DEF_SEM_HID_SUB_MENU_CFM(*key, menu_button_list[i]))
 					{
 						//Go to selected page.
 						sem_y_offset = 0.0;
@@ -1879,7 +1882,7 @@ void Sem_hid(Hid_info key)
 			}
 			else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
 			{
-				if (DEF_SEM_HID_BACK_CFM(key) && enable_back_button)
+				if (DEF_SEM_HID_BACK_CFM(*key) && enable_back_button)
 				{
 					//Back to top page.
 					sem_y_offset = 0.0;
@@ -1893,9 +1896,9 @@ void Sem_hid(Hid_info key)
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 					if (sem_show_patch_note_request)
 					{
-						if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(key))
+						if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(*key))
 							sem_show_patch_note_request = false;
-						else if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(key))
+						else if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(*key))
 						{
 							sem_show_patch_note_request = false;
 							sem_select_ver_request = true;
@@ -1903,24 +1906,24 @@ void Sem_hid(Hid_info key)
 					}
 					else if (sem_select_ver_request && !sem_dl_file_request)
 					{
-						if (DEF_SEM_HID_UPDATE_3DSX_CFM(key) && is_3dsx_available)
+						if (DEF_SEM_HID_UPDATE_3DSX_CFM(*key) && is_3dsx_available)
 							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-						else if (DEF_SEM_HID_UPDATE_CIA_CFM(key) && is_cia_available)
+						else if (DEF_SEM_HID_UPDATE_CIA_CFM(*key) && is_cia_available)
 							sem_selected_edition_num = DEF_SEM_EDTION_CIA;
-						else if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(key))
+						else if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(*key))
 						{
 							sem_show_patch_note_request = true;
 							sem_select_ver_request = false;
 						}
-						else if (DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
+						else if (DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
 						&& is_available[sem_selected_edition_num])
 							sem_dl_file_request = true;
-						else if(DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(key) && sem_update_progress == 4)
+						else if(DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == 4)
 							Menu_set_must_exit_flag(true);
 					}
 					else
 					{
-						if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(key))
+						if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(*key))
 						{
 							sem_check_update_request = true;
 							sem_show_patch_note_request = true;
@@ -1932,55 +1935,55 @@ void Sem_hid(Hid_info key)
 				{
 					if(!sem_reload_msg_request)
 					{
-						if(DEF_SEM_HID_LANG_EN_CFM(key))
+						if(DEF_SEM_HID_LANG_EN_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "en");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_JP_CFM(key))
+						else if(DEF_SEM_HID_LANG_JP_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "jp");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_HU_CFM(key))
+						else if(DEF_SEM_HID_LANG_HU_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "hu");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_ZHS_CFM(key))
+						else if(DEF_SEM_HID_LANG_ZHS_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "zh-cn");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_IT_CFM(key))
+						else if(DEF_SEM_HID_LANG_IT_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "it");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_ES_CFM(key))
+						else if(DEF_SEM_HID_LANG_ES_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "es");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_RO_CFM(key))
+						else if(DEF_SEM_HID_LANG_RO_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "ro");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_PO_CFM(key))
+						else if(DEF_SEM_HID_LANG_PO_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "pl");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_RYU_CFM(key))
+						else if(DEF_SEM_HID_LANG_RYU_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "ryu");
 							Sem_set_config(&config);
@@ -1990,25 +1993,25 @@ void Sem_hid(Hid_info key)
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 				{
-					if(DEF_SEM_HID_LCD_NIGHT_ON_CFM(key))
+					if(DEF_SEM_HID_LCD_NIGHT_ON_CFM(*key))
 					{
 						config.is_night = true;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_NIGHT_OFF_CFM(key))
+					else if(DEF_SEM_HID_LCD_NIGHT_OFF_CFM(*key))
 					{
 						config.is_night = false;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_FLASH_CFM(key))
+					else if(DEF_SEM_HID_LCD_FLASH_CFM(*key))
 					{
 						config.is_flash = !config.is_flash;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(key))
+					else if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(*key))
 					{
 						//Update screen brightness.
-						int32_t new_brightness = 180 * ((key.touch_x - 15) / 290.0);
+						int32_t new_brightness = 180 * ((key->touch_x - 15) / 290.0);
 
 						if(new_brightness < 0)
 							new_brightness = 0;
@@ -2019,10 +2022,10 @@ void Sem_hid(Hid_info key)
 						config.bottom_lcd_brightness = new_brightness;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(key))
+					else if(DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(*key))
 					{
 						//Update time to turn off LCD.
-						uint16_t new_time = (580 * ((key.touch_x - 15) / 290.0)) + 20;
+						uint16_t new_time = (580 * ((key->touch_x - 15) / 290.0)) + 20;
 
 						if(new_time < 20)
 							new_time = 20;
@@ -2035,10 +2038,10 @@ void Sem_hid(Hid_info key)
 
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_SLEEP_BAR_CFM(key))
+					else if(DEF_SEM_HID_LCD_SLEEP_BAR_CFM(*key))
 					{
 						//Update time enter sleep.
-						uint16_t new_time = (580 * ((key.touch_x - 15) / 290.0)) + 20;
+						uint16_t new_time = (580 * ((key->touch_x - 15) / 290.0)) + 20;
 
 						if(new_time < 20)
 							new_time = 20;
@@ -2051,23 +2054,23 @@ void Sem_hid(Hid_info key)
 
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_800PX_CFM(key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
+					else if (DEF_SEM_HID_LCD_800PX_CFM(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_800PX;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_3D_CFM(key) && !record_request
+					else if (DEF_SEM_HID_LCD_3D_CFM(*key) && !record_request
 					&& state.console_model != DEF_SEM_MODEL_OLD2DS && state.console_model != DEF_SEM_MODEL_NEW2DSXL)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_3D;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_400PX_CFM(key) && !record_request)
+					else if (DEF_SEM_HID_LCD_400PX_CFM(*key) && !record_request)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_400PX;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_AUTO_CFM(key) && !record_request)
+					else if (DEF_SEM_HID_LCD_AUTO_CFM(*key) && !record_request)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 						Sem_set_config(&config);
@@ -2075,10 +2078,10 @@ void Sem_hid(Hid_info key)
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
 				{
-					if (DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(key))
+					if (DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(*key))
 					{
 						//Update time to turn off LCD.
-						double new_speed = (1.95 * ((key.touch_x - 15) / 290.0)) + 0.05;
+						double new_speed = (1.95 * ((key->touch_x - 15) / 290.0)) + 0.05;
 
 						if(new_speed < 0.05)
 							new_speed = 0.05;
@@ -2091,14 +2094,14 @@ void Sem_hid(Hid_info key)
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
 				{
-					if (DEF_SEM_HID_FONT_LOAD_ALL_CFM(key) && !is_exfont_busy)
+					if (DEF_SEM_HID_FONT_LOAD_ALL_CFM(*key) && !is_exfont_busy)
 					{
 						for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 							Exfont_set_external_font_request_state(i ,true);
 
 						Exfont_request_load_external_font();
 					}
-					else if (DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(key) && !is_exfont_busy)
+					else if (DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(*key) && !is_exfont_busy)
 					{
 						for (uint16_t i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 							Exfont_set_external_font_request_state(i ,false);
@@ -2109,7 +2112,7 @@ void Sem_hid(Hid_info key)
 					{
 						for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						{
-							if (DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(key, i) && !is_exfont_busy)
+							if (DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(*key, i) && !is_exfont_busy)
 							{
 								if (Exfont_is_loaded_external_font(i))
 								{
@@ -2132,34 +2135,34 @@ void Sem_hid(Hid_info key)
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
 				{
-					if (DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(key))
+					if (DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(*key))
 						sem_should_wifi_enabled = true;
-					else if (DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(key))
+					else if (DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(*key))
 						sem_should_wifi_enabled = false;
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
 				{
-					if (DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(key))
+					if (DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(*key))
 					{
 						config.is_send_info_allowed = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(*key))
 					{
 						config.is_send_info_allowed = false;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(*key))
 					{
 						config.is_debug = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(*key))
 					{
 						config.is_debug = false;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(*key))
 					{
 						if(sem_internal_state.fake_model == 255)
 							sem_internal_state.fake_model = 0;
@@ -2170,23 +2173,23 @@ void Sem_hid(Hid_info key)
 
 						Draw_set_refresh_needed(true);
 					}
-					else if(DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(key) && !sem_dump_log_request)
+					else if(DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(*key) && !sem_dump_log_request)
 						sem_dump_log_request = true;
 #if DEF_CPU_USAGE_API_ENABLE
-					else if (DEF_SEM_HID_ADVANCED_CPU_ON_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_CPU_ON_CFM(*key))
 						sem_should_cpu_usage_monitor_running = true;
-					else if (DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(key))
+					else if (DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(*key))
 						sem_should_cpu_usage_monitor_running = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
 				}
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
 				{
-					if (DEF_SEM_HID_BAT_ECO_ON_CFM(key))
+					if (DEF_SEM_HID_BAT_ECO_ON_CFM(*key))
 					{
 						config.is_eco = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_BAT_ECO_OFF_CFM(key))
+					else if (DEF_SEM_HID_BAT_ECO_OFF_CFM(*key))
 					{
 						config.is_eco = false;
 						Sem_set_config(&config);
@@ -2195,7 +2198,7 @@ void Sem_hid(Hid_info key)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 				else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
 				{
-					if (DEF_SEM_HID_REC_BOTH_CFM(key) && can_record)
+					if (DEF_SEM_HID_REC_BOTH_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
@@ -2205,7 +2208,7 @@ void Sem_hid(Hid_info key)
 							sem_record_request = true;
 						}
 					}
-					else if (DEF_SEM_HID_REC_TOP_CFM(key) && can_record)
+					else if (DEF_SEM_HID_REC_TOP_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
@@ -2215,7 +2218,7 @@ void Sem_hid(Hid_info key)
 							sem_record_request = true;
 						}
 					}
-					else if (DEF_SEM_HID_REC_BOT_CFM(key) && can_record)
+					else if (DEF_SEM_HID_REC_BOT_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
@@ -2231,22 +2234,22 @@ void Sem_hid(Hid_info key)
 		}
 
 		//Scroll.
-		if(DEF_SEM_HID_SCROLL_BAR_CFM(key))
+		if(DEF_SEM_HID_SCROLL_BAR_CFM(*key))
 		{
 			sem_touch_x_move_left = 0;
 			sem_touch_y_move_left = 0;
 
-			sem_y_offset = ((key.touch_y - 15.0) / 195.0) * sem_y_max;
+			sem_y_offset = ((key->touch_y - 15.0) / 195.0) * sem_y_max;
 		}
-		else if(DEF_HID_PHY_PR(key.touch) || DEF_HID_PHY_HE(key.touch))
+		else if(DEF_HID_PHY_PR(key->touch) || DEF_HID_PHY_HE(key->touch))
 		{
 			sem_touch_x_move_left = 0;
 			sem_touch_y_move_left = 0;
 
 			if(sem_scroll_mode)
 			{
-				sem_touch_x_move_left = key.touch_x_move;
-				sem_touch_y_move_left = key.touch_y_move;
+				sem_touch_x_move_left = key->touch_x_move;
+				sem_touch_y_move_left = key->touch_y_move;
 			}
 		}
 		else
@@ -2268,116 +2271,116 @@ void Sem_hid(Hid_info key)
 			sem_y_offset = sem_y_max;
 
 		//Notify user that button is NOT being pressed anymore.
-		if(DEF_SEM_HID_SCROLL_MODE_DESEL(key))
+		if(DEF_SEM_HID_SCROLL_MODE_DESEL(*key))
 			sem_scroll_mode = false;
-		if(DEF_SEM_HID_SCROLL_BAR_DESEL(key))
+		if(DEF_SEM_HID_SCROLL_BAR_DESEL(*key))
 			sem_scroll_bar.selected = false;
-		if(DEF_SEM_HID_SYSTEM_UI_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_SYSTEM_UI_DESEL(*key) || sem_scroll_mode)
 			Draw_get_bot_ui_button()->selected = false;
-		if(DEF_SEM_HID_SUB_MENU_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_SUB_MENU_DESEL(*key) || sem_scroll_mode)
 		{
 			for(uint8_t i = 0; i < 9; i++)
 				sem_menu_button[menu_button_list[i]].selected = false;
 		}
-		if(DEF_SEM_HID_BACK_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_BACK_DESEL(*key) || sem_scroll_mode)
 			sem_back_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(*key) || sem_scroll_mode)
 			sem_check_update_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(*key))//No scroll exists in the sub window.
 			sem_close_updater_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(*key))//No scroll exists in the sub window.
 			sem_select_edtion_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_3DSX_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_3DSX_DESEL(*key))//No scroll exists in the sub window.
 			sem_3dsx_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CIA_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_CIA_DESEL(*key))//No scroll exists in the sub window.
 			sem_cia_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(*key))//No scroll exists in the sub window.
 			sem_back_to_patch_note_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(*key))//No scroll exists in the sub window.
 			sem_dl_install_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(key))//No scroll exists in the sub window.
+		if(DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(*key))//No scroll exists in the sub window.
 			sem_close_app_button.selected = false;
-		if(DEF_SEM_HID_LANG_EN_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_EN_DESEL(*key) || sem_scroll_mode)
 			sem_english_button.selected = false;
-		if(DEF_SEM_HID_LANG_JP_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_JP_DESEL(*key) || sem_scroll_mode)
 			sem_japanese_button.selected = false;
-		if(DEF_SEM_HID_LANG_HU_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_HU_DESEL(*key) || sem_scroll_mode)
 			sem_hungarian_button.selected = false;
-		if(DEF_SEM_HID_LANG_ZHS_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_ZHS_DESEL(*key) || sem_scroll_mode)
 			sem_chinese_button.selected = false;
-		if(DEF_SEM_HID_LANG_IT_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_IT_DESEL(*key) || sem_scroll_mode)
 			sem_italian_button.selected = false;
-		if(DEF_SEM_HID_LANG_ES_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_ES_DESEL(*key) || sem_scroll_mode)
 			sem_spanish_button.selected = false;
-		if(DEF_SEM_HID_LANG_RO_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_RO_DESEL(*key) || sem_scroll_mode)
 			sem_romanian_button.selected = false;
-		if(DEF_SEM_HID_LANG_PO_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_PO_DESEL(*key) || sem_scroll_mode)
 			sem_polish_button.selected = false;
-		if(DEF_SEM_HID_LANG_RYU_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LANG_RYU_DESEL(*key) || sem_scroll_mode)
 			sem_ryukyuan_button.selected = false;
-		if(DEF_SEM_HID_LCD_NIGHT_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_NIGHT_ON_DESEL(*key) || sem_scroll_mode)
 			sem_night_mode_on_button.selected = false;
-		if(DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_night_mode_off_button.selected = false;
-		if(DEF_SEM_HID_LCD_FLASH_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_FLASH_DESEL(*key) || sem_scroll_mode)
 			sem_flash_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(key))//We prioritize this over scroll mode.
+		if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_screen_brightness_bar.selected = false;
-		if(DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(key))//We prioritize this over scroll mode.
+		if(DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_screen_off_time_bar.selected = false;
-		if(DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(key))//We prioritize this over scroll mode.
+		if(DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_sleep_time_bar.selected = false;
-		if(DEF_SEM_HID_LCD_800PX_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_800PX_DESEL(*key) || sem_scroll_mode)
 			sem_800px_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_3D_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_3D_DESEL(*key) || sem_scroll_mode)
 			sem_3d_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_400PX_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_400PX_DESEL(*key) || sem_scroll_mode)
 			sem_400px_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_AUTO_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_LCD_AUTO_DESEL(*key) || sem_scroll_mode)
 			sem_auto_mode_button.selected = false;
-		if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(*key) || sem_scroll_mode)
 			sem_scroll_speed_bar.selected = false;
-		if(DEF_SEM_HID_FONT_LOAD_ALL_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_FONT_LOAD_ALL_DESEL(*key) || sem_scroll_mode)
 			sem_load_all_ex_font_button.selected = false;
-		if(DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(*key) || sem_scroll_mode)
 			sem_unload_all_ex_font_button.selected = false;
-		if(DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(*key) || sem_scroll_mode)
 		{
 			for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				sem_ex_font_button[i].selected = false;
 		}
-		if(DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(*key) || sem_scroll_mode)
 			sem_wifi_on_button.selected = false;
-		if(DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_wifi_off_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_allow_send_info_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_deny_send_info_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(*key) || sem_scroll_mode)
 			sem_debug_mode_on_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_debug_mode_off_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(*key) || sem_scroll_mode)
 			sem_use_fake_model_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(key)  || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(*key)  || sem_scroll_mode)
 			sem_dump_log_button.selected = false;
 #if DEF_CPU_USAGE_API_ENABLE
-		if(DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_cpu_usage_on_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_cpu_usage_off_button.selected = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
-		if(DEF_SEM_HID_BAT_ECO_ON_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_BAT_ECO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_on_button.selected = false;
-		if(DEF_SEM_HID_BAT_ECO_OFF_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_BAT_ECO_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_off_button.selected = false;
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-		if(DEF_SEM_HID_REC_BOTH_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_REC_BOTH_DESEL(*key) || sem_scroll_mode)
 			sem_record_both_lcd_button.selected = false;
-		if(DEF_SEM_HID_REC_TOP_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_REC_TOP_DESEL(*key) || sem_scroll_mode)
 			sem_record_top_lcd_button.selected = false;
-		if(DEF_SEM_HID_REC_BOT_DESEL(key) || sem_scroll_mode)
+		if(DEF_SEM_HID_REC_BOT_DESEL(*key) || sem_scroll_mode)
 			sem_record_bottom_lcd_button.selected = false;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	}

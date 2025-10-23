@@ -73,7 +73,7 @@ bool Vid_query_init_flag(void);
 
 bool Vid_query_running_flag(void);
 
-void Vid_hid(Hid_info key);
+void Vid_hid(const Hid_info* key);
 
 void Vid_resume(void);
 

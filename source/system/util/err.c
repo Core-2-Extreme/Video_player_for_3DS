@@ -16,15 +16,15 @@
 
 //Defines.
 //Close.
-#define DEF_ERR_HID_NOT_INITED_CLOSE_CFM(k)	(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_ERR_HID_NOT_INITED_CLOSE_CFM(k)	(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //OK (close).
-#define DEF_ERR_HID_OK_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_err_ok_button, k)) || DEF_HID_PHY_PR(k.a))
-#define DEF_ERR_HID_OK_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_err_ok_button, k)) || (DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a)))
-#define DEF_ERR_HID_OK_DESEL(k)				(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.a))
+#define DEF_ERR_HID_OK_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_err_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
+#define DEF_ERR_HID_OK_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_err_ok_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a)))
+#define DEF_ERR_HID_OK_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Save.
-#define DEF_ERR_HID_SAVE_SEL(k)				(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_err_save_button, k)) || DEF_HID_PHY_PR(k.x))
-#define DEF_ERR_HID_SAVE_CFM(k)				(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_err_save_button, k)) || (DEF_HID_PR_EM(k.x, 1) || DEF_HID_HD(k.x)))
-#define DEF_ERR_HID_SAVE_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.x))
+#define DEF_ERR_HID_SAVE_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_err_save_button, (k))) || DEF_HID_PHY_PR((k).x))
+#define DEF_ERR_HID_SAVE_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_err_save_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
+#define DEF_ERR_HID_SAVE_DESEL(k)			(bool)(DEF_HID_PHY_NP(((k)).touch) && DEF_HID_PHY_NP((k).x))
 
 //Typedefs.
 //N/A.
@@ -212,12 +212,15 @@ const char* Util_err_get_error_msg(uint32_t result)
 	}
 }
 
-void Util_err_main(Hid_info key)
+void Util_err_main(const Hid_info* key)
 {
+	if(!key)
+		return;
+
 	if(!util_err_init)
 	{
 		//Execute functions if conditions are satisfied.
-		if (DEF_ERR_HID_NOT_INITED_CLOSE_CFM(key))
+		if (DEF_ERR_HID_NOT_INITED_CLOSE_CFM(*key))
 		{
 			util_err_show_flag = false;
 			//Reset key state on scene change.
@@ -227,25 +230,25 @@ void Util_err_main(Hid_info key)
 	}
 
 	//Notify user that button is being pressed.
-	if(DEF_ERR_HID_OK_SEL(key) && !util_err_save_request)
+	if(DEF_ERR_HID_OK_SEL(*key) && !util_err_save_request)
 		util_err_ok_button.selected = true;
-	if(DEF_ERR_HID_SAVE_SEL(key) && !util_err_save_request)
+	if(DEF_ERR_HID_SAVE_SEL(*key) && !util_err_save_request)
 		util_err_save_button.selected = true;
 
 	//Execute functions if conditions are satisfied.
-	if (DEF_ERR_HID_OK_CFM(key) && !util_err_save_request)
+	if (DEF_ERR_HID_OK_CFM(*key) && !util_err_save_request)
 	{
 		util_err_show_flag = false;
 		//Reset key state on scene change.
 		Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	}
-	else if (DEF_ERR_HID_SAVE_CFM(key) && !util_err_save_request)
+	else if (DEF_ERR_HID_SAVE_CFM(*key) && !util_err_save_request)
 		Util_err_save_error();
 
 	//Notify user that button is NOT being pressed anymore.
-	if(DEF_ERR_HID_OK_DESEL(key))
+	if(DEF_ERR_HID_OK_DESEL(*key))
 		util_err_ok_button.selected = false;
-	if(DEF_ERR_HID_SAVE_DESEL(key))
+	if(DEF_ERR_HID_SAVE_DESEL(*key))
 		util_err_save_button.selected = false;
 }
 

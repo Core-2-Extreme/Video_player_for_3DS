@@ -73,7 +73,7 @@ const char* Util_err_get_error_msg(uint32_t result);
  * @param key (in) key info returned by Util_hid_query_key_state().
  * @warning Thread dangerous (untested).
 */
-void Util_err_main(Hid_info key);
+void Util_err_main(const Hid_info* key);
 
 /**
  * @brief Draw error message.

@@ -214,7 +214,7 @@ uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const
  * @param key (in) key info returned by Util_hid_query_key_state().
  * @warning Thread dangerous (untested).
 */
-void Util_log_main(Hid_info key);
+void Util_log_main(const Hid_info* key);
 
 /**
  * @brief Draw logs.

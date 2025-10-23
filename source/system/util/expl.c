@@ -27,34 +27,34 @@
 #define DEF_EXPL_NUM_OF_DISPLAYED_ITEMS		(uint8_t)(16)	//Number of displayed files on the screen.
 
 //Close.
-#define DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Cancel (close).
-#define DEF_EXPL_HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM(k.y, 1) || DEF_HID_HD(k.y))
+#define DEF_EXPL_HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
 //File selection.
-#define DEF_EXPL_HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(util_expl_file_button[id], k)))
-#define DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
-#define DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(util_expl_file_button[id], k))
-#define DEF_EXPL_HID_FILE_DESELECTED_TOUCH(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_EXPL_HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_expl_file_button[id], (k))))
+#define DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(k, id)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_expl_file_button[id], (k)))
+#define DEF_EXPL_HID_FILE_DESELECTED_TOUCH(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Back to parent directory.
-#define DEF_EXPL_HID_PARENT_DIR_CFM(k)				(bool)(DEF_HID_PR_EM(k.b, 1) || DEF_HID_HD(k.b))
+#define DEF_EXPL_HID_PARENT_DIR_CFM(k)				(bool)(DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
 //Scroll mode.
-#define DEF_EXPL_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE(k.touch) && ((abs(k.touch_x_initial - k.touch_x) > 6) || (abs(k.touch_y_initial - k.touch_y) > 6)))
-#define DEF_EXPL_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define DEF_EXPL_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)))
+#define DEF_EXPL_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Go to next file.
-#define DEF_EXPL_HID_NEXT_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_PR(k.d_right) \
-|| DEF_HID_PHY_PR(k.c_right) || DEF_HID_HE(k.d_down) || DEF_HID_HE(k.c_down) || DEF_HID_PHY_HE(k.d_right) || DEF_HID_PHY_HE(k.c_right))
+#define DEF_EXPL_HID_NEXT_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
+|| DEF_HID_PHY_PR((k).c_right) || DEF_HID_HE((k).d_down) || DEF_HID_HE((k).c_down) || DEF_HID_PHY_HE((k).d_right) || DEF_HID_PHY_HE((k).c_right))
 
-#define DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.d_down, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL(k.c_down, 200, is_new_range[1])
-#define DEF_EXPL_HID_NEXT_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_down) || DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_PR(k.d_right) \
-|| DEF_HID_PHY_PR(k.c_right) || DEF_HID_PHY_HE(k.d_right) || DEF_HID_PHY_HE(k.c_right) || is_new_range[0] || is_new_range[1])
+#define DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_down, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_down, 200, is_new_range[1])
+#define DEF_EXPL_HID_NEXT_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
+|| DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).d_right) || DEF_HID_PHY_HE((k).c_right) || is_new_range[0] || is_new_range[1])
 
 //Go to previous file.
-#define DEF_EXPL_HID_PRE_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_PR(k.d_left) \
-|| DEF_HID_PHY_PR(k.c_left) || DEF_HID_HE(k.d_up) || DEF_HID_HE(k.c_up) || DEF_HID_PHY_HE(k.d_left) || DEF_HID_PHY_HE(k.c_left))
+#define DEF_EXPL_HID_PRE_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
+|| DEF_HID_PHY_PR((k).c_left) || DEF_HID_HE((k).d_up) || DEF_HID_HE((k).c_up) || DEF_HID_PHY_HE((k).d_left) || DEF_HID_PHY_HE((k).c_left))
 
-#define DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL(k.d_up, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL(k.c_up, 200, is_new_range[1])
-#define DEF_EXPL_HID_PRE_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR(k.d_up) || DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_PR(k.d_left) \
-|| DEF_HID_PHY_PR(k.c_left) || DEF_HID_PHY_HE(k.d_left) || DEF_HID_PHY_HE(k.c_left) || is_new_range[0] || is_new_range[1])
+#define DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_up, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_up, 200, is_new_range[1])
+#define DEF_EXPL_HID_PRE_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
+|| DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).d_left) || DEF_HID_PHY_HE((k).c_left) || is_new_range[0] || is_new_range[1])
 
 //Typedefs.
 typedef struct
@@ -416,12 +416,15 @@ void Util_expl_draw(void)
 	}
 }
 
-void Util_expl_main(Hid_info key, double scroll_speed)
+void Util_expl_main(const Hid_info* key, double scroll_speed)
 {
+	if(!key)
+		return;
+
 	if(!util_expl_init)
 	{
 		//Execute functions if conditions are satisfied.
-		if (DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(key))
+		if (DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(*key))
 		{
 			util_expl_show_flag = false;
 			//Reset key state on scene change.
@@ -437,16 +440,16 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 		{
 			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if(DEF_EXPL_HID_FILE_SELECTED_TOUCH(key, i) && util_expl_num_of_files > (i + util_expl_y_offset))
+				if(DEF_EXPL_HID_FILE_SELECTED_TOUCH(*key, i) && util_expl_num_of_files > (i + util_expl_y_offset))
 					util_expl_file_button[i].selected = true;
 			}
 		}
 	}
-	if(DEF_EXPL_HID_SCROLL_MODE_SEL(key))
+	if(DEF_EXPL_HID_SCROLL_MODE_SEL(*key))
 		util_expl_scroll_mode = true;
 
 	//Execute functions if conditions are satisfied.
-	if (DEF_EXPL_HID_CANCEL_CFM(key))
+	if (DEF_EXPL_HID_CANCEL_CFM(*key))
 	{
 		if(util_expl_cancel_callback)
 			util_expl_cancel_callback();
@@ -459,14 +462,14 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 	{
 		if(util_expl_scroll_mode)
 		{
-			if(util_expl_num_of_files > DEF_EXPL_NUM_OF_DISPLAYED_ITEMS && key.touch_y_move != 0)
+			if(util_expl_num_of_files > DEF_EXPL_NUM_OF_DISPLAYED_ITEMS && key->touch_y_move != 0)
 			{
 				uint32_t new_offset = util_expl_y_offset;
 				int32_t changes = 0;
 
 				//Store value less than integer (e.g. if input value is 4.6
 				//remaining will be 0.6 and changes will be 4).
-				util_expl_move_remaining += (key.touch_y_move * scroll_speed / 8);
+				util_expl_move_remaining += (key->touch_y_move * scroll_speed / 8);
 				changes = (int32_t)util_expl_move_remaining;
 				util_expl_move_remaining -= changes;
 
@@ -492,9 +495,9 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 		{
 			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if (DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(key, i) || DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(key))
+				if (DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(*key, i) || DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(*key))
 				{
-					if (DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(key) || (i == util_expl_active_index))
+					if (DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(*key) || (i == util_expl_active_index))
 					{
 						//User has released the button on the active item (i.e. file or dir), open it.
 						uint32_t selected_index = (util_expl_y_offset + util_expl_active_index);
@@ -577,7 +580,7 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 				}
 			}
 		}
-		if (DEF_EXPL_HID_PARENT_DIR_CFM(key))
+		if (DEF_EXPL_HID_PARENT_DIR_CFM(*key))
 		{
 			bool is_root_dir = false;
 			Str_data dir = { 0, };
@@ -622,13 +625,13 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 
 			Util_str_free(&dir);
 		}
-		else if (DEF_EXPL_HID_NEXT_FILE_PRE_CFM(key))
+		else if (DEF_EXPL_HID_NEXT_FILE_PRE_CFM(*key))
 		{
 			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
 
-			DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(key);
+			DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(*key);
 
-			if (DEF_EXPL_HID_NEXT_FILE_CFM(key))
+			if (DEF_EXPL_HID_NEXT_FILE_CFM(*key))
 			{
 				if (util_expl_active_index < (DEF_EXPL_NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
 					util_expl_active_index++; 
@@ -636,13 +639,13 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 					util_expl_y_offset++;
 			}
 		}
-		else if (DEF_EXPL_HID_PRE_FILE_PRE_CFM(key))
+		else if (DEF_EXPL_HID_PRE_FILE_PRE_CFM(*key))
 		{
 			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
 
-			DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(key);
+			DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(*key);
 
-			if (DEF_EXPL_HID_PRE_FILE_CFM(key))
+			if (DEF_EXPL_HID_PRE_FILE_CFM(*key))
 			{
 				if (util_expl_active_index > 0)
 					util_expl_active_index--;
@@ -653,12 +656,12 @@ void Util_expl_main(Hid_info key, double scroll_speed)
 	}
 
 	//Notify user that button is NOT being pressed anymore.
-	if(DEF_EXPL_HID_FILE_DESELECTED_TOUCH(key) || util_expl_scroll_mode)
+	if(DEF_EXPL_HID_FILE_DESELECTED_TOUCH(*key) || util_expl_scroll_mode)
 	{
 		for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
 			util_expl_file_button[i].selected = false;
 	}
-	if(DEF_EXPL_HID_SCROLL_MODE_DESEL(key))
+	if(DEF_EXPL_HID_SCROLL_MODE_DESEL(*key))
 		util_expl_scroll_mode = false;
 }
 

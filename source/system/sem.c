@@ -2622,7 +2622,8 @@ void Sem_hw_config_thread(void* arg)
 	{
 		uint32_t result = DEF_ERR_OTHER;
 		Sem_config config = { 0, };
-		Hid_info hid_info = { 0, };
+		//Reduce stack usage.
+		static Hid_info hid_info = { 0, };
 
 		Sem_get_config(&config);
 		Util_hid_query_key_state(&hid_info);

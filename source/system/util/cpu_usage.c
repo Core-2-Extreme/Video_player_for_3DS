@@ -237,7 +237,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 
 				if(i == 1)
 				{
-					uint8_t core_1_limit = util_cpu_usage_core_1_limit;
+					uint8_t core_1_limit = Util_cpu_usage_get_core_1_limit();
 
 					if(core_1_limit != 0)
 						util_cpu_usage_per_core[i] = (cpu_usage_cache / (100.0f / core_1_limit));

@@ -1,4 +1,4 @@
-<0>Möchten di die Software beenden?</0>
+<0>Möchtest du die Software beenden?</0>
 <1>A zum Schließen</1>
 <2>B zum Zurückkehren</2>
 <3>☢Eine neue Version ist verfügbar!☢</3>

@@ -290,7 +290,7 @@ typedef enum
 typedef enum
 {
 	PLAYER_STATE_IDLE,				//File is not opened.
-	PLAYER_STATE_PREPATE_PLAYING,	//File is not opened, but will be opened soon.
+	PLAYER_STATE_PREPARE_PLAYING,	//File is not opened, but will be opened soon.
 	PLAYER_STATE_PLAYING,			//File is opened and playing.
 	PLAYER_STATE_PAUSE,				//File is opened but not playing.
 	PLAYER_STATE_BUFFERING,			//File is opened but it runs out of video buffer, buffering is in progress.
@@ -721,7 +721,7 @@ void Vid_hid(const Hid_info* key)
 					vid_player.is_scroll_mode = true;
 			}
 
-			if(vid_player.state != PLAYER_STATE_IDLE && vid_player.state != PLAYER_STATE_PREPATE_PLAYING)
+			if(vid_player.state != PLAYER_STATE_IDLE && vid_player.state != PLAYER_STATE_PREPARE_PLAYING)
 			{
 				if(DEF_VID_HID_SEEK_BAR_SEL(*key))
 					vid_player.seek_bar.selected = true;
@@ -1229,7 +1229,7 @@ void Vid_hid(const Hid_info* key)
 			}
 		}
 
-		if(vid_player.state != PLAYER_STATE_IDLE && vid_player.state != PLAYER_STATE_PREPATE_PLAYING)
+		if(vid_player.state != PLAYER_STATE_IDLE && vid_player.state != PLAYER_STATE_PREPARE_PLAYING)
 		{
 			double current_bar_pos = 0;
 
@@ -4105,7 +4105,7 @@ void Vid_decode_thread(void* arg)
 				{
 					Vid_file* new_file = (Vid_file*)message;
 
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 					{
 						uint8_t num_of_audio_tracks = 0;
 						uint8_t num_of_video_tracks = 0;
@@ -4466,7 +4466,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_PAUSE_REQUEST:
 				{
 					//Do nothing if player state is idle, prepare playing or pause.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING
 					|| vid_player.state == PLAYER_STATE_PAUSE)
 						break;
 
@@ -4487,7 +4487,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_RESUME_REQUEST:
 				{
 					//Do nothing if player state is idle, prepare playing or playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING
 					|| vid_player.state == PLAYER_STATE_PLAYING)
 						break;
 
@@ -4508,7 +4508,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_SEEK_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					if(vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
@@ -4555,7 +4555,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_CHANGE_AUDIO_TRACK_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					//Change audio track.
@@ -4580,7 +4580,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_CHANGE_SUBTITLE_TRACK_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					//Change subtitle track.
@@ -4609,7 +4609,7 @@ void Vid_decode_thread(void* arg)
 				case DECODE_THREAD_SHUTDOWN_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 					{
 						vid_player.state = PLAYER_STATE_IDLE;
 						vid_player.sub_state = PLAYER_SUB_STATE_NONE;
@@ -4736,7 +4736,7 @@ void Vid_decode_thread(void* arg)
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
 						DECODE_THREAD_PLAY_REQUEST, file_data, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
-						vid_player.state = PLAYER_STATE_PREPATE_PLAYING;
+						vid_player.state = PLAYER_STATE_PREPARE_PLAYING;
 					}
 					else
 					{
@@ -5341,7 +5341,7 @@ void Vid_decode_video_thread(void* arg)
 					Vid_video_packet_data* packet_info = (Vid_video_packet_data*)message;
 
 					//Do nothing if player state is idle or prepare playing or message is NULL.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING || !packet_info)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING || !packet_info)
 						break;
 
 					key_frame = packet_info->is_key_frame;
@@ -5456,7 +5456,7 @@ void Vid_decode_video_thread(void* arg)
 				case DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					//Clear cache.
@@ -5569,7 +5569,7 @@ void Vid_convert_thread(void* arg)
 				case CONVERT_THREAD_CONVERT_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing or file doesn't have video tracks.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING
 					|| vid_player.num_of_video_tracks <= 0)
 						break;
 
@@ -5607,7 +5607,7 @@ void Vid_convert_thread(void* arg)
 		}
 
 		//Do nothing if player state is idle, prepare playing, prepare seeking or should_convert flag is not set.
-		if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING
+		if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING
 		|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || !should_convert)
 			continue;
 
@@ -5954,7 +5954,7 @@ void Vid_read_packet_thread(void* arg)
 				case READ_PACKET_THREAD_READ_PACKET_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					while(true)
@@ -6015,7 +6015,7 @@ void Vid_read_packet_thread(void* arg)
 				case READ_PACKET_THREAD_SEEK_REQUEST:
 				{
 					//Do nothing if player state is idle or prepare playing.
-					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPATE_PLAYING)
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
 					DEF_LOG_RESULT_SMART(result, Util_decoder_seek(vid_player.seek_pos, MEDIA_SEEK_FLAG_BACKWARD, 0),

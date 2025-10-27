@@ -441,13 +441,14 @@ typedef struct
 
 	//UI.
 	bool is_full_screen;							//Whether player is full screen.
-	bool is_pause_for_home_menu;					//Whether player state is pause because of nintendo home menu.
+	bool is_waiting_home_menu;						//Whether player is waiting for nintendo home menu to resume the app.
 	bool is_selecting_audio_track;					//Whether user is selecting a audio track.
 	bool is_selecting_subtitle_track;				//Whether user is selecting a subtitle track.
 	bool is_setting_volume;							//Whether user is setting volume level.
 	bool is_setting_seek_duration;					//Whether user is setting seek duration.
 	bool is_displaying_controls;					//Whether user is checking how to control.
 	bool is_scroll_mode;							//Whether scroll mode is active.
+	bool must_resume_after_home_menu;				//Whether player must resume playback after nintendo home menu resuming the app.
 	int8_t menu_mode;								//Current menu tab.
 	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full screen mode.
 	uint64_t show_screen_brightness_until;			//Display screen brightness message until this time.
@@ -566,11 +567,48 @@ void Vid_hid(const Hid_info* key)
 	if(!key)
 		return;
 
-	if(vid_player.is_setting_volume || vid_player.is_setting_seek_duration || (aptShouldJumpToHome() && vid_player.is_pause_for_home_menu))
+	if(vid_player.is_setting_volume || vid_player.is_setting_seek_duration)
 		return;
 
 	Sem_get_config(&config);
 	Sem_get_state(&state);
+
+	if(aptShouldJumpToHome())
+	{
+		if(vid_player.is_waiting_home_menu)
+			return;//Nothing to do.
+
+		vid_player.is_waiting_home_menu = true;
+
+		if(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING
+		|| (vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER))
+		{
+			//Only resume video if we are playing, about to start playing or resume flag is set.
+			vid_player.must_resume_after_home_menu = true;
+		}
+
+		//Always pause the video just in case.
+		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
+		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+
+		//Wait for it.
+		while(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING)
+			Util_sleep(10000);
+
+		return;
+	}
+	else
+	{
+		if(vid_player.must_resume_after_home_menu)
+		{
+			//Resume the video.
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
+			DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+		}
+
+		vid_player.is_waiting_home_menu = false;
+		vid_player.must_resume_after_home_menu = false;
+	}
 
 	if(Util_err_query_show_flag())
 		Util_err_main(key);
@@ -578,25 +616,6 @@ void Vid_hid(const Hid_info* key)
 		Util_expl_main(key, config.scroll_speed);
 	else
 	{
-		if(vid_player.is_pause_for_home_menu)
-		{
-			vid_player.is_pause_for_home_menu = false;
-			//Resume the video.
-			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-			DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
-		}
-
-		if(aptShouldJumpToHome())
-		{
-			vid_player.is_pause_for_home_menu = true;
-			//Pause the video.
-			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-			DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
-
-			while(vid_player.state == PLAYER_STATE_PLAYING)
-				Util_sleep(10000);
-		}
-
 		//Notify user that button is being pressed.
 		if(vid_player.is_full_screen)
 		{
@@ -2711,74 +2730,76 @@ void Vid_main(void)
 	else
 		gspWaitForVBlank();
 
-	if(vid_player.is_setting_volume)
+	if(vid_player.is_setting_volume || vid_player.is_setting_seek_duration)
 	{
+		bool must_resume = false;
 		uint32_t result = DEF_ERR_OTHER;
+		uint32_t max_length = 0;
 		Str_data dummy = { 0, };
 		Str_data init_text = { 0, };
 		Str_data out = { 0, };
 
 		Util_str_init(&dummy);
 		Util_str_init(&init_text);
-		Util_str_format(&init_text, "%" PRIu16, vid_player.volume);
+		if(vid_player.is_setting_volume)
+		{
+			Util_str_format(&init_text, "%" PRIu16, vid_player.volume);
+			max_length = 3;
+		}
+		else if(vid_player.is_setting_seek_duration)
+		{
+			Util_str_format(&init_text, "%" PRIu8, vid_player.seek_duration);
+			max_length = 2;
+		}
 
-		//Pause the video.
+		if(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING
+		|| (vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER))
+		{
+			//Only resume video if we are playing, about to start playing or resume flag is set.
+			must_resume = true;
+		}
+
+		//Always pause the video just in case.
 		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
 		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 
-		Util_keyboard_init(KEYBOARD_TYPE_NUMPAD, KEYBOARD_ACCEPTABLE_INPUT_NO_EMPTY, KEYBOARD_DISPLAY_BUTTON_MIDDLE, 3,
-		&dummy, &init_text, KEYBOARD_PASSWORD_MODE_OFF, KEYBOARD_FEATURES_BIT_NONE);
+		//Wait for it.
+		while(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING)
+			Util_sleep(10000);
+
+		Util_keyboard_init(KEYBOARD_TYPE_NUMPAD, KEYBOARD_ACCEPTABLE_INPUT_NO_EMPTY, KEYBOARD_DISPLAY_BUTTON_MIDDLE,
+		max_length, &dummy, &init_text, KEYBOARD_PASSWORD_MODE_OFF, KEYBOARD_FEATURES_BIT_NONE);
 
 		if(Util_keyboard_launch(&out, NULL) == DEF_SUCCESS)
-			vid_player.volume = (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
+		{
+			if(vid_player.is_setting_volume)
+				vid_player.volume = (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
+			else if(vid_player.is_setting_seek_duration)
+			{
+				vid_player.seek_duration = (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
+
+				if(vid_player.seek_duration == 0)
+					vid_player.seek_duration = 1;
+			}
+		}
 
 		Util_str_free(&dummy);
 		Util_str_free(&init_text);
 		Util_str_free(&out);
 
-		//Resume the video.
-		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-		DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+		if(must_resume)
+		{
+			//Resume the video.
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
+			DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+		}
 
 		Draw_set_refresh_needed(true);
 		Util_keyboard_exit();
-		vid_player.is_setting_volume = false;
-	}
-	else if(vid_player.is_setting_seek_duration)
-	{
-		uint32_t result = DEF_ERR_OTHER;
-		Str_data dummy = { 0, };
-		Str_data init_text = { 0, };
-		Str_data out = { 0, };
-
-		Util_str_init(&dummy);
-		Util_str_init(&init_text);
-		Util_str_format(&init_text, "%" PRIu8, vid_player.seek_duration);
-
-		//Pause the video.
-		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
-
-		Util_keyboard_init(KEYBOARD_TYPE_NUMPAD, KEYBOARD_ACCEPTABLE_INPUT_NO_EMPTY, KEYBOARD_DISPLAY_BUTTON_MIDDLE, 2,
-		&dummy, &init_text, KEYBOARD_PASSWORD_MODE_OFF, KEYBOARD_FEATURES_BIT_NONE);
-
-		if(Util_keyboard_launch(&out, NULL) == DEF_SUCCESS)
-			vid_player.seek_duration = (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out), NULL, 10), 0);
-
-		if(vid_player.seek_duration == 0)
-			vid_player.seek_duration = 1;
-
-		Util_str_free(&dummy);
-		Util_str_free(&init_text);
-		Util_str_free(&out);
-
-		//Resume the video.
-		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-		DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
-
-		Draw_set_refresh_needed(true);
-		Util_keyboard_exit();
-		vid_player.is_setting_seek_duration = false;
+		if(vid_player.is_setting_volume)
+			vid_player.is_setting_volume = false;
+		else if(vid_player.is_setting_seek_duration)
+			vid_player.is_setting_seek_duration = false;
 	}
 
 	Vid_update_sleep_policy();
@@ -3544,13 +3565,14 @@ static void Vid_init_subtitle_data(void)
 static void Vid_init_ui_data(void)
 {
 	vid_player.is_full_screen = false;
-	vid_player.is_pause_for_home_menu = false;
+	vid_player.is_waiting_home_menu = false;
 	vid_player.is_selecting_audio_track = false;
 	vid_player.is_selecting_subtitle_track = false;
 	vid_player.is_setting_volume = false;
 	vid_player.is_setting_seek_duration = false;
 	vid_player.is_displaying_controls = false;
 	vid_player.is_scroll_mode = false;
+	vid_player.must_resume_after_home_menu = false;
 	vid_player.turn_off_bottom_screen_count = 0;
 	vid_player.menu_mode = DEF_VID_MENU_NONE;
 	vid_player.show_screen_brightness_until = 0;

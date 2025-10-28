@@ -929,7 +929,7 @@ static void Menu_hid_callback(void)
 		if(!aptShouldJumpToHome())
 		{
 			if (Util_err_query_show_flag())
-				Util_err_main(key);
+				Util_err_main(&key);
 			else
 			{
 				//Notify user that button is being pressed.
@@ -1193,52 +1193,52 @@ static void Menu_hid_callback(void)
 			}
 
 			if(Util_log_query_show_flag())
-				Util_log_main(key);
+				Util_log_main(&key);
 		}
 	}
 
 #ifdef DEF_VID_ENABLE
 	else if (Vid_query_running_flag())
-		Vid_hid(key);
+		Vid_hid(&key);
 #endif //DEF_VID_ENABLE
 
 #ifdef DEF_SAPP1_ENABLE
 	else if (Sapp1_query_running_flag())
-		Sapp1_hid(key);
+		Sapp1_hid(&key);
 #endif //DEF_SAPP1_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 	else if (Sapp2_query_running_flag())
-		Sapp2_hid(key);
+		Sapp2_hid(&key);
 #endif //DEF_SAPP2_ENABLE
 
 #ifdef DEF_SAPP3_ENABLE
 	else if (Sapp3_query_running_flag())
-		Sapp3_hid(key);
+		Sapp3_hid(&key);
 #endif //DEF_SAPP3_ENABLE
 
 #ifdef DEF_SAPP4_ENABLE
 	else if (Sapp4_query_running_flag())
-		Sapp4_hid(key);
+		Sapp4_hid(&key);
 #endif //DEF_SAPP4_ENABLE
 
 #ifdef DEF_SAPP5_ENABLE
 	else if (Sapp5_query_running_flag())
-		Sapp5_hid(key);
+		Sapp5_hid(&key);
 #endif //DEF_SAPP5_ENABLE
 
 #ifdef DEF_SAPP6_ENABLE
 	else if (Sapp6_query_running_flag())
-		Sapp6_hid(key);
+		Sapp6_hid(&key);
 #endif //DEF_SAPP6_ENABLE
 
 #ifdef DEF_SAPP7_ENABLE
 	else if (Sapp7_query_running_flag())
-		Sapp7_hid(key);
+		Sapp7_hid(&key);
 #endif //DEF_SAPP7_ENABLE
 
 	else if (Sem_query_running_flag())
-		Sem_hid(key);
+		Sem_hid(&key);
 }
 
 void Menu_worker_thread(void* arg)
@@ -1386,7 +1386,7 @@ void Menu_update_thread(void* arg)
 				memcpy(ver, pos[0], size);
 				ver[size] = 0x00;
 
-				if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)atoi(ver))
+				if(DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(ver, NULL, 10))
 					menu_update_available = true;
 			}
 		}

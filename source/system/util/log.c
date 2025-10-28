@@ -18,15 +18,15 @@
 #define DEF_LOG_DISPLAYED_LINES			(uint8_t)(23)
 
 //Close.
-#define DEF_LOG_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define DEF_LOG_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Next item.
-#define DEF_LOG_HID_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_up) || DEF_HID_PHY_HE(k.c_up))
+#define DEF_LOG_HID_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_HE((k).c_up))
 //Previous item.
-#define DEF_LOG_HID_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_down) || DEF_HID_PHY_HE(k.c_down))
+#define DEF_LOG_HID_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_HE((k).c_down))
 //Pan left.
-#define DEF_LOG_HID_PAN_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR(k.c_left) || DEF_HID_PHY_HE(k.c_left))
+#define DEF_LOG_HID_PAN_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).c_left))
 //Pan Right.
-#define DEF_LOG_HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR(k.c_right) || DEF_HID_PHY_HE(k.c_right))
+#define DEF_LOG_HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
 
 //Typedefs.
 //N/A.
@@ -310,12 +310,15 @@ uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const
 		return Util_log_format(caller, "%s : %s", symbol_name, text);
 }
 
-void Util_log_main(Hid_info key)
+void Util_log_main(const Hid_info* key)
 {
+	if(!key)
+		return;
+
 	if(!util_log_init)
 	{
 		//Execute functions if conditions are satisfied.
-		if (DEF_LOG_HID_NOT_INITED_CLOSE_CFM(key))
+		if (DEF_LOG_HID_NOT_INITED_CLOSE_CFM(*key))
 		{
 			util_log_show_flag = false;
 			//Reset key state on scene change.
@@ -325,25 +328,25 @@ void Util_log_main(Hid_info key)
 	}
 
 	//Execute functions if conditions are satisfied.
-	if(DEF_LOG_HID_NEXT_ITEM_CFM(key))
+	if(DEF_LOG_HID_NEXT_ITEM_CFM(*key))
 	{
 		if (util_log_y > 0)
 			util_log_y--;
 	}
-	else if(DEF_LOG_HID_PRE_ITEM_CFM(key))
+	else if(DEF_LOG_HID_PRE_ITEM_CFM(*key))
 	{
 		if (util_log_y + 1 <= DEF_LOG_BUFFER_LINES - DEF_LOG_DISPLAYED_LINES)
 			util_log_y++;
 	}
 
-	if(DEF_LOG_HID_PAN_LEFT_CFM(key))
+	if(DEF_LOG_HID_PAN_LEFT_CFM(*key))
 	{
 		if (util_log_x + 5.0 < 0.0)
 			util_log_x += 5.0;
 		else
 			util_log_x = 0.0;
 	}
-	else if (DEF_LOG_HID_PAN_RIGHT_CFM(key))
+	else if (DEF_LOG_HID_PAN_RIGHT_CFM(*key))
 	{
 		if (util_log_x - 5.0 > -2000.0)
 			util_log_x -= 5.0;

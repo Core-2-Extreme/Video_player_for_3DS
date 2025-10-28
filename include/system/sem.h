@@ -207,6 +207,6 @@ void Sem_exit(void);
 
 void Sem_main(void);
 
-void Sem_hid(Hid_info key);
+void Sem_hid(const Hid_info* key);
 
 #endif //!defined(DEF_SEM_H)

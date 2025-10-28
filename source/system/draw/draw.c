@@ -885,9 +885,10 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
 void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 {
 	uint32_t color = DEF_DRAW_BLACK;
-	Hid_info key = { 0, };
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
+	//Reduce stack usage.
+	static Hid_info key = { 0, };
 
 	if(!util_draw_init)
 		return;

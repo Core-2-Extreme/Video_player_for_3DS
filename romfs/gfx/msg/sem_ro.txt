@@ -72,3 +72,4 @@ anumite funcții care nu merg)</62>
 <68>琉球諸語</68>
 <69>Auto</69>
 <70>Time to enter sleep : </70>
+<71>Deutsch</71>

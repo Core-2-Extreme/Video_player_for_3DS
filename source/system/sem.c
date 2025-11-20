@@ -115,6 +115,10 @@
 #define DEF_SEM_HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, (k)))
 #define DEF_SEM_HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, (k)))
 #define DEF_SEM_HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+//Language : German.
+#define DEF_SEM_HID_LANG_DE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_german_button, (k)))
+#define DEF_SEM_HID_LANG_DE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_german_button, (k)))
+#define DEF_SEM_HID_LANG_DE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Night mode on.
 #define DEF_SEM_HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, (k)))
 #define DEF_SEM_HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, (k)))
@@ -281,7 +285,7 @@ static Sync_data sem_config_state_mutex = { 0, };
 static Thread sem_hw_config_thread = NULL;
 static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
 sem_japanese_button = { 0, }, sem_hungarian_button = { 0, }, sem_chinese_button = { 0, }, sem_italian_button = { 0, },
-sem_spanish_button = { 0, }, sem_romanian_button = { 0, }, sem_polish_button = { 0, }, sem_ryukyuan_button = { 0, },
+sem_spanish_button = { 0, }, sem_romanian_button = { 0, }, sem_polish_button = { 0, }, sem_ryukyuan_button = { 0, }, sem_german_button = { 0, },
 sem_night_mode_on_button = { 0, }, sem_night_mode_off_button = { 0, }, sem_flash_mode_button = { 0, }, sem_screen_brightness_slider = { 0, },
 sem_screen_brightness_bar = { 0, }, sem_screen_off_time_slider = { 0, }, sem_screen_off_time_bar = { 0, }, sem_sleep_time_slider = { 0, },
 sem_sleep_time_bar = { 0, }, sem_800px_mode_button = { 0, }, sem_3d_mode_button = { 0, }, sem_400px_mode_button = { 0, },
@@ -452,7 +456,7 @@ void Sem_set_config(Sem_config* new_config)
 		&& strcmp(new_config->lang, "hu") != 0 && strcmp(new_config->lang, "zh-cn") != 0
 		&& strcmp(new_config->lang, "it") != 0 && strcmp(new_config->lang, "es") != 0
 		&& strcmp(new_config->lang, "ro") != 0 && strcmp(new_config->lang, "pl") != 0
-		&& strcmp(new_config->lang, "ryu") != 0)
+		&& strcmp(new_config->lang, "ryu") != 0&& strcmp(new_config->lang, "de") != 0)
 			snprintf(new_config->lang, sizeof(new_config->lang), "en");
 		else
 			reload_msg = true;
@@ -627,7 +631,7 @@ void Sem_init(void)
 			&& strcmp(config.lang, "hu") != 0 && strcmp(config.lang, "zh-cn") != 0
 			&& strcmp(config.lang, "it") != 0 && strcmp(config.lang, "es") != 0
 			&& strcmp(config.lang, "ro") != 0 && strcmp(config.lang, "pl") != 0
-			&& strcmp(config.lang, "ryu") != 0)
+			&& strcmp(config.lang, "ryu") != 0 && strcmp(config.lang, "de") != 0)
 				snprintf(config.lang, sizeof(config.lang), "en");
 
 			if(brightness > 180)
@@ -741,6 +745,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_romanian_button.selected, sizeof(sem_romanian_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_polish_button.selected, sizeof(sem_polish_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_ryukyuan_button.selected, sizeof(sem_ryukyuan_button.selected));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_german_button.selected, sizeof(sem_german_button.selected));
 
 	//LCD.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_night, sizeof(sem_config.is_night));
@@ -836,6 +841,7 @@ void Sem_draw_init(void)
 	sem_romanian_button = Draw_get_empty_image();
 	sem_polish_button = Draw_get_empty_image();
 	sem_ryukyuan_button = Draw_get_empty_image();
+	sem_german_button = Draw_get_empty_image();
 	sem_night_mode_on_button = Draw_get_empty_image();
 	sem_night_mode_off_button = Draw_get_empty_image();
 	sem_flash_mode_button = Draw_get_empty_image();
@@ -1012,6 +1018,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_romanian_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_polish_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_ryukyuan_button.selected);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_german_button.selected);
 
 	//LCD.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_night);
@@ -1341,6 +1348,10 @@ void Sem_main(void)
 			//Ryukyuan.
 			Draw_with_background(&sem_msg[DEF_SEM_RYUKYUAN_MSG], 10, 225 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "ryu") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_ryukyuan_button, sem_ryukyuan_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+			//German.
+			Draw_with_background(&sem_msg[DEF_SEM_GERMAN_MSG], 10, 250 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "de") == 0) ? DEF_DRAW_RED : color,
+			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_german_button, sem_german_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
 		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 		{
@@ -1754,6 +1765,8 @@ void Sem_hid(const Hid_info* key)
 						sem_polish_button.selected = true;
 					if(DEF_SEM_HID_LANG_RYU_SEL(*key))
 						sem_ryukyuan_button.selected = true;
+					if(DEF_SEM_HID_LANG_DE_SEL(*key))
+						sem_german_button.selected = true;
 				}
 			}
 			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
@@ -1868,7 +1881,7 @@ void Sem_hid(const Hid_info* key)
 						sem_y_offset = 0.0;
 						sem_selected_menu_mode = menu_button_list[i];
 						if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
-							sem_y_max = -50.0;
+							sem_y_max = -75.0;
 						else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
 							sem_y_max = -60.0;
 						else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
@@ -1986,6 +1999,12 @@ void Sem_hid(const Hid_info* key)
 						else if(DEF_SEM_HID_LANG_RYU_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "ryu");
+							Sem_set_config(&config);
+							sem_reload_msg_request = true;
+						}
+						else if(DEF_SEM_HID_LANG_DE_CFM(*key))
+						{
+							snprintf(config.lang, sizeof(config.lang), "de");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
@@ -2318,6 +2337,8 @@ void Sem_hid(const Hid_info* key)
 			sem_polish_button.selected = false;
 		if(DEF_SEM_HID_LANG_RYU_DESEL(*key) || sem_scroll_mode)
 			sem_ryukyuan_button.selected = false;
+		if(DEF_SEM_HID_LANG_DE_DESEL(*key) || sem_scroll_mode)
+			sem_german_button.selected = false;
 		if(DEF_SEM_HID_LCD_NIGHT_ON_DESEL(*key) || sem_scroll_mode)
 			sem_night_mode_on_button.selected = false;
 		if(DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(*key) || sem_scroll_mode)

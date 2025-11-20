@@ -7,7 +7,7 @@
 <6>Erweiterte Einstellungen</6>
 <7>Akku</7>
 <8>Nach Updates suchen</8>
-<9>Englisch</9>
+<9>Englisch (English)</9>
 <10>Japanisch (日本語)</10>
 <11>Nachtmodus</11>
 <12>Ein</12>
@@ -17,10 +17,10 @@
 <16>Zeit bis zum Ausschalten des LCDs: </16>
 <17>s</17>
 <18>Bildlaufgeschwindigkeit: </18>
-<19>Japanisch (日本語)</19>
-<20>CHN (中文)</20>
-<21>KOR (한국어)</21>
-<22>TWN (台語)</22>
+<19>JPN</19>
+<20>CHN</20>
+<21>KOR</21>
+<22>TWN</22>
 <23>Alle laden</23>
 <24>Alle entladen</24>
 <25>Senden von App-Informationen zulassen</25>
@@ -69,6 +69,7 @@ einige Funktionen sind eingeschränkt)</62>
 <65>Polnisch (Polski)</65>
 <66>CPU-Auslastung (möglicherweise ungenau)</66>
 <67>Protokoll anzeigen</67>
-<68>Ryukyuanisch (しまくとぅば)</68>
+<68>Ryukyuanisch (琉球諸語)</68>
 <69>Auto</69>
 <70>Zeit bis zum Ruhezustand: </70>
+<71>Deutsch</71>

@@ -7,7 +7,7 @@
 #define DEF_SEM_UPDATE_FILE_PREFIX		/*(const char*)(*/"Vid_"/*)*/
 #define DEF_SEM_CHECK_UPDATE_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbwTd3jzV0npUE9MNKmZIv3isazVR5D9_7A8rexsG1vr9SE7iavDBxgtzlph8dZipwu9/exec"/*)*/
 
-#define DEF_SEM_NUM_OF_MSG				(uint16_t)(71)
+#define DEF_SEM_NUM_OF_MSG				(uint16_t)(72)
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
 #define DEF_SEM_ICON_PATH				(const char*)"romfs:/gfx/draw/icon/sem_icon.t3x"
@@ -132,6 +132,7 @@ typedef uint8_t Sem_model;
 #define DEF_SEM_RYUKYUAN_MSG				(uint16_t)(68)
 #define DEF_SEM_AUTO_MSG					(uint16_t)(69)
 #define DEF_SEM_SLEEP_TIME_MSG				(uint16_t)(70)
+#define DEF_SEM_GERMAN_MSG					(uint16_t)(71)
 
 //You need to enable DEF_CONVERTER_SW_API_ENABLE **and** DEF_ENCODER_VIDEO_AUDIO_API_ENABLE as well to use screen recorder.
 #define DEF_SEM_ENABLE_SCREEN_RECORDER		/*(bool)(*/false/*)*/

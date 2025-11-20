@@ -7,15 +7,20 @@
 <6>Stopp</6>
 <7>Video verschieben</7>
 <8>Suchen</8>
-<9>Vergrößern/Verkleinern</9>
+<9>Vergrößern/
+Verkleinern</9>
 <10>Audiospur auswählen</10>
 <11>Audiospur auswählen</11>
-<12>Drücke die Auswahltaste oder berühre den Bildschirm, um den Vollbildmodus zu verlassen</12>
+<12>Drücke die Auswahltaste oder berühre den Bildschirm,
+um den Vollbildmodus zu verlassen</12>
 <13>Hardware-Decoder verwenden (falls verfügbar): </13>
-<14>Hardware-Farbkonvertierung verwenden (falls verfügbar): </14>
-<15>Multithread-Decodierung verwenden (falls verfügbar): </15>
+<14>Hardware-Farbkonvertierung
+verwenden (falls verfügbar): </14>
+<15>Multithread-Decodierung
+verwenden (falls verfügbar): </15>
 <16>Keyframes überspringen zulassen: </16>
-<17>Videoauflösung reduzieren (falls vom Codec unterstützt): </17>
+<17>Videoauflösung reduzieren
+(falls vom Codec unterstützt): </17>
 <18>Suchen...</18>
 <19>Suchdauer: </19>
 <20>Lautstärke: </20>

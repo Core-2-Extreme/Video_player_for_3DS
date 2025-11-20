@@ -2181,8 +2181,18 @@ void Vid_main(void)
 						uint8_t current_move_content_mode = (DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_player.move_content_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[DEF_VID_MOVE_MODE_MSG]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+						//Temporal workaround for UI overflow.
+						if(strcmp(config.lang, "de") == 0)
+						{
+							Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.45, 0.45, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
+							DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						}
+						else
+						{
+							Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
+							DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						}
 					}
 					else
 					{
@@ -2657,15 +2667,17 @@ void Vid_main(void)
 					Draw_image_data control = { .c2d = vid_player.control[config.is_night], };
 
 					Draw_texture(&control, DEF_DRAW_NO_COLOR, 80, 20, 160, 160);
-					if(strcmp(config.lang, "ro") == 0)
+
+					//Temporal workaround for UI overflow.
+					if(strcmp(config.lang, "ro") == 0 || strcmp(config.lang, "de") == 0)
 					{
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.425, 0.425, DEF_DRAW_BLACK);
-						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.425, 0.425, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[DEF_VID_CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
 					}
 					else
 					{

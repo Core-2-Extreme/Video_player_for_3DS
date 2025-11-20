@@ -1227,6 +1227,8 @@ void Sem_main(void)
 					Draw(&sem_msg[sem_new_version_available ? DEF_SEM_NEW_VERSION_AVAILABLE_MSG : DEF_SEM_UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
+
+				//Temporal workaround for UI overflow.
 				if(strcmp(config.lang, "ro") == 0)
 					Draw(&sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
 				else
@@ -1263,8 +1265,8 @@ void Sem_main(void)
 				if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
 				{
 					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", DEF_SEM_UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
-					Draw(&sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 140, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_RED);
+					Draw(&sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 110, 0.5, 0.5, DEF_DRAW_BLACK);
+					Draw(&format_str, 17.5, 120, 0.425, 0.425, DEF_DRAW_RED);
 				}
 
 				if(sem_update_progress == 2)
@@ -1274,8 +1276,8 @@ void Sem_main(void)
 
 					//Downloading.
 					Util_str_format(&format_str, "%.2fMB(%" PRIu32 "KB)", dled_size_mb, dled_size_kb);
-					Draw(&sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if(sem_update_progress == 3)
 				{
@@ -1284,25 +1286,30 @@ void Sem_main(void)
 
 					//Installing.
 					Util_str_format(&format_str, "%.2fMB/%.2fMB", installed_size_mb, total_size_mb);
-					Draw(&sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 180, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == 4)
 				{
 					//Success.
-					Draw(&sem_msg[DEF_SEM_SUCCESS_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
-					Draw(&sem_msg[DEF_SEM_RESTART_MSG], 17.5, 180, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw_texture(&sem_close_app_button, sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 250, 180, 55.0, 20.0);
-					Draw(&sem_msg[DEF_SEM_CLOSE_APP_MSG], 250, 180, 0.375, 0.375, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DEF_SEM_SUCCESS_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DEF_SEM_RESTART_MSG], 17.5, 150, 0.45, 0.45, DEF_DRAW_BLACK);
+					Draw_with_background(&sem_msg[DEF_SEM_CLOSE_APP_MSG], 15, 180, 0.45, 0.45, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+					290, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_close_app_button, (sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW));
 				}
 				else if (sem_update_progress == -2)
-					Draw(&sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 160, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 
 				if((sem_selected_edition_num != DEF_SEM_EDTION_NONE)
 				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition_num]))[0] == '1')
 					can_press = true;
 
-				Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
+				//Temporal workaround for UI overflow.
+				if(strcmp(config.lang, "de") == 0)
+					Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.375, 0.375, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
+				else
+					Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
+
 				Draw(&sem_msg[DEF_SEM_BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
 			}
 #else
@@ -1326,8 +1333,18 @@ void Sem_main(void)
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_hungarian_button, sem_hungarian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Chinese.
-			Draw_with_background(&sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
-			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+			//Temporal workaround for UI overflow.
+			if(strcmp(config.lang, "de") == 0)
+			{
+				Draw_with_background(&sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.55, 0.55, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
+				DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			}
+			else
+			{
+				Draw_with_background(&sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
+				DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			}
 
 			//Italian.
 			Draw_with_background(&sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "it") == 0) ? DEF_DRAW_RED : color,

@@ -42,7 +42,8 @@
 <41>Installieren...</41>
 <42>Erfolgreich</42>
 <43>Fehlgeschlagen</43>
-<44>Bitte starte die App neu, um das Update anzuwenden.</44>
+<44>Bitte starte die App neu,
+um das Update anzuwenden.</44>
 <45>Herunterladen & installieren (X)</45>
 <46>App schließen</46>
 <47>WLAN</47>

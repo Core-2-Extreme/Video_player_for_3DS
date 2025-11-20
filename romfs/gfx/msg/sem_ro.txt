@@ -42,7 +42,8 @@
 <41>Se instalează...</41>
 <42>Succes</42>
 <43>Eșuat</43>
-<44>Vă rugăm repornirți aplicația pentru a aplica actualizările.</44>
+<44>Vă rugăm repornirți aplicația
+pentru a aplica actualizările.</44>
 <45>Descărcați și instalați (X)</45>
 <46>Închideți aplicație</46>
 <47>Wifi</47>

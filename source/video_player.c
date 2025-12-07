@@ -591,6 +591,13 @@ void Vid_hid(const Hid_info* key)
 		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
 		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
+		if(vid_player.is_full_screen)
+		{
+			//Exit full screen to avoid bottom LCD blackout.
+			Vid_fit_to_screen(400, 225);
+			Vid_exit_full_screen();
+		}
+
 		//Wait for it.
 		while(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING)
 			Util_sleep(10000);
@@ -3956,6 +3963,9 @@ void Vid_exit_thread(void* arg)
 	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
 	DECODE_THREAD_SHUTDOWN_REQUEST, NULL, 100000, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
 
+	//Exit full screen to avoid bottom LCD blackout.
+	Vid_exit_full_screen();
+
 	Util_str_set(&vid_status, "Saving settings...");
 
 	Util_str_init(&data);
@@ -4774,6 +4784,7 @@ void Vid_decode_thread(void* arg)
 					}
 					else
 					{
+						Vid_fit_to_screen(400, 225);
 						Vid_exit_full_screen();
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);

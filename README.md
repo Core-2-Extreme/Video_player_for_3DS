@@ -17,7 +17,7 @@
 * [Build](https://github.com/Core-2-Extreme/Video_player_for_3DS#build)
 * [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#recommended-resolution)
 * [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#benchmark)
-* [Troubleshoot/FAQ](https://github.com/Core-2-Extreme/Video_player_for_3DS#troubleshoot-faq)
+* [Troubleshoot/FAQ](https://github.com/Core-2-Extreme/Video_player_for_3DS#troubleshootfaq)
 * [Patch note](https://github.com/Core-2-Extreme/Video_player_for_3DS#patch-note)
 * [License](https://github.com/Core-2-Extreme/Video_player_for_3DS#license)
 * [Credits](https://github.com/Core-2-Extreme/Video_player_for_3DS#credits)

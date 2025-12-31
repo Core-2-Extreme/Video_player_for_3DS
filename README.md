@@ -17,6 +17,7 @@
 * [Build](https://github.com/Core-2-Extreme/Video_player_for_3DS#build)
 * [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#recommended-resolution)
 * [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#benchmark)
+* [Troubleshoot/FAQ](https://github.com/Core-2-Extreme/Video_player_for_3DS#troubleshoot-faq)
 * [Patch note](https://github.com/Core-2-Extreme/Video_player_for_3DS#patch-note)
 * [License](https://github.com/Core-2-Extreme/Video_player_for_3DS#license)
 * [Credits](https://github.com/Core-2-Extreme/Video_player_for_3DS#credits)
@@ -32,16 +33,16 @@
 **And many more...**
 
 ## Features
-Hardware accelerated decoding(*0)✅ \
-Hardware accelerated color conversion✅ \
+Hardware accelerated decoding (*0) ✅ \
+Hardware accelerated color conversion ✅ \
 Multiple video codec support ✅ \
 Multiple audio codec support ✅ \
-Multiple Subtitle support ✅ \
+Multiple subtitle codec support ✅ \
 Seek ✅ \
-3D video(*1)✅ \
+3D videos (*1)✅ \
 Zoom in/out video ✅ \
 Move video ✅ \
-File explorer ✅
+File explorer ✅ \
 Fullscreen mode ✅
 
 ⚠️ *0 New 3DS and New 2DS only \
@@ -51,20 +52,21 @@ you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
 ## Prepare videos
 If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users).
 
-If not, you can use these tools :
+If not, you can use these tools (**these tools are third-party tools, therefore support for these tools are provided by their developers**):
 * [Nintendo Video Convertor (by T0biasCZe)](https://gbatemp.net/threads/nintendo-video-convertor-video-convertor-for-3ds-and-wii.622972/)
 * [VideoPlayer3DS DS Assistant (by JustScratchCoder)](https://github.com/JustScratchCoder/VideoPlayer3DS-DS-Assistant)
 
 ## Prepare videos (advanced users)
+*If you are not familiar with CUI tools, you should use third-party tools above or consult friends, family, DeepSeek, ChatGPT and/or DuckDuckGo for how to use ffmpeg.*
 * Download [ffmpeg](https://ffmpeg.org/download.html)
   * For NEW3DS and NEW2DS type :
-  * `ffmpeg -i {input_file_name} -acodec aac -vcodec libx264 -s 800x240 -preset medium -crf 25 {output_file_name}`
+    * `ffmpeg -i {input_file_name} -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 {output_file_name}`
   * For OLD3DS and OLD2DS type :
-  * `ffmpeg -i {input_file_name} -acodec aac -vcodec mpeg4 -s 400x240 -crf 25 {output_file_name}`
+    * `ffmpeg -i {input_file_name} -c:a aac -c:v mpeg4 -s 400x240 -crf 25 {output_file_name}`
 * Copy generated video files to your 3DS (anywhere on your SD card)
 
 Replace `{input_file_name}` with your input file name and `{output_file_name}` with your output file name. \
-e.g. : `ffmpeg -i original_video.mp4 -acodec aac -vcodec libx264 -s 800x240 -preset medium -crf 25 converted_video.mp4`
+e.g. : `ffmpeg -i original_video.mp4 -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mp4`
 
 for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 
@@ -202,8 +204,6 @@ After having all dependencies, do :
   * On other system, run `make 3dsx` for `.3dsx` only build or `make all` for `.3dsx`+`.cia` build.
 
 ## Recommended resolution
-On NEW 3(2)DS, it is recommended to use [patched Luma3DS](https://github.com/Core-2-Extreme/Luma3DS/releases/) for better performance. 
-
 Videos that in this resolution will be played without any problems in most of the situations.
 |  Recommended resolution  | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
 | ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
@@ -212,7 +212,7 @@ Videos that in this resolution will be played without any problems in most of th
 | NEW3DS Hardware decoding |    none    |    none    |    none    | 800x240@60 |    none    |
 
 
-Videos that in this resolution may be played without problems if video is not moving a lot.
+Videos that in this resolution may be played without problems if scene changes, camera panning etc.. are infrequent.
 |    Maximum resolution    | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
 | ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
 | OLD3DS Software decoding | 800x240@24 | 800x240@24 | 800x240@20 | 400x240@15 | 256x144@20 |
@@ -240,6 +240,34 @@ NEW3DS :
 
 OLD3DS : 
 ![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
+
+## Troubleshoot/FAQ
+1. Q. Can I watch side-by-side 3D videos?????
+    * A. **No** ❌, it needs to be 3DS camera format (1 video track for left eye, 1 video track for right eye) instead of common side-by-side!!!!!
+2. Q. I've changed volume in app settings but it doesn't apply!!!!! Why?????
+    * A. For now, manual volume changes in app settings **takes some time to apply** ⚠️ due to implementation!!!!!
+3. Q. Can I use variable-framerate videos?????
+    * A. **No** ❌, only constant-framerate videos are supported!!!!!
+4. Q. Can I change playback speed?????
+    * A. **No** ❌, playback speed is fixed to x1!!!!!
+5. Q. Can I stream videos from {Your favorite streaming service}?????
+    * A. **No** ❌, streaming from Internet (including both WAN and LAN) is NOT supported (only local storage (i.e. SD card) is supported)!!!!!
+6. Q. Where do I put my videos?????
+    * A. You can put your videos on **anyware on your SD card** ✅!!!!!
+7. Q. How do I play videos?????
+    * A. **Open video player for 3DS, click on <img src="https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/main/screenshots/video_player_icon.png" width="50" height="50">, then press X to open file explorer, finally select your video to play it** ✅!!!!!
+8. Q. Is there bitrate limit?????
+    * A. **Yes** and **no** ⚠️, video player itself doesn't have any rate limit, however if 3DS's SD card reader can NOT keep up, you'll see "processing video" messages (in this case, lower bitrate)!!!!!
+9. Q. Is there length limit?????
+    * A. **Yes** and **no** ⚠️, video player itself doesn't have any length limit, however if 3DS runs out of memory, you'll see "out of (linear) memory" (in this case shorten video length and/or use .mkv)!!!!!
+10. Q. Can I add/update language translation?????
+    * A. **Yes** ✅, you can just create/update language files on `romfs/gfx/msg/` and make a pull request on GitHub or submit it on our [Discord server](https://discord.gg/MMsAXvetpR)!!!!!
+11. Q. I found bugs, can I report it?????
+    * A. **Yes** ✅, you can report an issue on GitHub or on our [Discord server]((https://discord.gg/MMsAXvetpR)), please provide as much details as possible!!!!!
+12. Q. My pull/feature request got rejected, can I fork it and make a custom version?????
+    * A. **Yes** ✅, this software is licensed under GPLv3 so you can freely use, modify and distribute!!!!!
+13. Q. Can I ask what is <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50">?????
+    * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
 * [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)

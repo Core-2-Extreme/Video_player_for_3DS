@@ -260,6 +260,7 @@ typedef enum
 	DECODE_VIDEO_THREAD_ABORT_REQUEST,				//Stop request.
 
 	CONVERT_THREAD_CONVERT_REQUEST,					//Start converting request.
+	CONVERT_THREAD_CLEAR_CACHE_REQUEST,				//Clear cache request (in seek process).
 	CONVERT_THREAD_ABORT_REQUEST,					//Stop request.
 
 	MAX_REQUEST = UINT32_MAX,
@@ -277,11 +278,11 @@ typedef enum
 	READ_PACKET_THREAD_FINISHED_ABORTING_NOTIFICATION,			//Done aborting.
 
 	DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,	//Done copying a video packet.
-	DECODE_VIDEO_THREAD_FINISHED_CLEARING_CACHE,				//Done clearing cache.
 	DECODE_VIDEO_THREAD_FINISHED_ABORTING_NOTIFICATION,			//Done aborting.
 
 	CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,					//Run out of video buffer.
 	CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION,				//Done buffering because of threshold or buffer limit.
+	CONVERT_THREAD_FINISHED_CLEARING_CACHE,						//Done clearing cache.
 	CONVERT_THREAD_FINISHED_ABORTING_NOTIFICATION,				//Done aborting.
 
 	MAX_NOTIFICATION = UINT32_MAX,
@@ -4877,22 +4878,6 @@ void Vid_decode_thread(void* arg)
 					break;
 				}
 
-				case DECODE_VIDEO_THREAD_FINISHED_CLEARING_CACHE:
-				{
-					//Do nothing if player state is not prepare seeking.
-					if(vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
-						break;
-
-					//After clearing cache start seeking.
-					//Sometimes library caches previous frames even after clearing packet,
-					//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
-					wait_count = 5 + (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
-					backward_timeout = 20;
-					vid_player.state = PLAYER_STATE_SEEKING;
-
-					break;
-				}
-
 				case DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION:
 				case CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION:
 				{
@@ -4939,6 +4924,22 @@ void Vid_decode_thread(void* arg)
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_RESUME_LATER);
 
 					vid_player.state = PLAYER_STATE_BUFFERING;
+
+					break;
+				}
+
+				case CONVERT_THREAD_FINISHED_CLEARING_CACHE:
+				{
+					//Do nothing if player state is not prepare seeking.
+					if(vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
+						break;
+
+					//After clearing cache start seeking.
+					//Sometimes library caches previous frames even after clearing packet,
+					//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
+					wait_count = 5 + (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
+					backward_timeout = 20;
+					vid_player.state = PLAYER_STATE_SEEKING;
 
 					break;
 				}
@@ -5512,15 +5513,6 @@ void Vid_decode_video_thread(void* arg)
 					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING)
 						break;
 
-					//Clear cache.
-					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-						Util_decoder_mvd_clear_raw_image(0);
-					else
-					{
-						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
-							Util_decoder_video_clear_raw_image(i, 0);
-					}
-
 					//Flush the decoder.
 					while(true)
 					{
@@ -5537,9 +5529,9 @@ void Vid_decode_video_thread(void* arg)
 							break;
 					}
 
-					//Notify we've done clearing cache.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					DECODE_VIDEO_THREAD_FINISHED_CLEARING_CACHE, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					//Request the same to convert thread.
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue,
+					CONVERT_THREAD_CLEAR_CACHE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -5629,6 +5621,29 @@ void Vid_convert_thread(void* arg)
 					should_convert = true;
 					packet_index = 0;
 					total_delay = 0;
+
+					break;
+				}
+
+				case CONVERT_THREAD_CLEAR_CACHE_REQUEST:
+				{
+					//Do nothing if player state is idle or prepare playing or file doesn't have video tracks.
+					if(vid_player.state == PLAYER_STATE_IDLE || vid_player.state == PLAYER_STATE_PREPARE_PLAYING
+					|| vid_player.num_of_video_tracks <= 0)
+						break;
+
+					//Clear cache.
+					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+						Util_decoder_mvd_clear_raw_image(0);
+					else
+					{
+						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+							Util_decoder_video_clear_raw_image(i, 0);
+					}
+
+					//Notify we've done clearing cache.
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
+					CONVERT_THREAD_FINISHED_CLEARING_CACHE, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}

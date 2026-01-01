@@ -51,6 +51,7 @@ BANNER_AUDIO		:= resource/banner.wav
 BANNER_IMAGE		:= resource/banner.png
 ICON				:= resource/icon.png
 RSF_PATH			:= resource/app.rsf
+RSF_HIGH_RAM_PATH	:= resource/app_high_ram.rsf
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
@@ -192,17 +193,20 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: all 3dsx clean
+.PHONY: all 3dsx cia_all cia_banner cia_icon cia_normal_ram cia_high_ram clean
 
 #---------------------------------------------------------------------------------
-MAKEROM			?= makerom
-MAKEROM_ARGS	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
+MAKEROM					?= makerom
+MAKEROM_ARGS			:= -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
+MAKEROM_HIGH_RAM_ARGS	:= -elf "$(OUTPUT).elf" -rsf "$(RSF_HIGH_RAM_PATH)" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
 
 ifneq ($(strip $(LOGO)),)
-	MAKEROM_ARGS	+=	 -logo "$(LOGO)"
+	MAKEROM_ARGS			+= -logo "$(LOGO)"
+	MAKEROM_HIGH_RAM_ARGS	+= -logo "$(LOGO)"
 endif
 ifneq ($(strip $(ROMFS)),)
-	MAKEROM_ARGS	+=	 -DAPP_ROMFS="$(ROMFS)"
+	MAKEROM_ARGS			+= -DAPP_ROMFS="$(ROMFS)"
+	MAKEROM_HIGH_RAM_ARGS	+= -DAPP_ROMFS="$(ROMFS)"
 endif
 
 BANNERTOOL		?= bannertool
@@ -222,18 +226,30 @@ endif
 
 #---------------------------------------------------------------------------------
 
-all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
-	@echo Building 3dsx...
-	@$(MAKE) -j -s --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@echo
-	@echo Building cia...
-	@$(BANNERTOOL) makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $(BUILD)/banner.bnr
-	@$(BANNERTOOL) makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p $(APP_AUTHOR) -i $(APP_ICON) -o $(BUILD)/icon.icn
-	@$(MAKEROM) -f cia -o $(OUTPUT).cia -target t -exefslogo $(MAKEROM_ARGS) -ver $(APP_VER)
+all: 3dsx cia_all
 
 3dsx: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@echo Building 3dsx...
 	@$(MAKE) -j -s --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@echo
+
+cia_all: cia_normal_ram cia_high_ram
+
+cia_banner: $(BANNER_IMAGE) $(BANNER_AUDIO) | $(BUILD)
+	@$(BANNERTOOL) makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $(BUILD)/banner.bnr
+
+cia_icon: $(APP_ICON) | $(BUILD)
+	@$(BANNERTOOL) makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p $(APP_AUTHOR) -i $(APP_ICON) -o $(BUILD)/icon.icn
+
+cia_normal_ram: cia_banner cia_icon
+	@echo Building cia...
+	@$(MAKEROM) -f cia -o $(OUTPUT).cia -target t -exefslogo $(MAKEROM_ARGS) -ver $(APP_VER)
+	@echo
+
+cia_high_ram: cia_banner cia_icon
+	@echo Building high ram cia...
+	@$(MAKEROM) -f cia -o $(OUTPUT)_high_ram.cia -target t -exefslogo $(MAKEROM_HIGH_RAM_ARGS) -ver $(APP_VER)
+	@echo
 
 $(BUILD):
 	@mkdir -p $@
@@ -251,7 +267,7 @@ endif
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf $(TARGET).cia
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf $(TARGET).cia $(TARGET)_high_ram.cia
 
 #---------------------------------------------------------------------------------
 $(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s

@@ -11,7 +11,7 @@
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH				/*(const char*)(*/"romfs:/gfx/draw/icon/vid_icon.t3x"/*)*/
 #define DEF_VID_NAME					/*(const char*)(*/"Video\nplayer"/*)*/
-#define DEF_VID_VER						/*(const char*)(*/"v1.6.0 (nightly build)"/*)*/
+#define DEF_VID_VER						/*(const char*)(*/"v1.6.0"/*)*/
 
 #define DEF_VID_TEX_FILTER_MSG						(uint8_t)(0)
 #define DEF_VID_CONTROLS_MSG						(uint8_t)(1)

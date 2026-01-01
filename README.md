@@ -104,55 +104,62 @@ for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe
 ## Supported codecs
 **Supported video codecs**
 * AV1
-* H.261
-* H.262
-* H.263
-* H.263+
-* H.264 (AVC, MPEG4 part10)
-* H.265 (HEVC)
+* H261
+* H262
+* H263
+* H263+
+* H264 (AVC, MPEG4 part10)
+* H265 (HEVC)
 * Motion jpeg
 * MPEG1video
 * MPEG2video
 * MPEG4 (MPEG4 part2)
+* Theora
+* VP9
 
 **Supported audio codecs**
-* aac (Advanced audio coding)
-* ac3
-* mp1 (MPEG audio layer 1)
-* mp2 (MPEG audio layer 2)
-* mp3 (MPEG audio layer 3)
-* ogg (Vorbis)
-* opus
-* pcm audio
+* AAC (Advanced audio coding)
+* AC3
+* FLAC
+* MP1 (MPEG audio layer 1)
+* MP2 (MPEG audio layer 2)
+* MP3 (MPEG audio layer 3)
+* Ogg (Vorbis)
+* Opus
+* PCM audio
 
 **Supported subtitle codecs**
-* movtext
-* subrip
-* subviewer
-(No style support)
+* (No style support)
+  * Movtext
+  * Subrip
+  * Subviewer
+* DVDSub (VobSub)
 
 ## Supported containers (extensions)
-* aac
-* ac3
-* avi
-* mkv
-* mp1
-* mp2
-* mp3
-* mp4
-* mov
-* ogg
-* wav
+* .aac
+* .ac3
+* .avi
+* .m4a
+* .m4v
+* .mkv
+* .mp1
+* .mp2
+* .mp3
+* .mp4
+* .mov
+* .ogg
+* .wav
+* .webm
 
 ## Links
 [Discord channel](https://discord.gg/MMsAXvetpR) \
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Build
-You need : 
+You need :
 * [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide](library/_devkitpro_install.md))
 
-If you want to build .cia, then you also need : 
+If you want to build .cia, then you also need :
 * [bannertool](https://github.com/diasurgical/bannertool/releases/tag/1.2.0)
   * Broken links? Try our [backup](https://github.com/Core-2-Extreme/bannertool_fork/releases/tag/1.2.0).
 * [makerom](https://github.com/3DSGuy/Project_CTR/releases/tag/makerom-v0.18.4)
@@ -235,10 +242,10 @@ h264 : `ffmpeg -i {input_file} -acodec copy -vcodec libx264 -s {width}x{height} 
 h265 : `ffmpeg -i {input_file} -acodec copy -vcodec libx265 -s {width}x{height} -crf 30 -t 03:00 {output_file}` \
 av1 : `ffmpeg -i {input_file} -acodec copy -vcodec libsvtav1 -s {width}x{height} -crf 40 -row-mt 1 -cpu-used 5 -t 03:00 {output_file}`
 
-NEW3DS : 
+NEW3DS :
 ![new3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850778-c58cb243-854c-499f-9084-4646bd8c9de9.png)
 
-OLD3DS : 
+OLD3DS :
 ![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
 
 ## Troubleshoot/FAQ
@@ -259,17 +266,18 @@ OLD3DS :
 8. Q. Is there bitrate limit?????
     * A. **Yes** and **no** ⚠️, video player itself doesn't have any rate limit, however if 3DS's SD card reader can NOT keep up, you'll see "processing video" messages (in this case, lower bitrate)!!!!!
 9. Q. Is there length limit?????
-    * A. **Yes** and **no** ⚠️, video player itself doesn't have any length limit, however if 3DS runs out of memory, you'll see "out of (linear) memory" (in this case shorten video length and/or use .mkv)!!!!!
+    * A. **Yes** and **no** ⚠️, video player itself doesn't have any length limit, however if 3DS runs out of memory, you'll see "out of (linear) memory" error (in this case shorten video length and/or use .mkv)!!!!!
 10. Q. Can I add/update language translation?????
     * A. **Yes** ✅, you can just create/update language files on `romfs/gfx/msg/` and make a pull request on GitHub or submit it on our [Discord server](https://discord.gg/MMsAXvetpR)!!!!!
 11. Q. I found bugs, can I report it?????
-    * A. **Yes** ✅, you can report an issue on GitHub or on our [Discord server]((https://discord.gg/MMsAXvetpR)), please provide as much details as possible!!!!!
+    * A. **Yes** ✅, you can report an issue on GitHub or on our [Discord server](https://discord.gg/MMsAXvetpR), please provide as much details as possible!!!!!
 12. Q. My pull/feature request got rejected, can I fork it and make a custom version?????
     * A. **Yes** ✅, this software is licensed under GPLv3 so you can freely use, modify and distribute!!!!!
 13. Q. Can I ask what is <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50">?????
     * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
+* [v1.6.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v160)
 * [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)
 * [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v152)
 * [v1.5.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v151)
@@ -286,6 +294,22 @@ OLD3DS :
 * [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
+
+### v1.6.0
+**Changes** \
+VP9 and flac have been supported ([#64](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/64)). \
+DVDSub (VobSub) has been supported ([#58](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/58)). \
+AV desync management has been re-implemented. \
+New sound banner has been added for `.cia` ([#82](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/82)) (by UrbanVersis32). \
+Theora has been supported ([#83](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/83)) (by RetroGamer02). \
+German translation has been added ([#85](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/85)) (by 0n1cOn3).
+High RAM build (only for `.cia`) has been added for release (see release page for detail).
+
+**Fixed bugs** \
+Many minor bugs that may cause crash have been fixed. \
+Random crash on hardware decorder has been fixed ([#69](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/69)). \
+Auto-playing video after coming back from Nintendo's home menu and keyboard even it was previously paused has been fixed. \
+AV desync on more than 2ch audio has been fixed.
 
 ### v1.5.3
 **Changes** \

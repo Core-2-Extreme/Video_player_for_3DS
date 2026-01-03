@@ -302,7 +302,7 @@ DVDSub (VobSub) has been supported ([#58](https://github.com/Core-2-Extreme/Vide
 AV desync management has been re-implemented. \
 New sound banner has been added for `.cia` ([#82](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/82)) (by UrbanVersis32). \
 Theora has been supported ([#83](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/83)) (by RetroGamer02). \
-German translation has been added ([#85](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/85)) (by 0n1cOn3).
+German translation has been added ([#85](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/85)) (by 0n1cOn3). \
 High RAM build (only for `.cia`) has been added for release (see release page for detail).
 
 **Fixed bugs** \
@@ -468,6 +468,9 @@ Third party libraries are licensed under :
 * JustScratchCoder (Polish translation)
 * T0biasCZe (Nintendo Video Convertor)
 * kuragehimekurara1 (Ryukyuan translation)
+* UrbanVersis32 (banner sound)
+* RetroGamer02 (Theora support)
+* 0n1cOn3 (German translation)
 
 ## Donation
 If you find my app helpful, buy me a cup of coffee.

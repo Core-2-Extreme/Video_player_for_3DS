@@ -66,7 +66,9 @@ If not, you can use these tools (**these tools are third-party tools, therefore 
 * Copy generated video files to your 3DS (anywhere on your SD card)
 
 Replace `{input_file_name}` with your input file name and `{output_file_name}` with your output file name. \
-e.g. : `ffmpeg -i original_video.mp4 -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mp4`
+e.g. : `ffmpeg -i original_video.mp4 -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mkv` \
+e.g. : `ffmpeg -i original_video.avi -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mkv` \
+Note : You can use any containers supported by this player, however `.mkv` is usually better especially if your video is long because it uses less RAM when playing it (hence less out of memory error).
 
 for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 

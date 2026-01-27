@@ -6,7 +6,7 @@
 
 #define DEF_VID_ENABLE
 
-#define DEF_VID_NUM_OF_MSG				(uint16_t)(41)
+#define DEF_VID_NUM_OF_MSG				(uint16_t)(42)
 #define DEF_VID_ENABLE_ICON
 //#define DEF_VID_ENABLE_NAME
 #define DEF_VID_ICON_PATH				/*(const char*)(*/"romfs:/gfx/draw/icon/vid_icon.t3x"/*)*/
@@ -48,6 +48,7 @@
 #define DEF_VID_DISABLE_SUBTITLE_MSG				(uint8_t)(38)
 #define DEF_VID_RESTART_PLAYBACK_THRESHOLD_MSG		(uint8_t)(39)
 #define DEF_VID_PROCESSING_VIDEO_MSG				(uint8_t)(40)
+#define DEF_VID_NUM_OF_THREADS_MSG					(uint8_t)(41)
 
 #define DEF_VID_MENU_NONE				(int8_t)(-1)
 #define DEF_VID_MENU_SETTINGS_0			(int8_t)(0)

@@ -44,3 +44,4 @@ verwenden (falls verfügbar): </15>
 <38>Untertitel deaktivieren: </38>
 <39>Schwellenwert für Neustart der Wiedergabe: %d</39>
 <40>Video wird verarbeitet...</40>
+<41>Number of threads: %d</41>

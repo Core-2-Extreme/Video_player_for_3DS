@@ -39,6 +39,8 @@
 #define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)	//6MB.
 #define DEF_VID_HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define DEF_VID_SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
+#define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)
+#define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -214,6 +216,14 @@
 #define DEF_VID_HID_SE1_LOWER_RESOLUTION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.lower_resolution_button, (k)))
 #define DEF_VID_HID_SE1_LOWER_RESOLUTION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.lower_resolution_button, (k)))
 #define DEF_VID_HID_SE1_LOWER_RESOLUTION_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Settings 1 : Decrement number of decoding threads.
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.decrement_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.decrement_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Settings 1 : Increment number of decoding threads.
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.increment_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.increment_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle decoding time graph.
 #define DEF_VID_HID_INFO_DECODING_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_decode_graph_button, (k)))
 #define DEF_VID_HID_INFO_DECODING_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_decode_graph_button, (k)))
@@ -466,10 +476,10 @@ typedef struct
 	//Buttons.
 	Draw_image_data select_audio_track_button, texture_filter_button, allow_skip_frames_button, allow_skip_key_frames_button,
 	volume_button, seek_duration_button, use_hw_decoding_button, use_hw_color_conversion_button, use_multi_threaded_decoding_button,
-	lower_resolution_button, menu_button[3], control_button, audio_track_ok_button, audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS],
-	correct_aspect_ratio_button, move_content_button, remember_video_pos_button, show_decode_graph_button,
-	show_color_conversion_graph_button, show_packet_buffer_graph_button, show_raw_video_buffer_graph_button,
-	show_raw_audio_buffer_graph_button, scroll_bar, playback_mode_button, subtitle_track_ok_button,
+	lower_resolution_button, decrement_num_of_threads_button, increment_num_of_threads_button, menu_button[3], control_button,
+	audio_track_ok_button, audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS], correct_aspect_ratio_button, move_content_button,
+	remember_video_pos_button, show_decode_graph_button, show_color_conversion_graph_button, show_packet_buffer_graph_button,
+	show_raw_video_buffer_graph_button, show_raw_audio_buffer_graph_button, scroll_bar, playback_mode_button, subtitle_track_ok_button,
 	subtitle_track_button[DEF_DECODER_MAX_SUBTITLE_TRACKS], select_subtitle_track_button, disable_audio_button,
 	disable_video_button, disable_subtitle_button, restart_playback_threshold_bar, seek_bar;
 
@@ -523,6 +533,7 @@ static void Vid_init_video_data(void);
 static void Vid_init_audio_data(void);
 static void Vid_init_subtitle_data(void);
 static void Vid_init_ui_data(void);
+static uint8_t Vid_get_default_num_of_threads(void);
 //Removed static from these functions because they are implementation for weak functions.
 void frame_worker_thread_start(const void* ptr);
 void frame_worker_thread_end(const void* ptr);
@@ -720,6 +731,10 @@ void Vid_hid(const Hid_info* key)
 						vid_player.use_multi_threaded_decoding_button.selected = true;
 					if(DEF_VID_HID_SE1_LOWER_RESOLUTION_SEL(*key))
 						vid_player.lower_resolution_button.selected = true;
+					if(DEF_VID_HID_SE1_DECREMENT_THREADS_SEL(*key))
+						vid_player.decrement_num_of_threads_button.selected = true;
+					if(DEF_VID_HID_SE1_INCREMENT_THREADS_SEL(*key))
+						vid_player.increment_num_of_threads_button.selected = true;
 				}
 
 				if(DEF_VID_HID_SCROLL_MODE_SEL(*key))
@@ -975,7 +990,7 @@ void Vid_hid(const Hid_info* key)
 					//Menu mode button.
 					if(DEF_VID_HID_OPEN_SETTING_1_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -100;
+						vid_player.ui_y_offset_max = -130;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_1;
 						//Reset key state on scene change.
@@ -1086,6 +1101,16 @@ void Vid_hid(const Hid_info* key)
 							else
 								vid_player.lower_resolution++;
 						}
+						else if(DEF_VID_HID_SE1_DECREMENT_THREADS_CFM(*key))//Decrement number of decoding threads button.
+						{
+							if(vid_player.num_of_threads > DEF_VID_NUM_OF_THREADS_MIN)
+								vid_player.num_of_threads--;
+						}
+						else if(DEF_VID_HID_SE1_INCREMENT_THREADS_CFM(*key))//Increment number of decoding threads button.
+						{
+							if(vid_player.num_of_threads < DEF_VID_NUM_OF_THREADS_MAX)
+								vid_player.num_of_threads++;
+						}
 					}
 				}
 				else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
@@ -1100,7 +1125,7 @@ void Vid_hid(const Hid_info* key)
 					}
 					else if(DEF_VID_HID_OPEN_SETTING_1_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -100;
+						vid_player.ui_y_offset_max = -130;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_1;
 						//Reset key state on scene change.
@@ -1405,6 +1430,10 @@ void Vid_hid(const Hid_info* key)
 		vid_player.use_multi_threaded_decoding_button.selected = false;
 	if(DEF_VID_HID_SE1_LOWER_RESOLUTION_DESEL(*key) || vid_player.is_scroll_mode || vid_player.state != PLAYER_STATE_IDLE)
 		vid_player.lower_resolution_button.selected = false;
+	if(DEF_VID_HID_SE1_DECREMENT_THREADS_DESEL(*key) || vid_player.is_scroll_mode || vid_player.state != PLAYER_STATE_IDLE)
+		vid_player.decrement_num_of_threads_button.selected = false;
+	if(DEF_VID_HID_SE1_INCREMENT_THREADS_DESEL(*key) || vid_player.is_scroll_mode || vid_player.state != PLAYER_STATE_IDLE)
+		vid_player.increment_num_of_threads_button.selected = false;
 	if(DEF_VID_HID_INFO_DECODING_GRAPH_DESEL(*key) || vid_player.is_scroll_mode)
 		vid_player.show_decode_graph_button.selected = false;
 	if(DEF_VID_HID_INFO_CONVERSION_GRAPH_DESEL(*key) || vid_player.is_scroll_mode)
@@ -2360,6 +2389,27 @@ void Vid_main(void)
 					{
 						vid_player.lower_resolution_button.x_size = -1;
 						vid_player.lower_resolution_button.y_size = -1;
+					}
+
+					y_offset += 30;
+					//Increment/decrement number of decoding threads.
+					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
+					{
+						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[DEF_VID_NUM_OF_THREADS_MSG]), vid_player.num_of_threads);
+						Draw(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+
+						Draw_with_background_c("-", 265, y_offset + vid_player.ui_y_offset, 0.6, 0.6, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 20, 20,
+						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.decrement_num_of_threads_button, vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+						Draw_with_background_c("+", 290, y_offset + vid_player.ui_y_offset, 0.6, 0.6, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 20, 20,
+						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.increment_num_of_threads_button, vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+					}
+					else
+					{
+						vid_player.decrement_num_of_threads_button.x_size = -1;
+						vid_player.decrement_num_of_threads_button.y_size = -1;
+						vid_player.increment_num_of_threads_button.x_size = -1;
+						vid_player.increment_num_of_threads_button.y_size = -1;
 					}
 
 					Draw_texture(&vid_player.menu_button[0], vid_player.menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
@@ -3373,7 +3423,7 @@ static void Vid_init_settings(void)
 	vid_player.use_hw_color_conversion = true;
 	vid_player.use_multi_threaded_decoding = true;
 	vid_player.lower_resolution = 0;
-
+	vid_player.num_of_threads = Vid_get_default_num_of_threads();
 }
 
 static void Vid_init_hidden_settings(void)
@@ -3390,21 +3440,14 @@ static void Vid_init_hidden_settings(void)
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 	{
-		vid_player.num_of_threads = 2;
-
 		for(uint8_t i = 0; i < 4; i++)
 		{
 			frame_cores[i] = Util_is_core_available(i);
 			slice_cores[i] = Util_is_core_available(i);
 		}
-
-		vid_player.num_of_threads += Util_is_core_available(2);
-		vid_player.num_of_threads += Util_is_core_available(3);
 	}
 	else
 	{
-		vid_player.num_of_threads = 2;
-
 		for(uint8_t i = 0; i < 2; i++)
 		{
 			frame_cores[i] = Util_is_core_available(i);
@@ -3603,6 +3646,22 @@ static void Vid_init_ui_data(void)
 	vid_player.ui_y_move = 0;
 }
 
+static uint8_t Vid_get_default_num_of_threads(void)
+{
+	uint8_t num_of_threads = DEF_VID_NUM_OF_THREADS_MIN;
+	Sem_state state = { 0, };
+
+	Sem_get_state(&state);
+
+	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
+	{
+		num_of_threads += Util_is_core_available(2);
+		num_of_threads += Util_is_core_available(3);
+	}
+
+	return num_of_threads;
+}
+
 void frame_worker_thread_start(const void* frame_handle)
 {
 	uint8_t index = UINT8_MAX;
@@ -3695,7 +3754,7 @@ void Vid_init_thread(void* arg)
 	uint8_t* cache = NULL;
 	uint32_t read_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	Str_data out_data[17] = { 0, };
+	Str_data out_data[18] = { 0, };
 	Sem_state state = { 0, };
 
 	Sem_get_state(&state);
@@ -3721,6 +3780,8 @@ void Vid_init_thread(void* arg)
 	vid_player.use_hw_color_conversion_button = Draw_get_empty_image();
 	vid_player.use_multi_threaded_decoding_button = Draw_get_empty_image();
 	vid_player.lower_resolution_button = Draw_get_empty_image();
+	vid_player.decrement_num_of_threads_button = Draw_get_empty_image();
+	vid_player.increment_num_of_threads_button = Draw_get_empty_image();
 	vid_player.menu_button[0] = Draw_get_empty_image();
 	vid_player.menu_button[1] = Draw_get_empty_image();
 	vid_player.menu_button[2] = Draw_get_empty_image();
@@ -3813,6 +3874,8 @@ void Vid_init_thread(void* arg)
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_hw_color_conversion_button.selected, sizeof(vid_player.use_hw_color_conversion_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_multi_threaded_decoding_button.selected, sizeof(vid_player.use_multi_threaded_decoding_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.lower_resolution_button.selected, sizeof(vid_player.lower_resolution_button.selected));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.decrement_num_of_threads_button.selected, sizeof(vid_player.decrement_num_of_threads_button.selected));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.increment_num_of_threads_button.selected, sizeof(vid_player.increment_num_of_threads_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_decode_graph_button.selected, sizeof(vid_player.show_decode_graph_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_color_conversion_graph_button.selected, sizeof(vid_player.show_color_conversion_graph_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_packet_buffer_graph_button.selected, sizeof(vid_player.show_packet_buffer_graph_button.selected));
@@ -3862,7 +3925,8 @@ void Vid_init_thread(void* arg)
 		//todo define value rather than hard coded values.
 		const uint8_t config_element_list[] =
 		{
-			17,	//Settings file for v1.5.1, v1.5.2 and v1.5.3.
+			18,	//Settings file for v1.6.1.
+			17,	//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
 			16,	//Settings file for v1.5.0.
 			13,	//Settings file for v1.4.2.
 			12,	//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
@@ -3901,6 +3965,7 @@ void Vid_init_thread(void* arg)
 	vid_player.disable_video = ((config_valid_until > 14) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[14]), NULL, 10) != 0) : false);
 	vid_player.disable_subtitle = ((config_valid_until > 15) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[15]), NULL, 10) != 0) : false);
 	vid_player.restart_playback_threshold = ((config_valid_until > 16) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[16]), NULL, 10), 0) : 48);
+	vid_player.num_of_threads = ((config_valid_until > 17) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[17]), NULL, 10), 0) : Vid_get_default_num_of_threads());
 
 	for(uint8_t i = 0; i < (sizeof(out_data) / sizeof(out_data[0])); i++)
 		Util_str_free(&out_data[i]);
@@ -3988,6 +4053,7 @@ void Vid_exit_thread(void* arg)
 	Util_str_format_append(&data, "<14>%" PRIu8 "</14>", vid_player.disable_video);
 	Util_str_format_append(&data, "<15>%" PRIu8 "</15>", vid_player.disable_subtitle);
 	Util_str_format_append(&data, "<16>%" PRIu16 "</16>", vid_player.restart_playback_threshold);
+	Util_str_format_append(&data, "<17>%" PRIu8 "</17>", vid_player.num_of_threads);
 
 	Util_file_save_to_file("vid_settings.txt", DEF_MENU_MAIN_DIR, (uint8_t*)data.buffer, data.capacity, true);
 	Util_str_free(&data);
@@ -4070,6 +4136,8 @@ void Vid_exit_thread(void* arg)
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_hw_color_conversion_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_multi_threaded_decoding_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.lower_resolution_button.selected);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.decrement_num_of_threads_button.selected);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.increment_num_of_threads_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_decode_graph_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_color_conversion_graph_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.show_packet_buffer_graph_button.selected);

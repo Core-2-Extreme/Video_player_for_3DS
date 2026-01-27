@@ -40,3 +40,4 @@
 <38>Disable subtitle: </38>
 <39>Restart playback threshold: %d</39>
 <40>Processing video...</40>
+<41>Number of threads: %d</41>

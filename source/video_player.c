@@ -36,11 +36,19 @@
 #define DEF_VID_WAIT_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * -1.4)
 #define DEF_VID_FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DEF_VID_DELAY_SAMPLES								(uint8_t)(60)
-#define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)	//6MB.
+#define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)			//6MB.
 #define DEF_VID_HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define DEF_VID_SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
-#define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)
-#define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)
+#define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)						//Minimum number of threads for multi-threaded decoding.
+#define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)						//Maximum number of threads for multi-threaded decoding.
+#define VID_SETTINGS_ELEMENTS_V0							(uint8_t)(7)						//Settings file for v1.3.0.
+#define VID_SETTINGS_ELEMENTS_V1							(uint8_t)(9)						//Settings file for v1.3.1.
+#define VID_SETTINGS_ELEMENTS_V2							(uint8_t)(12)						//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
+#define VID_SETTINGS_ELEMENTS_V3							(uint8_t)(13)						//Settings file for v1.4.2.
+#define VID_SETTINGS_ELEMENTS_V4							(uint8_t)(16)						//Settings file for v1.5.0.
+#define VID_SETTINGS_ELEMENTS_V5							(uint8_t)(17)						//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
+#define VID_SETTINGS_ELEMENTS_V6							(uint8_t)(18)						//Settings file for v1.6.1.
+#define VID_SETTINGS_ELEMENTS_NEWEST						(uint8_t)(VID_SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -536,6 +544,7 @@ static void Vid_init_ui_data(void);
 static uint8_t Vid_get_default_num_of_threads(void);
 static uint32_t Vid_load_settings(void);
 static uint32_t Vid_save_settings(void);
+static void Vid_log_settings(void);
 //Removed static from these functions because they are implementation for weak functions.
 void frame_worker_thread_start(const void* ptr);
 void frame_worker_thread_end(const void* ptr);
@@ -3670,7 +3679,7 @@ static uint32_t Vid_load_settings(void)
 	uint8_t* cache = NULL;
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t read_size = 0;
-	Str_data out_data[18] = { 0, };
+	Str_data out_data[VID_SETTINGS_ELEMENTS_NEWEST] = { 0, };
 	Sem_state state = { 0, };
 
 	Sem_get_state(&state);
@@ -3679,16 +3688,15 @@ static uint32_t Vid_load_settings(void)
 
 	if(result == DEF_SUCCESS)
 	{
-		//todo define value rather than hard coded values.
 		const uint8_t settings_element_list[] =
 		{
-			18,	//Settings file for v1.6.1.
-			17,	//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
-			16,	//Settings file for v1.5.0.
-			13,	//Settings file for v1.4.2.
-			12,	//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
-			9,	//Settings file for v1.3.1.
-			7,	//Settings file for v1.3.0.
+			VID_SETTINGS_ELEMENTS_V6,
+			VID_SETTINGS_ELEMENTS_V5,
+			VID_SETTINGS_ELEMENTS_V4,
+			VID_SETTINGS_ELEMENTS_V3,
+			VID_SETTINGS_ELEMENTS_V2,
+			VID_SETTINGS_ELEMENTS_V1,
+			VID_SETTINGS_ELEMENTS_V0,
 		};
 
 		//Try to load settings.
@@ -3758,6 +3766,8 @@ static uint32_t Vid_load_settings(void)
 	free(cache);
 	cache = NULL;
 
+	Vid_log_settings();
+
 	return DEF_SUCCESS;//Settings (or default one) has been loaded.
 }
 
@@ -3765,6 +3775,8 @@ static uint32_t Vid_save_settings(void)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	Str_data data = { 0, };
+
+	Vid_log_settings();
 
 	Util_str_init(&data);
 	Util_str_format_append(&data, "<0>%" PRIu8 "</0>", vid_player.use_linear_texture_filter);
@@ -3790,6 +3802,28 @@ static uint32_t Vid_save_settings(void)
 
 	Util_str_free(&data);
 	return result;
+}
+
+static void Vid_log_settings(void)
+{
+	DEF_LOG_BOOL(vid_player.use_linear_texture_filter);
+	DEF_LOG_BOOL(vid_player.allow_skip_frames);
+	DEF_LOG_BOOL(vid_player.allow_skip_key_frames);
+	DEF_LOG_BOOL(vid_player.use_hw_decoding);
+	DEF_LOG_BOOL(vid_player.use_hw_color_conversion);
+	DEF_LOG_BOOL(vid_player.use_multi_threaded_decoding);
+	DEF_LOG_HEX(vid_player.lower_resolution);
+	DEF_LOG_UINT(vid_player.volume);
+	DEF_LOG_UINT(vid_player.seek_duration);
+	DEF_LOG_BOOL(vid_player.correct_aspect_ratio);
+	DEF_LOG_HEX(vid_player.move_content_mode);
+	DEF_LOG_BOOL(vid_player.remember_video_pos);
+	DEF_LOG_HEX(vid_player.playback_mode);
+	DEF_LOG_BOOL(vid_player.disable_audio);
+	DEF_LOG_BOOL(vid_player.disable_video);
+	DEF_LOG_BOOL(vid_player.disable_subtitle);
+	DEF_LOG_UINT(vid_player.restart_playback_threshold);
+	DEF_LOG_UINT(vid_player.num_of_threads);
 }
 
 void frame_worker_thread_start(const void* frame_handle)

@@ -14,7 +14,7 @@
 <13>Use hardware decoder (if available): </13>
 <14>Use hardware color conversion (if available): </14>
 <15>Use multi-threaded decoding (if available): </15>
-<16>Allow skip key frames: </16>
+<16>Allow skip keyframes: </16>
 <17>Lower video resolution (if supported by codec): </17>
 <18>Seeking...</18>
 <19>Seek duration: </19>

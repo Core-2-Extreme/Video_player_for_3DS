@@ -125,7 +125,7 @@ uint32_t Util_decoder_read_packet(uint8_t session);
  * @brief Parse packet type.
  * @param type (out) Pointer for packet type.
  * @param packet_index (out) Pointer for packet index.
- * @param key_frame (out) Pointer for key frame (video packet only).
+ * @param key_frame (out) Pointer for keyframe (video packet only).
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.

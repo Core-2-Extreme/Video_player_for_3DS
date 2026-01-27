@@ -8,7 +8,7 @@ typedef uint8_t Media_seek_flag;
 #define MEDIA_SEEK_FLAG_NONE		(Media_seek_flag)(0 << 0)	//No seek flag.
 #define MEDIA_SEEK_FLAG_BACKWARD	(Media_seek_flag)(1 << 0)	//Seek backward.
 #define MEDIA_SEEK_FLAG_BYTE		(Media_seek_flag)(1 << 1)	//Seek to given byte offset instead of time.
-#define MEDIA_SEEK_FLAG_ANY			(Media_seek_flag)(1 << 2)	//Seek to any location including non-key frame.
+#define MEDIA_SEEK_FLAG_ANY			(Media_seek_flag)(1 << 2)	//Seek to any location including non-keyframe.
 #define MEDIA_SEEK_FLAG_FRAME		(Media_seek_flag)(1 << 3)	//Seek to given frame number instead of time.
 
 typedef enum

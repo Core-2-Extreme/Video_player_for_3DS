@@ -180,7 +180,7 @@
 #define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_frames_button, (k)))
 #define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_frames_button, (k)))
 #define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Settings 0 : Toggle allow skip key frames.
+//Settings 0 : Toggle allow skip keyframes.
 #define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_key_frames_button, (k)))
 #define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_key_frames_button, (k)))
 #define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
@@ -360,7 +360,7 @@ typedef struct
 
 typedef struct
 {
-	bool is_key_frame;		//Whether current packet is key frame.
+	bool is_key_frame;		//Whether current packet is keyframe.
 	uint8_t packet_index;	//Packet index for current packet.
 } Vid_video_packet_data;
 
@@ -1055,7 +1055,7 @@ void Vid_hid(const Hid_info* key)
 						if(vid_player.allow_skip_key_frames)
 							vid_player.allow_skip_key_frames = false;
 					}
-					else if(DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(*key) && vid_player.allow_skip_frames)//Allow skip key frames button.
+					else if(DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(*key) && vid_player.allow_skip_frames)//Allow skip keyframes button.
 						vid_player.allow_skip_key_frames = !vid_player.allow_skip_key_frames;
 					else if(DEF_VID_HID_SE0_VOLUME_CFM(*key))//Change volume button.
 						vid_player.is_setting_volume = true;
@@ -2262,7 +2262,7 @@ void Vid_main(void)
 					}
 
 					y_offset += 25;
-					//Allow skip key frames.
+					//Allow skip keyframes.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						uint32_t temp_color = (vid_player.allow_skip_frames ? color : disabled_color);
@@ -2476,7 +2476,7 @@ void Vid_main(void)
 					//Deadline.
 					Draw_line(0, ((y_offset + vid_player.ui_y_offset) - (vid_player.video_frametime / 2)), 0xFF606060, DEF_VID_DEBUG_GRAPH_WIDTH, ((y_offset - (vid_player.video_frametime / 2)) + vid_player.ui_y_offset), 0xFF606060, 1);
 
-					//Key frame.
+					//Keyframe.
 					if(vid_player.show_decoding_graph)
 					{
 						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
@@ -3913,7 +3913,7 @@ void frame_worker_thread_end(const void* frame_handle)
 	osTickCounterUpdate(&vid_player.decoding_time_tick[index]);
 	time = osTickCounterRead(&vid_player.decoding_time_tick[index]);
 	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
-	Vid_update_decoding_statistics(time, false, &dummy);//There's no way to know if this is a key frame.
+	Vid_update_decoding_statistics(time, false, &dummy);//There's no way to know if this is a keyframe.
 	Util_sync_unlock(&vid_player.delay_update_lock);
 }
 

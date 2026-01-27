@@ -534,6 +534,8 @@ static void Vid_init_audio_data(void);
 static void Vid_init_subtitle_data(void);
 static void Vid_init_ui_data(void);
 static uint8_t Vid_get_default_num_of_threads(void);
+static uint32_t Vid_load_settings(void);
+static uint32_t Vid_save_settings(void);
 //Removed static from these functions because they are implementation for weak functions.
 void frame_worker_thread_start(const void* ptr);
 void frame_worker_thread_end(const void* ptr);
@@ -3662,6 +3664,134 @@ static uint8_t Vid_get_default_num_of_threads(void)
 	return num_of_threads;
 }
 
+static uint32_t Vid_load_settings(void)
+{
+	uint8_t settings_valid_until = 0;
+	uint8_t* cache = NULL;
+	uint32_t result = DEF_ERR_OTHER;
+	uint32_t read_size = 0;
+	Str_data out_data[18] = { 0, };
+	Sem_state state = { 0, };
+
+	Sem_get_state(&state);
+
+	DEF_LOG_RESULT_SMART(result, Util_file_load_from_file("vid_settings.txt", DEF_MENU_MAIN_DIR, &cache, 0x1000, 0, &read_size), (result == DEF_SUCCESS), result);
+
+	if(result == DEF_SUCCESS)
+	{
+		//todo define value rather than hard coded values.
+		const uint8_t settings_element_list[] =
+		{
+			18,	//Settings file for v1.6.1.
+			17,	//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
+			16,	//Settings file for v1.5.0.
+			13,	//Settings file for v1.4.2.
+			12,	//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
+			9,	//Settings file for v1.3.1.
+			7,	//Settings file for v1.3.0.
+		};
+
+		//Try to load settings.
+		for(uint8_t i = 0; i < (sizeof(settings_element_list) / sizeof(settings_element_list[0])); i++)
+		{
+			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, settings_element_list[i], out_data), (result == DEF_SUCCESS), result);
+			if(result == DEF_SUCCESS)
+			{
+				settings_valid_until = settings_element_list[i];
+				DEF_LOG_INT(settings_valid_until);
+				break;
+			}
+		}
+	}
+
+	if(result != DEF_SUCCESS)
+		DEF_LOG_STRING("Couldn't read settings file, applying default settings!!!!!");
+
+	vid_player.use_linear_texture_filter = ((settings_valid_until > 0) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[0]), NULL, 10) != 0) : true);
+	vid_player.allow_skip_frames = ((settings_valid_until > 1) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[1]), NULL, 10) != 0) : false);
+	vid_player.allow_skip_key_frames = ((settings_valid_until > 2) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[2]), NULL, 10) != 0) : false);
+	vid_player.use_hw_decoding = ((settings_valid_until > 3) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[3]), NULL, 10) != 0) : true);
+	vid_player.use_hw_color_conversion = ((settings_valid_until > 4) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[4]), NULL, 10) != 0) : true);
+	vid_player.use_multi_threaded_decoding = ((settings_valid_until > 5) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[5]), NULL, 10) != 0) : true);
+	vid_player.lower_resolution = ((settings_valid_until > 6) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[6]), NULL, 10), 0) : 0);
+	vid_player.volume = ((settings_valid_until > 7) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[7]), NULL, 10), 0) : 100);
+	vid_player.seek_duration = ((settings_valid_until > 8) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[8]), NULL, 10), 0) : 10);
+	vid_player.correct_aspect_ratio = ((settings_valid_until > 9) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[9]), NULL, 10) != 0) : true);
+	vid_player.move_content_mode = ((settings_valid_until > 10) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : DEF_VID_MOVE_BOTH);
+	vid_player.remember_video_pos = ((settings_valid_until > 11) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[11]), NULL, 10) != 0) : true);
+	vid_player.playback_mode = ((settings_valid_until > 12) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : DEF_VID_NO_REPEAT);
+	vid_player.disable_audio = ((settings_valid_until > 13) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[13]), NULL, 10) != 0) : false);
+	vid_player.disable_video = ((settings_valid_until > 14) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[14]), NULL, 10) != 0) : false);
+	vid_player.disable_subtitle = ((settings_valid_until > 15) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[15]), NULL, 10) != 0) : false);
+	vid_player.restart_playback_threshold = ((settings_valid_until > 16) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[16]), NULL, 10), 0) : 48);
+	vid_player.num_of_threads = ((settings_valid_until > 17) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[17]), NULL, 10), 0) : Vid_get_default_num_of_threads());
+
+	for(uint8_t i = 0; i < (sizeof(out_data) / sizeof(out_data[0])); i++)
+		Util_str_free(&out_data[i]);
+
+	if(!DEF_SEM_MODEL_IS_NEW(state.console_model))
+		vid_player.use_hw_decoding = false;
+
+	if(!vid_player.allow_skip_frames)
+		vid_player.allow_skip_key_frames = false;
+
+	if(vid_player.lower_resolution > 2)
+		vid_player.lower_resolution = 0;
+
+	if(vid_player.volume > 999)
+		vid_player.volume = 100;
+
+	if(vid_player.seek_duration > 99 || vid_player.seek_duration < 1)
+		vid_player.seek_duration = 10;
+
+	if(vid_player.playback_mode != DEF_VID_NO_REPEAT && vid_player.playback_mode != DEF_VID_REPEAT
+		&& vid_player.playback_mode != DEF_VID_IN_ORDER && vid_player.playback_mode != DEF_VID_RANDOM)
+		vid_player.playback_mode = DEF_VID_NO_REPEAT;
+
+	if(vid_player.move_content_mode != DEF_VID_MOVE_BOTH && vid_player.move_content_mode != DEF_VID_MOVE_VIDEO
+	&& vid_player.move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_player.move_content_mode != DEF_VID_MOVE_DISABLE)
+		vid_player.move_content_mode = DEF_VID_MOVE_BOTH;
+
+	if(vid_player.restart_playback_threshold >= DEF_DECODER_MAX_RAW_IMAGE)
+		vid_player.restart_playback_threshold = (48 >= DEF_DECODER_MAX_RAW_IMAGE ? DEF_DECODER_MAX_RAW_IMAGE : 48);
+
+	free(cache);
+	cache = NULL;
+
+	return DEF_SUCCESS;//Settings (or default one) has been loaded.
+}
+
+static uint32_t Vid_save_settings(void)
+{
+	uint32_t result = DEF_ERR_OTHER;
+	Str_data data = { 0, };
+
+	Util_str_init(&data);
+	Util_str_format_append(&data, "<0>%" PRIu8 "</0>", vid_player.use_linear_texture_filter);
+	Util_str_format_append(&data, "<1>%" PRIu8 "</1>", vid_player.allow_skip_frames);
+	Util_str_format_append(&data, "<2>%" PRIu8 "</2>", vid_player.allow_skip_key_frames);
+	Util_str_format_append(&data, "<3>%" PRIu8 "</3>", vid_player.use_hw_decoding);
+	Util_str_format_append(&data, "<4>%" PRIu8 "</4>", vid_player.use_hw_color_conversion);
+	Util_str_format_append(&data, "<5>%" PRIu8 "</5>", vid_player.use_multi_threaded_decoding);
+	Util_str_format_append(&data, "<6>%" PRIu8 "</6>", vid_player.lower_resolution);
+	Util_str_format_append(&data, "<7>%" PRIu16 "</7>", vid_player.volume);
+	Util_str_format_append(&data, "<8>%" PRIu8 "</8>", vid_player.seek_duration);
+	Util_str_format_append(&data, "<9>%" PRIu8 "</9>", vid_player.correct_aspect_ratio);
+	Util_str_format_append(&data, "<10>%" PRIu8 "</10>", vid_player.move_content_mode);
+	Util_str_format_append(&data, "<11>%" PRIu8 "</11>", vid_player.remember_video_pos);
+	Util_str_format_append(&data, "<12>%" PRIu8 "</12>", vid_player.playback_mode);
+	Util_str_format_append(&data, "<13>%" PRIu8 "</13>", vid_player.disable_audio);
+	Util_str_format_append(&data, "<14>%" PRIu8 "</14>", vid_player.disable_video);
+	Util_str_format_append(&data, "<15>%" PRIu8 "</15>", vid_player.disable_subtitle);
+	Util_str_format_append(&data, "<16>%" PRIu16 "</16>", vid_player.restart_playback_threshold);
+	Util_str_format_append(&data, "<17>%" PRIu8 "</17>", vid_player.num_of_threads);
+
+	DEF_LOG_RESULT_SMART(result, Util_file_save_to_file("vid_settings.txt", DEF_MENU_MAIN_DIR, (uint8_t*)data.buffer, data.capacity, true), (result == DEF_SUCCESS), result);
+
+	Util_str_free(&data);
+	return result;
+}
+
 void frame_worker_thread_start(const void* frame_handle)
 {
 	uint8_t index = UINT8_MAX;
@@ -3750,11 +3880,7 @@ void Vid_init_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint8_t config_valid_until = 0;
-	uint8_t* cache = NULL;
-	uint32_t read_size = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	Str_data out_data[18] = { 0, };
 	Sem_state state = { 0, };
 
 	Sem_get_state(&state);
@@ -3918,86 +4044,7 @@ void Vid_init_thread(void* arg)
 	}
 
 	Util_str_add(&vid_status, "\nLoading settings...");
-	DEF_LOG_RESULT_SMART(result, Util_file_load_from_file("vid_settings.txt", DEF_MENU_MAIN_DIR, &cache, 0x1000, 0, &read_size), (result == DEF_SUCCESS), result);
-
-	if(result == DEF_SUCCESS)
-	{
-		//todo define value rather than hard coded values.
-		const uint8_t config_element_list[] =
-		{
-			18,	//Settings file for v1.6.1.
-			17,	//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
-			16,	//Settings file for v1.5.0.
-			13,	//Settings file for v1.4.2.
-			12,	//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
-			9,	//Settings file for v1.3.1.
-			7,	//Settings file for v1.3.0.
-		};
-
-		//Try to load config.
-		for(uint8_t i = 0; i < (sizeof(config_element_list) / sizeof(config_element_list[0])); i++)
-		{
-			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, config_element_list[i], out_data), (result == DEF_SUCCESS), result);
-			if(result == DEF_SUCCESS)
-			{
-				config_valid_until = config_element_list[i];
-				DEF_LOG_INT(config_valid_until);
-				break;
-			}
-		}
-	}
-
-	//todo move to sub function.
-	vid_player.use_linear_texture_filter = ((config_valid_until > 0) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[0]), NULL, 10) != 0) : true);
-	vid_player.allow_skip_frames = ((config_valid_until > 1) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[1]), NULL, 10) != 0) : false);
-	vid_player.allow_skip_key_frames = ((config_valid_until > 2) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[2]), NULL, 10) != 0) : false);
-	vid_player.use_hw_decoding = ((config_valid_until > 3) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[3]), NULL, 10) != 0) : true);
-	vid_player.use_hw_color_conversion = ((config_valid_until > 4) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[4]), NULL, 10) != 0) : true);
-	vid_player.use_multi_threaded_decoding = ((config_valid_until > 5) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[5]), NULL, 10) != 0) : true);
-	vid_player.lower_resolution = ((config_valid_until > 6) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[6]), NULL, 10), 0) : 0);
-	vid_player.volume = ((config_valid_until > 7) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[7]), NULL, 10), 0) : 100);
-	vid_player.seek_duration = ((config_valid_until > 8) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[8]), NULL, 10), 0) : 10);
-	vid_player.correct_aspect_ratio = ((config_valid_until > 9) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[9]), NULL, 10) != 0) : true);
-	vid_player.move_content_mode = ((config_valid_until > 10) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : DEF_VID_MOVE_BOTH);
-	vid_player.remember_video_pos = ((config_valid_until > 11) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[11]), NULL, 10) != 0) : true);
-	vid_player.playback_mode = ((config_valid_until > 12) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : DEF_VID_NO_REPEAT);
-	vid_player.disable_audio = ((config_valid_until > 13) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[13]), NULL, 10) != 0) : false);
-	vid_player.disable_video = ((config_valid_until > 14) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[14]), NULL, 10) != 0) : false);
-	vid_player.disable_subtitle = ((config_valid_until > 15) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[15]), NULL, 10) != 0) : false);
-	vid_player.restart_playback_threshold = ((config_valid_until > 16) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[16]), NULL, 10), 0) : 48);
-	vid_player.num_of_threads = ((config_valid_until > 17) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[17]), NULL, 10), 0) : Vid_get_default_num_of_threads());
-
-	for(uint8_t i = 0; i < (sizeof(out_data) / sizeof(out_data[0])); i++)
-		Util_str_free(&out_data[i]);
-
-	if(!DEF_SEM_MODEL_IS_NEW(state.console_model))
-		vid_player.use_hw_decoding = false;
-
-	if(!vid_player.allow_skip_frames)
-		vid_player.allow_skip_key_frames = false;
-
-	if(vid_player.lower_resolution > 2)
-		vid_player.lower_resolution = 0;
-
-	if(vid_player.volume > 999)
-		vid_player.volume = 100;
-
-	if(vid_player.seek_duration > 99 || vid_player.seek_duration < 1)
-		vid_player.seek_duration = 10;
-
-	if(vid_player.playback_mode != DEF_VID_NO_REPEAT && vid_player.playback_mode != DEF_VID_REPEAT
-		&& vid_player.playback_mode != DEF_VID_IN_ORDER && vid_player.playback_mode != DEF_VID_RANDOM)
-		vid_player.playback_mode = DEF_VID_NO_REPEAT;
-
-	if(vid_player.move_content_mode != DEF_VID_MOVE_BOTH && vid_player.move_content_mode != DEF_VID_MOVE_VIDEO
-	&& vid_player.move_content_mode != DEF_VID_MOVE_SUBTITLE && vid_player.move_content_mode != DEF_VID_MOVE_DISABLE)
-		vid_player.move_content_mode = DEF_VID_MOVE_BOTH;
-
-	if(vid_player.restart_playback_threshold >= DEF_DECODER_MAX_RAW_IMAGE)
-		vid_player.restart_playback_threshold = (48 >= DEF_DECODER_MAX_RAW_IMAGE ? DEF_DECODER_MAX_RAW_IMAGE : 48);
-
-	free(cache);
-	cache = NULL;
+	DEF_LOG_RESULT_SMART(result, Vid_load_settings(), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&vid_status, "\nLoading textures...");
 	vid_player.banner_texture_handle = Draw_get_free_sheet_num();
@@ -4020,7 +4067,6 @@ void Vid_exit_thread(void* arg)
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
-	Str_data data = { 0, };
 
 	vid_already_init = false;
 	vid_thread_suspend = false;
@@ -4034,29 +4080,7 @@ void Vid_exit_thread(void* arg)
 	Vid_exit_full_screen();
 
 	Util_str_set(&vid_status, "Saving settings...");
-
-	Util_str_init(&data);
-	Util_str_format_append(&data, "<0>%" PRIu8 "</0>", vid_player.use_linear_texture_filter);
-	Util_str_format_append(&data, "<1>%" PRIu8 "</1>", vid_player.allow_skip_frames);
-	Util_str_format_append(&data, "<2>%" PRIu8 "</2>", vid_player.allow_skip_key_frames);
-	Util_str_format_append(&data, "<3>%" PRIu8 "</3>", vid_player.use_hw_decoding);
-	Util_str_format_append(&data, "<4>%" PRIu8 "</4>", vid_player.use_hw_color_conversion);
-	Util_str_format_append(&data, "<5>%" PRIu8 "</5>", vid_player.use_multi_threaded_decoding);
-	Util_str_format_append(&data, "<6>%" PRIu8 "</6>", vid_player.lower_resolution);
-	Util_str_format_append(&data, "<7>%" PRIu16 "</7>", vid_player.volume);
-	Util_str_format_append(&data, "<8>%" PRIu8 "</8>", vid_player.seek_duration);
-	Util_str_format_append(&data, "<9>%" PRIu8 "</9>", vid_player.correct_aspect_ratio);
-	Util_str_format_append(&data, "<10>%" PRIu8 "</10>", vid_player.move_content_mode);
-	Util_str_format_append(&data, "<11>%" PRIu8 "</11>", vid_player.remember_video_pos);
-	Util_str_format_append(&data, "<12>%" PRIu8 "</12>", vid_player.playback_mode);
-	Util_str_format_append(&data, "<13>%" PRIu8 "</13>", vid_player.disable_audio);
-	Util_str_format_append(&data, "<14>%" PRIu8 "</14>", vid_player.disable_video);
-	Util_str_format_append(&data, "<15>%" PRIu8 "</15>", vid_player.disable_subtitle);
-	Util_str_format_append(&data, "<16>%" PRIu16 "</16>", vid_player.restart_playback_threshold);
-	Util_str_format_append(&data, "<17>%" PRIu8 "</17>", vid_player.num_of_threads);
-
-	Util_file_save_to_file("vid_settings.txt", DEF_MENU_MAIN_DIR, (uint8_t*)data.buffer, data.capacity, true);
-	Util_str_free(&data);
+	DEF_LOG_RESULT_SMART(result, Vid_save_settings(), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&vid_status, "\nExiting threads...");
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.decode_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);

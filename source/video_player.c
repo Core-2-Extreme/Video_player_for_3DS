@@ -61,6 +61,10 @@
 #define DEF_VID_NON_FULL_SCREEN_WIDTH						(uint16_t)(400)							//Video width in non-full-screen in px.
 #define DEF_VID_NON_FULL_SCREEN_HEIGHT						(uint16_t)(225)							//Video height in non-full-screen in px.
 #define DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(180)							//Transition period from non-full-screen to full-screen in frames.
+#define DEF_VID_MENU_NONE_Y_OFFSET_MIN						(double)(-230)							//Minimum y offset in none.
+#define DEF_VID_MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu.
+#define DEF_VID_MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu.
+#define DEF_VID_MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -486,7 +490,7 @@ typedef struct
 	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full-screen mode.
 	uint64_t show_screen_brightness_until;			//Display screen brightness message until this time.
 	uint64_t show_current_pos_until;				//Display current position message until this time.
-	double ui_y_offset_max;							//Max Y (vertical) offset for UI.
+	double ui_y_offset_min;							//Minimum Y (vertical) offset for UI.
 	double ui_y_offset;								//Y (vertical) offset for UI.
 	double ui_y_move;								//Remaining Y (vertical) direction movement, this is used for scrolling.
 
@@ -992,13 +996,13 @@ void Vid_hid(const Hid_info* key)
 				{
 					if(vid_player.menu_mode == DEF_VID_MENU_NONE)
 					{
-						vid_player.ui_y_offset_max = -230;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_SETTING_0_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_0;
 					}
 					else
 					{
-						vid_player.ui_y_offset_max = 0;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_NONE_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_NONE;
 					}
@@ -1016,7 +1020,7 @@ void Vid_hid(const Hid_info* key)
 					//Menu mode button.
 					if(DEF_VID_HID_OPEN_SETTING_1_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -130;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_SETTING_1_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_1;
 						//Reset key state on scene change.
@@ -1024,7 +1028,7 @@ void Vid_hid(const Hid_info* key)
 					}
 					else if(DEF_VID_HID_OPEN_INFO_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -95;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_INFO_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_INFO;
 						//Reset key state on scene change.
@@ -1092,7 +1096,7 @@ void Vid_hid(const Hid_info* key)
 				{
 					if(DEF_VID_HID_OPEN_SETTING_0_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -230;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_SETTING_0_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_0;
 						//Reset key state on scene change.
@@ -1100,7 +1104,7 @@ void Vid_hid(const Hid_info* key)
 					}
 					else if(DEF_VID_HID_OPEN_INFO_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -95;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_INFO_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_INFO;
 						//Reset key state on scene change.
@@ -1143,7 +1147,7 @@ void Vid_hid(const Hid_info* key)
 				{
 					if(DEF_VID_HID_OPEN_SETTING_0_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -230;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_SETTING_0_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_0;
 						//Reset key state on scene change.
@@ -1151,7 +1155,7 @@ void Vid_hid(const Hid_info* key)
 					}
 					else if(DEF_VID_HID_OPEN_SETTING_1_CFM(*key))//Menu mode button.
 					{
-						vid_player.ui_y_offset_max = -130;
+						vid_player.ui_y_offset_min = DEF_VID_MENU_SETTING_1_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
 						vid_player.menu_mode = DEF_VID_MENU_SETTINGS_1;
 						//Reset key state on scene change.
@@ -1358,9 +1362,9 @@ void Vid_hid(const Hid_info* key)
 			if(key->touch_y < 50)
 				vid_player.ui_y_offset = 0;
 			else if(key->touch_y > 175)
-				vid_player.ui_y_offset = vid_player.ui_y_offset_max;
+				vid_player.ui_y_offset = vid_player.ui_y_offset_min;
 			else
-				vid_player.ui_y_offset = vid_player.ui_y_offset_max * (50 - key->touch_y) / -125;
+				vid_player.ui_y_offset = (vid_player.ui_y_offset_min * (50 - key->touch_y) / -125);
 		}
 		else if(DEF_HID_PHY_PR(key->touch) || DEF_HID_PHY_HE(key->touch))
 		{
@@ -1378,8 +1382,8 @@ void Vid_hid(const Hid_info* key)
 
 		if(vid_player.ui_y_offset - vid_player.ui_y_move > 0)
 			vid_player.ui_y_offset = 0;
-		else if(vid_player.ui_y_offset - vid_player.ui_y_move < vid_player.ui_y_offset_max)
-			vid_player.ui_y_offset = vid_player.ui_y_offset_max;
+		else if(vid_player.ui_y_offset - vid_player.ui_y_move < vid_player.ui_y_offset_min)
+			vid_player.ui_y_offset = vid_player.ui_y_offset_min;
 		else
 			vid_player.ui_y_offset -= vid_player.ui_y_move;
 	}
@@ -2101,7 +2105,7 @@ void Vid_main(void)
 				if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_0)
 				{
 					//Scroll bar.
-					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
+					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
 					y_offset = 60;
 					//Playback mode.
@@ -2296,7 +2300,7 @@ void Vid_main(void)
 				else if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_1)
 				{
 					//Scroll bar.
-					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
+					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
 					y_offset = 60;
 					//Disable audio.
@@ -2425,7 +2429,7 @@ void Vid_main(void)
 				else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
 				{
 					//Scroll bar.
-					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_max * 120) + 50, 7, 10);
+					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
 					y_offset = 160;
 					//Color conversion time.
@@ -3662,7 +3666,7 @@ static void Vid_init_ui_data(void)
 	vid_player.menu_mode = DEF_VID_MENU_NONE;
 	vid_player.show_screen_brightness_until = 0;
 	vid_player.show_current_pos_until = 0;
-	vid_player.ui_y_offset_max = 0;
+	vid_player.ui_y_offset_min = 0;
 	vid_player.ui_y_offset = 0;
 	vid_player.ui_y_move = 0;
 }
@@ -4010,7 +4014,7 @@ void Vid_init_thread(void* arg)
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos_cache, sizeof(vid_player.seek_pos_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos, sizeof(vid_player.seek_pos));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset, sizeof(vid_player.ui_y_offset));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_max, sizeof(vid_player.ui_y_offset_max));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_min, sizeof(vid_player.ui_y_offset_min));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset, sizeof(vid_player.subtitle_x_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset, sizeof(vid_player.subtitle_y_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom, sizeof(vid_player.subtitle_zoom));
@@ -4170,7 +4174,7 @@ void Vid_exit_thread(void* arg)
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_max);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_min);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom);

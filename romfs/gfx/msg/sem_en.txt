@@ -13,10 +13,10 @@
 <12>ON</12>
 <13>OFF</13>
 <14>Flash</14>
-<15>Screen brightness : </15>
-<16>Time to turn off LCDs : </16>
+<15>Screen brightness: </15>
+<16>Time to turn off LCDs: </16>
 <17>s</17>
-<18>Scroll speed : </18>
+<18>Scroll speed: </18>
 <19>JPN</19>
 <20>CHN</20>
 <21>KOR</21>
@@ -46,7 +46,7 @@
 <45>Download & install (X)</45>
 <46>Close app</46>
 <47>Wifi</47>
-<48>Connected to : </48>
+<48>Connected to: </48>
 <49>Screen recording</49>
 <50>Start recording (both screen)</50>
 <51>Start recording (top screen)</51>
@@ -71,5 +71,5 @@ some function may not work)</62>
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

@@ -2,7 +2,7 @@
 <1>A to close</1>
 <2>B to back</2>
 <3>☢A new version is available!☢</3>
-<4>How to update : 
+<4>How to update: 
 Settings
 ->Update
 ->Check for updates

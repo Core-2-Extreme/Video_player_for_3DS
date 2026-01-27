@@ -2,7 +2,7 @@
 <1>A pt a închide</1>
 <2>B pt a te întoarce</2>
 <3>☢O versiune nouă este disponibilă!☢</3>
-<4>Cum să actualizezi : 
+<4>Cum să actualizezi: 
 Setări
 ->Actualizează
 ->Caută actualizări

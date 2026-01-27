@@ -71,5 +71,5 @@
 <67>导出日志</67>
 <68>琉球諸語</68>
 <69>自动</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

@@ -13,10 +13,10 @@
 <12>WŁĄCZONY</12>
 <13>WYŁĄCZONY</13>
 <14>Miganie</14>
-<15>Jasność Ekranu : </15>
-<16>Czas do wyłaczenia ekranu LCD : </16>
+<15>Jasność Ekranu: </15>
+<16>Czas do wyłaczenia ekranu LCD: </16>
 <17>s</17>
-<18>Szybkość Przewijania : </18>
+<18>Szybkość Przewijania: </18>
 <19>JPN</19>
 <20>CHN</20>
 <21>KOR</21>
@@ -46,7 +46,7 @@
 <45>Pobierz i Zainstaluj (X)</45>
 <46>Zamknij aplikacje</46>
 <47>Wifi</47>
-<48>Połaczony do : </48>
+<48>Połaczony do: </48>
 <49>Nagrywanie Ekranu</49>
 <50>Zacznij nagrywać (oba ekrany)</50>
 <51>Zacznij nagrywać (górny ekran)</51>
@@ -70,5 +70,5 @@ turn off the '800px(auto) mode'
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

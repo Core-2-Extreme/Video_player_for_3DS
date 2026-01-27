@@ -13,10 +13,10 @@
 <12>ENCENDIDO</12>
 <13>APAGADO</13>
 <14>Flash</14>
-<15>Brillo de la pantalla : </15>
-<16>Tiempo de apagar LCDs : </16>
+<15>Brillo de la pantalla: </15>
+<16>Tiempo de apagar LCDs: </16>
 <17>s</17>
-<18>Velocidad de desplazamiento : </18>
+<18>Velocidad de desplazamiento: </18>
 <19>JPN</19>
 <20>CHN</20>
 <21>KOR</21>
@@ -46,7 +46,7 @@
 <45>Descargar e instalar (X)</45>
 <46>Cerrar aplicación</46>
 <47>Wifi</47>
-<48>Conectado a : </48>
+<48>Conectado a: </48>
 <49>Grabación de pantalla</49>
 <50>Iniciar grabación (Ambas pantallas)</50>
 <51>Iniciar grabación (Pantalla superior)</51>
@@ -71,5 +71,5 @@ algunas funciones no estarán disponibles)</62>
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

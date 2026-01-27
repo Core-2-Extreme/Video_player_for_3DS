@@ -1,6 +1,6 @@
-<0>Filtr Tekstury : </0>
+<0>Filtr Tekstury: </0>
 <1>Sterowanie</1>
-<2>Pomijanie klatek : </2>
+<2>Pomijanie klatek: </2>
 <3>Opcje</3>
 <4>Wybierz plik</4>
 <5>Odtwórz/Pauza</5>
@@ -12,18 +12,18 @@
 <11>Wybierz ścieżke dźwięku</11>
 <12>Wćiśnij przycisk "SELECT" albo dotknij dotykowy ekran
 by wyłączyć pełny ekran</12>
-<13>Dekoder Sprzętowy (jeśli dostępny) : </13>
-<14>Sprzętowa Konwersja kolorów (jeśli dostępna) : </14>
-<15>Dekoder Wielo-Wątkowy (jeśli dostępny) : </15>
-<16>Pomijanie kluczowych klatek : </16>
-<17>Niższa rozdzielczość (jeśli kodek ją wspiera) : </17>
+<13>Dekoder Sprzętowy (jeśli dostępny): </13>
+<14>Sprzętowa Konwersja kolorów (jeśli dostępna): </14>
+<15>Dekoder Wielo-Wątkowy (jeśli dostępny): </15>
+<16>Pomijanie kluczowych klatek: </16>
+<17>Niższa rozdzielczość (jeśli kodek ją wspiera): </17>
 <18>Przewijanie...</18>
-<19>Długość przewijania : </19>
-<20>Głośność : </20>
-<21>Poprawna Rozdzielczość : </21>
-<22>Resize/move content : </22>
-<23>Zapamiętaj pozycje wideo : </23>
-<24>Playback method : </24>
+<19>Długość przewijania: </19>
+<20>Głośność: </20>
+<21>Poprawna Rozdzielczość: </21>
+<22>Resize/move content: </22>
+<23>Zapamiętaj pozycje wideo: </23>
+<24>Playback method: </24>
 <25>No repeat</25>
 <26>Repeat</26>
 <27>In order</27>
@@ -34,9 +34,9 @@ by wyłączyć pełny ekran</12>
 <32>Only subtitle</32>
 <33>Subtitle track selection</33>
 <34>Select subtitle track</34>
-<35>Brightness : </35>
-<36>Disable audio : </36>
-<37>Disable video : </37>
-<38>Disable subtitle : </38>
-<39>Restart playback threshold : %d</39>
+<35>Brightness: </35>
+<36>Disable audio: </36>
+<37>Disable video: </37>
+<38>Disable subtitle: </38>
+<39>Restart playback threshold: %d</39>
 <40>Processing video...</40>

@@ -13,10 +13,10 @@
 <12>Pornit</12>
 <13>Oprit</13>
 <14>Flash</14>
-<15>Luminozitatea ecranului : </15>
-<16>Timpul de oprire al LCD-urilor : </16>
+<15>Luminozitatea ecranului: </15>
+<16>Timpul de oprire al LCD-urilor: </16>
 <17>s</17>
-<18>Viteză de navigare : </18>
+<18>Viteză de navigare: </18>
 <19>JPN</19>
 <20>CHN</20>
 <21>KOR</21>
@@ -47,7 +47,7 @@ pentru a aplica actualizările.</44>
 <45>Descărcați și instalați (X)</45>
 <46>Închideți aplicație</46>
 <47>Wifi</47>
-<48>Conectat la : </48>
+<48>Conectat la: </48>
 <49>Filmare ecran</49>
 <50>Începeți filmarea (ambele ecrane)</50>
 <51>Începeți filmarea (ecranul de sus)</51>
@@ -72,5 +72,5 @@ anumite funcții care nu merg)</62>
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

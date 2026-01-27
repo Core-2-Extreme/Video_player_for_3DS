@@ -13,10 +13,10 @@
 <12>ON</12>
 <13>OFF</13>
 <14>Flash</14>
-<15>Luminosità schermo : </15>
-<16>Tempo sospensione LCD : </16>
+<15>Luminosità schermo: </15>
+<16>Tempo sospensione LCD: </16>
 <17>s</17>
-<18>Velocità di scorrimento : </18>
+<18>Velocità di scorrimento: </18>
 <19>JPN</19>
 <20>CHN</20>
 <21>KOR</21>
@@ -46,7 +46,7 @@
 <45>Scarica e installa (X)</45>
 <46>Chiudi app</46>
 <47>Wifi</47>
-<48>Connettiti a : </48>
+<48>Connettiti a: </48>
 <49>Registrazione schermo</49>
 <50>Inizia a registrare (ambo gli schermi)</50>
 <51>Inizia a registrare (schermo superiore)</51>
@@ -71,5 +71,5 @@ some function may not work)</62>
 <67>Dump logs</67>
 <68>琉球諸語</68>
 <69>Auto</69>
-<70>Time to enter sleep : </70>
+<70>Time to enter sleep: </70>
 <71>Deutsch</71>

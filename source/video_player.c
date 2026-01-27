@@ -52,6 +52,7 @@
 #define DEF_VID_DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
 #define DEF_VID_DEBUG_GRAPH_WIDTH							(uint16_t)(320)							//Debug graph width in px.
 #define DEF_VID_DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
+#define DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS					(uint16_t)(32)							//Number of temp elements for multi-threaded decoding.
 #define DEF_VID_QUEUE_OP_TIMEOUT_US							(uint64_t)(DEF_UTIL_MS_TO_US(100))		//Queue operation timeout in us.
 
 //System UI.
@@ -398,15 +399,15 @@ typedef struct
 	double audio_decoding_avg_time;					//Average audio decoding time for recent DEF_VID_DEBUG_GRAPH_AVG_SAMPLES frames.
 	double video_decoding_avg_time;					//Average video decoding time for recent DEF_VID_DEBUG_GRAPH_AVG_SAMPLES frames.
 	double conversion_avg_time;						//Average color conversion time for recent DEF_VID_DEBUG_GRAPH_AVG_SAMPLES frames.
-	bool keyframe_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];				//List for keyframe.
-	uint16_t packet_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for packet buffer health.
+	bool keyframe_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];					//List for keyframe.
+	uint16_t packet_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];			//List for packet buffer health.
 	uint16_t raw_video_buffer_list[DEF_DECODER_MAX_VIDEO_TRACKS][DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for video buffer health.
-	uint32_t raw_audio_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for audio buffer health.
-	double video_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for video decoding time in ms.
-	double audio_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for audio decoding time in ms.
-	double conversion_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for color conversion time in ms.
-	const void* frame_list[32];						//Decoding frame list (for multi-threaded software decoding).
-	TickCounter decoding_time_tick[32];				//Decoding time (for multi-threaded software decoding).
+	uint32_t raw_audio_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for audio buffer health.
+	double video_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for video decoding time in ms.
+	double audio_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for audio decoding time in ms.
+	double conversion_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];			//List for color conversion time in ms.
+	const void* frame_list[DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS];			//Decoding frame list (for multi-threaded software decoding).
+	TickCounter decoding_time_tick[DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS];	//Decoding time (for multi-threaded software decoding).
 
 	//A/V desync management.
 	uint64_t wait_threshold_exceeded_ts;			//Timestamp that "wait threshold" has been exceeded (video is fast).
@@ -3503,7 +3504,7 @@ static void Vid_init_debug_view_data(void)
 			vid_player.raw_video_buffer_list[k][i] = 0;
 	}
 
-	for(uint8_t i = 0; i < 32; i++)
+	for(uint8_t i = 0; i < DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS; i++)
 	{
 		osTickCounterStart(&vid_player.decoding_time_tick[i]);
 		vid_player.frame_list[i] = NULL;
@@ -3837,7 +3838,7 @@ void frame_worker_thread_start(const void* frame_handle)
 
 	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 	//Search for stopwatch index using frame handle.
-	for(uint8_t i = 0; i < 32; i++)
+	for(uint8_t i = 0; i < DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS; i++)
 	{
 		if(vid_player.frame_list[i] == frame_handle)
 		{
@@ -3849,7 +3850,7 @@ void frame_worker_thread_start(const void* frame_handle)
 	//Not registerd, find free space and register.
 	if(index == UINT8_MAX)
 	{
-		for(uint8_t i = 0; i < 32; i++)
+		for(uint8_t i = 0; i < DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS; i++)
 		{
 			if(!vid_player.frame_list[i])
 			{
@@ -3879,7 +3880,7 @@ void frame_worker_thread_end(const void* frame_handle)
 
 	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 	//Search for stopwatch index using frame handle.
-	for(uint8_t i = 0; i < 32; i++)
+	for(uint8_t i = 0; i < DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS; i++)
 	{
 		if(vid_player.frame_list[i] == frame_handle)
 		{

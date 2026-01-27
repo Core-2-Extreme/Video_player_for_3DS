@@ -36,19 +36,21 @@
 #define DEF_VID_WAIT_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * -1.4)
 #define DEF_VID_FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DEF_VID_DELAY_SAMPLES								(uint8_t)(60)
-#define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)			//6MB.
+#define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
 #define DEF_VID_HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define DEF_VID_SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
-#define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)						//Minimum number of threads for multi-threaded decoding.
-#define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)						//Maximum number of threads for multi-threaded decoding.
-#define VID_SETTINGS_ELEMENTS_V0							(uint8_t)(7)						//Settings file for v1.3.0.
-#define VID_SETTINGS_ELEMENTS_V1							(uint8_t)(9)						//Settings file for v1.3.1.
-#define VID_SETTINGS_ELEMENTS_V2							(uint8_t)(12)						//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
-#define VID_SETTINGS_ELEMENTS_V3							(uint8_t)(13)						//Settings file for v1.4.2.
-#define VID_SETTINGS_ELEMENTS_V4							(uint8_t)(16)						//Settings file for v1.5.0.
-#define VID_SETTINGS_ELEMENTS_V5							(uint8_t)(17)						//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
-#define VID_SETTINGS_ELEMENTS_V6							(uint8_t)(18)						//Settings file for v1.6.1.
-#define VID_SETTINGS_ELEMENTS_NEWEST						(uint8_t)(VID_SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
+#define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)							//Minimum number of threads for multi-threaded decoding.
+#define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)							//Maximum number of threads for multi-threaded decoding.
+#define DEF_VID_SETTINGS_ELEMENTS_V0						(uint8_t)(7)							//Settings file for v1.3.0.
+#define DEF_VID_SETTINGS_ELEMENTS_V1						(uint8_t)(9)							//Settings file for v1.3.1.
+#define DEF_VID_SETTINGS_ELEMENTS_V2						(uint8_t)(12)							//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
+#define DEF_VID_SETTINGS_ELEMENTS_V3						(uint8_t)(13)							//Settings file for v1.4.2.
+#define DEF_VID_SETTINGS_ELEMENTS_V4						(uint8_t)(16)							//Settings file for v1.5.0.
+#define DEF_VID_SETTINGS_ELEMENTS_V5						(uint8_t)(17)							//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
+#define DEF_VID_SETTINGS_ELEMENTS_V6						(uint8_t)(18)							//Settings file for v1.6.1.
+#define DEF_VID_SETTINGS_ELEMENTS_NEWEST					(uint8_t)(DEF_VID_SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
+#define DEF_VID_DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
+#define DEF_VID_DEBUG_GRAPH_WIDTH							(uint16_t)(320)							//Debug graph width in px.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -392,13 +394,13 @@ typedef struct
 	double decoding_max_time;						//Maximum video decoding time in ms.
 	double decoding_total_time;						//Total video decoding time in ms.
 	double decoding_recent_total_time;				//Same as above, but only for recent 90 frames.
-	bool keyframe_list[320];						//List for keyframe.
-	uint16_t packet_buffer_list[320];				//List for packet buffer health.
-	uint16_t raw_video_buffer_list[320][DEF_DECODER_MAX_VIDEO_TRACKS];	//List for video buffer health.
-	uint32_t raw_audio_buffer_list[320];			//List for audio buffer health.
-	double video_decoding_time_list[320];			//List for video decoding time in ms.
-	double audio_decoding_time_list[320];			//List for audio decoding time in ms.
-	double conversion_time_list[320];				//List for color conversion time in ms.
+	bool keyframe_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];				//List for keyframe.
+	uint16_t packet_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for packet buffer health.
+	uint16_t raw_video_buffer_list[DEF_DECODER_MAX_VIDEO_TRACKS][DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for video buffer health.
+	uint32_t raw_audio_buffer_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for audio buffer health.
+	double video_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for video decoding time in ms.
+	double audio_decoding_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];	//List for audio decoding time in ms.
+	double conversion_time_list[DEF_VID_DEBUG_GRAPH_ELEMENTS];		//List for color conversion time in ms.
 	const void* frame_list[32];						//Decoding frame list (for multi-threaded software decoding).
 	TickCounter decoding_time_tick[32];				//Decoding time (for multi-threaded software decoding).
 
@@ -1813,22 +1815,20 @@ void Vid_main(void)
 	//Update performance data every 100ms.
 	if(osGetTime() >= vid_player.previous_ts + 100)
 	{
+		uint16_t last_index = (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1);
+
 		vid_player.previous_ts = osGetTime();
-		vid_player.packet_buffer_list[319] = Util_decoder_get_available_packet_num(0);
-		vid_player.raw_audio_buffer_list[319] = Util_speaker_get_available_buffer_num(0);
-		vid_player.raw_video_buffer_list[319][0] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0);
-		vid_player.raw_video_buffer_list[319][1] = Util_decoder_video_get_available_raw_image_num(1, 0);
+		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(0);
+		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(0);
+		vid_player.raw_video_buffer_list[0][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0);
+		vid_player.raw_video_buffer_list[1][last_index] = Util_decoder_video_get_available_raw_image_num(1, 0);
 
-		for(uint16_t i = 1; i < 320; i++)
-			vid_player.packet_buffer_list[i - 1] = vid_player.packet_buffer_list[i];
-
-		for(uint16_t i = 1; i < 320; i++)
-			vid_player.raw_audio_buffer_list[i - 1] = vid_player.raw_audio_buffer_list[i];
-
-		for(uint16_t i = 1; i < 320; i++)
+		for(uint16_t i = 1; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 		{
+			vid_player.packet_buffer_list[i - 1] = vid_player.packet_buffer_list[i];
+			vid_player.raw_audio_buffer_list[i - 1] = vid_player.raw_audio_buffer_list[i];
 			for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
-				vid_player.raw_video_buffer_list[i - 1][k] = vid_player.raw_video_buffer_list[i][k];
+				vid_player.raw_video_buffer_list[k][i - 1] = vid_player.raw_video_buffer_list[k][i];
 		}
 	}
 
@@ -2436,50 +2436,51 @@ void Vid_main(void)
 					//Color conversion time.
 					if(vid_player.show_color_conversion_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, y_offset - (vid_player.conversion_time_list[i] / 2) + vid_player.ui_y_offset, DEF_DRAW_BLUE, i + 1, y_offset - (vid_player.conversion_time_list[i + 1] / 2) + vid_player.ui_y_offset, DEF_DRAW_BLUE, 1);
 					}
 					//Decoding time.
 					if(vid_player.show_decoding_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
+						uint16_t displaying_frame_pos = (DEF_VID_DEBUG_GRAPH_WIDTH - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0)));
+
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, y_offset - (vid_player.video_decoding_time_list[i] / 2) + vid_player.ui_y_offset, DEF_DRAW_RED, i + 1, y_offset - (vid_player.video_decoding_time_list[i + 1] / 2) + vid_player.ui_y_offset, DEF_DRAW_RED, 1);
 
-						Draw_line(320 - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0)),
-						y_offset + vid_player.ui_y_offset - 110, DEF_DRAW_WEAK_RED, 320 - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0)),
-						y_offset + vid_player.ui_y_offset + 8, DEF_DRAW_WEAK_RED, 2);
+						//Decoding time for frame that is currently displaying.
+						Draw_line(displaying_frame_pos, (y_offset + vid_player.ui_y_offset - 110), DEF_DRAW_WEAK_RED, displaying_frame_pos, (y_offset + vid_player.ui_y_offset + 8), DEF_DRAW_WEAK_RED, 2);
 					}
 					//Compressed buffer.
 					if(vid_player.show_packet_buffer_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, y_offset - vid_player.packet_buffer_list[i] / 3.0 + vid_player.ui_y_offset, 0xFFFF00FF, i + 1, y_offset - vid_player.packet_buffer_list[i + 1] / 3.0 + vid_player.ui_y_offset, 0xFFFF00FF, 1);
 					}
 					//Raw video buffer.
 					if(vid_player.show_raw_video_buffer_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i][0] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1][0] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[0][i] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[0][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
 
-						for(uint16_t i = 0; i < 319; i++)
-							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[i][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[i + 1][1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[1][i] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[1][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
 					}
 					//Raw audio buffer.
 					if(vid_player.show_raw_audio_buffer_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, y_offset - vid_player.raw_audio_buffer_list[i] / 6.0 + vid_player.ui_y_offset, 0xFF00A000, i + 1, y_offset - vid_player.raw_audio_buffer_list[i + 1] / 6.0 + vid_player.ui_y_offset, 0xFF00A000, 1);
 					}
 
 					//Bottom line.
-					Draw_line(0, y_offset + vid_player.ui_y_offset, color, 320, y_offset + vid_player.ui_y_offset, color, 1);
+					Draw_line(0, (y_offset + vid_player.ui_y_offset), color, DEF_VID_DEBUG_GRAPH_WIDTH, (y_offset + vid_player.ui_y_offset), color, 1);
 					//Deadline.
-					Draw_line(0, y_offset + vid_player.ui_y_offset - (vid_player.video_frametime / 2), 0xFF606060, 320, y_offset - (vid_player.video_frametime / 2) + vid_player.ui_y_offset, 0xFF606060, 1);
+					Draw_line(0, ((y_offset + vid_player.ui_y_offset) - (vid_player.video_frametime / 2)), 0xFF606060, DEF_VID_DEBUG_GRAPH_WIDTH, ((y_offset - (vid_player.video_frametime / 2)) + vid_player.ui_y_offset), 0xFF606060, 1);
 
 					//Key frame.
 					if(vid_player.show_decoding_graph)
 					{
-						for(uint16_t i = 0; i < 319; i++)
+						for(uint16_t i = 0; i < (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1); i++)
 						{
 							if(vid_player.keyframe_list[i])
 								Draw_line(i, y_offset + vid_player.ui_y_offset, disabled_color, i, y_offset - 110 + vid_player.ui_y_offset, disabled_color, 2);
@@ -3343,6 +3344,8 @@ static void Vid_update_sleep_policy(void)
 
 static void Vid_update_performance_graph(double decoding_time, bool is_key_frame, double* total_delay)
 {
+	uint16_t last_index = (DEF_VID_DEBUG_GRAPH_ELEMENTS - 1);
+
 	if(vid_player.video_frametime - decoding_time < 0 && vid_player.allow_skip_frames && vid_player.video_frametime != 0)
 		*total_delay -= vid_player.video_frametime - decoding_time;
 
@@ -3353,18 +3356,18 @@ static void Vid_update_performance_graph(double decoding_time, bool is_key_frame
 
 	vid_player.decoding_total_time += decoding_time;
 
-	for(uint16_t i = 1; i < 320; i++)
+	for(uint16_t i = 1; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 	{
 		vid_player.keyframe_list[i - 1] = vid_player.keyframe_list[i];
 		vid_player.video_decoding_time_list[i - 1] = vid_player.video_decoding_time_list[i];
 	}
 
 	vid_player.total_frames++;
-	vid_player.keyframe_list[319] = is_key_frame;
-	vid_player.video_decoding_time_list[319] = decoding_time;
+	vid_player.keyframe_list[last_index] = is_key_frame;
+	vid_player.video_decoding_time_list[last_index] = decoding_time;
 	vid_player.decoding_recent_total_time = 0;
 
-	for(uint16_t i = 230; i < 320; i++)
+	for(uint16_t i = 230; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 		vid_player.decoding_recent_total_time += vid_player.video_decoding_time_list[i];
 }
 
@@ -3488,17 +3491,16 @@ static void Vid_init_debug_view_data(void)
 	vid_player.decoding_total_time = 0;
 	vid_player.decoding_recent_total_time = 0;
 
-	for(uint16_t i = 0 ; i < 320; i++)
+	for(uint16_t i = 0 ; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 	{
 		vid_player.keyframe_list[i] = 0;
 		vid_player.packet_buffer_list[i] = 0;
-		for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
-			vid_player.raw_video_buffer_list[i][k] = 0;
-
 		vid_player.raw_audio_buffer_list[i] = 0;
 		vid_player.video_decoding_time_list[i] = 0;
 		vid_player.audio_decoding_time_list[i] = 0;
 		vid_player.conversion_time_list[i] = 0;
+		for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+			vid_player.raw_video_buffer_list[k][i] = 0;
 	}
 
 	for(uint8_t i = 0; i < 32; i++)
@@ -3679,7 +3681,7 @@ static uint32_t Vid_load_settings(void)
 	uint8_t* cache = NULL;
 	uint32_t result = DEF_ERR_OTHER;
 	uint32_t read_size = 0;
-	Str_data out_data[VID_SETTINGS_ELEMENTS_NEWEST] = { 0, };
+	Str_data out_data[DEF_VID_SETTINGS_ELEMENTS_NEWEST] = { 0, };
 	Sem_state state = { 0, };
 
 	Sem_get_state(&state);
@@ -3690,13 +3692,13 @@ static uint32_t Vid_load_settings(void)
 	{
 		const uint8_t settings_element_list[] =
 		{
-			VID_SETTINGS_ELEMENTS_V6,
-			VID_SETTINGS_ELEMENTS_V5,
-			VID_SETTINGS_ELEMENTS_V4,
-			VID_SETTINGS_ELEMENTS_V3,
-			VID_SETTINGS_ELEMENTS_V2,
-			VID_SETTINGS_ELEMENTS_V1,
-			VID_SETTINGS_ELEMENTS_V0,
+			DEF_VID_SETTINGS_ELEMENTS_V6,
+			DEF_VID_SETTINGS_ELEMENTS_V5,
+			DEF_VID_SETTINGS_ELEMENTS_V4,
+			DEF_VID_SETTINGS_ELEMENTS_V3,
+			DEF_VID_SETTINGS_ELEMENTS_V2,
+			DEF_VID_SETTINGS_ELEMENTS_V1,
+			DEF_VID_SETTINGS_ELEMENTS_V0,
 		};
 
 		//Try to load settings.
@@ -5326,9 +5328,9 @@ void Vid_decode_thread(void* arg)
 						osTickCounterStart(&counter);
 						result = Util_decoder_audio_decode(&audio_samples, &audio, &pos, packet_index, 0);
 						osTickCounterUpdate(&counter);
-						vid_player.audio_decoding_time_list[319] = osTickCounterRead(&counter);
+						vid_player.audio_decoding_time_list[(DEF_VID_DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&counter);
 
-						for(uint16_t i = 1; i < 320; i++)
+						for(uint16_t i = 1; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 							vid_player.audio_decoding_time_list[i - 1] = vid_player.audio_decoding_time_list[i];
 
 						if(result == DEF_SUCCESS && vid_player.state != PLAYER_STATE_SEEKING)
@@ -6099,14 +6101,14 @@ void Vid_convert_thread(void* arg)
 				yuv_video = NULL;
 				video = NULL;
 
-				for(uint16_t i = 1; i < 320; i++)
+				for(uint16_t i = 1; i < DEF_VID_DEBUG_GRAPH_ELEMENTS; i++)
 					vid_player.conversion_time_list[i - 1] = vid_player.conversion_time_list[i];
 
 				osTickCounterUpdate(&conversion_time_counter);
-				vid_player.conversion_time_list[319] = osTickCounterRead(&conversion_time_counter);
+				vid_player.conversion_time_list[(DEF_VID_DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&conversion_time_counter);
 
 				if(vid_player.num_of_audio_tracks == 0)//No audio time reference available, use local delay.
-					total_delay += (vid_player.conversion_time_list[319]) - vid_player.video_frametime;
+					total_delay += (vid_player.conversion_time_list[(DEF_VID_DEBUG_GRAPH_ELEMENTS - 1)]) - vid_player.video_frametime;
 
 				if(vid_player.num_of_video_tracks >= 2)
 					packet_index = (packet_index == 0 ? 1 : 0);

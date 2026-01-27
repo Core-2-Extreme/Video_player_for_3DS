@@ -60,7 +60,7 @@
 #define DEF_VID_FULL_SCREEN_HEIGHT							(uint16_t)(240)							//Video height in full-screen in px.
 #define DEF_VID_NON_FULL_SCREEN_WIDTH						(uint16_t)(400)							//Video width in non-full-screen in px.
 #define DEF_VID_NON_FULL_SCREEN_HEIGHT						(uint16_t)(225)							//Video height in non-full-screen in px.
-#define DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(300)							//Transition period from non-full-screen to full-screen in frames.
+#define DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(180)							//Transition period from non-full-screen to full-screen in frames.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))

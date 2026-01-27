@@ -29,6 +29,65 @@
 #include "system/util/watch.h"
 
 //Defines.
+#define DEF_VID_NUM_OF_MSG									(uint16_t)(42)
+
+#define DEF_VID_TEX_FILTER_MSG								(uint8_t)(0)
+#define DEF_VID_CONTROLS_MSG								(uint8_t)(1)
+#define DEF_VID_SKIP_FRAME_MSG								(uint8_t)(2)
+#define DEF_VID_CONTROL_DESCRIPTION_MSG						(uint8_t)(3)
+#define DEF_VID_AUDIO_TRACK_DESCRIPTION_MSG					(uint8_t)(10)
+#define DEF_VID_AUDIO_TRACK_MSG								(uint8_t)(11)
+#define DEF_VID_FULL_SCREEN_MSG								(uint8_t)(12)
+#define DEF_VID_HW_DECODER_MSG								(uint8_t)(13)
+#define DEF_VID_HW_CONVERTER_MSG							(uint8_t)(14)
+#define DEF_VID_MULTI_THREAD_MSG							(uint8_t)(15)
+#define DEF_VID_SKIP_KEY_FRAME_MSG							(uint8_t)(16)
+#define DEF_VID_LOWER_RESOLUTION_MSG						(uint8_t)(17)
+#define DEF_VID_SEEKING_MSG									(uint8_t)(18)
+#define DEF_VID_SEEK_MSG									(uint8_t)(19)
+#define DEF_VID_VOLUME_MSG									(uint8_t)(20)
+#define DEF_VID_ASPECT_RATIO_MSG							(uint8_t)(21)
+#define DEF_VID_MOVE_MODE_MSG								(uint8_t)(22)
+#define DEF_VID_REMEMBER_POS_MSG							(uint8_t)(23)
+#define DEF_VID_PLAY_METHOD_MSG								(uint8_t)(24)
+#define DEF_VID_NO_REPEAT_MSG								(uint8_t)(25)
+// #define DEF_VID_REPEAT_MSG									(uint8_t)(26)							//Referenced by (DEF_VID_NO_REPEAT_MSG + x).
+// #define DEF_VID_IN_ORDER_MSG								(uint8_t)(27)							//Referenced by (DEF_VID_NO_REPEAT_MSG + x).
+// #define DEF_VID_RANDOM_MSG									(uint8_t)(28)							//Referenced by (DEF_VID_NO_REPEAT_MSG + x).
+#define DEF_VID_MOVE_MODE_DIABLE_MSG						(uint8_t)(29)
+// #define DEF_VID_MOVE_MODE_ENABLE_BOTH_MSG					(uint8_t)(30)							//Referenced by (DEF_VID_MOVE_MODE_DIABLE_MSG + x).
+// #define DEF_VID_MOVE_MODE_ENABLE_VIDEO_MSG					(uint8_t)(31)							//Referenced by (DEF_VID_MOVE_MODE_DIABLE_MSG + x).
+// #define DEF_VID_MOVE_MODE_ENABLE_SUBTITLE_MSG				(uint8_t)(32)							//Referenced by (DEF_VID_MOVE_MODE_DIABLE_MSG + x).
+#define DEF_VID_SUBTITLE_TRACK_DESCRIPTION_MSG				(uint8_t)(33)
+#define DEF_VID_SUBTITLE_TRACK_MSG							(uint8_t)(34)
+#define DEF_VID_BRIGHTNESS_MSG								(uint8_t)(35)
+#define DEF_VID_DISABLE_AUDIO_MSG							(uint8_t)(36)
+#define DEF_VID_DISABLE_VIDEO_MSG							(uint8_t)(37)
+#define DEF_VID_DISABLE_SUBTITLE_MSG						(uint8_t)(38)
+#define DEF_VID_RESTART_PLAYBACK_THRESHOLD_MSG				(uint8_t)(39)
+#define DEF_VID_PROCESSING_VIDEO_MSG						(uint8_t)(40)
+#define DEF_VID_NUM_OF_THREADS_MSG							(uint8_t)(41)
+
+#define DEF_VID_MENU_NONE									(int8_t)(-1)
+#define DEF_VID_MENU_SETTINGS_0								(int8_t)(0)
+#define DEF_VID_MENU_SETTINGS_1								(int8_t)(1)
+#define DEF_VID_MENU_INFO									(int8_t)(2)
+
+#define DEF_VID_NO_REPEAT									(uint8_t)(0)
+#define DEF_VID_REPEAT										(uint8_t)(1)
+#define DEF_VID_IN_ORDER									(uint8_t)(2)
+#define DEF_VID_RANDOM										(uint8_t)(3)
+
+#define DEF_VID_MOVE_DISABLE								(uint8_t)(0)
+#define DEF_VID_MOVE_BOTH									(uint8_t)(1)
+#define DEF_VID_MOVE_VIDEO									(uint8_t)(2)
+#define DEF_VID_MOVE_SUBTITLE								(uint8_t)(3)
+
+#define DEF_VID_VIDEO_BUFFERS								(uint8_t)(4)
+#define DEF_VID_SUBTITLE_BUFFERS							(uint8_t)(16)
+#define DEF_VID_MAX_FILE_NAME_LENGTH						(uint16_t)(256)
+#define DEF_VID_MAX_PATH_LENGTH								(uint16_t)(8192)
+
 #define DEF_VID_DROP_THRESHOLD_ALLOWED_DURATION(frametime)	(double)(frametime * 7)
 #define DEF_VID_DROP_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * 0.8)
 #define DEF_VID_FORCE_DROP_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * 2.2)
@@ -36,11 +95,14 @@
 #define DEF_VID_WAIT_THRESHOLD(frametime)					(double)(Util_max_d(20, frametime) * -1.4)
 #define DEF_VID_FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DEF_VID_DELAY_SAMPLES								(uint8_t)(60)
+
 #define DEF_VID_RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
 #define DEF_VID_HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define DEF_VID_SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
+
 #define DEF_VID_NUM_OF_THREADS_MIN							(uint8_t)(2)							//Minimum number of threads for multi-threaded decoding.
 #define DEF_VID_NUM_OF_THREADS_MAX							(uint8_t)(8)							//Maximum number of threads for multi-threaded decoding.
+
 #define DEF_VID_SETTINGS_ELEMENTS_V0						(uint8_t)(7)							//Settings file for v1.3.0.
 #define DEF_VID_SETTINGS_ELEMENTS_V1						(uint8_t)(9)							//Settings file for v1.3.1.
 #define DEF_VID_SETTINGS_ELEMENTS_V2						(uint8_t)(12)							//Settings file for v1.3.2, v1.3.3, v1.4.0 and v1.4.1.
@@ -49,11 +111,14 @@
 #define DEF_VID_SETTINGS_ELEMENTS_V5						(uint8_t)(17)							//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
 #define DEF_VID_SETTINGS_ELEMENTS_V6						(uint8_t)(18)							//Settings file for v1.6.1.
 #define DEF_VID_SETTINGS_ELEMENTS_NEWEST					(uint8_t)(DEF_VID_SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
+
 #define DEF_VID_DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
 #define DEF_VID_DEBUG_GRAPH_WIDTH							(uint16_t)(320)							//Debug graph width in px.
 #define DEF_VID_DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
 #define DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS					(uint16_t)(32)							//Number of temp elements for multi-threaded decoding.
+
 #define DEF_VID_QUEUE_OP_TIMEOUT_US							(uint64_t)(DEF_UTIL_MS_TO_US(100))		//Queue operation timeout in us.
+
 #define DEF_VID_TOP_SCREEN_WIDTH							(uint16_t)(400)							//Top screen width in px.
 #define DEF_VID_TOP_SCREEN_HEIGHT							(uint16_t)(240)							//Top screen height in px.
 #define DEF_VID_FULL_SCREEN_WIDTH							(uint16_t)(400)							//Video width in full-screen in px.
@@ -61,213 +126,214 @@
 #define DEF_VID_NON_FULL_SCREEN_WIDTH						(uint16_t)(400)							//Video width in non-full-screen in px.
 #define DEF_VID_NON_FULL_SCREEN_HEIGHT						(uint16_t)(225)							//Video height in non-full-screen in px.
 #define DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(180)							//Transition period from non-full-screen to full-screen in frames.
+
 #define DEF_VID_MENU_NONE_Y_OFFSET_MIN						(double)(-230)							//Minimum y offset in none.
 #define DEF_VID_MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu.
 #define DEF_VID_MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu.
 #define DEF_VID_MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu.
 
 //System UI.
-#define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
-#define DEF_VID_HID_SYSTEM_UI_CFM(k)					(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
-#define DEF_VID_HID_SYSTEM_UI_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
+#define DEF_VID_HID_SYSTEM_UI_SEL(k)						(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
+#define DEF_VID_HID_SYSTEM_UI_CFM(k)						(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
+#define DEF_VID_HID_SYSTEM_UI_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
 //Enter full-screen.
-#define DEF_VID_HID_ENTER_FULL_CFM(k)					(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select))
+#define DEF_VID_HID_ENTER_FULL_CFM(k)						(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select))
 //Toggle playback.
-#define DEF_VID_HID_TOGGLE_PLAYBACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_VID_HID_TOGGLE_PLAYBACK_CFM(k)					(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Abort playback.
-#define DEF_VID_HID_ABORT_PLAYBACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
+#define DEF_VID_HID_ABORT_PLAYBACK_CFM(k)					(bool)(DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
 //Open file explorer.
-#define DEF_VID_HID_OPEN_EXPL_CFM(k)					(bool)(DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x))
+#define DEF_VID_HID_OPEN_EXPL_CFM(k)						(bool)(DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x))
 //Open menu.
-#define DEF_VID_HID_OPEN_MENU_CFM(k)					(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
+#define DEF_VID_HID_OPEN_MENU_CFM(k)						(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
 //Open setting menu 0.
-#define DEF_VID_HID_OPEN_SETTING_0_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[0], (k)))
-#define DEF_VID_HID_OPEN_SETTING_0_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[0], (k)))
-#define DEF_VID_HID_OPEN_SETTING_0_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_OPEN_SETTING_0_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[0], (k)))
+#define DEF_VID_HID_OPEN_SETTING_0_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[0], (k)))
+#define DEF_VID_HID_OPEN_SETTING_0_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Open setting menu 1.
-#define DEF_VID_HID_OPEN_SETTING_1_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[1], (k)))
-#define DEF_VID_HID_OPEN_SETTING_1_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[1], (k)))
-#define DEF_VID_HID_OPEN_SETTING_1_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_OPEN_SETTING_1_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[1], (k)))
+#define DEF_VID_HID_OPEN_SETTING_1_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[1], (k)))
+#define DEF_VID_HID_OPEN_SETTING_1_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Open debug info menu.
-#define DEF_VID_HID_OPEN_INFO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[2], (k)))
-#define DEF_VID_HID_OPEN_INFO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[2], (k)))
-#define DEF_VID_HID_OPEN_INFO_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_OPEN_INFO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[2], (k)))
+#define DEF_VID_HID_OPEN_INFO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[2], (k)))
+#define DEF_VID_HID_OPEN_INFO_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Open control.
-#define DEF_VID_HID_CONTROL_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
-#define DEF_VID_HID_CONTROL_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
-#define DEF_VID_HID_CONTROL_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_CONTROL_SEL(k)							(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
+#define DEF_VID_HID_CONTROL_CFM(k)							(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
+#define DEF_VID_HID_CONTROL_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Seek bar.
-#define DEF_VID_HID_SEEK_BAR_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.seek_bar, (k)))
-#define DEF_VID_HID_SEEK_BAR_PRE_CFM(k)					(bool)(DEF_VID_HID_SEEK_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.seek_bar.selected))
-#define DEF_VID_HID_SEEK_BAR_CFM(k)						(bool)(DEF_HID_PHY_RE((k).touch) && vid_player.seek_bar.selected)
-#define DEF_VID_HID_SEEK_BAR_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SEEK_BAR_SEL(k)							(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.seek_bar, (k)))
+#define DEF_VID_HID_SEEK_BAR_PRE_CFM(k)						(bool)(DEF_VID_HID_SEEK_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.seek_bar.selected))
+#define DEF_VID_HID_SEEK_BAR_CFM(k)							(bool)(DEF_HID_PHY_RE((k).touch) && vid_player.seek_bar.selected)
+#define DEF_VID_HID_SEEK_BAR_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Increase LCD brightness.
-#define DEF_VID_HID_BRIGHTNESS_UP_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_HE((k).d_up))
-#define DEF_VID_HID_BRIGHTNESS_UP_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_up, 75, is_new_range)
-#define DEF_VID_HID_BRIGHTNESS_UP_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_HE_MT((k).d_up, 1500) || is_new_range)
+#define DEF_VID_HID_BRIGHTNESS_UP_PRE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_HE((k).d_up))
+#define DEF_VID_HID_BRIGHTNESS_UP_UPDATE_RANGE(k)			DEF_HID_HE_NEW_INTERVAL((k).d_up, 75, is_new_range)
+#define DEF_VID_HID_BRIGHTNESS_UP_CFM(k)					(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_HE_MT((k).d_up, 1500) || is_new_range)
 //Decrease LCD brightness.
-#define DEF_VID_HID_BRIGHTNESS_DOWN_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_HE((k).d_down))
-#define DEF_VID_HID_BRIGHTNESS_DOWN_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_down, 75, is_new_range)
-#define DEF_VID_HID_BRIGHTNESS_DOWN_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_HE_MT((k).d_down, 1500) || is_new_range)
+#define DEF_VID_HID_BRIGHTNESS_DOWN_PRE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_HE((k).d_down))
+#define DEF_VID_HID_BRIGHTNESS_DOWN_UPDATE_RANGE(k)			DEF_HID_HE_NEW_INTERVAL((k).d_down, 75, is_new_range)
+#define DEF_VID_HID_BRIGHTNESS_DOWN_CFM(k)					(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_HE_MT((k).d_down, 1500) || is_new_range)
 //Move content (up).
-#define DEF_VID_HID_MOVE_CONTENT_UP_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_HE((k).c_down))
+#define DEF_VID_HID_MOVE_CONTENT_UP_CFM(k)					(bool)(DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_HE((k).c_down))
 //Move content (down).
-#define DEF_VID_HID_MOVE_CONTENT_DOWN_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_HE((k).c_up))
+#define DEF_VID_HID_MOVE_CONTENT_DOWN_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_HE((k).c_up))
 //Move content (right).
-#define DEF_VID_HID_MOVE_CONTENT_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).c_left))
+#define DEF_VID_HID_MOVE_CONTENT_RIGHT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).c_left))
 //Move content (left).
-#define DEF_VID_HID_MOVE_CONTENT_LEFT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
+#define DEF_VID_HID_MOVE_CONTENT_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
 //Shrink content.
-#define DEF_VID_HID_SHRINK_CONTENT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).l) || DEF_HID_PHY_HE((k).l))
+#define DEF_VID_HID_SHRINK_CONTENT_CFM(k)					(bool)(DEF_HID_PHY_PR((k).l) || DEF_HID_PHY_HE((k).l))
 //Enlarge content.
-#define DEF_VID_HID_ENLARGE_CONTENT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).r) || DEF_HID_PHY_HE((k).r))
+#define DEF_VID_HID_ENLARGE_CONTENT_CFM(k)					(bool)(DEF_HID_PHY_PR((k).r) || DEF_HID_PHY_HE((k).r))
 //Scroll mode.
-#define DEF_VID_HID_SCROLL_MODE_SEL(k)					(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)) && !DEF_VID_HID_SCROLL_MODE_DESEL((k)))
-#define DEF_VID_HID_SCROLL_MODE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) || vid_player.seek_bar.selected || vid_player.scroll_bar.selected || vid_player.restart_playback_threshold_bar.selected)
+#define DEF_VID_HID_SCROLL_MODE_SEL(k)						(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)) && !DEF_VID_HID_SCROLL_MODE_DESEL((k)))
+#define DEF_VID_HID_SCROLL_MODE_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch) || vid_player.seek_bar.selected || vid_player.scroll_bar.selected || vid_player.restart_playback_threshold_bar.selected)
 //Scroll bar.
-#define DEF_VID_HID_SCROLL_BAR_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.scroll_bar, (k)))
-#define DEF_VID_HID_SCROLL_BAR_CFM(k)					(bool)(DEF_VID_HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.scroll_bar.selected))
-#define DEF_VID_HID_SCROLL_BAR_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SCROLL_BAR_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.scroll_bar, (k)))
+#define DEF_VID_HID_SCROLL_BAR_CFM(k)						(bool)(DEF_VID_HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.scroll_bar.selected))
+#define DEF_VID_HID_SCROLL_BAR_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Full-screen : Exit.
-#define DEF_VID_HID_FULL_EXIT_CFM(k)					(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select) || DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch))
+#define DEF_VID_HID_FULL_EXIT_CFM(k)						(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select) || DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch))
 //Full-screen : Toggle playback.
-#define DEF_VID_HID_FULL_TOGGLE_PLAYBACK_CFM(k)			(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_VID_HID_FULL_TOGGLE_PLAYBACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Full-screen : Seek backward.
-#define DEF_VID_HID_FULL_SEEK_BACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).d_left, 1) || DEF_HID_HD((k).d_left))
+#define DEF_VID_HID_FULL_SEEK_BACK_CFM(k)					(bool)(DEF_HID_PR_EM((k).d_left, 1) || DEF_HID_HD((k).d_left))
 //Full-screen : Seek forward.
-#define DEF_VID_HID_FULL_SEEK_FWD_CFM(k)				(bool)(DEF_HID_PR_EM((k).d_right, 1) || DEF_HID_HD((k).d_right))
+#define DEF_VID_HID_FULL_SEEK_FWD_CFM(k)					(bool)(DEF_HID_PR_EM((k).d_right, 1) || DEF_HID_HD((k).d_right))
 //Select audio track : Confirm.
-#define DEF_VID_HID_A_TRACK_CONFIRM_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.audio_track_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
-#define DEF_VID_HID_A_TRACK_CONFIRM_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.audio_track_ok_button, (k))) || DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-#define DEF_VID_HID_A_TRACK_CONFIRM_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
+#define DEF_VID_HID_A_TRACK_CONFIRM_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.audio_track_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
+#define DEF_VID_HID_A_TRACK_CONFIRM_CFM(k)					(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.audio_track_ok_button, (k))) || DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_VID_HID_A_TRACK_CONFIRM_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Select audio track : Track selection.
-#define DEF_VID_HID_A_TRACK_ITEM_SEL(k, id)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.audio_track_button[id], (k)))
-#define DEF_VID_HID_A_TRACK_ITEM_CFM(k, id)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.audio_track_button[id], (k)))
-#define DEF_VID_HID_A_TRACK_ITEM_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_A_TRACK_ITEM_SEL(k, id)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.audio_track_button[id], (k)))
+#define DEF_VID_HID_A_TRACK_ITEM_CFM(k, id)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.audio_track_button[id], (k)))
+#define DEF_VID_HID_A_TRACK_ITEM_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Select audio track : Next track.
-#define DEF_VID_HID_A_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM((k).c_down, 1) || DEF_HID_HD((k).c_down))
+#define DEF_VID_HID_A_TRACK_NEXT_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM((k).c_down, 1) || DEF_HID_HD((k).c_down))
 //Select audio track : Previous track.
-#define DEF_VID_HID_A_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM((k).c_up, 1) || DEF_HID_HD((k).c_up))
+#define DEF_VID_HID_A_TRACK_PRE_ITEM_CFM(k)					(bool)(DEF_HID_PR_EM((k).c_up, 1) || DEF_HID_HD((k).c_up))
 //Select subtitle track : Confirm.
-#define DEF_VID_HID_S_TRACK_CONFIRM_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.subtitle_track_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
-#define DEF_VID_HID_S_TRACK_CONFIRM_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_ok_button, (k))) || DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-#define DEF_VID_HID_S_TRACK_CONFIRM_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
+#define DEF_VID_HID_S_TRACK_CONFIRM_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.subtitle_track_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
+#define DEF_VID_HID_S_TRACK_CONFIRM_CFM(k)					(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_ok_button, (k))) || DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define DEF_VID_HID_S_TRACK_CONFIRM_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Select subtitle track : Track selection.
-#define DEF_VID_HID_S_TRACK_ITEM_SEL(k, id)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.subtitle_track_button[id], (k)))
-#define DEF_VID_HID_S_TRACK_ITEM_CFM(k, id)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_button[id], (k)))
-#define DEF_VID_HID_S_TRACK_ITEM_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_S_TRACK_ITEM_SEL(k, id)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.subtitle_track_button[id], (k)))
+#define DEF_VID_HID_S_TRACK_ITEM_CFM(k, id)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.subtitle_track_button[id], (k)))
+#define DEF_VID_HID_S_TRACK_ITEM_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Select subtitle track : Next track.
-#define DEF_VID_HID_S_TRACK_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PR_EM((k).c_down, 1) || DEF_HID_HD((k).c_down))
+#define DEF_VID_HID_S_TRACK_NEXT_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM((k).c_down, 1) || DEF_HID_HD((k).c_down))
 //Select subtitle track : Previous track.
-#define DEF_VID_HID_S_TRACK_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM((k).c_up, 1) || DEF_HID_HD((k).c_up))
+#define DEF_VID_HID_S_TRACK_PRE_ITEM_CFM(k)					(bool)(DEF_HID_PR_EM((k).c_up, 1) || DEF_HID_HD((k).c_up))
 //Control : Close.
-#define DEF_VID_HID_CONTROL_CLOSE_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
-#define DEF_VID_HID_CONTROL_CLOSE_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
-#define DEF_VID_HID_CONTROL_CLOSE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_CONTROL_CLOSE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
+#define DEF_VID_HID_CONTROL_CLOSE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
+#define DEF_VID_HID_CONTROL_CLOSE_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Open audio track selection.
-#define DEF_VID_HID_SE0_A_TRACK_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.select_audio_track_button, (k)))
-#define DEF_VID_HID_SE0_A_TRACK_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.select_audio_track_button, (k)))
-#define DEF_VID_HID_SE0_A_TRACK_SELECTION_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_A_TRACK_SELECTION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.select_audio_track_button, (k)))
+#define DEF_VID_HID_SE0_A_TRACK_SELECTION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.select_audio_track_button, (k)))
+#define DEF_VID_HID_SE0_A_TRACK_SELECTION_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Open subtitle track selection.
-#define DEF_VID_HID_SE0_S_TRACK_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.select_subtitle_track_button, (k)))
-#define DEF_VID_HID_SE0_S_TRACK_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.select_subtitle_track_button, (k)))
-#define DEF_VID_HID_SE0_S_TRACK_SELECTION_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_S_TRACK_SELECTION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.select_subtitle_track_button, (k)))
+#define DEF_VID_HID_SE0_S_TRACK_SELECTION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.select_subtitle_track_button, (k)))
+#define DEF_VID_HID_SE0_S_TRACK_SELECTION_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Toggle texture filter.
-#define DEF_VID_HID_SE0_TEXTURE_FILTER_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.texture_filter_button, (k)))
-#define DEF_VID_HID_SE0_TEXTURE_FILTER_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.texture_filter_button, (k)))
-#define DEF_VID_HID_SE0_TEXTURE_FILTER_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_TEXTURE_FILTER_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.texture_filter_button, (k)))
+#define DEF_VID_HID_SE0_TEXTURE_FILTER_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.texture_filter_button, (k)))
+#define DEF_VID_HID_SE0_TEXTURE_FILTER_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Toggle allow skip frames.
-#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_frames_button, (k)))
-#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_frames_button, (k)))
-#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_frames_button, (k)))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_frames_button, (k)))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_FRAMES_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Toggle allow skip keyframes.
-#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_key_frames_button, (k)))
-#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_key_frames_button, (k)))
-#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.allow_skip_key_frames_button, (k)))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.allow_skip_key_frames_button, (k)))
+#define DEF_VID_HID_SE0_ALLOW_SKIP_KEY_FRAMES_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Change volume.
-#define DEF_VID_HID_SE0_VOLUME_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.volume_button, (k)))
-#define DEF_VID_HID_SE0_VOLUME_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.volume_button, (k)))
-#define DEF_VID_HID_SE0_VOLUME_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_VOLUME_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.volume_button, (k)))
+#define DEF_VID_HID_SE0_VOLUME_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.volume_button, (k)))
+#define DEF_VID_HID_SE0_VOLUME_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Change seek duration.
-#define DEF_VID_HID_SE0_SEEK_DURATION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.seek_duration_button, (k)))
-#define DEF_VID_HID_SE0_SEEK_DURATION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.seek_duration_button, (k)))
-#define DEF_VID_HID_SE0_SEEK_DURATION_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_SEEK_DURATION_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.seek_duration_button, (k)))
+#define DEF_VID_HID_SE0_SEEK_DURATION_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.seek_duration_button, (k)))
+#define DEF_VID_HID_SE0_SEEK_DURATION_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Toggle correct aspect ratio.
-#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.correct_aspect_ratio_button, (k)))
-#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.correct_aspect_ratio_button, (k)))
-#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.correct_aspect_ratio_button, (k)))
+#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.correct_aspect_ratio_button, (k)))
+#define DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Change content moving mode.
-#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.move_content_button, (k)))
-#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.move_content_button, (k)))
-#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.move_content_button, (k)))
+#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.move_content_button, (k)))
+#define DEF_VID_HID_SE0_MOVE_CONTENT_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Toggle remember media position.
-#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.remember_video_pos_button, (k)))
-#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.remember_video_pos_button, (k)))
-#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.remember_video_pos_button, (k)))
+#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.remember_video_pos_button, (k)))
+#define DEF_VID_HID_SE0_SAVE_MEDIA_POS_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Change playback mode.
-#define DEF_VID_HID_SE0_PLAYBACK_MODE_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.playback_mode_button, (k)))
-#define DEF_VID_HID_SE0_PLAYBACK_MODE_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.playback_mode_button, (k)))
-#define DEF_VID_HID_SE0_PLAYBACK_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_PLAYBACK_MODE_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.playback_mode_button, (k)))
+#define DEF_VID_HID_SE0_PLAYBACK_MODE_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.playback_mode_button, (k)))
+#define DEF_VID_HID_SE0_PLAYBACK_MODE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Change restart playback threshold.
-#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.restart_playback_threshold_bar, (k)))
-#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_CFM(k)		(bool)(DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.restart_playback_threshold_bar.selected))
-#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.restart_playback_threshold_bar, (k)))
+#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_CFM(k)	(bool)(DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.restart_playback_threshold_bar.selected))
+#define DEF_VID_HID_SE0_RESUME_PLAYBACK_THRESHOLD_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle audio.
-#define DEF_VID_HID_SE1_AUDIO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_audio_button, (k)))
-#define DEF_VID_HID_SE1_AUDIO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_audio_button, (k)))
-#define DEF_VID_HID_SE1_AUDIO_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_AUDIO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_audio_button, (k)))
+#define DEF_VID_HID_SE1_AUDIO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_audio_button, (k)))
+#define DEF_VID_HID_SE1_AUDIO_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle video.
-#define DEF_VID_HID_SE1_VIDEO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_video_button, (k)))
-#define DEF_VID_HID_SE1_VIDEO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_video_button, (k)))
-#define DEF_VID_HID_SE1_VIDEO_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_VIDEO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_video_button, (k)))
+#define DEF_VID_HID_SE1_VIDEO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_video_button, (k)))
+#define DEF_VID_HID_SE1_VIDEO_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle subtitle.
-#define DEF_VID_HID_SE1_SUBTITLE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_subtitle_button, (k)))
-#define DEF_VID_HID_SE1_SUBTITLE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_subtitle_button, (k)))
-#define DEF_VID_HID_SE1_SUBTITLE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_SUBTITLE_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.disable_subtitle_button, (k)))
+#define DEF_VID_HID_SE1_SUBTITLE_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.disable_subtitle_button, (k)))
+#define DEF_VID_HID_SE1_SUBTITLE_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle HW decoding.
-#define DEF_VID_HID_SE1_HW_DECODING_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_hw_decoding_button, (k)))
-#define DEF_VID_HID_SE1_HW_DECODING_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_hw_decoding_button, (k)))
-#define DEF_VID_HID_SE1_HW_DECODING_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_HW_DECODING_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_hw_decoding_button, (k)))
+#define DEF_VID_HID_SE1_HW_DECODING_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_hw_decoding_button, (k)))
+#define DEF_VID_HID_SE1_HW_DECODING_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle HW color conversion.
-#define DEF_VID_HID_SE1_HW_CONVERSION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_hw_color_conversion_button, (k)))
-#define DEF_VID_HID_SE1_HW_CONVERSION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_hw_color_conversion_button, (k)))
-#define DEF_VID_HID_SE1_HW_CONVERSION_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_HW_CONVERSION_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_hw_color_conversion_button, (k)))
+#define DEF_VID_HID_SE1_HW_CONVERSION_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_hw_color_conversion_button, (k)))
+#define DEF_VID_HID_SE1_HW_CONVERSION_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Toggle multi-threaded decoding.
-#define DEF_VID_HID_SE1_MULTI_THREAD_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_multi_threaded_decoding_button, (k)))
-#define DEF_VID_HID_SE1_MULTI_THREAD_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_multi_threaded_decoding_button, (k)))
-#define DEF_VID_HID_SE1_MULTI_THREAD_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_MULTI_THREAD_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.use_multi_threaded_decoding_button, (k)))
+#define DEF_VID_HID_SE1_MULTI_THREAD_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.use_multi_threaded_decoding_button, (k)))
+#define DEF_VID_HID_SE1_MULTI_THREAD_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Lower resolution.
-#define DEF_VID_HID_SE1_LOWER_RESOLUTION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.lower_resolution_button, (k)))
-#define DEF_VID_HID_SE1_LOWER_RESOLUTION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.lower_resolution_button, (k)))
-#define DEF_VID_HID_SE1_LOWER_RESOLUTION_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_LOWER_RESOLUTION_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.lower_resolution_button, (k)))
+#define DEF_VID_HID_SE1_LOWER_RESOLUTION_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.lower_resolution_button, (k)))
+#define DEF_VID_HID_SE1_LOWER_RESOLUTION_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Decrement number of decoding threads.
-#define DEF_VID_HID_SE1_DECREMENT_THREADS_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.decrement_num_of_threads_button, (k)))
-#define DEF_VID_HID_SE1_DECREMENT_THREADS_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.decrement_num_of_threads_button, (k)))
-#define DEF_VID_HID_SE1_DECREMENT_THREADS_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.decrement_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.decrement_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_DECREMENT_THREADS_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 1 : Increment number of decoding threads.
-#define DEF_VID_HID_SE1_INCREMENT_THREADS_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.increment_num_of_threads_button, (k)))
-#define DEF_VID_HID_SE1_INCREMENT_THREADS_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.increment_num_of_threads_button, (k)))
-#define DEF_VID_HID_SE1_INCREMENT_THREADS_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.increment_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.increment_num_of_threads_button, (k)))
+#define DEF_VID_HID_SE1_INCREMENT_THREADS_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle decoding time graph.
-#define DEF_VID_HID_INFO_DECODING_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_decode_graph_button, (k)))
-#define DEF_VID_HID_INFO_DECODING_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_decode_graph_button, (k)))
-#define DEF_VID_HID_INFO_DECODING_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_INFO_DECODING_GRAPH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_decode_graph_button, (k)))
+#define DEF_VID_HID_INFO_DECODING_GRAPH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_decode_graph_button, (k)))
+#define DEF_VID_HID_INFO_DECODING_GRAPH_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle color converison time graph.
-#define DEF_VID_HID_INFO_CONVERSION_GRAPH_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_color_conversion_graph_button, (k)))
-#define DEF_VID_HID_INFO_CONVERSION_GRAPH_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_color_conversion_graph_button, (k)))
-#define DEF_VID_HID_INFO_CONVERSION_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_INFO_CONVERSION_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_color_conversion_graph_button, (k)))
+#define DEF_VID_HID_INFO_CONVERSION_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_color_conversion_graph_button, (k)))
+#define DEF_VID_HID_INFO_CONVERSION_GRAPH_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle compressed buffer graph.
-#define DEF_VID_HID_INFO_BUFFER_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_packet_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_BUFFER_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_packet_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_BUFFER_GRAPH_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_INFO_BUFFER_GRAPH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_packet_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_BUFFER_GRAPH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_packet_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_BUFFER_GRAPH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle raw video buffer graph.
-#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_raw_video_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_video_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_raw_video_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_video_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_RAW_V_BUFFER_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Info : Toggle raw audio buffer graph.
-#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
-#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
+#define DEF_VID_HID_INFO_RAW_A_BUFFER_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 
 //Typedefs.
 typedef enum
@@ -2225,7 +2291,7 @@ void Vid_main(void)
 					//Move content mode.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						uint8_t current_move_content_mode = (DEF_VID_MOVE_MODE_EDIABLE_MSG + vid_player.move_content_mode);
+						uint8_t current_move_content_mode = (DEF_VID_MOVE_MODE_DIABLE_MSG + vid_player.move_content_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[DEF_VID_MOVE_MODE_MSG]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
 

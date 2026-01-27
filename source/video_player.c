@@ -3777,6 +3777,9 @@ static uint32_t Vid_load_settings(void)
 	if(vid_player.restart_playback_threshold >= DEF_DECODER_MAX_RAW_IMAGE)
 		vid_player.restart_playback_threshold = (48 >= DEF_DECODER_MAX_RAW_IMAGE ? DEF_DECODER_MAX_RAW_IMAGE : 48);
 
+	if(vid_player.num_of_threads > DEF_VID_NUM_OF_THREADS_MAX || vid_player.num_of_threads < DEF_VID_NUM_OF_THREADS_MIN)
+		vid_player.num_of_threads = Vid_get_default_num_of_threads();
+
 	free(cache);
 	cache = NULL;
 

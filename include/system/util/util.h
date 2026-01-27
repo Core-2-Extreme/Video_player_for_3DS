@@ -6,6 +6,24 @@
 
 #define DEF_UTIL_LOW_HEAP_THRESHOLD			(uint32_t)(1000 * 1000 * 2.5)
 #define DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(x)	(uint32_t)(sizeof(x) / sizeof((x)[0]))
+#define DEF_UTIL_S_TO_MS(s)					(uint64_t)(((uint64_t)(s)) * 1000)
+#define DEF_UTIL_S_TO_US(s)					(uint64_t)(((uint64_t)(s)) * 1000000)
+#define DEF_UTIL_S_TO_NS(s)					(uint64_t)(((uint64_t)(s)) * 1000000000)
+#define DEF_UTIL_MS_TO_S(s)					(uint64_t)(((uint64_t)(s)) / 1000)
+#define DEF_UTIL_MS_TO_US(s)				(uint64_t)(((uint64_t)(s)) * 1000)
+#define DEF_UTIL_MS_TO_NS(s)				(uint64_t)(((uint64_t)(s)) * 1000000)
+#define DEF_UTIL_US_TO_S(s)					(uint64_t)(((uint64_t)(s)) / 1000000)
+#define DEF_UTIL_US_TO_MS(s)				(uint64_t)(((uint64_t)(s)) / 1000)
+#define DEF_UTIL_US_TO_NS(s)				(uint64_t)(((uint64_t)(s)) * 1000)
+#define DEF_UTIL_NS_TO_S(s)					(uint64_t)(((uint64_t)(s)) / 1000000000)
+#define DEF_UTIL_NS_TO_MS(s)				(uint64_t)(((uint64_t)(s)) / 1000000)
+#define DEF_UTIL_NS_TO_US(s)				(uint64_t)(((uint64_t)(s)) / 1000)
+#define DEF_UTIL_MS_TO_S_D(s)				(double)(((double)(s)) / 1000.0)
+#define DEF_UTIL_US_TO_S_D(s)				(double)(((double)(s)) / 1000000.0)
+#define DEF_UTIL_US_TO_MS_D(s)				(double)(((double)(s)) / 1000.0)
+#define DEF_UTIL_NS_TO_S_D(s)				(double)(((double)(s)) / 1000000000.0)
+#define DEF_UTIL_NS_TO_MS_D(s)				(double)(((double)(s)) / 1000000.0)
+#define DEF_UTIL_NS_TO_US_D(s)				(double)(((double)(s)) / 1000.0)
 
 /**
  * @brief Initialize util API.

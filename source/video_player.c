@@ -52,6 +52,7 @@
 #define DEF_VID_DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
 #define DEF_VID_DEBUG_GRAPH_WIDTH							(uint16_t)(320)							//Debug graph width in px.
 #define DEF_VID_DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
+#define DEF_VID_QUEUE_OP_TIMEOUT_US							(uint64_t)(DEF_UTIL_MS_TO_US(100))		//Queue operation timeout in us.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -617,8 +618,8 @@ void Vid_hid(const Hid_info* key)
 		}
 
 		//Always pause the video just in case.
-		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PAUSE_REQUEST,
+		NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 		if(vid_player.is_full_screen)
 		{
@@ -638,8 +639,8 @@ void Vid_hid(const Hid_info* key)
 		if(vid_player.must_resume_after_home_menu)
 		{
 			//Resume the video.
-			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-			DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_RESUME_REQUEST,
+			NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 		}
 
 		vid_player.is_waiting_home_menu = false;
@@ -821,8 +822,8 @@ void Vid_hid(const Hid_info* key)
 			{
 				if(vid_player.state == PLAYER_STATE_IDLE)//Play the video.
 				{
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-					DECODE_THREAD_PLAY_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 				}
 				//If player state is one of them, pause the video.
 				//1. State is playing.
@@ -833,8 +834,8 @@ void Vid_hid(const Hid_info* key)
 				|| ((vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER) && (vid_player.state == PLAYER_STATE_BUFFERING
 				|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || vid_player.state == PLAYER_STATE_SEEKING)))
 				{
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-					DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PAUSE_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 				}
 				//If player state is one of them, resume the video.
 				//1. State is pause.
@@ -845,8 +846,8 @@ void Vid_hid(const Hid_info* key)
 				|| (!(vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER) && (vid_player.state == PLAYER_STATE_BUFFERING
 				|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || vid_player.state == PLAYER_STATE_SEEKING)))
 				{
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-					DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_RESUME_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 				}
 			}
 		}
@@ -868,8 +869,8 @@ void Vid_hid(const Hid_info* key)
 				//Reset key state on scene change.
 				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				//Apply the track selection.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-				DECODE_THREAD_CHANGE_AUDIO_TRACK_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_CHANGE_AUDIO_TRACK_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 			}
 
 			for(uint8_t i = 0; i < vid_player.num_of_audio_tracks; i++)
@@ -899,8 +900,8 @@ void Vid_hid(const Hid_info* key)
 				//Reset key state on scene change.
 				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				//Apply the track selection.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-				DECODE_THREAD_CHANGE_SUBTITLE_TRACK_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_CHANGE_SUBTITLE_TRACK_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 			}
 
 			for(uint8_t i = 0; i < vid_player.num_of_subtitle_tracks; i++)
@@ -938,8 +939,8 @@ void Vid_hid(const Hid_info* key)
 				{
 					if(vid_player.state == PLAYER_STATE_IDLE)//Play the video.
 					{
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_PLAY_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 					}
 					//If player state is one of them, pause the video.
 					//1. State is playing.
@@ -950,8 +951,8 @@ void Vid_hid(const Hid_info* key)
 					|| ((vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER) && (vid_player.state == PLAYER_STATE_BUFFERING
 					|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || vid_player.state == PLAYER_STATE_SEEKING)))
 					{
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PAUSE_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 					}
 					//If player state is one of them, resume the video.
 					//1. State is pause.
@@ -962,14 +963,14 @@ void Vid_hid(const Hid_info* key)
 					|| (!(vid_player.sub_state & PLAYER_SUB_STATE_RESUME_LATER) && (vid_player.state == PLAYER_STATE_BUFFERING
 					|| vid_player.state == PLAYER_STATE_PREPARE_SEEKING || vid_player.state == PLAYER_STATE_SEEKING)))
 					{
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_RESUME_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 					}
 				}
 				else if(DEF_VID_HID_ABORT_PLAYBACK_CFM(*key))//Abort the playback.
 				{
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-					DECODE_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_ABORT_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
 				}
 				else if(DEF_VID_HID_OPEN_EXPL_CFM(*key))
 				{
@@ -1314,8 +1315,8 @@ void Vid_hid(const Hid_info* key)
 				vid_player.seek_pos = vid_player.seek_pos_cache;
 
 				//Seek the video.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-				DECODE_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 			else if(DEF_VID_HID_FULL_SEEK_FWD_CFM(*key))
 			{
@@ -1325,8 +1326,8 @@ void Vid_hid(const Hid_info* key)
 					vid_player.seek_pos = current_bar_pos + (vid_player.seek_duration * 1000);
 
 				//Seek the video.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-				DECODE_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 			else if(DEF_VID_HID_FULL_SEEK_BACK_CFM(*key))
 			{
@@ -1336,8 +1337,8 @@ void Vid_hid(const Hid_info* key)
 					vid_player.seek_pos = current_bar_pos - (vid_player.seek_duration * 1000);
 
 				//Seek the video.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-				DECODE_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 		}
 
@@ -2780,8 +2781,8 @@ void Vid_main(void)
 		}
 
 		//Always pause the video just in case.
-		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-		DECODE_THREAD_PAUSE_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PAUSE_REQUEST,
+		NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 
 		//Wait for it.
 		while(vid_player.state == PLAYER_STATE_PREPARE_PLAYING || vid_player.state == PLAYER_STATE_PLAYING)
@@ -2810,8 +2811,8 @@ void Vid_main(void)
 		if(must_resume)
 		{
 			//Resume the video.
-			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-			DECODE_THREAD_RESUME_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+			DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_RESUME_REQUEST,
+			NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 		}
 
 		Draw_set_refresh_needed(true);
@@ -4108,8 +4109,8 @@ void Vid_exit_thread(void* arg)
 	vid_player.is_selecting_audio_track = false;
 	vid_player.is_selecting_subtitle_track = false;
 
-	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-	DECODE_THREAD_SHUTDOWN_REQUEST, NULL, 100000, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SHUTDOWN_REQUEST,
+	NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
 
 	//Exit full screen to avoid bottom LCD blackout.
 	Vid_exit_full_screen();
@@ -4571,8 +4572,8 @@ void Vid_decode_thread(void* arg)
 								if(saved_pos > 0 && saved_pos < vid_player.media_duration)
 								{
 									vid_player.seek_pos = saved_pos;
-									DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-									DECODE_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+									DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
+									NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 								}
 							}
 
@@ -4600,12 +4601,12 @@ void Vid_decode_thread(void* arg)
 
 						//Start reading packets.
 						is_read_packet_thread_active = true;
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue,
-						READ_PACKET_THREAD_READ_PACKET_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_READ_PACKET_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 						//Start converting color, this thread keeps running unless we send abort request.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue,
-						CONVERT_THREAD_CONVERT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue, CONVERT_THREAD_CONVERT_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 						if(num_of_video_tracks == 0 || vid_player.video_frametime == 0)
 							Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos, sizeof(audio_bar_pos));
@@ -4617,20 +4618,20 @@ void Vid_decode_thread(void* arg)
 						Util_err_set_show_flag(true);
 						Draw_set_refresh_needed(true);
 
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_ABORT_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
 
 						continue;
 					}
 					else
 					{
 						//If currently player state is not idle, abort current playback first.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_ABORT_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 						//Then play new one, pass the received new_file again.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_PLAY_REQUEST, new_file, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+						new_file, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					}
 
 					break;
@@ -4688,8 +4689,8 @@ void Vid_decode_thread(void* arg)
 					{
 						//Currently threre is on going seek request, retry later.
 						//Add seek request if threre is no another seek request.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 
 						Util_sleep(1000);
 						break;
@@ -4719,8 +4720,8 @@ void Vid_decode_thread(void* arg)
 					is_eof = false;
 
 					//Seek the video.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue,
-					READ_PACKET_THREAD_SEEK_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_SEEK_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -4818,31 +4819,31 @@ void Vid_decode_thread(void* arg)
 					}
 
 					//Wait for read packet thread (also flush queues).
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue,
-					READ_PACKET_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_ABORT_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					while(true)
 					{
-						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, 100000);
+						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, DEF_VID_QUEUE_OP_TIMEOUT_US);
 						if(result == DEF_SUCCESS && notification == READ_PACKET_THREAD_FINISHED_ABORTING_NOTIFICATION)
 							break;
 					}
 
 					//Wait for convert thread (also flush queues).
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue,
-					CONVERT_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue, CONVERT_THREAD_ABORT_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					while(true)
 					{
-						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, 100000);
+						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, DEF_VID_QUEUE_OP_TIMEOUT_US);
 						if(result == DEF_SUCCESS && notification == CONVERT_THREAD_FINISHED_ABORTING_NOTIFICATION)
 							break;
 					}
 
 					//Wait for video decoding thread (also flush queues).
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue,
-					DECODE_VIDEO_THREAD_ABORT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_ABORT_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					while(true)
 					{
-						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, 100000);
+						result = Util_queue_get(&vid_player.decode_thread_notification_queue, (uint32_t*)&notification, NULL, DEF_VID_QUEUE_OP_TIMEOUT_US);
 						if(result == DEF_SUCCESS && notification == DECODE_VIDEO_THREAD_FINISHED_ABORTING_NOTIFICATION)
 							break;
 					}
@@ -4909,8 +4910,8 @@ void Vid_decode_thread(void* arg)
 						}
 
 						//Play next video.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_PLAY_REQUEST, file_data, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+						file_data, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 						vid_player.state = PLAYER_STATE_PREPARE_PLAYING;
 					}
@@ -4992,8 +4993,8 @@ void Vid_decode_thread(void* arg)
 					else
 					{
 						//If there are video tracks, clear the video cache first.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue,
-						DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					}
 
 					break;
@@ -5147,8 +5148,8 @@ void Vid_decode_thread(void* arg)
 				is_read_packet_thread_active = true;
 
 				//Start reading packets.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue,
-				READ_PACKET_THREAD_READ_PACKET_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_READ_PACKET_REQUEST,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 
 			if(num_of_cached_packets == 0 && is_eof)
@@ -5175,16 +5176,16 @@ void Vid_decode_thread(void* arg)
 				if(vid_player.state == PLAYER_STATE_BUFFERING)
 				{
 					//Notify we've done buffering (can't buffer anymore).
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					continue;
 				}
 
 				if(is_audio_done && is_video_done)
 				{
 					//We've finished playing.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-					DECODE_THREAD_PLAY_NEXT_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_NEXT_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 					continue;
 				}
 
@@ -5213,8 +5214,8 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.state == PLAYER_STATE_BUFFERING)
 					{
 						//Notify we've done buffering (can't buffer anymore).
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-						DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 						continue;
 					}
 
@@ -5231,8 +5232,8 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.state == PLAYER_STATE_BUFFERING)
 					{
 						//Notify we've done buffering (can't buffer anymore).
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-						DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_THREAD_FINISHED_BUFFERING_NOTIFICATION,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 						continue;
 					}
 
@@ -5464,11 +5465,11 @@ void Vid_decode_thread(void* arg)
 						is_waiting_video_decoder = true;
 						//Decode the next frame.
 						//Too noisy.
-						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue,
-						// DECODE_VIDEO_THREAD_DECODE_REQUEST, packet_info, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_DECODE_REQUEST,
+						// packet_info, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
-						result = Util_queue_add(&vid_player.decode_video_thread_command_queue,
-						DECODE_VIDEO_THREAD_DECODE_REQUEST, packet_info, 100000, QUEUE_OPTION_NONE);
+						result = Util_queue_add(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_DECODE_REQUEST,
+						packet_info, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE);
 						if(result != DEF_SUCCESS)
 							DEF_LOG_RESULT(Util_queue_add, false, result);
 					}
@@ -5539,10 +5540,10 @@ void Vid_decode_video_thread(void* arg)
 						//Notify we've done copying packet to video decoder buffer (we skipped the frame here)
 						//so that decode thread can read the next packet.
 						//Too noisy.
-						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-						// DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
-						result = Util_queue_add(&vid_player.decode_thread_notification_queue,
-						DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE);
+						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						// NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						result = Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE);
 						if(result != DEF_SUCCESS)
 							DEF_LOG_RESULT(Util_queue_add, false, result);
 					}
@@ -5553,10 +5554,10 @@ void Vid_decode_video_thread(void* arg)
 						//Notify we've done copying packet to video decoder buffer
 						//so that decode thread can read the next packet.
 						//Too noisy.
-						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-						// DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
-						result = Util_queue_add(&vid_player.decode_thread_notification_queue,
-						DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE);
+						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						// NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+						result = Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE);
 						if(result != DEF_SUCCESS)
 							DEF_LOG_RESULT(Util_queue_add, false, result);
 
@@ -5626,8 +5627,8 @@ void Vid_decode_video_thread(void* arg)
 						if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
 						{
 							//Request to increase amount of RAM to keep.
-							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-							DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,
+							NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 						}
 					}
 
@@ -5657,8 +5658,8 @@ void Vid_decode_video_thread(void* arg)
 					}
 
 					//Request the same to convert thread.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue,
-					CONVERT_THREAD_CLEAR_CACHE_REQUEST, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue, CONVERT_THREAD_CLEAR_CACHE_REQUEST,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -5685,8 +5686,8 @@ void Vid_decode_video_thread(void* arg)
 					}
 
 					//Notify we've done aborting.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					DECODE_VIDEO_THREAD_FINISHED_ABORTING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_ABORTING_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -5769,8 +5770,8 @@ void Vid_convert_thread(void* arg)
 					}
 
 					//Notify we've done clearing cache.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					CONVERT_THREAD_FINISHED_CLEARING_CACHE, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_FINISHED_CLEARING_CACHE,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -5790,8 +5791,8 @@ void Vid_convert_thread(void* arg)
 					}
 
 					//Notify we've done aborting.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					CONVERT_THREAD_FINISHED_ABORTING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_FINISHED_ABORTING_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -5909,8 +5910,8 @@ void Vid_convert_thread(void* arg)
 				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
 				{
 					//Notify we've run out of buffer.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 					Util_sleep(3000);
 				}
 			}
@@ -5930,8 +5931,8 @@ void Vid_convert_thread(void* arg)
 			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
 			{
 				//Notify we've run out of buffer.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-				CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 				Util_sleep(5000);
 				continue;
 			}
@@ -6087,8 +6088,8 @@ void Vid_convert_thread(void* arg)
 					if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
 					{
 						//Request to increase amount of RAM to keep.
-						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-						DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST, NULL, 100000, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,
+						NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 					}
 
 					vid_player.total_dropped_frames++;
@@ -6123,8 +6124,8 @@ void Vid_convert_thread(void* arg)
 			|| Util_speaker_get_available_buffer_num(0) + 1 >= DEF_SPEAKER_MAX_BUFFERS)
 			{
 				//Notify we've finished buffering.
-				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-				CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION,
+				NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 		}
 		else
@@ -6164,8 +6165,8 @@ void Vid_read_packet_thread(void* arg)
 							if(Util_decoder_get_available_packet_num(0) + 1 >= DEF_DECODER_MAX_CACHE_PACKETS)
 							{
 								//Notify we've done reading.
-								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-								READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION,
+								NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 								break;
 							}
@@ -6173,8 +6174,8 @@ void Vid_read_packet_thread(void* arg)
 						if(result == DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS)
 						{
 							//Notify we've reached EOF.
-							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-							READ_PACKET_THREAD_FINISHED_READING_EOF_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_READING_EOF_NOTIFICATION,
+							NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 							break;
 						}
@@ -6189,8 +6190,8 @@ void Vid_read_packet_thread(void* arg)
 							{
 								DEF_LOG_RESULT(Util_decoder_read_packet, false, result);
 								//Notify we've done reading.
-								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-								READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION,
+								NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 								break;
 							}
@@ -6201,8 +6202,8 @@ void Vid_read_packet_thread(void* arg)
 						|| Util_queue_check_event_exist(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_ABORT_REQUEST))
 						{
 							//Notify we've done reading.
-							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-							READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION,
+							NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 							break;
 						}
@@ -6222,8 +6223,8 @@ void Vid_read_packet_thread(void* arg)
 					Util_decoder_clear_cache_packet(0);
 
 					//Notify we've done seeking.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					READ_PACKET_THREAD_FINISHED_SEEKING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_SEEKING_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -6239,8 +6240,8 @@ void Vid_read_packet_thread(void* arg)
 					}
 
 					//Notify we've done aborting.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue,
-					READ_PACKET_THREAD_FINISHED_ABORTING_NOTIFICATION, NULL, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_ABORTING_NOTIFICATION,
+					NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
 					break;
 				}
@@ -6276,8 +6277,8 @@ static void Vid_callback(Str_data* file, Str_data* dir)
 			snprintf(file_data->directory, sizeof(file_data->directory), "%s", dir->buffer);
 	}
 
-	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue,
-	DECODE_THREAD_PLAY_REQUEST, file_data, 100000, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+	file_data, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 }
 
 static void Vid_cancel(void)

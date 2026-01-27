@@ -54,12 +54,19 @@
 #define DEF_VID_DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
 #define DEF_VID_DEBUG_GRAPH_TEMP_ELEMENTS					(uint16_t)(32)							//Number of temp elements for multi-threaded decoding.
 #define DEF_VID_QUEUE_OP_TIMEOUT_US							(uint64_t)(DEF_UTIL_MS_TO_US(100))		//Queue operation timeout in us.
+#define DEF_VID_TOP_SCREEN_WIDTH							(uint16_t)(400)							//Top screen width in px.
+#define DEF_VID_TOP_SCREEN_HEIGHT							(uint16_t)(240)							//Top screen height in px.
+#define DEF_VID_FULL_SCREEN_WIDTH							(uint16_t)(400)							//Video width in full-screen in px.
+#define DEF_VID_FULL_SCREEN_HEIGHT							(uint16_t)(240)							//Video height in full-screen in px.
+#define DEF_VID_NON_FULL_SCREEN_WIDTH						(uint16_t)(400)							//Video width in non-full-screen in px.
+#define DEF_VID_NON_FULL_SCREEN_HEIGHT						(uint16_t)(225)							//Video height in non-full-screen in px.
+#define DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(300)							//Transition period from non-full-screen to full-screen in frames.
 
 //System UI.
 #define DEF_VID_HID_SYSTEM_UI_SEL(k)					(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define DEF_VID_HID_SYSTEM_UI_CFM(k)					(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
 #define DEF_VID_HID_SYSTEM_UI_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
-//Enter full screen.
+//Enter full-screen.
 #define DEF_VID_HID_ENTER_FULL_CFM(k)					(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select))
 //Toggle playback.
 #define DEF_VID_HID_TOGGLE_PLAYBACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
@@ -117,13 +124,13 @@
 #define DEF_VID_HID_SCROLL_BAR_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.scroll_bar, (k)))
 #define DEF_VID_HID_SCROLL_BAR_CFM(k)					(bool)(DEF_VID_HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.scroll_bar.selected))
 #define DEF_VID_HID_SCROLL_BAR_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
-//Full screen : Exit.
+//Full-screen : Exit.
 #define DEF_VID_HID_FULL_EXIT_CFM(k)					(bool)(DEF_HID_PR_EM((k).select, 1) || DEF_HID_HD((k).select) || DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch))
-//Full screen : Toggle playback.
+//Full-screen : Toggle playback.
 #define DEF_VID_HID_FULL_TOGGLE_PLAYBACK_CFM(k)			(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-//Full screen : Seek backward.
+//Full-screen : Seek backward.
 #define DEF_VID_HID_FULL_SEEK_BACK_CFM(k)				(bool)(DEF_HID_PR_EM((k).d_left, 1) || DEF_HID_HD((k).d_left))
-//Full screen : Seek forward.
+//Full-screen : Seek forward.
 #define DEF_VID_HID_FULL_SEEK_FWD_CFM(k)				(bool)(DEF_HID_PR_EM((k).d_right, 1) || DEF_HID_HD((k).d_right))
 //Select audio track : Confirm.
 #define DEF_VID_HID_A_TRACK_CONFIRM_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.audio_track_ok_button, (k))) || DEF_HID_PHY_PR((k).a))
@@ -377,7 +384,7 @@ typedef struct
 	uint8_t lower_resolution;						//Downscale level on supported codecs, 0 = 100% (no downscale), 1 = 50%, 2 = 25%.
 
 	//Other settings (user doesn't have permission to change).
-	bool show_full_screen_msg;						//Whether show how to exit full screen msg.
+	bool show_full_screen_msg;						//Whether show how to exit full-screen msg.
 	uint8_t num_of_threads;							//Number of threads to use for multi-threaded software decoding.
 	uint32_t ram_to_keep_base;						//RAM amount to keep in bytes.
 	Media_thread_type thread_mode;					//Thread mode to use for multi-threaded software decoding.
@@ -466,7 +473,7 @@ typedef struct
 	Draw_image_data subtitle_image[DEF_VID_SUBTITLE_BUFFERS];		//Bitmap subtitle data.
 
 	//UI.
-	bool is_full_screen;							//Whether player is full screen.
+	bool is_full_screen;							//Whether player is full-screen.
 	bool is_waiting_home_menu;						//Whether player is waiting for nintendo home menu to resume the app.
 	bool is_selecting_audio_track;					//Whether user is selecting a audio track.
 	bool is_selecting_subtitle_track;				//Whether user is selecting a subtitle track.
@@ -476,7 +483,7 @@ typedef struct
 	bool is_scroll_mode;							//Whether scroll mode is active.
 	bool must_resume_after_home_menu;				//Whether player must resume playback after nintendo home menu resuming the app.
 	int8_t menu_mode;								//Current menu tab.
-	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full screen mode.
+	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full-screen mode.
 	uint64_t show_screen_brightness_until;			//Display screen brightness message until this time.
 	uint64_t show_current_pos_until;				//Display current position message until this time.
 	double ui_y_offset_max;							//Max Y (vertical) offset for UI.
@@ -624,8 +631,8 @@ void Vid_hid(const Hid_info* key)
 
 		if(vid_player.is_full_screen)
 		{
-			//Exit full screen to avoid bottom LCD blackout.
-			Vid_fit_to_screen(400, 225);
+			//Exit full-screen to avoid bottom LCD blackout.
+			Vid_fit_to_screen(DEF_VID_NON_FULL_SCREEN_WIDTH, DEF_VID_NON_FULL_SCREEN_HEIGHT);
 			Vid_exit_full_screen();
 		}
 
@@ -813,7 +820,7 @@ void Vid_hid(const Hid_info* key)
 		{
 			if(DEF_VID_HID_FULL_EXIT_CFM(*key) || aptShouldJumpToHome())
 			{
-				Vid_fit_to_screen(400, 225);
+				Vid_fit_to_screen(DEF_VID_NON_FULL_SCREEN_WIDTH, DEF_VID_NON_FULL_SCREEN_HEIGHT);
 				Vid_exit_full_screen();
 				//Reset key state on scene change.
 				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -931,8 +938,8 @@ void Vid_hid(const Hid_info* key)
 			{
 				if(DEF_VID_HID_ENTER_FULL_CFM(*key))
 				{
-					Vid_fit_to_screen(400, 240);
-					Vid_enter_full_screen(300);
+					Vid_fit_to_screen(DEF_VID_FULL_SCREEN_WIDTH, DEF_VID_FULL_SCREEN_HEIGHT);
+					Vid_enter_full_screen(DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD);
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				}
@@ -1053,7 +1060,7 @@ void Vid_hid(const Hid_info* key)
 					else if(DEF_VID_HID_SE0_CORRECT_ASPECT_RATIO_CFM(*key))//Correct aspect ratio button.
 					{
 						vid_player.correct_aspect_ratio = !vid_player.correct_aspect_ratio;
-						Vid_fit_to_screen(400, 225);
+						Vid_fit_to_screen(DEF_VID_NON_FULL_SCREEN_WIDTH, DEF_VID_NON_FULL_SCREEN_HEIGHT);
 					}
 					else if(DEF_VID_HID_SE0_MOVE_CONTENT_MODE_CFM(*key))//Disable resize and move button.
 					{
@@ -1889,7 +1896,7 @@ void Vid_main(void)
 
 			if(vid_player.is_full_screen && vid_player.turn_off_bottom_screen_count > 0 && vid_player.show_full_screen_msg)
 			{
-				//Display exit full screen message.
+				//Display exit full-screen message.
 				Util_str_add(&top_center_msg, vid_msg[DEF_VID_FULL_SCREEN_MSG].buffer);
 			}
 
@@ -3173,8 +3180,8 @@ static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height)
 
 		vid_player.video_x_offset = (screen_width - (vid_player.video_info[0].width * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1))) / 2;
 		vid_player.video_y_offset = (screen_height - (vid_player.video_info[0].height * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1))) / 2;
-		vid_player.video_y_offset += 240 - screen_height;
-		vid_player.video_x_offset += 400 - screen_width;
+		vid_player.video_y_offset += (DEF_VID_TOP_SCREEN_HEIGHT - screen_height);
+		vid_player.video_x_offset += (DEF_VID_TOP_SCREEN_WIDTH - screen_width);
 	}
 	vid_player.subtitle_x_offset = 0;
 	vid_player.subtitle_y_offset = 0;
@@ -4113,7 +4120,7 @@ void Vid_exit_thread(void* arg)
 	DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SHUTDOWN_REQUEST,
 	NULL, DEF_VID_QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);
 
-	//Exit full screen to avoid bottom LCD blackout.
+	//Exit full-screen to avoid bottom LCD blackout.
 	Vid_exit_full_screen();
 
 	Util_str_set(&vid_status, "Saving settings...");
@@ -4541,20 +4548,20 @@ void Vid_decode_thread(void* arg)
 							goto error;
 						}
 
-						//Enter full screen mode if file has video tracks.
+						//Enter full-screen mode if file has video tracks.
 						if(num_of_video_tracks > 0 && !Util_err_query_show_flag() && !Util_expl_query_show_flag())
 						{
-							Vid_fit_to_screen(400, 240);
+							Vid_fit_to_screen(DEF_VID_FULL_SCREEN_WIDTH, DEF_VID_FULL_SCREEN_HEIGHT);
 							if(!vid_player.is_full_screen)
 							{
-								Vid_enter_full_screen(300);
+								Vid_enter_full_screen(DEF_VID_ENTER_FULL_SCREEN_TRANSITION_PERIOD);
 								//Reset key state on scene change.
 								Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 							}
 						}
 						else
 						{
-							Vid_fit_to_screen(400, 225);
+							Vid_fit_to_screen(DEF_VID_NON_FULL_SCREEN_WIDTH, DEF_VID_NON_FULL_SCREEN_HEIGHT);
 							Vid_exit_full_screen();
 							//Reset key state on scene change.
 							Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -4918,7 +4925,7 @@ void Vid_decode_thread(void* arg)
 					}
 					else
 					{
-						Vid_fit_to_screen(400, 225);
+						Vid_fit_to_screen(DEF_VID_NON_FULL_SCREEN_WIDTH, DEF_VID_NON_FULL_SCREEN_HEIGHT);
 						Vid_exit_full_screen();
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);

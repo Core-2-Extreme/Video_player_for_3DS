@@ -10,7 +10,7 @@
 <9>Zoom out/in</9>
 <10>Audio track selection</10>
 <11>Select audio track</11>
-<12>Press Select key or touch screen to exit full screen</12>
+<12>Press Select key or touch screen to exit full-screen</12>
 <13>Use hardware decoder (if available): </13>
 <14>Use hardware color conversion (if available): </14>
 <15>Use multi-threaded decoding (if available): </15>

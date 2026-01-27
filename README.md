@@ -43,7 +43,7 @@ Seek ✅ \
 Zoom in/out video ✅ \
 Move video ✅ \
 File explorer ✅ \
-Fullscreen mode ✅
+Full-screen mode ✅
 
 ⚠️ *0 New 3DS and New 2DS only \
 ⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
@@ -84,13 +84,13 @@ for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe
   * DPAD ←→ : Seek
   * DPAD ↑↓ : Change screen brightness
   * START : Back to main menu
-  * SELECT : Enter fullscreen mode
+  * SELECT : Enter full-screen mode
   * Touch on the bar : Seek
-* In fullscreen mode
+* In full-screen mode
   * A : Play/Pause
   * DPAD ←→ : Seek
   * DPAD ↑↓ : Change screen brightness
-  * SELECT : Exit fullscreen mode
+  * SELECT : Exit full-screen mode
 
 ## Supported languages
 * English
@@ -351,11 +351,11 @@ Enabled 'correct aspect ratio option' by default.
 
 **Fixed bugs** \
 Crashes in hw decoder in some videos have been fixed. \
-Automatically enter full screen mode even file explorer is opened has been fixed. \
+Automatically enter full-screen mode even file explorer is opened has been fixed. \
 App will freeze if you seek after EOF has been fixed. \
 Unable to pause/resume in tagged mp3 has been fixed. \
 Video position won't be saved in some cases have been fixed. \
-Glitch on video in full screen mode has been fixed. \
+Glitch on video in full-screen mode has been fixed. \
 Some directories can't be entered have been fixed. \
 Some videos won't be played at correct speed has been fixed. \
 Frame desync in some 3D videos have been fixed.
@@ -416,7 +416,7 @@ Other minor changes.
 The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track). \
 Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle). \
 Hardware decoder has been merged (Press Y key-> use hw decoder to toggle). \
-Full screen mode has been supported (Press select key to toggle). \
+Full-screen mode has been supported (Press select key to toggle). \
 Other minor changes.
 
 ### v1.2.0

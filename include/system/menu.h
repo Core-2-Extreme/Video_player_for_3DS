@@ -5,10 +5,10 @@
 
 #define DEF_MENU_MAIN_DIR				/*(const char*)(*/"/3ds/Video_player/"/*)*/
 #define DEF_MENU_APP_INFO				/*(const char*)(*/"Video_player_for_3ds/" DEF_MENU_CURRENT_APP_VER/*)*/
-#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"1.6.0"/*)*/
+#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"1.6.1 (nightly build)"/*)*/
 #define DEF_MENU_CHECK_INTERNET_URL		/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
 #define DEF_MENU_SEND_APP_INFO_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
-#define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1120)
+#define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1)
 
 #define DEF_MENU_NUM_OF_CALLBACKS		(uint16_t)(32)
 #define DEF_MENU_SOCKET_BUFFER_SIZE		(uint32_t)(0x40000)

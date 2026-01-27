@@ -1768,7 +1768,7 @@ void Vid_main(void)
 				if(video_delay < force_wait_threshold)
 					wait = true;
 
-				if(wait && Util_speaker_get_available_buffer_num(0) > 0)
+				if(wait && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) > 0)
 				{
 					//Video is too fast, don't update a video frame to wait for audio.
 				}
@@ -2598,8 +2598,8 @@ void Vid_main(void)
 					{
 						//3DS only supports up to 2ch.
 						uint8_t playing_audio_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-						uint16_t buffer_health = Util_speaker_get_available_buffer_num(0);
-						uint32_t buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2);
+						uint16_t buffer_health = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
+						uint32_t buffer_health_ms = (Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2);
 						uint32_t samplerate = vid_player.audio_info[vid_player.selected_audio_track].sample_rate;
 
 						if(playing_audio_ch != 0 && samplerate != 0)
@@ -3398,7 +3398,7 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 
 		vid_player.previous_ts = osGetTime();
 		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(0);
-		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(0);
+		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
 		vid_player.raw_video_buffer_list[0][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(0) : Util_decoder_video_get_available_raw_image_num(0, 0);
 		vid_player.raw_video_buffer_list[1][last_index] = Util_decoder_video_get_available_raw_image_num(1, 0);
 
@@ -4462,7 +4462,7 @@ void Vid_decode_thread(void* arg)
 
 								//3DS only supports up to 2ch.
 								playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-								DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(0, playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate), (result == DEF_SUCCESS), result);
+								DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(DEF_VID_SPEAKER_SESSION_ID, playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate), (result == DEF_SUCCESS), result);
 							}
 
 							if(result != DEF_SUCCESS)//If audio format is not supported, disable audio so that video can be played without audio.
@@ -4669,7 +4669,7 @@ void Vid_decode_thread(void* arg)
 						&& num_of_video_tracks > 0 && vid_player.video_frametime != 0)
 						{
 							//Pause the playback.
-							Util_speaker_pause(0);
+							Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
 							//Add resume later bit.
 							vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_RESUME_LATER);
 							vid_player.state = PLAYER_STATE_BUFFERING;
@@ -4727,7 +4727,7 @@ void Vid_decode_thread(void* arg)
 
 					if(vid_player.state == PLAYER_STATE_PLAYING)
 					{
-						Util_speaker_pause(0);
+						Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
 						vid_player.state = PLAYER_STATE_PAUSE;
 					}
 					else
@@ -4748,7 +4748,7 @@ void Vid_decode_thread(void* arg)
 
 					if(vid_player.state == PLAYER_STATE_PAUSE)
 					{
-						Util_speaker_resume(0);
+						Util_speaker_resume(DEF_VID_SPEAKER_SESSION_ID);
 						vid_player.state = PLAYER_STATE_PLAYING;
 					}
 					else
@@ -4779,7 +4779,7 @@ void Vid_decode_thread(void* arg)
 
 					if(vid_player.state == PLAYER_STATE_PLAYING)//Add resume later bit.
 					{
-						Util_speaker_pause(0);
+						Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_RESUME_LATER);
 					}
 					else if(vid_player.state == PLAYER_STATE_PAUSE)//Remove resume later bit.
@@ -4795,7 +4795,7 @@ void Vid_decode_thread(void* arg)
 					else//Remove seek backward wait bit.
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);
 
-					Util_speaker_clear_buffer(0);
+					Util_speaker_clear_buffer(DEF_VID_SPEAKER_SESSION_ID);
 
 					//Reset EOF flag.
 					is_eof = false;
@@ -4822,8 +4822,8 @@ void Vid_decode_thread(void* arg)
 						vid_player.selected_audio_track = vid_player.selected_audio_track_cache;
 						//3DS only supports up to 2ch.
 						new_playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-						Util_speaker_clear_buffer(0);
-						Util_speaker_set_audio_info(0, new_playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
+						Util_speaker_clear_buffer(DEF_VID_SPEAKER_SESSION_ID);
+						Util_speaker_set_audio_info(DEF_VID_SPEAKER_SESSION_ID, new_playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 
 						//Use the longest duration as duration for this file.
 						if(vid_player.num_of_video_tracks > 0)
@@ -5100,7 +5100,7 @@ void Vid_decode_thread(void* arg)
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_RESUME_LATER);
 
 						//Resume the playback.
-						Util_speaker_resume(0);
+						Util_speaker_resume(DEF_VID_SPEAKER_SESSION_ID);
 						vid_player.state = PLAYER_STATE_PLAYING;
 					}
 					else
@@ -5125,7 +5125,7 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.state == PLAYER_STATE_PLAYING)
 					{
 						//Pause the playback.
-						Util_speaker_pause(0);
+						Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
 						//Add resume later bit.
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_RESUME_LATER);
 					}
@@ -5195,8 +5195,8 @@ void Vid_decode_thread(void* arg)
 					num_of_video_buffers = Util_decoder_video_get_available_raw_image_num(1, 0);
 			}
 			num_of_cached_packets = Util_decoder_get_available_packet_num(0);
-			num_of_audio_buffers = Util_speaker_get_available_buffer_num(0);
-			audio_buffers_size = Util_speaker_get_available_buffer_size(0);
+			num_of_audio_buffers = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
+			audio_buffers_size = Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID);
 
 			//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
 			//3DS only supports up to 2ch.
@@ -5366,7 +5366,7 @@ void Vid_decode_thread(void* arg)
 							vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_RESUME_LATER);
 
 							//Resume the playback.
-							Util_speaker_resume(0);
+							Util_speaker_resume(DEF_VID_SPEAKER_SESSION_ID);
 							vid_player.state = PLAYER_STATE_PLAYING;
 						}
 						else
@@ -5455,7 +5455,7 @@ void Vid_decode_thread(void* arg)
 								//Add audio to speaker buffer, wait up to 250ms.
 								for(uint8_t i = 0; i < 125; i++)
 								{
-									result = Util_speaker_add_buffer(0, parameters.converted, (parameters.out_samples * parameters.out_ch * 2));
+									result = Util_speaker_add_buffer(DEF_VID_SPEAKER_SESSION_ID, parameters.converted, (parameters.out_samples * parameters.out_ch * 2));
 									if(result != DEF_ERR_TRY_AGAIN)
 										break;
 
@@ -5988,7 +5988,7 @@ void Vid_convert_thread(void* arg)
 			{
 				if(vid_player.state == PLAYER_STATE_SEEKING)
 					Util_sleep(3000);
-				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
+				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 				{
 					//Notify we've run out of buffer.
 					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
@@ -6009,7 +6009,7 @@ void Vid_convert_thread(void* arg)
 			if(vid_player.num_of_video_tracks >= 2)
 				num_of_cached_raw_images = Util_max(Util_decoder_video_get_available_raw_image_num(0, 0), Util_decoder_video_get_available_raw_image_num(1, 0));
 
-			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(0) == 0)
+			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 			{
 				//Notify we've run out of buffer.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
@@ -6045,14 +6045,14 @@ void Vid_convert_thread(void* arg)
 					//Buffer is full.
 					Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
 
-					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
+					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) >= 1)
 					{
 						//3DS only supports up to 2ch.
 						uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
 
 						//Audio exist, sync with audio time.
 						//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-						double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
+						double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 						vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 					}
 
@@ -6073,7 +6073,7 @@ void Vid_convert_thread(void* arg)
 					uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
 
 					//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-					double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
+					double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 					vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 				}
 
@@ -6202,7 +6202,7 @@ void Vid_convert_thread(void* arg)
 			Util_sync_unlock(&vid_player.delay_update_lock);
 
 			if(num_of_cached_raw_images >= vid_player.restart_playback_threshold
-			|| Util_speaker_get_available_buffer_num(0) + 1 >= DEF_SPEAKER_MAX_BUFFERS)
+			|| Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) + 1 >= DEF_SPEAKER_MAX_BUFFERS)
 			{
 				//Notify we've finished buffering.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION,

@@ -12,6 +12,7 @@
 #define DEF_VID_NAME					/*(const char*)(*/"Video\nplayer"/*)*/
 #define DEF_VID_VER						/*(const char*)(*/"v1.6.1 (nightly build)"/*)*/
 #define DEF_VID_SPEAKER_SESSION_ID		(uint8_t)(0)
+#define DEF_VID_DECORDER_SESSION_ID		(uint8_t)(0)
 
 bool Vid_query_init_flag(void);
 

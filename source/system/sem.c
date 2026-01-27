@@ -542,7 +542,7 @@ void Sem_init(void)
 		return;
 	}
 
-	for(uint8_t i = 0; i < (sizeof(sem_newest_ver_data) / sizeof(sem_newest_ver_data[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_newest_ver_data); i++)
 		Util_str_init(&sem_newest_ver_data[i]);
 
 	if(CFGU_GetSystemModel(&model) == DEF_SUCCESS)
@@ -662,7 +662,7 @@ void Sem_init(void)
 		read_cache = NULL;
 	}
 
-	for(uint8_t i = 0; i < (sizeof(data) / sizeof(data[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(data); i++)
 		Util_str_free(&data[i]);
 
 	config = sem_config;
@@ -971,7 +971,7 @@ void Sem_exit(void)
 	threadFree(sem_check_connectivity_thread);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-	for(uint8_t i = 0; i < (sizeof(sem_newest_ver_data) / sizeof(sem_newest_ver_data[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_newest_ver_data); i++)
 		Util_str_free(&sem_newest_ver_data[i]);
 
 	//Global.

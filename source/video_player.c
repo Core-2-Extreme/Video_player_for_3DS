@@ -3700,7 +3700,7 @@ static uint32_t Vid_load_settings(void)
 		};
 
 		//Try to load settings.
-		for(uint8_t i = 0; i < (sizeof(settings_element_list) / sizeof(settings_element_list[0])); i++)
+		for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(settings_element_list); i++)
 		{
 			DEF_LOG_RESULT_SMART(result, Util_parse_file((char*)cache, settings_element_list[i], out_data), (result == DEF_SUCCESS), result);
 			if(result == DEF_SUCCESS)
@@ -3734,7 +3734,7 @@ static uint32_t Vid_load_settings(void)
 	vid_player.restart_playback_threshold = ((settings_valid_until > 16) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[16]), NULL, 10), 0) : 48);
 	vid_player.num_of_threads = ((settings_valid_until > 17) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[17]), NULL, 10), 0) : Vid_get_default_num_of_threads());
 
-	for(uint8_t i = 0; i < (sizeof(out_data) / sizeof(out_data[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(out_data); i++)
 		Util_str_free(&out_data[i]);
 
 	if(!DEF_SEM_MODEL_IS_NEW(state.console_model))

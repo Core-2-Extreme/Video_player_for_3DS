@@ -513,7 +513,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 
 		if (block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
 		{
-			for(uint32_t i = 0; i < (sizeof(util_exfont_ignore_chars) / sizeof(util_exfont_ignore_chars[0])); i++)
+			for(uint32_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_ignore_chars); i++)
 			{
 				if(strcmp(util_exfont_ignore_chars[i].buffer, in_part_string[s].buffer) == 0)
 				{
@@ -1346,7 +1346,7 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 				unknown = true;
 		}
 
-		if(unknown || (base_index + offset) >= (sizeof(util_exfont_font_images) / sizeof(util_exfont_font_images[0])))
+		if(unknown || (base_index + offset) >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_font_images))
 		{
 			base_index = 0;
 			offset = 0;

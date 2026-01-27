@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "system/util/str_types.h"
 
-#define DEF_UTIL_LOW_HEAP_THRESHOLD		(uint32_t)(1000 * 1000 * 2.5)
+#define DEF_UTIL_LOW_HEAP_THRESHOLD			(uint32_t)(1000 * 1000 * 2.5)
+#define DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(x)	(uint32_t)(sizeof(x) / sizeof((x)[0]))
 
 /**
  * @brief Initialize util API.

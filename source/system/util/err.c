@@ -12,6 +12,7 @@
 #include "system/util/hid.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/util.h"
 #include "system/util/watch.h"
 
 //Defines.
@@ -56,7 +57,7 @@ uint32_t Util_err_init(void)
 	util_err_ok_button = Draw_get_empty_image();
 	util_err_save_button = Draw_get_empty_image();
 
-	for(uint8_t i = 0; i < (sizeof(str_list) / sizeof(str_list[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(str_list); i++)
 	{
 		result = Util_str_init(str_list[i]);
 		if(result != DEF_SUCCESS)
@@ -85,7 +86,7 @@ uint32_t Util_err_init(void)
 	return DEF_ERR_ALREADY_INITIALIZED;
 
 	error_other:
-	for(uint8_t i = 0; i < (sizeof(str_list) / sizeof(str_list[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(str_list); i++)
 		Util_str_free(str_list[i]);
 
 	Menu_remove_worker_thread_callback(Util_err_save_callback);
@@ -100,7 +101,7 @@ void Util_err_exit(void)
 		return;
 
 	util_err_init = false;
-	for(uint8_t i = 0; i < (sizeof(str_list) / sizeof(str_list[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(str_list); i++)
 		Util_str_free(str_list[i]);
 
 	Menu_remove_worker_thread_callback(Util_err_save_callback);
@@ -152,7 +153,7 @@ void Util_err_clear_error_message(void)
 	if(!util_err_init)
 		return;
 
-	for(uint8_t i = 0; i < (sizeof(str_list) / sizeof(str_list[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(str_list); i++)
 		Util_str_set(str_list[i], "N/A");
 }
 

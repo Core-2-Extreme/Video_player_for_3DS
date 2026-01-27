@@ -140,7 +140,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
 		goto error_other;
 	}
-	for(uint8_t i = 0; i < (sizeof(util_draw_wifi_icon_image) / sizeof(util_draw_wifi_icon_image[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_wifi_icon_image); i++)
 		util_draw_wifi_icon_image[i].c2d = texture_cache[i];
 
 	result = Draw_load_texture("romfs:/gfx/draw/battery_level.t3x", 1, texture_cache, 0, 21);
@@ -149,7 +149,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
 		goto error_other;
 	}
-	for(uint8_t i = 0; i < (sizeof(util_draw_battery_level_icon_image) / sizeof(util_draw_battery_level_icon_image[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_battery_level_icon_image); i++)
 		util_draw_battery_level_icon_image[i].c2d = texture_cache[i];
 
 	result = Draw_load_texture("romfs:/gfx/draw/battery_charge.t3x", 2, texture_cache, 0, 1);
@@ -158,7 +158,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
 		goto error_other;
 	}
-	for(uint8_t i = 0; i < (sizeof(util_draw_battery_charge_icon_image) / sizeof(util_draw_battery_charge_icon_image[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_battery_charge_icon_image); i++)
 		util_draw_battery_charge_icon_image[i].c2d = texture_cache[i];
 
 	result = Draw_load_texture("romfs:/gfx/draw/eco.t3x", 3, texture_cache, 0, 2);
@@ -167,7 +167,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 		DEF_LOG_RESULT(Draw_load_texture, false, result);
 		goto error_other;
 	}
-	for(uint8_t i = 0; i < (sizeof(util_draw_eco_image) / sizeof(util_draw_eco_image[0])); i++)
+	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_eco_image); i++)
 		util_draw_eco_image[i].c2d = texture_cache[i];
 
 	result = Draw_load_texture("romfs:/gfx/draw/square.t3x", 4, texture_cache, 0, 1);
@@ -813,7 +813,7 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 	if(!util_draw_init)
 		return;
 
-	max_wifi_signal = ((sizeof(util_draw_wifi_icon_image) / sizeof(util_draw_wifi_icon_image[0])) - 1);
+	max_wifi_signal = (DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_wifi_icon_image) - 1);
 	if(wifi_signal >= max_wifi_signal)
 		wifi_signal = max_wifi_signal;
 

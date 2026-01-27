@@ -1321,10 +1321,10 @@ void Vid_hid(const Hid_info* key)
 			}
 			else if(DEF_VID_HID_FULL_SEEK_FWD_CFM(*key))
 			{
-				if(current_bar_pos + (vid_player.seek_duration * 1000) > vid_player.media_duration)
+				if((current_bar_pos + DEF_UTIL_S_TO_MS_D(vid_player.seek_duration)) > vid_player.media_duration)
 					vid_player.seek_pos = vid_player.media_duration;
 				else
-					vid_player.seek_pos = current_bar_pos + (vid_player.seek_duration * 1000);
+					vid_player.seek_pos = (current_bar_pos + DEF_UTIL_S_TO_MS_D(vid_player.seek_duration));
 
 				//Seek the video.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
@@ -1332,10 +1332,10 @@ void Vid_hid(const Hid_info* key)
 			}
 			else if(DEF_VID_HID_FULL_SEEK_BACK_CFM(*key))
 			{
-				if(current_bar_pos - (vid_player.seek_duration * 1000) < 0)
+				if((current_bar_pos - DEF_UTIL_S_TO_MS_D(vid_player.seek_duration)) < 0)
 					vid_player.seek_pos = 0;
 				else
-					vid_player.seek_pos = current_bar_pos - (vid_player.seek_duration * 1000);
+					vid_player.seek_pos = (current_bar_pos - DEF_UTIL_S_TO_MS_D(vid_player.seek_duration));
 
 				//Seek the video.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
@@ -1906,14 +1906,14 @@ void Vid_main(void)
 					Util_str_add(&bottom_left_msg, "\n");
 
 				if(vid_player.seek_bar.selected)
-					current_bar_pos = vid_player.seek_pos_cache / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.seek_pos_cache);
 				else if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
-					current_bar_pos = vid_player.seek_pos / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.seek_pos);
 				else
-					current_bar_pos = vid_player.media_current_pos / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.media_current_pos);
 
 				Util_convert_seconds_to_time(current_bar_pos, &time_str[0]);
-				Util_convert_seconds_to_time((vid_player.media_duration / 1000), &time_str[1]);
+				Util_convert_seconds_to_time(DEF_UTIL_MS_TO_S_D(vid_player.media_duration), &time_str[1]);
 
 				//Display current video pos.
 				Util_str_format_append(&bottom_left_msg, "%s/%s", DEF_STR_NEVER_NULL(&time_str[0]), DEF_STR_NEVER_NULL(&time_str[1]));
@@ -2526,7 +2526,7 @@ void Vid_main(void)
 						uint32_t samplerate = vid_player.audio_info[vid_player.selected_audio_track].sample_rate;
 
 						if(playing_audio_ch != 0 && samplerate != 0)
-							buffer_health_ms = ((double)buffer_health_ms / playing_audio_ch / samplerate * 1000);
+							buffer_health_ms = DEF_UTIL_S_TO_MS((double)buffer_health_ms / playing_audio_ch / samplerate);
 						else
 							buffer_health_ms = 0;
 
@@ -2656,21 +2656,21 @@ void Vid_main(void)
 
 				//Draw time bar.
 				if(vid_player.seek_bar.selected)
-					current_bar_pos = vid_player.seek_pos_cache / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.seek_pos_cache);
 				else if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
-					current_bar_pos = vid_player.seek_pos / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.seek_pos);
 				else
-					current_bar_pos = vid_player.media_current_pos / 1000;
+					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.media_current_pos);
 
 				Util_convert_seconds_to_time(current_bar_pos, &time_str[0]);
-				Util_convert_seconds_to_time((vid_player.media_duration / 1000), &time_str[1]);
+				Util_convert_seconds_to_time(DEF_UTIL_MS_TO_S_D(vid_player.media_duration), &time_str[1]);
 
 				Util_str_format(&format_str, "%s/%s", DEF_STR_NEVER_NULL(&time_str[0]), DEF_STR_NEVER_NULL(&time_str[1]));
 				Draw(&format_str, 10, 192.5, 0.5, 0.5, color);
 
 				Draw_texture(&vid_player.seek_bar, DEF_DRAW_GREEN, 5, 210, 310, 10);
 				if(vid_player.media_duration != 0)
-					Draw_texture(&background, 0xFF800080, 5, 210, 310 * (current_bar_pos / (vid_player.media_duration / 1000)), 10);
+					Draw_texture(&background, 0xFF800080, 5, 210, (310 * (current_bar_pos / DEF_UTIL_MS_TO_S_D(vid_player.media_duration))), 10);
 
 				if(vid_player.is_displaying_controls)
 				{
@@ -4528,9 +4528,9 @@ void Vid_decode_thread(void* arg)
 
 						//Use the longest duration as duration for this file.
 						if(num_of_video_tracks > 0)
-							vid_player.media_duration = vid_player.video_info[0].duration * 1000;
-						if(num_of_audio_tracks > 0 && vid_player.audio_info[vid_player.selected_audio_track].duration * 1000 > vid_player.media_duration)
-							vid_player.media_duration = vid_player.audio_info[vid_player.selected_audio_track].duration * 1000;
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[0].duration);
+						if(num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
 
 						//Can't play subtitle alone.
 						if(num_of_audio_tracks == 0 && num_of_video_tracks == 0)
@@ -4747,9 +4747,9 @@ void Vid_decode_thread(void* arg)
 
 						//Use the longest duration as duration for this file.
 						if(vid_player.num_of_video_tracks > 0)
-							vid_player.media_duration = vid_player.video_info[0].duration * 1000;
-						if(vid_player.num_of_audio_tracks > 0 && vid_player.audio_info[vid_player.selected_audio_track].duration * 1000 > vid_player.media_duration)
-							vid_player.media_duration = vid_player.audio_info[vid_player.selected_audio_track].duration * 1000;
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[0].duration);
+						if(vid_player.num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
 					}
 
 					break;
@@ -4811,7 +4811,7 @@ void Vid_decode_thread(void* arg)
 							double saved_pos = vid_player.media_current_pos;
 							Str_data time = { 0, };
 
-							if(Util_convert_seconds_to_time((saved_pos / 1000), &time) == DEF_SUCCESS)
+							if(Util_convert_seconds_to_time(DEF_UTIL_MS_TO_S_D(saved_pos), &time) == DEF_SUCCESS)
 								DEF_LOG_FORMAT("last pos : %s", time.buffer);
 
 							Util_file_save_to_file(cache_file_name.buffer, DEF_MENU_MAIN_DIR "saved_pos/", (uint8_t*)(&saved_pos), sizeof(double), true);
@@ -5121,7 +5121,7 @@ void Vid_decode_thread(void* arg)
 			//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
 			//3DS only supports up to 2ch.
 			playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-			audio_buffer_health_ms = (audio_buffers_size / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+			audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(audio_buffers_size / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 
 			//Update audio position.
 			if(vid_player.num_of_audio_tracks > 0)
@@ -5591,7 +5591,7 @@ void Vid_decode_video_thread(void* arg)
 										if(vid_player.video_frametime <= 0)
 											Util_sleep(10000);
 										else
-											Util_sleep(vid_player.video_frametime * 1000);
+											Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
 
 										//If we get clear cache or abort request while waiting, break the loop.
 										if(Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST)
@@ -5963,7 +5963,7 @@ void Vid_convert_thread(void* arg)
 				if(buffer_health + 1 >= DEF_VID_VIDEO_BUFFERS)
 				{
 					//Buffer is full.
-					Util_sleep(vid_player.video_frametime * 1000);
+					Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
 
 					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(0) >= 1)
 					{
@@ -5972,7 +5972,7 @@ void Vid_convert_thread(void* arg)
 
 						//Audio exist, sync with audio time.
 						//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-						double audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+						double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 						vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 					}
 
@@ -5993,7 +5993,7 @@ void Vid_convert_thread(void* arg)
 					uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
 
 					//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-					double audio_buffer_health_ms = (Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate * 1000);
+					double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(0) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 					vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
 				}
 

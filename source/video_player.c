@@ -72,6 +72,7 @@
 #define DEF_VID_MENU_SETTINGS_0								(int8_t)(0)
 #define DEF_VID_MENU_SETTINGS_1								(int8_t)(1)
 #define DEF_VID_MENU_INFO									(int8_t)(2)
+#define DEF_VID_MENU_MAX									(int8_t)(3)
 
 #define DEF_VID_NO_REPEAT									(uint8_t)(0)
 #define DEF_VID_REPEAT										(uint8_t)(1)
@@ -147,16 +148,16 @@
 //Open menu.
 #define DEF_VID_HID_OPEN_MENU_CFM(k)						(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
 //Open setting menu 0.
-#define DEF_VID_HID_OPEN_SETTING_0_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[0], (k)))
-#define DEF_VID_HID_OPEN_SETTING_0_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[0], (k)))
+#define DEF_VID_HID_OPEN_SETTING_0_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[DEF_VID_MENU_SETTINGS_0], (k)))
+#define DEF_VID_HID_OPEN_SETTING_0_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[DEF_VID_MENU_SETTINGS_0], (k)))
 #define DEF_VID_HID_OPEN_SETTING_0_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Open setting menu 1.
-#define DEF_VID_HID_OPEN_SETTING_1_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[1], (k)))
-#define DEF_VID_HID_OPEN_SETTING_1_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[1], (k)))
+#define DEF_VID_HID_OPEN_SETTING_1_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[DEF_VID_MENU_SETTINGS_1], (k)))
+#define DEF_VID_HID_OPEN_SETTING_1_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[DEF_VID_MENU_SETTINGS_1], (k)))
 #define DEF_VID_HID_OPEN_SETTING_1_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Open debug info menu.
-#define DEF_VID_HID_OPEN_INFO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[2], (k)))
-#define DEF_VID_HID_OPEN_INFO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[2], (k)))
+#define DEF_VID_HID_OPEN_INFO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[DEF_VID_MENU_INFO], (k)))
+#define DEF_VID_HID_OPEN_INFO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[DEF_VID_MENU_INFO], (k)))
 #define DEF_VID_HID_OPEN_INFO_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Open control.
 #define DEF_VID_HID_CONTROL_SEL(k)							(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
@@ -568,7 +569,7 @@ typedef struct
 	//Buttons.
 	Draw_image_data select_audio_track_button, texture_filter_button, allow_skip_frames_button, allow_skip_key_frames_button,
 	volume_button, seek_duration_button, use_hw_decoding_button, use_hw_color_conversion_button, use_multi_threaded_decoding_button,
-	lower_resolution_button, decrement_num_of_threads_button, increment_num_of_threads_button, menu_button[3], control_button,
+	lower_resolution_button, decrement_num_of_threads_button, increment_num_of_threads_button, menu_button[DEF_VID_MENU_MAX], control_button,
 	audio_track_ok_button, audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS], correct_aspect_ratio_button, move_content_button,
 	remember_video_pos_button, show_decode_graph_button, show_color_conversion_graph_button, show_packet_buffer_graph_button,
 	show_raw_video_buffer_graph_button, show_raw_audio_buffer_graph_button, scroll_bar, playback_mode_button, subtitle_track_ok_button,
@@ -770,9 +771,9 @@ void Vid_hid(const Hid_info* key)
 			else if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_0)
 			{
 				if(DEF_VID_HID_OPEN_SETTING_1_SEL(*key))
-					vid_player.menu_button[1].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_SETTINGS_1].selected = true;
 				if(DEF_VID_HID_OPEN_INFO_SEL(*key))
-					vid_player.menu_button[2].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_INFO].selected = true;
 				if(DEF_VID_HID_SCROLL_BAR_SEL(*key))
 					vid_player.scroll_bar.selected = true;
 				if(DEF_VID_HID_SE0_A_TRACK_SELECTION_SEL(*key))
@@ -806,9 +807,9 @@ void Vid_hid(const Hid_info* key)
 			if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_1)
 			{
 				if(DEF_VID_HID_OPEN_SETTING_0_SEL(*key))
-					vid_player.menu_button[0].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_SETTINGS_0].selected = true;
 				if(DEF_VID_HID_OPEN_INFO_SEL(*key))
-					vid_player.menu_button[2].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_INFO].selected = true;
 				if(DEF_VID_HID_SCROLL_BAR_SEL(*key))
 					vid_player.scroll_bar.selected = true;
 				if(vid_player.state == PLAYER_STATE_IDLE)
@@ -839,9 +840,9 @@ void Vid_hid(const Hid_info* key)
 			else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
 			{
 				if(DEF_VID_HID_OPEN_SETTING_0_SEL(*key))
-					vid_player.menu_button[0].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_SETTINGS_0].selected = true;
 				if(DEF_VID_HID_OPEN_SETTING_1_SEL(*key))
-					vid_player.menu_button[1].selected = true;
+					vid_player.menu_button[DEF_VID_MENU_SETTINGS_1].selected = true;
 				if(DEF_VID_HID_SCROLL_BAR_SEL(*key))
 					vid_player.scroll_bar.selected = true;
 				if(DEF_VID_HID_INFO_DECODING_GRAPH_SEL(*key))
@@ -1467,11 +1468,11 @@ void Vid_hid(const Hid_info* key)
 	if(DEF_VID_HID_SEEK_BAR_DESEL(*key))//We prioritize this over scroll mode.
 		vid_player.seek_bar.selected = false;
 	if(DEF_VID_HID_OPEN_SETTING_0_DESEL(*key) || vid_player.is_scroll_mode)
-		vid_player.menu_button[0].selected = false;
+		vid_player.menu_button[DEF_VID_MENU_SETTINGS_0].selected = false;
 	if(DEF_VID_HID_OPEN_SETTING_1_DESEL(*key) || vid_player.is_scroll_mode)
-		vid_player.menu_button[1].selected = false;
+		vid_player.menu_button[DEF_VID_MENU_SETTINGS_1].selected = false;
 	if(DEF_VID_HID_OPEN_INFO_DESEL(*key) || vid_player.is_scroll_mode)
-		vid_player.menu_button[2].selected = false;
+		vid_player.menu_button[DEF_VID_MENU_INFO].selected = false;
 	if(DEF_VID_HID_A_TRACK_CONFIRM_DESEL(*key))//No scroll exists in the sub window.
 		vid_player.audio_track_ok_button.selected = false;
 	if(DEF_VID_HID_A_TRACK_ITEM_DESEL(*key))//No scroll exists in the sub window.
@@ -2360,8 +2361,8 @@ void Vid_main(void)
 					}
 
 					Draw_texture(&background, DEF_DRAW_YELLOW, 0, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[1], vid_player.menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[2], vid_player.menu_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_SETTINGS_1], vid_player.menu_button[DEF_VID_MENU_SETTINGS_1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_INFO], vid_player.menu_button[DEF_VID_MENU_INFO].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
 				}
 				else if(vid_player.menu_mode == DEF_VID_MENU_SETTINGS_1)
 				{
@@ -2488,9 +2489,9 @@ void Vid_main(void)
 						vid_player.increment_num_of_threads_button.y_size = -1;
 					}
 
-					Draw_texture(&vid_player.menu_button[0], vid_player.menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_SETTINGS_0], vid_player.menu_button[DEF_VID_MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
 					Draw_texture(&background, DEF_DRAW_YELLOW, 110, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[2], vid_player.menu_button[2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_INFO], vid_player.menu_button[DEF_VID_MENU_INFO].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
 				}
 				else if(vid_player.menu_mode == DEF_VID_MENU_INFO)
 				{
@@ -2722,8 +2723,8 @@ void Vid_main(void)
 						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
 					}
 
-					Draw_texture(&vid_player.menu_button[0], vid_player.menu_button[0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[1], vid_player.menu_button[1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_SETTINGS_0], vid_player.menu_button[DEF_VID_MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[DEF_VID_MENU_SETTINGS_1], vid_player.menu_button[DEF_VID_MENU_SETTINGS_1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
 					Draw_texture(&background, DEF_DRAW_YELLOW, 220, 180, 100, 8);
 				}
 
@@ -4025,9 +4026,6 @@ void Vid_init_thread(void* arg)
 	vid_player.lower_resolution_button = Draw_get_empty_image();
 	vid_player.decrement_num_of_threads_button = Draw_get_empty_image();
 	vid_player.increment_num_of_threads_button = Draw_get_empty_image();
-	vid_player.menu_button[0] = Draw_get_empty_image();
-	vid_player.menu_button[1] = Draw_get_empty_image();
-	vid_player.menu_button[2] = Draw_get_empty_image();
 	vid_player.control_button = Draw_get_empty_image();
 	vid_player.audio_track_ok_button = Draw_get_empty_image();
 	vid_player.subtitle_track_ok_button = Draw_get_empty_image();
@@ -4053,6 +4051,9 @@ void Vid_init_thread(void* arg)
 
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		vid_player.subtitle_track_button[i] = Draw_get_empty_image();
+
+	for(uint8_t i = 0; i < DEF_VID_MENU_MAX; i++)
+		vid_player.menu_button[i] = Draw_get_empty_image();
 
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state, sizeof(vid_player.state));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_audio_track, sizeof(vid_player.is_selecting_audio_track));
@@ -4133,7 +4134,7 @@ void Vid_init_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_button[i].selected, sizeof(vid_player.subtitle_track_button[i].selected));
 
-	for(uint8_t i = 0; i < 3; i++)
+	for(uint8_t i = 0; i < DEF_VID_MENU_MAX; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected, sizeof(vid_player.menu_button[i].selected));
 
 	Util_str_add(&vid_status, "\nInitializing queue...");
@@ -4293,7 +4294,7 @@ void Vid_exit_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_button[i].selected);
 
-	for(uint8_t i = 0; i < 3; i++)
+	for(uint8_t i = 0; i < DEF_VID_MENU_MAX; i++)
 		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected);
 
 	Util_queue_delete(&vid_player.decode_thread_command_queue);

@@ -29,61 +29,6 @@
 #include "system/util/watch.h"
 
 //Defines.
-#define NUM_OF_MSG									(uint16_t)(42)
-
-#define TEX_FILTER_MSG								(uint8_t)(0)
-#define CONTROLS_MSG								(uint8_t)(1)
-#define SKIP_FRAME_MSG								(uint8_t)(2)
-#define CONTROL_DESCRIPTION_MSG						(uint8_t)(3)
-#define AUDIO_TRACK_DESCRIPTION_MSG					(uint8_t)(10)
-#define AUDIO_TRACK_MSG								(uint8_t)(11)
-#define FULL_SCREEN_MSG								(uint8_t)(12)
-#define HW_DECODER_MSG								(uint8_t)(13)
-#define HW_CONVERTER_MSG							(uint8_t)(14)
-#define MULTI_THREAD_MSG							(uint8_t)(15)
-#define SKIP_KEY_FRAME_MSG							(uint8_t)(16)
-#define LOWER_RESOLUTION_MSG						(uint8_t)(17)
-#define SEEKING_MSG									(uint8_t)(18)
-#define SEEK_MSG									(uint8_t)(19)
-#define VOLUME_MSG									(uint8_t)(20)
-#define ASPECT_RATIO_MSG							(uint8_t)(21)
-#define MOVE_MODE_MSG								(uint8_t)(22)
-#define REMEMBER_POS_MSG							(uint8_t)(23)
-#define PLAY_METHOD_MSG								(uint8_t)(24)
-#define NO_REPEAT_MSG								(uint8_t)(25)
-// #define REPEAT_MSG									(uint8_t)(26)							//Referenced by (NO_REPEAT_MSG + x).
-// #define IN_ORDER_MSG								(uint8_t)(27)							//Referenced by (NO_REPEAT_MSG + x).
-// #define RANDOM_MSG									(uint8_t)(28)							//Referenced by (NO_REPEAT_MSG + x).
-#define MOVE_MODE_DIABLE_MSG						(uint8_t)(29)
-// #define MOVE_MODE_ENABLE_BOTH_MSG					(uint8_t)(30)							//Referenced by (MOVE_MODE_DIABLE_MSG + x).
-// #define MOVE_MODE_ENABLE_VIDEO_MSG					(uint8_t)(31)							//Referenced by (MOVE_MODE_DIABLE_MSG + x).
-// #define MOVE_MODE_ENABLE_SUBTITLE_MSG				(uint8_t)(32)							//Referenced by (MOVE_MODE_DIABLE_MSG + x).
-#define SUBTITLE_TRACK_DESCRIPTION_MSG				(uint8_t)(33)
-#define SUBTITLE_TRACK_MSG							(uint8_t)(34)
-#define BRIGHTNESS_MSG								(uint8_t)(35)
-#define DISABLE_AUDIO_MSG							(uint8_t)(36)
-#define DISABLE_VIDEO_MSG							(uint8_t)(37)
-#define DISABLE_SUBTITLE_MSG						(uint8_t)(38)
-#define RESTART_PLAYBACK_THRESHOLD_MSG				(uint8_t)(39)
-#define PROCESSING_VIDEO_MSG						(uint8_t)(40)
-#define NUM_OF_THREADS_MSG							(uint8_t)(41)
-
-#define MENU_NONE									(int8_t)(-1)
-#define MENU_SETTINGS_0								(int8_t)(0)
-#define MENU_SETTINGS_1								(int8_t)(1)
-#define MENU_INFO									(int8_t)(2)
-#define MENU_MAX									(int8_t)(3)
-
-#define NO_REPEAT									(uint8_t)(0)
-#define REPEAT										(uint8_t)(1)
-#define IN_ORDER									(uint8_t)(2)
-#define RANDOM										(uint8_t)(3)
-
-#define MOVE_DISABLE								(uint8_t)(0)
-#define MOVE_BOTH									(uint8_t)(1)
-#define MOVE_VIDEO									(uint8_t)(2)
-#define MOVE_SUBTITLE								(uint8_t)(3)
-
 #define VIDEO_BUFFERS								(uint8_t)(4)
 #define SUBTITLE_BUFFERS							(uint8_t)(16)
 #define MAX_FILE_NAME_LENGTH						(uint16_t)(256)
@@ -410,6 +355,85 @@ typedef enum
 	PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT		= (1 << 4),	//Waiting for seek backward.
 } Vid_player_sub_state;
 
+typedef enum
+{
+	MSG_TEX_FILTER,
+	MSG_CONTROLS,
+	MSG_SKIP_FRAME,
+	MSG_CONTROL_DESCRIPTION,
+	MSG_CONTROL_DESCRIPTION_1,
+	MSG_CONTROL_DESCRIPTION_2,
+	MSG_CONTROL_DESCRIPTION_3,
+	MSG_CONTROL_DESCRIPTION_4,
+	MSG_CONTROL_DESCRIPTION_5,
+	MSG_CONTROL_DESCRIPTION_6,
+	MSG_AUDIO_TRACK_DESCRIPTION,
+	MSG_AUDIO_TRACK,
+	MSG_FULL_SCREEN,
+	MSG_HW_DECODER,
+	MSG_HW_CONVERTER,
+	MSG_MULTI_THREAD,
+	MSG_SKIP_KEY_FRAME,
+	MSG_LOWER_RESOLUTION,
+	MSG_SEEKING,
+	MSG_SEEK,
+	MSG_VOLUME,
+	MSG_ASPECT_RATIO,
+	MSG_MOVE_MODE,
+	MSG_REMEMBER_POS,
+	MSG_PLAY_METHOD,
+	MSG_NO_REPEAT,
+	MSG_REPEAT,
+	MSG_IN_ORDER,
+	MSG_RANDOM,
+	MSG_MOVE_MODE_DIABLE,
+	MSG_MOVE_MODE_ENABLE_BOTH,
+	MSG_MOVE_MODE_ENABLE_VIDEO,
+	MSG_MOVE_MODE_ENABLE_SUBTITLE,
+	MSG_SUBTITLE_TRACK_DESCRIPTION,
+	MSG_SUBTITLE_TRACK,
+	MSG_BRIGHTNESS,
+	MSG_DISABLE_AUDIO,
+	MSG_DISABLE_VIDEO,
+	MSG_DISABLE_SUBTITLE,
+	MSG_RESTART_PLAYBACK_THRESHOLD,
+	MSG_PROCESSING_VIDEO,
+	MSG_NUM_OF_THREADS,
+
+	MSG_MAX,
+} Vid_msg;
+
+typedef enum
+{
+	MENU_NONE = -1,		//No menu is displayed.
+
+	MENU_SETTINGS_0,	//Setting 0 menu is displayed.
+	MENU_SETTINGS_1,	//Setting 1 menu is displayed.
+	MENU_INFO,			//Debug info menu is displayed.
+
+	MENU_MAX,
+} Vid_menu;
+
+typedef enum
+{
+	PLAYBACK_NO_REPEAT,		//One shot playback mode.
+	PLAYBACK_REPEAT,		//Repeat playback mode.
+	PLAYBACK_IN_ORDER,		//Sequential playback mode.
+	PLAYBACK_RANDOM,		//Random playback mode.
+
+	PLAYBACK_MAX,
+} Vid_playback;
+
+typedef enum
+{
+	MOVE_DISABLE,		//Move nothing.
+	MOVE_BOTH,			//Move both video and subtitle.
+	MOVE_VIDEO,			//Only move the video.
+	MOVE_SUBTITLE,		//Only move the subtitle.
+
+	MOVE_MAX,
+} Vid_move;
+
 typedef struct
 {
 	uint32_t image_width;
@@ -439,11 +463,11 @@ typedef struct
 	bool correct_aspect_ratio;						//Whether correct aspect ratio based on SAR values.
 	bool allow_skip_frames;							//Whether allow skip non-keyframes when it can't keep up.
 	bool allow_skip_key_frames;						//Whether allow skip keyframes when it can't keep up.
-	uint8_t playback_mode;							//Playback mode.
-	uint8_t move_content_mode;						//Move content mode.
 	uint8_t seek_duration;							//Seek duration for DPAD (direction pad) left and right in seconds.
 	uint16_t restart_playback_threshold;			//Restart playback threshold after out of video buffer.
 	uint16_t volume;								//Software controlled volume level in %.
+	Vid_playback playback_mode;						//Playback mode.
+	Vid_move move_content_mode;						//Move content mode.
 
 	//Settings (can NOT be changed while playing videos).
 	bool disable_audio;								//Whether disable audio.
@@ -553,13 +577,13 @@ typedef struct
 	bool is_displaying_controls;					//Whether user is checking how to control.
 	bool is_scroll_mode;							//Whether scroll mode is active.
 	bool must_resume_after_home_menu;				//Whether player must resume playback after nintendo home menu resuming the app.
-	int8_t menu_mode;								//Current menu tab.
 	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full-screen mode.
 	uint64_t show_screen_brightness_until;			//Display screen brightness message until this time.
 	uint64_t show_current_pos_until;				//Display current position message until this time.
 	double ui_y_offset_min;							//Minimum Y (vertical) offset for UI.
 	double ui_y_offset;								//Y (vertical) offset for UI.
 	double ui_y_move;								//Remaining Y (vertical) direction movement, this is used for scrolling.
+	Vid_menu menu_mode;								//Current menu tab.
 
 	uint32_t banner_texture_handle;					//Banner texture handle used for freeing texture.
 	uint32_t control_texture_handle;				//Control texture handle used for freeing texture.
@@ -652,7 +676,7 @@ static bool vid_thread_run = false;
 static bool vid_already_init = false;
 static bool vid_thread_suspend = true;
 static Str_data vid_status = { 0, };
-static Str_data vid_msg[NUM_OF_MSG] = { 0, };
+static Str_data vid_msg[MSG_MAX] = { 0, };
 static Thread vid_init_thread = 0, vid_exit_thread = 0;
 static Vid_player vid_player = { 0, };
 
@@ -1135,19 +1159,19 @@ void Vid_hid(const Hid_info* key)
 					}
 					else if(HID_SE0_MOVE_CONTENT_MODE_CFM(*key))//Disable resize and move button.
 					{
-						if(vid_player.move_content_mode + 1 > MOVE_SUBTITLE)
+						if((vid_player.move_content_mode + 1) > MOVE_SUBTITLE)
 							vid_player.move_content_mode = MOVE_DISABLE;
 						else
-							vid_player.move_content_mode++;
+							vid_player.move_content_mode = (Vid_move)(vid_player.move_content_mode + 1);
 					}
 					else if(HID_SE0_SAVE_MEDIA_POS_CFM(*key))//Remember video pos button.
 						vid_player.remember_video_pos = !vid_player.remember_video_pos;
 					else if(HID_SE0_PLAYBACK_MODE_CFM(*key))//Playback mode button.
 					{
-						if(vid_player.playback_mode + 1 > RANDOM)
-							vid_player.playback_mode = NO_REPEAT;
+						if((vid_player.playback_mode + 1) >= PLAYBACK_MAX)
+							vid_player.playback_mode = PLAYBACK_NO_REPEAT;
 						else
-							vid_player.playback_mode++;
+							vid_player.playback_mode = (Vid_playback)(vid_player.playback_mode + 1);
 					}
 					else if(HID_SE0_RESUME_PLAYBACK_THRESHOLD_CFM(*key))//Restart playback threshold button.
 					{
@@ -1570,7 +1594,7 @@ uint32_t Vid_load_msg(const char* lang)
 	char file_name[32] = { 0, };
 
 	snprintf(file_name, sizeof(file_name), "vid_%s.txt", (lang ? lang : ""));
-	return Util_load_msg(file_name, vid_msg, NUM_OF_MSG);
+	return Util_load_msg(file_name, vid_msg, MSG_MAX);
 }
 
 void Vid_init(bool draw)
@@ -1968,13 +1992,13 @@ void Vid_main(void)
 			if(vid_player.is_full_screen && vid_player.turn_off_bottom_screen_count > 0 && vid_player.show_full_screen_msg)
 			{
 				//Display exit full-screen message.
-				Util_str_add(&top_center_msg, vid_msg[FULL_SCREEN_MSG].buffer);
+				Util_str_add(&top_center_msg, vid_msg[MSG_FULL_SCREEN].buffer);
 			}
 
 			if(vid_player.show_screen_brightness_until >= osGetTime())
 			{
 				//Display current brightness.
-				Util_str_format_append(&bottom_left_msg, "%s%" PRIu8 "/180", DEF_STR_NEVER_NULL(&vid_msg[BRIGHTNESS_MSG]), config.top_lcd_brightness);
+				Util_str_format_append(&bottom_left_msg, "%s%" PRIu8 "/180", DEF_STR_NEVER_NULL(&vid_msg[MSG_BRIGHTNESS]), config.top_lcd_brightness);
 			}
 			if(vid_player.show_current_pos_until >= osGetTime())
 			{
@@ -2000,7 +2024,7 @@ void Vid_main(void)
 			if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
 			{
 				//Display seeking message.
-				Util_str_add(&bottom_center_msg, vid_msg[SEEKING_MSG].buffer);
+				Util_str_add(&bottom_center_msg, vid_msg[MSG_SEEKING].buffer);
 			}
 			if(vid_player.state == PLAYER_STATE_BUFFERING)
 			{
@@ -2008,7 +2032,7 @@ void Vid_main(void)
 					Util_str_add(&bottom_center_msg, "\n");
 
 				//Display decoding message.
-				Util_str_add(&bottom_center_msg, vid_msg[PROCESSING_VIDEO_MSG].buffer);
+				Util_str_add(&bottom_center_msg, vid_msg[MSG_PROCESSING_VIDEO].buffer);
 			}
 
 			if(Util_str_has_data(&top_center_msg))
@@ -2178,9 +2202,9 @@ void Vid_main(void)
 					//Playback mode.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						uint8_t current_playback_mode = NO_REPEAT_MSG + vid_player.playback_mode;
+						Vid_playback current_playback_mode = (Vid_playback)(MSG_NO_REPEAT + vid_player.playback_mode);
 
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[PLAY_METHOD_MSG]), DEF_STR_NEVER_NULL(&vid_msg[current_playback_mode]));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_PLAY_METHOD]), DEF_STR_NEVER_NULL(&vid_msg[current_playback_mode]));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.playback_mode_button, vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2196,7 +2220,7 @@ void Vid_main(void)
 					{
 						uint32_t temp_color = ((vid_player.sub_state & PLAYER_SUB_STATE_TOO_BIG) ? DEF_DRAW_RED : color);
 
-						Util_str_format(&format_str, "%s%" PRIu32 "%%", DEF_STR_NEVER_NULL(&vid_msg[VOLUME_MSG]), vid_player.volume);
+						Util_str_format(&format_str, "%s%" PRIu32 "%%", DEF_STR_NEVER_NULL(&vid_msg[MSG_VOLUME]), vid_player.volume);
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.volume_button, vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2210,7 +2234,7 @@ void Vid_main(void)
 					//Select audio track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Draw_with_background(&vid_msg[AUDIO_TRACK_MSG], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
+						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
@@ -2223,7 +2247,7 @@ void Vid_main(void)
 					//Select subtitle track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Draw_with_background(&vid_msg[SUBTITLE_TRACK_MSG], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
+						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
@@ -2236,7 +2260,7 @@ void Vid_main(void)
 					//Seek duration.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%" PRIu32 "s", DEF_STR_NEVER_NULL(&vid_msg[SEEK_MSG]), vid_player.seek_duration);
+						Util_str_format(&format_str, "%s%" PRIu32 "s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SEEK]), vid_player.seek_duration);
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.seek_duration_button, vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2250,7 +2274,7 @@ void Vid_main(void)
 					//Remember video pos.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[REMEMBER_POS_MSG]), (vid_player.remember_video_pos ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_REMEMBER_POS]), (vid_player.remember_video_pos ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.remember_video_pos_button, vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2264,7 +2288,7 @@ void Vid_main(void)
 					//Texture filter.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[TEX_FILTER_MSG]), (vid_player.use_linear_texture_filter ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_TEX_FILTER]), (vid_player.use_linear_texture_filter ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.texture_filter_button, vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2278,7 +2302,7 @@ void Vid_main(void)
 					//Correct aspect ratio.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[ASPECT_RATIO_MSG]), (vid_player.correct_aspect_ratio ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_ASPECT_RATIO]), (vid_player.correct_aspect_ratio ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.correct_aspect_ratio_button, vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2292,9 +2316,9 @@ void Vid_main(void)
 					//Move content mode.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						uint8_t current_move_content_mode = (MOVE_MODE_DIABLE_MSG + vid_player.move_content_mode);
+						Vid_move current_move_content_mode = (Vid_move)(MSG_MOVE_MODE_DIABLE + vid_player.move_content_mode);
 
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MOVE_MODE_MSG]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MOVE_MODE]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
 
 						//Temporal workaround for UI overflow.
 						if(strcmp(config.lang, "de") == 0)
@@ -2318,7 +2342,7 @@ void Vid_main(void)
 					//Allow skip frames.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[SKIP_FRAME_MSG]), (vid_player.allow_skip_frames ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_FRAME]), (vid_player.allow_skip_frames ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_frames_button, vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2334,7 +2358,7 @@ void Vid_main(void)
 					{
 						uint32_t temp_color = (vid_player.allow_skip_frames ? color : disabled_color);
 
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[SKIP_KEY_FRAME_MSG]), (vid_player.allow_skip_key_frames ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_KEY_FRAME]), (vid_player.allow_skip_key_frames ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_key_frames_button, vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2348,7 +2372,7 @@ void Vid_main(void)
 					//Restart playback threshold.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[RESTART_PLAYBACK_THRESHOLD_MSG]), vid_player.restart_playback_threshold);
+						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_RESTART_PLAYBACK_THRESHOLD]), vid_player.restart_playback_threshold);
 						Draw(&format_str, 12.5, y_offset + vid_player.ui_y_offset - 15, 0.5, 0.5, color);
 						Draw_texture(&background, DEF_DRAW_WEAK_BLACK, 12.5, y_offset + vid_player.ui_y_offset + 7.5, 300, 5);
 						Draw_texture(&vid_player.restart_playback_threshold_bar, vid_player.restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED,
@@ -2373,7 +2397,7 @@ void Vid_main(void)
 					//Disable audio.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[DISABLE_AUDIO_MSG]), (vid_player.disable_audio ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_AUDIO]), (vid_player.disable_audio ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_audio_button, vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2387,7 +2411,7 @@ void Vid_main(void)
 					//Disable video.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[DISABLE_VIDEO_MSG]), (vid_player.disable_video ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_VIDEO]), (vid_player.disable_video ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_video_button, vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2401,7 +2425,7 @@ void Vid_main(void)
 					//Disable subtitle.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[DISABLE_SUBTITLE_MSG]), (vid_player.disable_subtitle ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_SUBTITLE]), (vid_player.disable_subtitle ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_subtitle_button, vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2415,7 +2439,7 @@ void Vid_main(void)
 					//Use hw decoding.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[HW_DECODER_MSG]), (vid_player.use_hw_decoding ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_DECODER]), (vid_player.use_hw_decoding ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425,
 						(!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 						300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_decoding_button, vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
@@ -2430,7 +2454,7 @@ void Vid_main(void)
 					//Use hw color conversion.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[HW_CONVERTER_MSG]), (vid_player.use_hw_color_conversion ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_CONVERTER]), (vid_player.use_hw_color_conversion ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_color_conversion_button, vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2444,7 +2468,7 @@ void Vid_main(void)
 					//Use multi-threaded decoding (in software decoding).
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MULTI_THREAD_MSG]), (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"));
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MULTI_THREAD]), (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"));
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_multi_threaded_decoding_button, vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2458,7 +2482,7 @@ void Vid_main(void)
 					//Lower resolution.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[LOWER_RESOLUTION_MSG]), lower_resolution_mode[vid_player.lower_resolution]);
+						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_LOWER_RESOLUTION]), lower_resolution_mode[vid_player.lower_resolution]);
 						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
 						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.lower_resolution_button, vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
@@ -2472,7 +2496,7 @@ void Vid_main(void)
 					//Increment/decrement number of decoding threads.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[NUM_OF_THREADS_MSG]), vid_player.num_of_threads);
+						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_NUM_OF_THREADS]), vid_player.num_of_threads);
 						Draw(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
 
 						Draw_with_background_c("-", 265, y_offset + vid_player.ui_y_offset, 0.6, 0.6, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 20, 20,
@@ -2729,7 +2753,7 @@ void Vid_main(void)
 				}
 
 				//Controls.
-				Draw_with_background(&vid_msg[CONTROLS_MSG], 167.5, 195, 0.425, 0.425, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 145, 10,
+				Draw_with_background(&vid_msg[MSG_CONTROLS], 167.5, 195, 0.425, 0.425, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 145, 10,
 				DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.control_button, vid_player.control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 				//Draw time bar.
@@ -2759,30 +2783,30 @@ void Vid_main(void)
 					//Temporal workaround for UI overflow.
 					if(strcmp(config.lang, "ro") == 0 || strcmp(config.lang, "de") == 0)
 					{
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
 					}
 					else
 					{
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG], 122.5, 47.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 1], 122.5, 62.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 2], 122.5, 77.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 3], 122.5, 92.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 4], 135, 107.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 5], 122.5, 122.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[CONTROL_DESCRIPTION_MSG + 6], 132.5, 137.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, 0.45, 0.45, DEF_DRAW_BLACK);
 					}
 				}
 
 				if(vid_player.is_selecting_audio_track)
 				{
 					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
-					Draw(&vid_msg[AUDIO_TRACK_DESCRIPTION_MSG], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
+					Draw(&vid_msg[MSG_AUDIO_TRACK_DESCRIPTION], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_audio_tracks; i++)
 					{
@@ -2798,7 +2822,7 @@ void Vid_main(void)
 				if(vid_player.is_selecting_subtitle_track)
 				{
 					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
-					Draw(&vid_msg[SUBTITLE_TRACK_DESCRIPTION_MSG], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
+					Draw(&vid_msg[MSG_SUBTITLE_TRACK_DESCRIPTION], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_subtitle_tracks; i++)
 					{
@@ -3501,7 +3525,7 @@ static void Vid_init_settings(void)
 	vid_player.correct_aspect_ratio = true;
 	vid_player.allow_skip_frames = false;
 	vid_player.allow_skip_key_frames = false;
-	vid_player.playback_mode = NO_REPEAT;
+	vid_player.playback_mode = PLAYBACK_NO_REPEAT;
 	vid_player.move_content_mode = MOVE_BOTH;
 	vid_player.seek_duration = 5;
 	vid_player.restart_playback_threshold = 48;
@@ -3806,9 +3830,9 @@ static uint32_t Vid_load_settings(void)
 	vid_player.volume = ((settings_valid_until > 7) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[7]), NULL, 10), 0) : 100);
 	vid_player.seek_duration = ((settings_valid_until > 8) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[8]), NULL, 10), 0) : 10);
 	vid_player.correct_aspect_ratio = ((settings_valid_until > 9) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[9]), NULL, 10) != 0) : true);
-	vid_player.move_content_mode = ((settings_valid_until > 10) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : MOVE_BOTH);
+	vid_player.move_content_mode = ((settings_valid_until > 10) ? (Vid_move)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : MOVE_BOTH);
 	vid_player.remember_video_pos = ((settings_valid_until > 11) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[11]), NULL, 10) != 0) : true);
-	vid_player.playback_mode = ((settings_valid_until > 12) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : NO_REPEAT);
+	vid_player.playback_mode = ((settings_valid_until > 12) ? (Vid_playback)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : PLAYBACK_NO_REPEAT);
 	vid_player.disable_audio = ((settings_valid_until > 13) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[13]), NULL, 10) != 0) : false);
 	vid_player.disable_video = ((settings_valid_until > 14) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[14]), NULL, 10) != 0) : false);
 	vid_player.disable_subtitle = ((settings_valid_until > 15) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[15]), NULL, 10) != 0) : false);
@@ -3833,12 +3857,10 @@ static uint32_t Vid_load_settings(void)
 	if(vid_player.seek_duration > 99 || vid_player.seek_duration < 1)
 		vid_player.seek_duration = 10;
 
-	if(vid_player.playback_mode != NO_REPEAT && vid_player.playback_mode != REPEAT
-		&& vid_player.playback_mode != IN_ORDER && vid_player.playback_mode != RANDOM)
-		vid_player.playback_mode = NO_REPEAT;
+	if(vid_player.playback_mode >= PLAYBACK_MAX)
+		vid_player.playback_mode = PLAYBACK_NO_REPEAT;
 
-	if(vid_player.move_content_mode != MOVE_BOTH && vid_player.move_content_mode != MOVE_VIDEO
-	&& vid_player.move_content_mode != MOVE_SUBTITLE && vid_player.move_content_mode != MOVE_DISABLE)
+	if(vid_player.move_content_mode >= MOVE_MAX)
 		vid_player.move_content_mode = MOVE_BOTH;
 
 	if(vid_player.restart_playback_threshold >= DEF_DECODER_MAX_RAW_IMAGE)
@@ -3873,9 +3895,9 @@ static uint32_t Vid_save_settings(void)
 	Util_str_format_append(&data, "<7>%" PRIu16 "</7>", vid_player.volume);
 	Util_str_format_append(&data, "<8>%" PRIu8 "</8>", vid_player.seek_duration);
 	Util_str_format_append(&data, "<9>%" PRIu8 "</9>", vid_player.correct_aspect_ratio);
-	Util_str_format_append(&data, "<10>%" PRIu8 "</10>", vid_player.move_content_mode);
+	Util_str_format_append(&data, "<10>%" PRIu32 "</10>", (uint32_t)vid_player.move_content_mode);
 	Util_str_format_append(&data, "<11>%" PRIu8 "</11>", vid_player.remember_video_pos);
-	Util_str_format_append(&data, "<12>%" PRIu8 "</12>", vid_player.playback_mode);
+	Util_str_format_append(&data, "<12>%" PRIu32 "</12>", (uint32_t)vid_player.playback_mode);
 	Util_str_format_append(&data, "<13>%" PRIu8 "</13>", vid_player.disable_audio);
 	Util_str_format_append(&data, "<14>%" PRIu8 "</14>", vid_player.disable_video);
 	Util_str_format_append(&data, "<15>%" PRIu8 "</15>", vid_player.disable_subtitle);
@@ -3900,9 +3922,9 @@ static void Vid_log_settings(void)
 	DEF_LOG_UINT(vid_player.volume);
 	DEF_LOG_UINT(vid_player.seek_duration);
 	DEF_LOG_BOOL(vid_player.correct_aspect_ratio);
-	DEF_LOG_HEX(vid_player.move_content_mode);
+	DEF_LOG_HEX((uint32_t)vid_player.move_content_mode);
 	DEF_LOG_BOOL(vid_player.remember_video_pos);
-	DEF_LOG_HEX(vid_player.playback_mode);
+	DEF_LOG_HEX((uint32_t)vid_player.playback_mode);
 	DEF_LOG_BOOL(vid_player.disable_audio);
 	DEF_LOG_BOOL(vid_player.disable_video);
 	DEF_LOG_BOOL(vid_player.disable_subtitle);
@@ -4952,13 +4974,13 @@ void Vid_decode_thread(void* arg)
 					vid_player.seek_bar.selected = false;
 					vid_player.show_current_pos_until = 0;
 
-					if(event == DECODE_THREAD_PLAY_NEXT_REQUEST && vid_player.playback_mode != NO_REPEAT)
+					if(event == DECODE_THREAD_PLAY_NEXT_REQUEST && vid_player.playback_mode != PLAYBACK_NO_REPEAT)
 					{
 						Vid_file* file_data = (Vid_file*)malloc(sizeof(Vid_file));
 
-						if(vid_player.playback_mode == IN_ORDER || vid_player.playback_mode == RANDOM)
+						if(vid_player.playback_mode == PLAYBACK_IN_ORDER || vid_player.playback_mode == PLAYBACK_RANDOM)
 						{
-							for(uint32_t i = 0; i < (vid_player.playback_mode == RANDOM ? Util_expl_query_num_of_file() + 256 : Util_expl_query_num_of_file()); i++)
+							for(uint32_t i = 0; i < (vid_player.playback_mode == PLAYBACK_RANDOM ? Util_expl_query_num_of_file() + 256 : Util_expl_query_num_of_file()); i++)
 							{
 								if(vid_player.file.index + 1 >= Util_expl_query_num_of_file())
 									vid_player.file.index = 0;
@@ -4968,7 +4990,7 @@ void Vid_decode_thread(void* arg)
 								if(Util_expl_query_type(vid_player.file.index) & EXPL_FILE_TYPE_FILE)
 								{
 									srand(time(NULL) + i);
-									if(vid_player.playback_mode == IN_ORDER)
+									if(vid_player.playback_mode == PLAYBACK_IN_ORDER)
 										break;
 									else if(rand() % 5 == 1)//1 in 5
 										break;

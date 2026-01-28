@@ -43,8 +43,8 @@
 #define DELAY_SAMPLES								(uint8_t)(60)
 
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
-#define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
-#define SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[0].width * vid_player.video_info[0].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
+#define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)		//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
+#define SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
 
 #define NUM_OF_THREADS_MIN							(uint8_t)(2)							//Minimum number of threads for multi-threaded decoding.
 #define NUM_OF_THREADS_MAX							(uint8_t)(8)							//Maximum number of threads for multi-threaded decoding.
@@ -434,6 +434,23 @@ typedef enum
 	MOVE_MAX,
 } Vid_move;
 
+typedef enum
+{
+	SCREEN_POS_TOP_LEFT,	//Top screen (left eye).
+	SCREEN_POS_TOP_RIGHT,	//Top screen (right eye).
+	SCREEN_POS_BOTTOM,		//Bottom screen.
+
+	SCREEN_POS_MAX,
+} Vid_screen_pos;
+
+typedef enum
+{
+	EYE_LEFT,	//Left eye.
+	EYE_RIGHT,	//Right eye.
+
+	EYE_MAX,
+} Vid_eye;
+
 typedef struct
 {
 	uint32_t image_width;
@@ -501,22 +518,22 @@ typedef struct
 	double audio_decoding_avg_time;					//Average audio decoding time for recent DEBUG_GRAPH_AVG_SAMPLES frames.
 	double video_decoding_avg_time;					//Average video decoding time for recent DEBUG_GRAPH_AVG_SAMPLES frames.
 	double conversion_avg_time;						//Average color conversion time for recent DEBUG_GRAPH_AVG_SAMPLES frames.
-	bool keyframe_list[DEBUG_GRAPH_ELEMENTS];					//List for keyframe.
-	uint16_t packet_buffer_list[DEBUG_GRAPH_ELEMENTS];			//List for packet buffer health.
-	uint16_t raw_video_buffer_list[DEF_DECODER_MAX_VIDEO_TRACKS][DEBUG_GRAPH_ELEMENTS];	//List for video buffer health.
-	uint32_t raw_audio_buffer_list[DEBUG_GRAPH_ELEMENTS];		//List for audio buffer health.
-	double video_decoding_time_list[DEBUG_GRAPH_ELEMENTS];		//List for video decoding time in ms.
-	double audio_decoding_time_list[DEBUG_GRAPH_ELEMENTS];		//List for audio decoding time in ms.
-	double conversion_time_list[DEBUG_GRAPH_ELEMENTS];			//List for color conversion time in ms.
-	const void* frame_list[DEBUG_GRAPH_TEMP_ELEMENTS];			//Decoding frame list (for multi-threaded software decoding).
-	TickCounter decoding_time_tick[DEBUG_GRAPH_TEMP_ELEMENTS];	//Decoding time (for multi-threaded software decoding).
+	bool keyframe_list[DEBUG_GRAPH_ELEMENTS];						//List for keyframe.
+	uint16_t packet_buffer_list[DEBUG_GRAPH_ELEMENTS];				//List for packet buffer health.
+	uint16_t raw_video_buffer_list[EYE_MAX][DEBUG_GRAPH_ELEMENTS];	//List for video buffer health.
+	uint32_t raw_audio_buffer_list[DEBUG_GRAPH_ELEMENTS];			//List for audio buffer health.
+	double video_decoding_time_list[DEBUG_GRAPH_ELEMENTS];			//List for video decoding time in ms.
+	double audio_decoding_time_list[DEBUG_GRAPH_ELEMENTS];			//List for audio decoding time in ms.
+	double conversion_time_list[DEBUG_GRAPH_ELEMENTS];				//List for color conversion time in ms.
+	const void* frame_list[DEBUG_GRAPH_TEMP_ELEMENTS];				//Decoding frame list (for multi-threaded software decoding).
+	TickCounter decoding_time_tick[DEBUG_GRAPH_TEMP_ELEMENTS];		//Decoding time (for multi-threaded software decoding).
 
 	//A/V desync management.
 	uint64_t wait_threshold_exceeded_ts;			//Timestamp that "wait threshold" has been exceeded (video is fast).
 	uint64_t drop_threshold_exceeded_ts;			//Timestamp that "skip threshold" has been exceeded (video is slow).
 	uint64_t last_video_frame_updated_ts;			//Timestamp for last video frame update.
-	double video_delay_ms[DEF_DECODER_MAX_VIDEO_TRACKS][DELAY_SAMPLES];	//Raw video delay (A/V desync) data.
-	double video_delay_avg_ms[DEF_DECODER_MAX_VIDEO_TRACKS];					//Average video delay (A/V desync) data.
+	double video_delay_ms[EYE_MAX][DELAY_SAMPLES];	//Raw video delay (A/V desync) data.
+	double video_delay_avg_ms[EYE_MAX];				//Average video delay (A/V desync) data.
 
 	//Player.
 	Vid_player_main_state state;					//Main state.
@@ -541,11 +558,11 @@ typedef struct
 	double video_y_offset;							//Y (vertical) offset for video.
 	double video_zoom;								//Zoom level for video.
 	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
-	uint8_t next_store_index[DEF_DECODER_MAX_VIDEO_TRACKS];	//Next texture buffer index to store converted image.
-	uint8_t next_draw_index[DEF_DECODER_MAX_VIDEO_TRACKS];	//Next texture buffer index that is ready to draw.
-	double video_current_pos[DEF_DECODER_MAX_VIDEO_TRACKS];	//Current video position in ms.
-	Media_v_info video_info[DEF_DECODER_MAX_VIDEO_TRACKS];	//Video info.
-	Large_image large_image[VIDEO_BUFFERS][DEF_DECODER_MAX_VIDEO_TRACKS];	//Texture for video images.
+	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
+	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
+	double video_current_pos[EYE_MAX];				//Current video position in ms.
+	Media_v_info video_info[EYE_MAX];				//Video info.
+	Large_image large_image[VIDEO_BUFFERS][EYE_MAX];	//Texture for video images.
 
 	//Audio.
 	uint8_t num_of_audio_tracks;					//Number of audio tracks for current file.
@@ -638,7 +655,7 @@ static void Vid_control_full_screen(void);
 static void Vid_update_sleep_policy(void);
 static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame, double* total_delay);
 static void Vid_update_decoding_statistics_every_100ms(void);
-static void Vid_update_video_delay(uint8_t packet_index);
+static void Vid_update_video_delay(Vid_eye eye_index);
 static void Vid_init_variable(void);
 static void Vid_init_settings(void);
 static void Vid_init_hidden_settings(void);
@@ -1136,7 +1153,7 @@ void Vid_hid(const Hid_info* key)
 						//Update texture filter.
 						for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 						{
-							for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+							for(uint8_t k = 0; k < EYE_MAX; k++)
 								Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 						}
 					}
@@ -1271,10 +1288,11 @@ void Vid_hid(const Hid_info* key)
 				double subtitle_size_changes = 0;
 				double y_changes = 0;
 				double x_changes = 0;
-				double sar_width = (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1);
-				double sar_height = (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1);
-				double x_offset_min = -(vid_player.video_info[0].width * sar_width * vid_player.video_zoom);
-				double y_offset_min = -(vid_player.video_info[0].height * sar_height * vid_player.video_zoom);
+				//todo consider EYE_RIGHT
+				double sar_width = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1);
+				double sar_height = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1);
+				double x_offset_min = -(vid_player.video_info[EYE_LEFT].width * sar_width * vid_player.video_zoom);
+				double y_offset_min = -(vid_player.video_info[EYE_LEFT].height * sar_height * vid_player.video_zoom);
 
 				if(HID_MOVE_CONTENT_UP_CFM(*key))
 				{
@@ -1359,8 +1377,9 @@ void Vid_hid(const Hid_info* key)
 					vid_player.video_x_offset += x_changes;
 					Vid_change_video_size(size_changes);
 
-					new_width = (double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1) * vid_player.video_zoom;
-					new_height = (double)vid_player.video_info[0].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1) * vid_player.video_zoom;
+					//todo consider EYE_RIGHT
+					new_width = (double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) * vid_player.video_zoom;
+					new_height = (double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1) * vid_player.video_zoom;
 
 					if(vid_player.video_x_offset > 400)
 						vid_player.video_x_offset = 400;
@@ -1677,16 +1696,15 @@ void Vid_main(void)
 	double text_subtitle_height = 0;
 	double y_offset = 0;
 	//Array 0 == for top screen left eye, array 1 == for top screen right eye.
-	uint8_t image_index[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
-	double image_width[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
-	double image_height[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
-	//Array 0 == for top screen left eye, array 1 == for top screen right eye, array 2 == for bottom screen.
-	double video_x_offset[3] = { 0, 0, 0, };
-	double video_y_offset[3] = { 0, 0, 0, };
-	double bitmap_subtitle_x_offset[3] = { 0, 0, 0, };
-	double bitmap_subtitle_y_offset[3] = { 0, 0, 0, };
-	double text_subtitle_x_offset[3] = { 0, 0, 0, };
-	double text_subtitle_y_offset[3] = { 0, 0, 0, };
+	uint8_t image_index[EYE_MAX] = { 0, };
+	double image_width[EYE_MAX] = { 0, };
+	double image_height[EYE_MAX] = { 0, };
+	double video_x_offset[SCREEN_POS_MAX] = { 0, };
+	double video_y_offset[SCREEN_POS_MAX] = { 0, };
+	double bitmap_subtitle_x_offset[SCREEN_POS_MAX] = { 0, };
+	double bitmap_subtitle_y_offset[SCREEN_POS_MAX] = { 0, };
+	double text_subtitle_x_offset[SCREEN_POS_MAX] = { 0, };
+	double text_subtitle_y_offset[SCREEN_POS_MAX] = { 0, };
 	static const char thread_mode[3][6] = { "none", "frame", "slice" };
 	static const char lower_resolution_mode[3][11] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	Draw_image_data background = Draw_get_empty_image();
@@ -1705,7 +1723,7 @@ void Vid_main(void)
 	}
 
 	//Assign previous frame index first.
-	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	for(uint8_t i = 0; i < EYE_MAX; i++)
 	{
 		if(vid_player.next_draw_index[i] > 0)
 			image_index[i] = vid_player.next_draw_index[i] - 1;
@@ -1722,11 +1740,11 @@ void Vid_main(void)
 			//Array 0 == for left eye, array 1 == for right eye.
 			bool is_both_buffer_ready = false;
 			bool is_buffer_full = false;
-			uint8_t buffer_health[DEF_DECODER_MAX_VIDEO_TRACKS] = { 0, 0, };
+			uint8_t buffer_health[EYE_MAX] = { 0, };
 			double next_ts = 0;
 
 			//Check for buffer health.
-			for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+			for(uint8_t i = 0; i < EYE_MAX; i++)
 			{
 				if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
 					buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
@@ -1758,13 +1776,14 @@ void Vid_main(void)
 
 				if(vid_player.num_of_audio_tracks > 0 && vid_player.num_of_video_tracks > 0)
 				{
-					//We only use track 0 for delay checking.
+					//todo consider EYE_RIGHT
+					//We only use EYE_LEFT for delay checking.
 					Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 					Vid_update_video_delay(0);
 					if(vid_player.num_of_video_tracks > 1)
 						Vid_update_video_delay(1);
 
-					video_delay = vid_player.video_delay_ms[0][DELAY_SAMPLES - 1];
+					video_delay = vid_player.video_delay_ms[EYE_LEFT][DELAY_SAMPLES - 1];
 					Util_sync_unlock(&vid_player.delay_update_lock);
 				}
 				else
@@ -1799,7 +1818,7 @@ void Vid_main(void)
 				}
 				else
 				{
-					for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+					for(uint8_t i = 0; i < EYE_MAX; i++)
 					{
 						if(vid_player.num_of_video_tracks <= i)
 							break;
@@ -1854,7 +1873,7 @@ void Vid_main(void)
 	}
 
 	//Calculate image size and drawing position.
-	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	for(uint8_t i = 0; i < EYE_MAX; i++)
 	{
 		double sar_width_ratio = 0;
 		double sar_height_ratio = 0;
@@ -1868,7 +1887,7 @@ void Vid_main(void)
 		image_height[i] = vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom;
 	}
 
-	for(uint8_t i = 0; i < 3; i++)
+	for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 	{
 		video_x_offset[i] = vid_player.video_x_offset;
 		video_y_offset[i] = vid_player.video_y_offset;
@@ -1880,12 +1899,9 @@ void Vid_main(void)
 	{
 		//Change video offset based on 3D slider bar position for 3D videos
 		//so that user can manually adjust it with 3D slider bar.
-		video_x_offset[0] -= ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
-		video_x_offset[1] += ((vid_player._3d_slider_pos - 0.5) * image_width[0]) * 0.1;
+		video_x_offset[SCREEN_POS_TOP_LEFT] -= ((vid_player._3d_slider_pos - 0.5) * image_width[EYE_LEFT]) * 0.1;
+		video_x_offset[SCREEN_POS_TOP_RIGHT] += ((vid_player._3d_slider_pos - 0.5) * image_width[EYE_LEFT]) * 0.1;
 	}
-
-	video_x_offset[2] -= 40;
-	video_y_offset[2] -= 240;
 
 	//Find subtitle index.
 	for(uint8_t i = 0; i < SUBTITLE_BUFFERS; i++)
@@ -1906,7 +1922,7 @@ void Vid_main(void)
 		text_subtitle_width = 0.5 * vid_player.subtitle_zoom;
 		text_subtitle_height = 0.5 * vid_player.subtitle_zoom;
 
-		for(uint8_t i = 0; i < 3; i++)
+		for(uint8_t i = 0; i < SCREEN_POS_MAX; i++)
 		{
 			bitmap_subtitle_x_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_x * vid_player.video_zoom) + vid_player.video_x_offset + vid_player.subtitle_x_offset;
 			bitmap_subtitle_y_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_y * vid_player.video_zoom) + vid_player.video_y_offset + vid_player.subtitle_y_offset;
@@ -1915,10 +1931,40 @@ void Vid_main(void)
 		}
 	}
 
-	bitmap_subtitle_x_offset[2] -= 40;
-	bitmap_subtitle_y_offset[2] -= 240;
-	text_subtitle_x_offset[2] -= 40;
-	text_subtitle_y_offset[2] -= 240;
+	//+--------------------------------------------------------------------------------+
+	//| An Alternative ASCII GNU (https://www.gnu.org/graphics/alternative-ascii.html) |
+	//| Copyright (C) 2003 Vijay Kumar                                                 |
+	//|                                                                                |
+	//| License: GNU GPL v2.0-or-later                                                 |
+	//| SPDX-License-Identifier: GPL-2.0-or-later                                      |
+	//+--------------------------------------------------------------------------------+
+	//Apply bottom screen offset.
+	// (0, 0) ---------------------------------------->(-40, 0)--------------------------------------->(-40, -240)
+	// +-------------------------------------------+   +-------------------------------------------+   +-------------------------------------------+
+	// |  +-------------------------------------+  |   |  +-------------------------------------+  |   |  +-------------------------------------+  |
+	// |  |     _-`````-,           ,- '- .     |  |   |  |     _-`````-,           ,- '- .     |  |   |  |     _-`````-,           ,- '- .     |  |
+	// |  |   .'   .- - |          | - -.  `.   |  |   |  |   .'   .- - |          | - -.  `.   |  |   |  |   .'   .- - |          | - -.  `.   |  |
+	// |  |  /.'  /                     `.   \  |  |   |  |  /.'  /                     `.   \  |  |   |  |  /.'  /                     `.   \  |  |
+	// |  | :/   :      _...   ..._      ``   : |  |   |  | :/   :      _...   ..._      ``   : |  |   |  | :/   :      _...   ..._      ``   : |  |
+	// |  | ::   :     /._ .`:'_.._\.    ||   : |  |   |  | ::   :     /._ .`:'_.._\.    ||   : |  |   |  | ::   :     /._ .`:'_.._\.    ||   : |  |
+	// |  | ::    `._ ./  ,`  :    \ . _.''   . |  |   |  | ::    `._ ./  ,`  :    \ . _.''   . |  |   |  | ::    `._ ./  ,`  :    \ . _.''   . |  |
+	// |  +-------------------------------------+  |   |  +-------------------------------------+  |   |  +-------------------------------------+  |
+	// |                                           |   |     <-- 40px                              |   |                                           |
+	// |     +-------------------------------+     |   |     +-------------------------------+     |   |  ^  +-------------------------------+     |
+	// |     |     _-`````-,           ,- '- |     |   |     |  _-`````-,           ,- '- .  |     |   |  |  |.      /   |  -.  \-. \\_      |     |
+	// |     |   .'   .- - |          | - -. |     |   |     |.'   .- - |          | - -.  `.|     |   |  |  |\:._ _/  .'   .@)  \@) ` `\ ,.'|     |
+	// |     |  /.'  /                     `.|     |   |     |.'  /                     `.   |     |   | 240 |   _/,--'       .- .\,-.`--`.  |     |
+	// |     | :/   :      _...   ..._      `|     |   |     |   :      _...   ..._      ``  |     |   |  px |     ,'/''     (( \ `  )       |     |
+	// |     | ::   :     /._ .`:'_.._\.    ||     |   |     |   :     /._ .`:'_.._\.    ||  |     |   |     |      /'/'  \    `-'  (        |     |
+	// |     | ::    `._ ./  ,`  :    \ . _.'|     |   |     |    `._ ./  ,`  :    \ . _.''  |     |   |     |       '/''  `._,-----'        |     |
+	// |     +-------------------------------+     |   |     +-------------------------------+     |   |     +-------------------------------+     |
+	// +-------------------------------------------+   +-------------------------------------------+   +-------------------------------------------+
+	video_x_offset[SCREEN_POS_BOTTOM] -= 40;
+	video_y_offset[SCREEN_POS_BOTTOM] -= 240;
+	bitmap_subtitle_x_offset[SCREEN_POS_BOTTOM] -= 40;
+	bitmap_subtitle_y_offset[SCREEN_POS_BOTTOM] -= 240;
+	text_subtitle_x_offset[SCREEN_POS_BOTTOM] -= 40;
+	text_subtitle_y_offset[SCREEN_POS_BOTTOM] -= 240;
 
 	Vid_update_decoding_statistics_every_100ms();
 
@@ -1960,7 +2006,7 @@ void Vid_main(void)
 				//Draw videos.
 				if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 				{
-					Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[0], video_y_offset[0], image_width[0], image_height[0]);
+					Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], video_x_offset[SCREEN_POS_TOP_LEFT], video_y_offset[SCREEN_POS_TOP_LEFT], image_width[EYE_LEFT], image_height[EYE_LEFT]);
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
 				}
 
@@ -1970,15 +2016,15 @@ void Vid_main(void)
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
 						if(vid_player.subtitle_image[subtitle_index].subtex)
-							Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[0], bitmap_subtitle_y_offset[0], bitmap_subtitle_width, bitmap_subtitle_height);
+							Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_width, bitmap_subtitle_height);
 
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
 					if(vid_player.subtitle_data[subtitle_index].text)
 					{
-						Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[0], text_subtitle_y_offset[0], text_subtitle_width, text_subtitle_height,
-						DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+						Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_LEFT], text_subtitle_y_offset[SCREEN_POS_TOP_LEFT],
+						text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 					}
 				}
 			}
@@ -2074,7 +2120,7 @@ void Vid_main(void)
 					//Draw 3D videos (right eye).
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Vid_large_texture_draw(&vid_player.large_image[image_index[1]][1], video_x_offset[1], video_y_offset[1], image_width[1], image_height[1]);
+						Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_RIGHT]][EYE_RIGHT], video_x_offset[SCREEN_POS_TOP_RIGHT], video_y_offset[SCREEN_POS_TOP_RIGHT], image_width[EYE_RIGHT], image_height[EYE_RIGHT]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -2084,15 +2130,15 @@ void Vid_main(void)
 						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
-								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[1], bitmap_subtitle_y_offset[1], bitmap_subtitle_width, bitmap_subtitle_height);
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_width, bitmap_subtitle_height);
 
 							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
 
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
-							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[1], text_subtitle_y_offset[1], text_subtitle_width, text_subtitle_height,
-							DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], text_subtitle_y_offset[SCREEN_POS_TOP_RIGHT],
+							text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 						}
 					}
 				}
@@ -2151,15 +2197,17 @@ void Vid_main(void)
 				Util_str_format(&format_str, "A : %s", vid_player.audio_info[vid_player.selected_audio_track].format_name);
 				Draw(&format_str, 0, 10, 0.45, 0.45, color);
 
-				Util_str_format(&format_str, "V : %s", vid_player.video_info[0].format_name);
+				//todo consider EYE_RIGHT
+				Util_str_format(&format_str, "V : %s", vid_player.video_info[EYE_LEFT].format_name);
 				Draw(&format_str, 0, 19, 0.45, 0.45, color);
 
 				Util_str_format(&format_str, "S : %s", vid_player.subtitle_info[vid_player.selected_subtitle_track].format_name);
 				Draw(&format_str, 0, 28, 0.45, 0.45, color);
 
+				//todo consider EYE_RIGHT
 				Util_str_format(&format_str, "%" PRIu32 "x%" PRIu32 "(%" PRIu32 "x%" PRIu32 ")@%.2ffps",
-				vid_player.video_info[0].width, vid_player.video_info[0].height, vid_player.video_info[0].codec_width,
-				vid_player.video_info[0].codec_height, vid_player.video_info[0].framerate);
+				vid_player.video_info[EYE_LEFT].width, vid_player.video_info[EYE_LEFT].height, vid_player.video_info[EYE_LEFT].codec_width,
+				vid_player.video_info[EYE_LEFT].codec_height, vid_player.video_info[EYE_LEFT].framerate);
 				Draw(&format_str, 0, 37, 0.45, 0.45, color);
 
 				if(vid_player.state != PLAYER_STATE_IDLE)
@@ -2167,7 +2215,7 @@ void Vid_main(void)
 					//Draw videos.
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Vid_large_texture_draw(&vid_player.large_image[image_index[0]][0], video_x_offset[2], video_y_offset[2], image_width[0], image_height[0]);
+						Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], video_x_offset[SCREEN_POS_BOTTOM], video_y_offset[SCREEN_POS_BOTTOM], image_width[EYE_LEFT], image_height[EYE_LEFT]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -2177,15 +2225,15 @@ void Vid_main(void)
 						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
-								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[2], bitmap_subtitle_y_offset[2], bitmap_subtitle_width, bitmap_subtitle_height);
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_y_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_width, bitmap_subtitle_height);
 
 							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
 
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
-							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[2], text_subtitle_y_offset[2], text_subtitle_width, text_subtitle_height,
-							DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_BOTTOM], text_subtitle_y_offset[SCREEN_POS_BOTTOM],
+							text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 						}
 					}
 				}
@@ -2550,10 +2598,10 @@ void Vid_main(void)
 					if(vid_player.show_raw_video_buffer_graph)
 					{
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[0][i] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[0][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[EYE_LEFT][i] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, i + 1, y_offset - vid_player.raw_video_buffer_list[EYE_LEFT][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF2060FF, 1);
 
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[1][i] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[1][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
+							Draw_line(i, y_offset - vid_player.raw_video_buffer_list[EYE_RIGHT][i] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, i + 1, y_offset - vid_player.raw_video_buffer_list[EYE_RIGHT][i + 1] / 1.5 + vid_player.ui_y_offset, 0xFF00DDFF, 1);
 					}
 					//Raw audio buffer.
 					if(vid_player.show_raw_audio_buffer_graph)
@@ -2675,7 +2723,8 @@ void Vid_main(void)
 					//Audio decoding time and thread mode text.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
-						uint8_t thread_mode_index = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? 0 : vid_player.video_info[0].thread_type);
+						//todo consider EYE_RIGHT
+						uint8_t thread_mode_index = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? 0 : vid_player.video_info[EYE_LEFT].thread_type);
 						uint8_t active_threads = (thread_mode_index ? vid_player.num_of_threads : 1);
 
 						Util_str_format(&format_str, "Audio decoding (avg) : %.3fms", vid_player.audio_decoding_avg_time);
@@ -3265,16 +3314,17 @@ static void Vid_large_texture_draw(Large_image* large_image_data, double x_offse
 
 static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height)
 {
-	if(vid_player.video_info[0].width != 0 && vid_player.video_info[0].height != 0 && vid_player.video_info[0].sar_width != 0 && vid_player.video_info[0].sar_height != 0)
+	//todo consider EYE_RIGHT
+	if(vid_player.video_info[EYE_LEFT].width != 0 && vid_player.video_info[EYE_LEFT].height != 0 && vid_player.video_info[EYE_LEFT].sar_width != 0 && vid_player.video_info[EYE_LEFT].sar_height != 0)
 	{
 		//Fit to screen size.
-		if((((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1)) / screen_width) >= (((double)vid_player.video_info[0].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1)) / screen_height))
-			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1)) / screen_width);
+		if((((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1)) / screen_width) >= (((double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1)) / screen_height))
+			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1)) / screen_width);
 		else
-			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[0].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1)) / screen_height);
+			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1)) / screen_height);
 
-		vid_player.video_x_offset = (screen_width - (vid_player.video_info[0].width * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1))) / 2;
-		vid_player.video_y_offset = (screen_height - (vid_player.video_info[0].height * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_height : 1))) / 2;
+		vid_player.video_x_offset = (screen_width - (vid_player.video_info[EYE_LEFT].width * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1))) / 2;
+		vid_player.video_y_offset = (screen_height - (vid_player.video_info[EYE_LEFT].height * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1))) / 2;
 		vid_player.video_y_offset += (TOP_SCREEN_HEIGHT - screen_height);
 		vid_player.video_x_offset += (TOP_SCREEN_WIDTH - screen_width);
 	}
@@ -3285,9 +3335,11 @@ static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height)
 
 static void Vid_change_video_size(double change_px)
 {
-	double current_width = (double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1) * vid_player.video_zoom;
-	if(vid_player.video_info[0].width != 0 && vid_player.video_info[0].height != 0 && vid_player.video_info[0].sar_width != 0 && vid_player.video_info[0].sar_height != 0)
-		vid_player.video_zoom = 1.0 / ((double)vid_player.video_info[0].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[0].sar_width : 1) / (current_width + change_px));
+	//todo consider EYE_RIGHT
+	double current_width = (double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) * vid_player.video_zoom;
+
+	if(vid_player.video_info[EYE_LEFT].width != 0 && vid_player.video_info[EYE_LEFT].height != 0 && vid_player.video_info[EYE_LEFT].sar_width != 0 && vid_player.video_info[EYE_LEFT].sar_height != 0)
+		vid_player.video_zoom = 1.0 / ((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) / (current_width + change_px));
 }
 
 static void Vid_enter_full_screen(uint32_t bottom_screen_timeout)
@@ -3424,14 +3476,14 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 		vid_player.previous_ts = osGetTime();
 		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
 		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
-		vid_player.raw_video_buffer_list[0][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
-		vid_player.raw_video_buffer_list[1][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_LEFT][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_RIGHT][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
 
 		for(uint16_t i = 1; i < DEBUG_GRAPH_ELEMENTS; i++)
 		{
 			vid_player.packet_buffer_list[i - 1] = vid_player.packet_buffer_list[i];
 			vid_player.raw_audio_buffer_list[i - 1] = vid_player.raw_audio_buffer_list[i];
-			for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+			for(uint8_t k = 0; k < EYE_MAX; k++)
 				vid_player.raw_video_buffer_list[k][i - 1] = vid_player.raw_video_buffer_list[k][i];
 		}
 
@@ -3472,12 +3524,12 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 	}
 }
 
-static void Vid_update_video_delay(uint8_t packet_index)
+static void Vid_update_video_delay(Vid_eye eye_index)
 {
 	uint8_t array_size = DELAY_SAMPLES;
 	uint8_t buffer_health = 0;
-	uint16_t next_store_index = vid_player.next_store_index[packet_index];
-	uint16_t next_draw_index = vid_player.next_draw_index[packet_index];
+	uint16_t next_store_index = vid_player.next_store_index[eye_index];
+	uint16_t next_draw_index = vid_player.next_draw_index[eye_index];
 	uint64_t current_ts = osGetTime();
 	double buffered_video_ms = 0;
 	double total_delay = 0;
@@ -3493,14 +3545,14 @@ static void Vid_update_video_delay(uint8_t packet_index)
 		buffered_video_ms += (vid_player.last_video_frame_updated_ts + vid_player.video_frametime) - current_ts;
 
 	for(uint8_t i = 0; i < array_size - 1; i++)
-		vid_player.video_delay_ms[packet_index][i] = vid_player.video_delay_ms[packet_index][i + 1];
+		vid_player.video_delay_ms[eye_index][i] = vid_player.video_delay_ms[eye_index][i + 1];
 
-	vid_player.video_delay_ms[packet_index][array_size - 1] = vid_player.audio_current_pos - (vid_player.video_current_pos[packet_index] - buffered_video_ms);
+	vid_player.video_delay_ms[eye_index][array_size - 1] = vid_player.audio_current_pos - (vid_player.video_current_pos[eye_index] - buffered_video_ms);
 
 	for(uint8_t i = 0; i < array_size; i++)
-		total_delay += vid_player.video_delay_ms[packet_index][i];
+		total_delay += vid_player.video_delay_ms[eye_index][i];
 
-	vid_player.video_delay_avg_ms[packet_index] = (total_delay / array_size);
+	vid_player.video_delay_avg_ms[eye_index] = (total_delay / array_size);
 }
 
 static void Vid_init_variable(void)
@@ -3602,7 +3654,7 @@ static void Vid_init_debug_view_data(void)
 		vid_player.video_decoding_time_list[i] = 0;
 		vid_player.audio_decoding_time_list[i] = 0;
 		vid_player.conversion_time_list[i] = 0;
-		for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+		for(uint8_t k = 0; k < EYE_MAX; k++)
 			vid_player.raw_video_buffer_list[k][i] = 0;
 	}
 
@@ -3627,7 +3679,7 @@ static void Vid_init_desync_data(void)
 	vid_player.wait_threshold_exceeded_ts = 0;
 	vid_player.drop_threshold_exceeded_ts = 0;
 	vid_player.last_video_frame_updated_ts = 0;
-	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	for(uint8_t i = 0; i < EYE_MAX; i++)
 	{
 		vid_player.video_delay_avg_ms[i] = 0;
 		for(uint16_t k = 0; k < DELAY_SAMPLES; k++)
@@ -3655,7 +3707,7 @@ static void Vid_init_video_data(void)
 	vid_player.video_frametime = 0;
 	vid_player._3d_slider_pos = osGet3DSliderState();
 
-	for(uint8_t i = 0; i < DEF_DECODER_MAX_VIDEO_TRACKS; i++)
+	for(uint8_t i = 0; i < EYE_MAX; i++)
 	{
 		vid_player.next_store_index[i] = 0;
 		vid_player.next_draw_index[i] = 0;
@@ -3679,7 +3731,7 @@ static void Vid_init_video_data(void)
 	Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 	for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 	{
-		for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+		for(uint8_t k = 0; k < EYE_MAX; k++)
 			Vid_large_texture_free(&vid_player.large_image[i][k]);
 	}
 	Util_sync_unlock(&vid_player.texture_init_free_lock);
@@ -4454,7 +4506,8 @@ void Vid_decode_thread(void* arg)
 						if(vid_player.disable_video)
 						{
 							num_of_video_tracks = 0;
-							strcpy(vid_player.video_info[0].format_name, "disabled");
+							//todo consider EYE_RIGHT
+							strcpy(vid_player.video_info[EYE_LEFT].format_name, "disabled");
 						}
 						if(vid_player.disable_subtitle)
 						{
@@ -4503,7 +4556,7 @@ void Vid_decode_thread(void* arg)
 						if(num_of_video_tracks > 0)
 						{
 							uint8_t request_threads = (vid_player.use_multi_threaded_decoding ? vid_player.num_of_threads : 1);
-							uint8_t loop = (num_of_video_tracks > 2 ? 2 : num_of_video_tracks);
+							uint8_t loop = (num_of_video_tracks > EYE_MAX ? EYE_MAX : num_of_video_tracks);
 							Media_thread_type request_thread_type = vid_player.use_multi_threaded_decoding ? vid_player.thread_mode : MEDIA_THREAD_TYPE_NONE;
 
 							DEF_LOG_RESULT_SMART(result, Util_decoder_video_init(vid_player.lower_resolution, num_of_video_tracks,
@@ -4514,24 +4567,25 @@ void Vid_decode_thread(void* arg)
 
 								Sem_get_state(&state);
 
-								for(uint8_t i = 0; i < num_of_video_tracks; i++)
+								for(uint8_t i = 0; i < loop; i++)
 									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECORDER_SESSION_ID);
 
+								//todo consider EYE_RIGHT
 								//Use sar 1:2 if 800x240 and no sar value is set.
-								if(vid_player.video_info[0].width == 800 && vid_player.video_info[0].height == 240
-								&& vid_player.video_info[0].sar_width == 1 && vid_player.video_info[0].sar_height == 1)
-									vid_player.video_info[0].sar_height = 2;
+								if(vid_player.video_info[EYE_LEFT].width == 800 && vid_player.video_info[EYE_LEFT].height == 240
+								&& vid_player.video_info[EYE_LEFT].sar_width == 1 && vid_player.video_info[EYE_LEFT].sar_height == 1)
+									vid_player.video_info[EYE_LEFT].sar_height = 2;
 
-								if(vid_player.video_info[0].framerate == 0)
+								if(vid_player.video_info[EYE_LEFT].framerate == 0)
 									vid_player.video_frametime = 0;
 								else
-									vid_player.video_frametime = (1000.0 / vid_player.video_info[0].framerate);
+									vid_player.video_frametime = (1000.0 / vid_player.video_info[EYE_LEFT].framerate);
 
 								if(num_of_video_tracks >= 2 && vid_player.video_frametime != 0)
 									vid_player.video_frametime /= 2;
 
-								if(vid_player.use_hw_decoding && strcmp(vid_player.video_info[0].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0
-								&& vid_player.video_info[0].pixel_format == RAW_PIXEL_YUV420P)
+								if(vid_player.use_hw_decoding && strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0
+								&& vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P)
 								{
 									//We can use hw decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);
@@ -4546,8 +4600,9 @@ void Vid_decode_thread(void* arg)
 
 								if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && vid_player.use_hw_color_conversion)
 								{
-									if(vid_player.video_info[0].codec_width <= 1024 && vid_player.video_info[0].codec_height <= 1024
-									&& (vid_player.video_info[0].pixel_format == RAW_PIXEL_YUV420P || vid_player.video_info[0].pixel_format == RAW_PIXEL_YUVJ420P))
+									//todo consider EYE_RIGHT
+									if(vid_player.video_info[EYE_LEFT].codec_width <= 1024 && vid_player.video_info[EYE_LEFT].codec_height <= 1024
+									&& (vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P || vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUVJ420P))
 									{
 										//We can use hw color converter for this video.
 										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_CONVERSION);
@@ -4582,12 +4637,13 @@ void Vid_decode_thread(void* arg)
 								//Apply texture filter.
 								for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 								{
-									for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+									for(uint8_t k = 0; k < EYE_MAX; k++)
 										Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 								}
 
+								//todo consider EYE_RIGHT
 								if((DEF_SEM_MODEL_IS_NEW(state.console_model))
-								&& (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_NONE || (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)))
+								&& (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_NONE || (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)))
 									APT_SetAppCpuTimeLimit(20);
 								else
 								{
@@ -4602,7 +4658,8 @@ void Vid_decode_thread(void* arg)
 							else//If video format is not supported, disable video so that audio can be played without video.
 							{
 								vid_player.num_of_video_tracks = 0;
-								strcpy(vid_player.video_info[0].format_name, "Unsupported format");
+								//todo consider EYE_RIGHT
+								strcpy(vid_player.video_info[EYE_LEFT].format_name, "Unsupported format");
 								//Ignore the error.
 								result = 0;
 							}
@@ -4630,8 +4687,9 @@ void Vid_decode_thread(void* arg)
 						}
 
 						//Use the longest duration as duration for this file.
+						//todo consider EYE_RIGHT
 						if(num_of_video_tracks > 0)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[0].duration);
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[EYE_LEFT].duration);
 						if(num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
 							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
 
@@ -4849,8 +4907,9 @@ void Vid_decode_thread(void* arg)
 						Util_speaker_set_audio_info(DEF_VID_SPEAKER_SESSION_ID, new_playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 
 						//Use the longest duration as duration for this file.
+						//todo consider EYE_RIGHT
 						if(vid_player.num_of_video_tracks > 0)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[0].duration);
+							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[EYE_LEFT].duration);
 						if(vid_player.num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
 							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
 					}
@@ -4962,7 +5021,7 @@ void Vid_decode_thread(void* arg)
 					Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 					for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 					{
-						for(uint8_t k = 0; k < DEF_DECODER_MAX_VIDEO_TRACKS; k++)
+						for(uint8_t k = 0; k < EYE_MAX; k++)
 							Vid_large_texture_free(&vid_player.large_image[i][k]);
 					}
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
@@ -5090,7 +5149,8 @@ void Vid_decode_thread(void* arg)
 						//If there are no video tracks, start seeking.
 						//Sometimes library caches previous frames even after clearing packet,
 						//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
-						wait_count = 5 + (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
+						//todo consider EYE_RIGHT
+						wait_count = 5 + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
 						backward_timeout = 20;
 						vid_player.state = PLAYER_STATE_SEEKING;
 					}
@@ -5169,7 +5229,8 @@ void Vid_decode_thread(void* arg)
 					//After clearing cache start seeking.
 					//Sometimes library caches previous frames even after clearing packet,
 					//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
-					wait_count = 5 + (vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
+					//todo consider EYE_RIGHT
+					wait_count = 5 + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
 					backward_timeout = 20;
 					vid_player.state = PLAYER_STATE_SEEKING;
 
@@ -5208,7 +5269,8 @@ void Vid_decode_thread(void* arg)
 			{
 				uint8_t num_of_active_threads = 1;
 
-				if(vid_player.video_info[0].thread_type == MEDIA_THREAD_TYPE_FRAME)
+				//todo consider EYE_RIGHT
+				if(vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME)
 					num_of_active_threads = vid_player.num_of_threads;
 
 				required_free_ram = (vid_player.ram_to_keep_base + (SW_DECODER_RAW_IMAGE_SIZE * (num_of_active_threads + 1)));
@@ -5232,8 +5294,9 @@ void Vid_decode_thread(void* arg)
 
 			//Get position from audio track if file does not have video tracks,
 			//frametime is unknown or audio duration is longer than video track.
+			//todo consider EYE_RIGHT
 			if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0
-			|| vid_player.audio_info[vid_player.selected_audio_track].duration > vid_player.video_info[0].duration)
+			|| vid_player.audio_info[vid_player.selected_audio_track].duration > vid_player.video_info[EYE_LEFT].duration)
 				vid_player.media_current_pos = vid_player.audio_current_pos;
 
 			//If file does not have video tracks, update bar pos to see if the position has changed
@@ -5331,7 +5394,8 @@ void Vid_decode_thread(void* arg)
 					//We don't have enough free RAM but have cached raw pictures,
 					//so wait frametime ms for them to get playbacked and freed.
 					//If framerate is unknown, sleep 10ms.
-					uint64_t sleep = (vid_player.video_info[0].framerate > 0 ? (1000000 / vid_player.video_info[0].framerate) : 10000);
+					//todo consider EYE_RIGHT
+					uint64_t sleep = (vid_player.video_info[EYE_LEFT].framerate > 0 ? (1000000 / vid_player.video_info[EYE_LEFT].framerate) : 10000);
 
 					if(vid_player.state == PLAYER_STATE_BUFFERING)
 					{
@@ -5370,7 +5434,8 @@ void Vid_decode_thread(void* arg)
 			|| vid_player.video_frametime == 0 || type == MEDIA_PACKET_TYPE_VIDEO))
 			{
 				//Make sure we went back.
-				if((wait_count == 0 && vid_player.video_current_pos[0] < seek_start_pos)
+				//todo consider EYE_RIGHT
+				if((wait_count == 0 && vid_player.video_current_pos[EYE_LEFT] < seek_start_pos)
 				|| vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)//Remove seek backward wait bit.
 					vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);
 
@@ -5999,7 +6064,7 @@ void Vid_convert_thread(void* arg)
 				{
 					//Hardware decoder can't decode 2 tracks at the same time.
 					Util_decoder_mvd_skip_image(&pos, DEF_VID_DECORDER_SESSION_ID);
-					vid_player.video_current_pos[0] = pos;
+					vid_player.video_current_pos[EYE_LEFT] = pos;
 				}
 				else
 				{
@@ -6023,9 +6088,10 @@ void Vid_convert_thread(void* arg)
 			osTickCounterUpdate(&conversion_time_counter);
 
 			//Get position from video track if duration is longer than or equal to audio track.
+			//todo consider EYE_RIGHT
 			if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-			|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-				vid_player.media_current_pos = vid_player.video_current_pos[0];
+			|| vid_player.video_info[EYE_LEFT].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
+				vid_player.media_current_pos = vid_player.video_current_pos[EYE_LEFT];
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
@@ -6103,8 +6169,9 @@ void Vid_convert_thread(void* arg)
 				if(result == DEF_SUCCESS)
 				{
 					//Get position from video track if duration is longer than or equal to audio track.
+					//todo consider EYE_RIGHT
 					if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-					|| vid_player.video_info[0].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
+					|| vid_player.video_info[EYE_LEFT].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
 					{
 						if(vid_player.num_of_video_tracks >= 2)
 							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
@@ -6112,7 +6179,7 @@ void Vid_convert_thread(void* arg)
 							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
 
 						//We use track 0 as a time reference.
-						vid_player.media_current_pos = vid_player.video_current_pos[0];
+						vid_player.media_current_pos = vid_player.video_current_pos[EYE_LEFT];
 					}
 
 					//Hardware decoder returns BGR565, so we don't have to convert it.

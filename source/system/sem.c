@@ -357,6 +357,18 @@ typedef enum
 	EDTION_MAX,
 } Sem_edition;
 
+typedef enum
+{
+	UPDATE_STATE_UPDATE_FAILURE = -2,
+	UPDATE_STATE_CHECK_FAILURE = -1,
+
+	UPDATE_STATE_CHECKING,
+	UPDATE_STATE_CHECK_SUCCESS,
+	UPDATE_STATE_DOWNLOADING,
+	UPDATE_STATE_INSTALLING,
+	UPDATE_STATE_UPDATE_SUCCESS,
+} Sem_update_state;
+
 typedef struct
 {
 	bool is_connect_test_succes;
@@ -431,7 +443,6 @@ static bool sem_new_version_available = false;
 static bool sem_show_patch_note_request = false;
 static bool sem_select_ver_request = false;
 static bool sem_dl_file_request = false;
-static int8_t sem_update_progress = -1;
 static uint32_t sem_installed_size = 0;
 static uint32_t sem_total_cia_size = 0;
 static uint32_t sem_dled_size = 0;
@@ -440,6 +451,7 @@ static Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_butto
 sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
 sem_close_app_button = { 0, };
 static Sem_edition sem_selected_edition = EDTION_NONE;
+static Sem_update_state sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
@@ -1336,11 +1348,11 @@ void Sem_main(void)
 				Draw_texture(&sem_select_edtion_button, sem_select_edtion_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 15, 200, 145, 15);
 				Draw_texture(&sem_close_updater_button, sem_close_updater_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
 
-				if(sem_update_progress == 0)//Checking.
+				if(sem_update_progress == UPDATE_STATE_CHECKING)//Checking.
 					Draw(&sem_msg[MSG_CHECKING_UPDATE], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-				else if(sem_update_progress == -1)//Failed.
+				else if(sem_update_progress == UPDATE_STATE_CHECK_FAILURE)//Failed.
 					Draw(&sem_msg[MSG_CHECKING_UPDATE_FAILED], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-				else if (sem_update_progress == 1)//Success.
+				else if (sem_update_progress == UPDATE_STATE_CHECK_SUCCESS)//Success.
 				{
 					Draw(&sem_msg[sem_new_version_available ? MSG_NEW_VERSION_AVAILABLE : MSG_UP_TO_DATE], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
@@ -1387,7 +1399,7 @@ void Sem_main(void)
 					Draw(&format_str, 17.5, 120, 0.425, 0.425, DEF_DRAW_RED);
 				}
 
-				if(sem_update_progress == 2)
+				if(sem_update_progress == UPDATE_STATE_DOWNLOADING)
 				{
 					uint32_t dled_size_kb = (sem_dled_size / 1000);
 					double dled_size_mb = (sem_dled_size / 1000.0 / 1000.0);
@@ -1397,7 +1409,7 @@ void Sem_main(void)
 					Draw(&sem_msg[MSG_DOWNLOADING], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
-				else if(sem_update_progress == 3)
+				else if(sem_update_progress == UPDATE_STATE_INSTALLING)
 				{
 					double installed_size_mb = (sem_installed_size / 1000.0 / 1000.0);
 					double total_size_mb = (sem_total_cia_size / 1000.0 / 1000.0);
@@ -1407,7 +1419,7 @@ void Sem_main(void)
 					Draw(&sem_msg[MSG_INSTALLING], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
-				else if (sem_update_progress == 4)
+				else if (sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 				{
 					//Success.
 					Draw(&sem_msg[MSG_SUCCESS], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
@@ -1415,7 +1427,7 @@ void Sem_main(void)
 					Draw_with_background(&sem_msg[MSG_CLOSE_APP], 15, 180, 0.45, 0.45, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 					290, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_close_app_button, (sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW));
 				}
-				else if (sem_update_progress == -2)
+				else if (sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 					Draw(&sem_msg[MSG_FAILURE], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 
 				if((sem_selected_edition != EDTION_NONE)
@@ -1864,7 +1876,7 @@ void Sem_hid(const Hid_info* key)
 					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDTION_NONE
 					&& is_available[sem_selected_edition])
 						sem_dl_install_button.selected = true;
-					if(HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == 4)
+					if(HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 						sem_close_app_button.selected = true;
 				}
 				else
@@ -2064,7 +2076,7 @@ void Sem_hid(const Hid_info* key)
 						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDTION_NONE
 						&& is_available[sem_selected_edition])
 							sem_dl_file_request = true;
-						else if(HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == 4)
+						else if(HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 							Menu_set_must_exit_flag(true);
 					}
 					else
@@ -3215,7 +3227,7 @@ void Sem_update_thread(void* arg)
 
 			if (sem_check_update_request)
 			{
-				sem_update_progress = 0;
+				sem_update_progress = UPDATE_STATE_CHECKING;
 				sem_selected_edition = EDTION_NONE;
 				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
@@ -3224,7 +3236,7 @@ void Sem_update_thread(void* arg)
 			}
 			else if (sem_dl_file_request)
 			{
-				sem_update_progress = 2;
+				sem_update_progress = UPDATE_STATE_DOWNLOADING;
 				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[3 + sem_selected_edition]));
 			}
 			Draw_set_refresh_needed(true);
@@ -3284,9 +3296,9 @@ void Sem_update_thread(void* arg)
 				Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't download the data!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 				Util_err_set_show_flag(true);
 				if (sem_check_update_request)
-					sem_update_progress = -1;
+					sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 				else if (sem_dl_file_request)
-					sem_update_progress = -2;
+					sem_update_progress = UPDATE_STATE_UPDATE_FAILURE;
 
 				Draw_set_refresh_needed(true);
 			}
@@ -3319,12 +3331,12 @@ void Sem_update_thread(void* arg)
 
 						if(is_error)
 						{
-							sem_update_progress = -1;
+							sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 							break;
 						}
 					}
 
-					if(sem_update_progress != -1)
+					if(sem_update_progress != UPDATE_STATE_CHECK_FAILURE)
 					{
 						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]), NULL, 10))
 							sem_new_version_available = true;
@@ -3337,14 +3349,14 @@ void Sem_update_thread(void* arg)
 							sem_selected_edition = EDTION_CIA;
 					}
 
-					sem_update_progress = 1;
+					sem_update_progress = UPDATE_STATE_CHECK_SUCCESS;
 					Draw_set_refresh_needed(true);
 				}
 				else if (sem_dl_file_request)
 				{
-					sem_update_progress = 3;
+					sem_update_progress = UPDATE_STATE_INSTALLING;
 					if (sem_selected_edition == EDTION_3DSX)
-						sem_update_progress = 4;
+						sem_update_progress = UPDATE_STATE_UPDATE_SUCCESS;
 
 					Draw_set_refresh_needed(true);
 					if (sem_selected_edition == EDTION_CIA)
@@ -3377,9 +3389,9 @@ void Sem_update_thread(void* arg)
 
 						DEF_LOG_RESULT_SMART(result, AM_FinishCiaInstall(am_handle), (result == DEF_SUCCESS), result);
 						if (result == DEF_SUCCESS)
-							sem_update_progress = 4;
+							sem_update_progress = UPDATE_STATE_UPDATE_SUCCESS;
 						else
-							sem_update_progress = -2;
+							sem_update_progress = UPDATE_STATE_UPDATE_FAILURE;
 
 						Draw_set_refresh_needed(true);
 					}

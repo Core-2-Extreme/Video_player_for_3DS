@@ -418,8 +418,8 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > 1024 || pic_width == 0
-	|| pic_height > 1024 || pic_height == 0 || pic_width > image->c2d.tex->width || pic_height > image->c2d.tex->height
+	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > DEF_DRAW_MAX_TEXTURE_SIZE || pic_width == 0
+	|| pic_height > DEF_DRAW_MAX_TEXTURE_SIZE || pic_height == 0 || pic_width > image->c2d.tex->width || pic_height > image->c2d.tex->height
 	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
 
@@ -483,8 +483,8 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
 {
 	uint8_t pixel_size = 0;
-	uint16_t increase_list_x[1024 + 8]; //= { 4, 12, 4, 44, }
-	uint16_t increase_list_y[1024 + 8]; //= { 2, 6, 2, 22, 2, 6, 2, tex_size_x * 8 - 42, };
+	uint16_t increase_list_x[DEF_DRAW_MAX_TEXTURE_SIZE + 8]; //= { 4, 12, 4, 44, }
+	uint16_t increase_list_y[DEF_DRAW_MAX_TEXTURE_SIZE + 8]; //= { 2, 6, 2, 22, 2, 6, 2, tex_size_x * 8 - 42, };
 	uint16_t count[2] = { 0, 0, };
 	uint32_t x_max = 0;
 	uint32_t y_max = 0;

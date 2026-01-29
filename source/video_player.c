@@ -3141,15 +3141,15 @@ static uint32_t Vid_large_texture_init(Large_image* large_image_data, uint32_t w
 		goto invalid_arg;
 
 	//Calculate how many textures we need.
-	if(width % 1024 > 0)
-		loop = (width / 1024) + 1;
+	if(width % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
+		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1;
 	else
-		loop = (width / 1024);
+		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
 
-	if(height % 1024 > 0)
-		loop *= ((height / 1024) + 1);
+	if(height % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
+		loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
 	else
-		loop *= (height / 1024);
+		loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
 
 	//Init parameters.
 	large_image_data->image_width = 0;
@@ -3187,11 +3187,11 @@ static uint32_t Vid_large_texture_init(Large_image* large_image_data, uint32_t w
 		large_image_data->num_of_images++;
 
 		//Update offset.
-		width_offset += 1024;
+		width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
 		if(width_offset >= width)
 		{
 			width_offset = 0;
-			height_offset += 1024;
+			height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
 		}
 	}
 
@@ -3234,15 +3234,15 @@ static uint32_t Vid_large_texture_set_data(Large_image* large_image_data, uint8_
 	else
 	{
 		//Calculate how many textures we need.
-		if(width % 1024 > 0)
-			loop = (width / 1024) + 1;
+		if(width % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
+			loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1;
 		else
-			loop = (width / 1024);
+			loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
 
-		if(height % 1024 > 0)
-			loop *= ((height / 1024) + 1);
+		if(height % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
+			loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
 		else
-			loop *= (height / 1024);
+			loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
 
 		if(loop > large_image_data->num_of_images)
 			loop = large_image_data->num_of_images;
@@ -3257,11 +3257,11 @@ static uint32_t Vid_large_texture_set_data(Large_image* large_image_data, uint8_
 			}
 
 			//Update offset.
-			width_offset += 1024;
+			width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
 			if(width_offset >= width)
 			{
 				width_offset = 0;
-				height_offset += 1024;
+				height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
 			}
 		}
 	}
@@ -4599,7 +4599,7 @@ void Vid_decode_thread(void* arg)
 								if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && vid_player.use_hw_color_conversion)
 								{
 									//todo consider EYE_RIGHT
-									if(vid_player.video_info[EYE_LEFT].codec_width <= 1024 && vid_player.video_info[EYE_LEFT].codec_height <= 1024
+									if(vid_player.video_info[EYE_LEFT].codec_width <= DEF_DRAW_MAX_TEXTURE_SIZE && vid_player.video_info[EYE_LEFT].codec_height <= DEF_DRAW_MAX_TEXTURE_SIZE
 									&& (vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P || vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUVJ420P))
 									{
 										//We can use hw color converter for this video.

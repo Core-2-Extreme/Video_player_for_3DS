@@ -108,8 +108,8 @@ void Draw_texture_free(Draw_image_data* image);
  * @brief Set raw image data to texture data.
  * @param image (in/out) Pointer for texture data.
  * @param buf (in) Pointer for raw image data (must be texture format).
- * @param pic_width (in) Raw image width (up to 1024).
- * @param pic_height (in) Raw image height (up to 1024).
+ * @param pic_width (in) Raw image width (up to DEF_DRAW_MAX_TEXTURE_SIZE).
+ * @param pic_height (in) Raw image height (up to DEF_DRAW_MAX_TEXTURE_SIZE).
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */

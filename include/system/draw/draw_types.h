@@ -8,6 +8,7 @@
 
 #define DEF_DRAW_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in draw module for faster processing.
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS	(uint32_t)(128)
+#define DEF_DRAW_MAX_TEXTURE_SIZE			(uint16_t)(1024)
 
 #define DEF_DRAW_RED						(uint32_t)(0xFF0000FF)
 #define DEF_DRAW_GREEN						(uint32_t)(0xFF00FF00)

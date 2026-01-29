@@ -29,6 +29,8 @@
 #include "video_player.h"
 
 //Defines.
+#define DEF_SEM_CHECK_INTERNET_URL					/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+
 //System UI.
 #define DEF_SEM_HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define DEF_SEM_HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
@@ -3047,7 +3049,7 @@ void Sem_check_connectivity_thread(void* arg)
 			Net_dl_parameters dl_parameters = { 0, };
 
 			count = 0;
-			dl_parameters.url = DEF_MENU_CHECK_INTERNET_URL;
+			dl_parameters.url = DEF_SEM_CHECK_INTERNET_URL;
 			dl_parameters.max_redirect = 0;
 			dl_parameters.max_size = 0x1000;
 			dl_parameters.status_code = &status_code;

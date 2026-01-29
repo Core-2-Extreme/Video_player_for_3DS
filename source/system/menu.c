@@ -106,8 +106,8 @@ static bool menu_check_exit_request = false;
 static bool menu_update_available = false;
 static bool menu_init_request[APP_MAX] = { 0, };
 static bool menu_exit_request[APP_MAX] = { 0, };
-static uint32_t menu_icon_texture_num[APP_MAX] = { 0, };
-static uint32_t menu_sem_icon_texture_num = 0;
+static uint32_t menu_icon_texture_id[APP_MAX] = { 0, };
+static uint32_t menu_sem_icon_texture_id = 0;
 static void (*menu_worker_thread_callbacks[NUM_OF_CALLBACKS])(void) = { 0, };
 static Str_data menu_msg[MSG_MAX] = { 0, };
 static Thread menu_worker_thread = NULL;
@@ -172,9 +172,9 @@ void Menu_init(void)
 		menu_worker_thread_callbacks[i] = NULL;
 
 	for(uint32_t i = 0; i < APP_MAX; i++)
-		menu_icon_texture_num[i] = UINT32_MAX;
+		menu_icon_texture_id[i] = UINT32_MAX;
 
-	menu_sem_icon_texture_num = UINT32_MAX;
+	menu_sem_icon_texture_id = UINT32_MAX;
 
 	sync_init_result = Util_sync_init();
 	queue_init_result = Util_queue_init();
@@ -281,59 +281,59 @@ void Menu_init(void)
 
 	//Load sub application icons.
 #ifdef DEF_VID_ENABLE_ICON
-	menu_icon_texture_num[APP_VID] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_VID_ICON_PATH, menu_icon_texture_num[APP_VID], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_VID] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_VID_ICON_PATH, menu_icon_texture_id[APP_VID], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_VID].c2d = cache[0];
 	if(result == DEF_SUCCESS)
 		Draw_set_texture_filter(&menu_icon_image[APP_VID], true);
 #endif //DEF_VID_ENABLE_ICON
 
 #ifdef DEF_SAPP1_ENABLE_ICON
-	menu_icon_texture_num[APP_1] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_num[APP_1], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_1] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_id[APP_1], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_1].c2d = cache[0];
 #endif //DEF_SAPP1_ENABLE_ICON
 
 #ifdef DEF_SAPP2_ENABLE_ICON
-	menu_icon_texture_num[APP_2] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_num[APP_2], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_2] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP2_ICON_PATH, menu_icon_texture_id[APP_2], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_2].c2d = cache[0];
 #endif //DEF_SAPP2_ENABLE_ICON
 
 #ifdef DEF_SAPP3_ENABLE_ICON
-	menu_icon_texture_num[APP_3] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_num[APP_3], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_3] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP3_ICON_PATH, menu_icon_texture_id[APP_3], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_3].c2d = cache[0];
 #endif //DEF_SAPP3_ENABLE_ICON
 
 #ifdef DEF_SAPP4_ENABLE_ICON
-	menu_icon_texture_num[APP_4] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_num[APP_4], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_4] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP4_ICON_PATH, menu_icon_texture_id[APP_4], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_4].c2d = cache[0];
 #endif //DEF_SAPP4_ENABLE_ICON
 
 #ifdef DEF_SAPP5_ENABLE_ICON
-	menu_icon_texture_num[APP_5] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_num[APP_5], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_5] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP5_ICON_PATH, menu_icon_texture_id[APP_5], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_5].c2d = cache[0];
 #endif //DEF_SAPP5_ENABLE_ICON
 
 #ifdef DEF_SAPP6_ENABLE_ICON
-	menu_icon_texture_num[APP_6] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_num[APP_6], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_6] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP6_ICON_PATH, menu_icon_texture_id[APP_6], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_6].c2d = cache[0];
 #endif //DEF_SAPP6_ENABLE_ICON
 
 #ifdef DEF_SAPP7_ENABLE_ICON
-	menu_icon_texture_num[APP_7] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_num[APP_7], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_texture_id[APP_7] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP7_ICON_PATH, menu_icon_texture_id[APP_7], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_7].c2d = cache[0];
 #endif //DEF_SAPP7_ENABLE_ICON
 
 #ifdef DEF_SEM_ENABLE_ICON
 //todo separate
-	menu_sem_icon_texture_num = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_sem_icon_texture_num, cache, 0, 2), (result == DEF_SUCCESS), result);
+	menu_sem_icon_texture_id = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_sem_icon_texture_id, cache, 0, 2), (result == DEF_SUCCESS), result);
 	menu_sem_icon_image[0].c2d = cache[0];
 	menu_sem_icon_image[1].c2d = cache[1];
 #endif //DEF_SEM_ENABLE_ICON
@@ -414,9 +414,9 @@ void Menu_exit(void)
 		Sem_exit();
 
 	for(uint32_t i = 0; i < APP_MAX; i++)
-		Draw_free_texture(menu_icon_texture_num[i]);
+		Draw_free_texture(menu_icon_texture_id[i]);
 
-	Draw_free_texture(menu_sem_icon_texture_num);
+	Draw_free_texture(menu_sem_icon_texture_id);
 
 	Util_hid_remove_callback(Menu_hid_callback);
 	Util_hid_exit();

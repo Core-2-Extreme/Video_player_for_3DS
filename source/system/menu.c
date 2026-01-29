@@ -192,7 +192,7 @@ void Menu_init(void)
 
 	osSetSpeedupEnable(true);
 	aptSetSleepAllowed(true);
-	svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_HIGH - 1);
+	svcSetThreadPriority(CUR_THREAD_HANDLE, (DEF_THREAD_PRIORITY_HIGH - 1));
 
 	//Init system modules.
 	DEF_LOG_RESULT_SMART(result, fsInit(), (result == DEF_SUCCESS), result);
@@ -331,7 +331,6 @@ void Menu_init(void)
 #endif //DEF_SAPP7_ENABLE_ICON
 
 #ifdef DEF_SEM_ENABLE_ICON
-//todo separate
 	menu_sem_icon_texture_id = Draw_get_free_sheet_num();
 	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_sem_icon_texture_id, cache, 0, 2), (result == DEF_SUCCESS), result);
 	menu_sem_icon_image[0].c2d = cache[0];
@@ -755,7 +754,6 @@ void Menu_main(void)
 			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260, 170, 60, 60);
 
 #ifdef DEF_SEM_ENABLE_ICON
-//todo separate
 			Draw_texture(&menu_sem_icon_image[config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 #endif //DEF_SEM_ENABLE_ICON
 #ifdef DEF_SEM_ENABLE_NAME

@@ -39,6 +39,10 @@
 #define MENU_LCD_Y_OFFSET_MIN				(double)(-60)		//Minimum y offset in LCD menu.
 #define MENU_FONT_Y_OFFSET_MIN				(double)(-950)		//Minimum y offset in font menu.
 
+#define UPDATE_FLASH_INTERVAL_MS			(uint64_t)(50)		//Interval for flash mode update.
+#define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
+#define UPDATE_DRAW_INTERVAL_MS				(uint64_t)(1000)	//Interval for draw update (to update time on screen).
+
 //System UI.
 #define HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
@@ -837,7 +841,7 @@ void Sem_init(void)
 	sem_state = state;
 
 	sem_thread_run = true;
-	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
+	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, NULL, DEF_THREAD_STACKSIZE, (DEF_THREAD_PRIORITY_HIGH - 1), 1, false);
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
@@ -2799,12 +2803,14 @@ void Sem_hw_config_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint32_t count = 0;
-	uint64_t previous_ts = 0;
+	uint64_t previous_flash_ts = 0;
+	uint64_t previous_system_info_ts = 0;
+	uint64_t previous_draw_ts = 0;
 
 	while (sem_thread_run)
 	{
 		uint32_t result = DEF_ERR_OTHER;
+		uint64_t current_ts = osGetTime();
 		Sem_config config = { 0, };
 		//Reduce stack usage.
 		static Hid_info hid_info = { 0, };
@@ -2812,7 +2818,8 @@ void Sem_hw_config_thread(void* arg)
 		Sem_get_config(&config);
 		Util_hid_query_key_state(&hid_info);
 
-		if(previous_ts + 50 <= osGetTime())
+		//Check for flash update.
+		if((previous_flash_ts + UPDATE_FLASH_INTERVAL_MS) <= current_ts)
 		{
 			if(config.is_flash)
 			{
@@ -2821,21 +2828,37 @@ void Sem_hw_config_thread(void* arg)
 
 				Draw_set_refresh_needed(true);
 			}
-			count++;
 
-			if(previous_ts + 100 >= osGetTime())
-				previous_ts += 50;
+			//Update timestamp.
+			if((previous_flash_ts + (UPDATE_FLASH_INTERVAL_MS * 1.5)) >= current_ts)
+				previous_flash_ts += UPDATE_FLASH_INTERVAL_MS;
 			else
-				previous_ts = osGetTime();
+				previous_flash_ts = current_ts;//We are too late, reset the time base.
 		}
 
-		if(count % 5 == 0)
+		//Check for system info update.
+		if((previous_system_info_ts + UPDATE_SYSTEM_INFO_INTERVAL_MS) <= current_ts)
+		{
 			Sem_get_system_info();
 
-		if(count >= 20)
+			//Update timestamp.
+			if((previous_system_info_ts + (UPDATE_SYSTEM_INFO_INTERVAL_MS * 1.5)) >= current_ts)
+				previous_system_info_ts += UPDATE_SYSTEM_INFO_INTERVAL_MS;
+			else
+				previous_system_info_ts = current_ts;//We are too late, reset the time base.
+		}
+
+		//Check for draw update.
+		if((previous_draw_ts + UPDATE_DRAW_INTERVAL_MS) <= current_ts)
 		{
+			//Re-draw screen to update time.
 			Draw_set_refresh_needed(true);
-			count = 0;
+
+			//Update timestamp.
+			if((previous_draw_ts + (UPDATE_DRAW_INTERVAL_MS * 1.5)) >= current_ts)
+				previous_draw_ts += UPDATE_DRAW_INTERVAL_MS;
+			else
+				previous_draw_ts = current_ts;//We are too late, reset the time base.
 		}
 
 		if(sem_should_wifi_enabled != config.is_wifi_on)

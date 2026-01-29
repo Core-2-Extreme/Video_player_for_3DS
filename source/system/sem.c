@@ -364,15 +364,32 @@ typedef enum
 
 typedef enum
 {
-	UPDATE_STATE_UPDATE_FAILURE = -2,
-	UPDATE_STATE_CHECK_FAILURE = -1,
+	UPDATE_STATE_UPDATE_FAILURE = -2,	//Downloading/instaling has failed.
+	UPDATE_STATE_CHECK_FAILURE = -1,	//Downloading update info has failed.
 
-	UPDATE_STATE_CHECKING,
-	UPDATE_STATE_CHECK_SUCCESS,
-	UPDATE_STATE_DOWNLOADING,
-	UPDATE_STATE_INSTALLING,
-	UPDATE_STATE_UPDATE_SUCCESS,
+	UPDATE_STATE_CHECKING,				//Checking (downloading) for update info.
+	UPDATE_STATE_CHECK_SUCCESS,			//Update info has successfully retrieved.
+	UPDATE_STATE_DOWNLOADING,			//Downloading update.
+	UPDATE_STATE_INSTALLING,			//Installing update (for .cia).
+	UPDATE_STATE_UPDATE_SUCCESS,		//Update has successfully finished.
 } Sem_update_state;
+
+typedef enum
+{
+	UPDATE_DATA_NEWEST_VERSION,									//Newest version.
+
+	UPDATE_DATA_AVAILABLE_BASE,
+	UPDATE_DATA_3DSX_AVAILABLE = UPDATE_DATA_AVAILABLE_BASE,	//Whether .3dsx is available.
+	UPDATE_DATA_CIA_AVAILABLE,									//Whether .cia is available.
+
+	UPDATE_DATA_URL_BASE,
+	UPDATE_DATA_3DSX_URL = UPDATE_DATA_URL_BASE,				//Download URL for .3dsx.
+	UPDATE_DATA_CIA_URL,										//Download URL for .cia.
+
+	UPDATE_DATA_PATCH_NOTE,										//Patch note.
+
+	UPDATE_DATA_MAX,
+} Sem_update_data;
 
 typedef struct
 {
@@ -414,7 +431,7 @@ static double sem_touch_x_move_left = 0;
 static double sem_touch_y_move_left = 0;
 static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
 static Str_data sem_msg[MSG_MAX] = { 0, };
-static Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
+static Str_data sem_newest_ver_data[UPDATE_DATA_MAX] = { 0, };
 static Sync_data sem_config_state_mutex = { 0, };
 static Thread sem_hw_config_thread = NULL;
 static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[MENU_MAX] = { 0, }, sem_english_button = { 0, },
@@ -677,7 +694,7 @@ void Sem_init(void)
 		return;
 	}
 
-	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_newest_ver_data); i++)
+	for(uint32_t i = 0; i < UPDATE_DATA_MAX; i++)
 		Util_str_init(&sem_newest_ver_data[i]);
 
 	if(CFGU_GetSystemModel(&model) == DEF_SUCCESS)
@@ -1106,7 +1123,7 @@ void Sem_exit(void)
 	threadFree(sem_check_connectivity_thread);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-	for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_newest_ver_data); i++)
+	for(uint32_t i = 0; i < UPDATE_DATA_MAX; i++)
 		Util_str_free(&sem_newest_ver_data[i]);
 
 	//Global.
@@ -1360,7 +1377,7 @@ void Sem_main(void)
 				else if (sem_update_progress == UPDATE_STATE_CHECK_SUCCESS)//Success.
 				{
 					Draw(&sem_msg[sem_new_version_available ? MSG_NEW_VERSION_AVAILABLE : MSG_UP_TO_DATE], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
-					Draw(&sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 
 				//Temporal workaround for UI overflow.
@@ -1384,7 +1401,7 @@ void Sem_main(void)
 				//3dsx.
 				if(sem_selected_edition == EDTION_3DSX)
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
-				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
+				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1')
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
@@ -1392,14 +1409,14 @@ void Sem_main(void)
 				//Cia.
 				if(sem_selected_edition == EDTION_CIA)
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
-				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
+				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1')
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 				if (sem_selected_edition == EDTION_3DSX)
 				{
-					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
+					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]));
 					Draw(&sem_msg[MSG_FILE_PATH], 17.5, 110, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 120, 0.425, 0.425, DEF_DRAW_RED);
 				}
@@ -1436,7 +1453,7 @@ void Sem_main(void)
 					Draw(&sem_msg[MSG_FAILURE], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 
 				if((sem_selected_edition != EDTION_NONE)
-				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition]))[0] == '1')
+				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_AVAILABLE_BASE + sem_selected_edition]))[0] == '1')
 					can_press = true;
 
 				//Temporal workaround for UI overflow.
@@ -1827,8 +1844,8 @@ void Sem_hid(const Hid_info* key)
 	else
 	{
 		bool enable_back_button = true;
-		bool is_3dsx_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1');
-		bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1');
+		bool is_3dsx_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1');
+		bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1');
 		bool is_exfont_busy = (Exfont_is_loading_external_font() || Exfont_is_unloading_external_font());
 		bool record_request = false;
 		const bool is_available[EDTION_MAX] = { is_3dsx_available, is_cia_available, };
@@ -3236,13 +3253,13 @@ void Sem_update_thread(void* arg)
 				sem_selected_edition = EDTION_NONE;
 				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
-				for (uint8_t i = 0; i < 6; i++)
+				for (uint32_t i = 0; i < UPDATE_DATA_MAX; i++)
 					Util_str_clear(&sem_newest_ver_data[i]);
 			}
 			else if (sem_dl_file_request)
 			{
 				sem_update_progress = UPDATE_STATE_DOWNLOADING;
-				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[3 + sem_selected_edition]));
+				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_URL_BASE + sem_selected_edition]));
 			}
 			Draw_set_refresh_needed(true);
 
@@ -3250,7 +3267,7 @@ void Sem_update_thread(void* arg)
 			{
 				Util_str_set(&dir_path, DEF_MENU_MAIN_DIR "ver/");
 
-				Util_str_format(&filename, UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
+				Util_str_format(&filename, UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]));
 				if(sem_selected_edition == EDTION_3DSX)
 					Util_str_format_append(&filename, "3dsx");
 				else if(sem_selected_edition == EDTION_CIA)
@@ -3314,7 +3331,7 @@ void Sem_update_thread(void* arg)
 					const char* parse_start[6] = {"<newest>", "<3dsx_available>", "<cia_available>", "<3dsx_url>", "<cia_url>", "<patch_note>", };
 					const char* parse_end[6] = { "</newest>", "</3dsx_available>", "</cia_available>", "</3dsx_url>", "</cia_url>", "</patch_note>", };
 
-					for (uint8_t i = 0; i < 6; i++)
+					for (uint32_t i = 0; i < UPDATE_DATA_MAX; i++)
 					{
 						bool is_error = true;
 						const char* start_pos = strstr((char*)buffer, parse_start[i]);
@@ -3343,14 +3360,14 @@ void Sem_update_thread(void* arg)
 
 					if(sem_update_progress != UPDATE_STATE_CHECK_FAILURE)
 					{
-						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]), NULL, 10))
+						if (DEF_MENU_CURRENT_APP_VER_INT < (uint32_t)strtoul(DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]), NULL, 10))
 							sem_new_version_available = true;
 						else
 							sem_new_version_available = false;
 
-						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
+						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1')
 							sem_selected_edition = EDTION_3DSX;
-						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
+						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1')
 							sem_selected_edition = EDTION_CIA;
 					}
 

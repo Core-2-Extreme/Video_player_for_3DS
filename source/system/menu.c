@@ -106,12 +106,14 @@ static bool menu_check_exit_request = false;
 static bool menu_update_available = false;
 static bool menu_init_request[APP_MAX] = { 0, };
 static bool menu_exit_request[APP_MAX] = { 0, };
-static uint32_t menu_icon_texture_num[APP_MAX + 1] = { 0, };
+static uint32_t menu_icon_texture_num[APP_MAX] = { 0, };
+static uint32_t menu_sem_icon_texture_num = 0;
 static void (*menu_worker_thread_callbacks[NUM_OF_CALLBACKS])(void) = { 0, };
 static Str_data menu_msg[MSG_MAX] = { 0, };
 static Thread menu_worker_thread = NULL;
 static Sync_data menu_callback_mutex = { 0, };
-static Draw_image_data menu_icon_image[APP_MAX + 2] = { 0, };
+static Draw_image_data menu_icon_image[APP_MAX] = { 0, };
+static Draw_image_data menu_sem_icon_image[2] = { 0, };
 static Draw_image_data menu_sapp_button[APP_MAX] = { 0, };
 static Draw_image_data menu_sapp_close_button[APP_MAX] = { 0, };
 static Draw_image_data menu_sem_button = { 0, };
@@ -169,8 +171,10 @@ void Menu_init(void)
 	for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 		menu_worker_thread_callbacks[i] = NULL;
 
-	for(uint32_t i = 0; i < (APP_MAX + 1); i++)
+	for(uint32_t i = 0; i < APP_MAX; i++)
 		menu_icon_texture_num[i] = UINT32_MAX;
+
+	menu_sem_icon_texture_num = UINT32_MAX;
 
 	sync_init_result = Util_sync_init();
 	queue_init_result = Util_queue_init();
@@ -328,10 +332,10 @@ void Menu_init(void)
 
 #ifdef DEF_SEM_ENABLE_ICON
 //todo separate
-	menu_icon_texture_num[8] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_icon_texture_num[8], cache, 0, 2), (result == DEF_SUCCESS), result);
-	menu_icon_image[8].c2d = cache[0];
-	menu_icon_image[9].c2d = cache[1];
+	menu_sem_icon_texture_num = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SEM_ICON_PATH, menu_sem_icon_texture_num, cache, 0, 2), (result == DEF_SUCCESS), result);
+	menu_sem_icon_image[0].c2d = cache[0];
+	menu_sem_icon_image[1].c2d = cache[1];
 #endif //DEF_SEM_ENABLE_ICON
 
 	for(uint32_t i = 0; i < APP_MAX; i++)
@@ -409,8 +413,10 @@ void Menu_exit(void)
 	if (Sem_query_init_flag())
 		Sem_exit();
 
-	for(uint32_t i = 0; i < (APP_MAX + 1); i++)
+	for(uint32_t i = 0; i < APP_MAX; i++)
 		Draw_free_texture(menu_icon_texture_num[i]);
+
+	Draw_free_texture(menu_sem_icon_texture_num);
 
 	Util_hid_remove_callback(Menu_hid_callback);
 	Util_hid_exit();
@@ -750,7 +756,7 @@ void Menu_main(void)
 
 #ifdef DEF_SEM_ENABLE_ICON
 //todo separate
-			Draw_texture(&menu_icon_image[8 + config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
+			Draw_texture(&menu_sem_icon_image[config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 #endif //DEF_SEM_ENABLE_ICON
 #ifdef DEF_SEM_ENABLE_NAME
 			Draw_c(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);

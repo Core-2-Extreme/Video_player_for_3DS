@@ -687,8 +687,8 @@ void Vid_decode_thread(void* arg);
 void Vid_decode_video_thread(void* arg);
 void Vid_convert_thread(void* arg);
 void Vid_read_packet_thread(void* arg);
-static void Vid_callback(Str_data* file, Str_data* dir);
-static void Vid_cancel(void);
+static void Vid_expl_callback(Str_data* file, Str_data* dir);
+static void Vid_expl_cancel_callback(void);
 
 //Variables.
 static bool vid_main_run = false;
@@ -1098,8 +1098,8 @@ void Vid_hid(const Hid_info* key)
 				else if(HID_OPEN_EXPL_CFM(*key))
 				{
 					Util_expl_set_show_flag(true);
-					Util_expl_set_callback(Vid_callback);
-					Util_expl_set_cancel_callback(Vid_cancel);
+					Util_expl_set_callback(Vid_expl_callback);
+					Util_expl_set_cancel_callback(Vid_expl_cancel_callback);
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				}
@@ -6434,7 +6434,7 @@ void Vid_read_packet_thread(void* arg)
 	threadExit(0);
 }
 
-static void Vid_callback(Str_data* file, Str_data* dir)
+static void Vid_expl_callback(Str_data* file, Str_data* dir)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	Vid_file* file_data = (Vid_file*)malloc(sizeof(Vid_file));
@@ -6453,6 +6453,7 @@ static void Vid_callback(Str_data* file, Str_data* dir)
 	file_data, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 }
 
-static void Vid_cancel(void)
+static void Vid_expl_cancel_callback(void)
 {
+	//Do nothing.
 }

@@ -29,27 +29,8 @@
 #include "video_player.h"
 
 //Defines.
-#define CHECK_INTERNET_URL			/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
-#define UPDATE_FILE_PREFIX			/*(const char*)(*/"Vid_"/*)*/
-
-#define MENU_TOP					(int8_t)(-1)
-#define MENU_UPDATE					(int8_t)(0)
-#define MENU_LANGAGES				(int8_t)(1)
-#define MENU_LCD					(int8_t)(2)
-#define MENU_CONTROL				(int8_t)(3)
-#define MENU_FONT					(int8_t)(4)
-#define MENU_WIFI					(int8_t)(5)
-#define MENU_ADVANCED				(int8_t)(6)
-#define MENU_BATTERY				(int8_t)(7)
-#define MENU_RECORDING				(int8_t)(8)
-
-// #define RECORD_BOTH				(uint8_t)(0)
-// #define RECORD_TOP				(uint8_t)(1)
-// #define RECORD_BOTTOM			(uint8_t)(2)
-
-#define EDTION_NONE					(int8_t)(-1)
-#define EDTION_3DSX					(int8_t)(0)
-#define EDTION_CIA					(int8_t)(1)
+#define CHECK_INTERNET_URL					/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+#define UPDATE_FILE_PREFIX					/*(const char*)(*/"Vid_"/*)*/
 
 //System UI.
 #define HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
@@ -340,6 +321,42 @@ typedef enum
 	MSG_MAX,
 } Sem_msg;
 
+typedef enum
+{
+	MENU_TOP = -1,
+
+	MENU_UPDATE,		//Updater menu is displayed.
+	MENU_LANGAGES,		//Languages menu is displayed.
+	MENU_LCD,			//LCD menu is displayed.
+	MENU_CONTROL,		//Control menu is displayed.
+	MENU_FONT,			//Font menu is displayed.
+	MENU_WIFI,			//Wi-Fi menu is displayed.
+	MENU_ADVANCED,		//Advanced menu is displayed.
+	MENU_BATTERY,		//Battery menu is displayed.
+	MENU_RECORDING,		//Screen recording menu is displayed.
+
+	MENU_MAX,
+} Sem_menu;
+
+typedef enum
+{
+	RECORD_BOTH,		//Record both screen.
+	RECORD_TOP,			//Only record top screen.
+	RECORD_BOTTOM,		//Only record bottom screen.
+
+	RECORD_MAX,
+} Sem_record;
+
+typedef enum
+{
+	EDTION_NONE = -1,
+
+	EDTION_3DSX,		//.3dsx.
+	EDTION_CIA,			//.cia.
+
+	EDTION_MAX,
+} Sem_edition;
+
 typedef struct
 {
 	bool is_connect_test_succes;
@@ -374,7 +391,6 @@ static bool sem_reload_msg_request = false;
 static bool sem_scroll_mode = false;
 static bool sem_dump_log_request = false;
 static bool sem_should_wifi_enabled = false;
-static int8_t sem_selected_menu_mode = MENU_TOP;
 static double sem_y_offset = 0;
 static double sem_y_max = 0;
 static double sem_touch_x_move_left = 0;
@@ -384,7 +400,7 @@ static Str_data sem_msg[MSG_MAX] = { 0, };
 static Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
 static Sync_data sem_config_state_mutex = { 0, };
 static Thread sem_hw_config_thread = NULL;
-static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[9] = { 0, }, sem_english_button = { 0, },
+static Draw_image_data sem_back_button = { 0, }, sem_scroll_bar = { 0, }, sem_menu_button[MENU_MAX] = { 0, }, sem_english_button = { 0, },
 sem_japanese_button = { 0, }, sem_hungarian_button = { 0, }, sem_chinese_button = { 0, }, sem_italian_button = { 0, },
 sem_spanish_button = { 0, }, sem_romanian_button = { 0, }, sem_polish_button = { 0, }, sem_ryukyuan_button = { 0, }, sem_german_button = { 0, },
 sem_night_mode_on_button = { 0, }, sem_night_mode_off_button = { 0, }, sem_flash_mode_button = { 0, }, sem_screen_brightness_slider = { 0, },
@@ -395,6 +411,7 @@ sem_unload_all_ex_font_button = { 0, }, sem_ex_font_button[DEF_EXFONT_NUM_OF_FON
 sem_wifi_off_button = { 0, }, sem_allow_send_info_button = { 0, }, sem_deny_send_info_button = { 0, }, sem_debug_mode_on_button = { 0, },
 sem_debug_mode_off_button = { 0, }, sem_eco_mode_on_button = { 0, }, sem_eco_mode_off_button = { 0, }, sem_record_both_lcd_button = { 0, },
 sem_record_top_lcd_button = { 0, }, sem_record_bottom_lcd_button = { 0, }, sem_use_fake_model_button = { 0, }, sem_dump_log_button = { 0, };
+static Sem_menu sem_selected_menu_mode = MENU_TOP;
 static Sem_internal_state sem_internal_state = { 0, };
 static Sem_state sem_state = { 0, };
 static Sem_config sem_config = { 0, };
@@ -415,7 +432,6 @@ static bool sem_show_patch_note_request = false;
 static bool sem_select_ver_request = false;
 static bool sem_dl_file_request = false;
 static int8_t sem_update_progress = -1;
-static int8_t sem_selected_edition_num = EDTION_NONE;
 static uint32_t sem_installed_size = 0;
 static uint32_t sem_total_cia_size = 0;
 static uint32_t sem_dled_size = 0;
@@ -423,6 +439,7 @@ static Thread sem_update_thread = NULL;
 static Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
 sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
 sem_close_app_button = { 0, };
+static Sem_edition sem_selected_edition = EDTION_NONE;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
@@ -434,11 +451,11 @@ static bool sem_record_request = false;
 static bool sem_encode_request = false;
 static bool sem_wait_request = false;
 static bool sem_stop_record_request = false;
-static uint8_t sem_selected_recording_mode = 0;
 static uint8_t* sem_yuv420p = NULL;
 static uint16_t sem_rec_width = 400;
 static uint16_t sem_rec_height = 480;
 static Thread sem_record_thread = NULL, sem_encode_thread = NULL;
+static Sem_record sem_selected_recording_mode = RECORD_BOTH;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 //Code.
@@ -811,7 +828,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected, sizeof(sem_scroll_bar.selected));
 
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_back_button.selected, sizeof(sem_back_button.selected));
-	for(uint8_t i = 0; i < 9; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected, sizeof(sem_menu_button[i].selected));
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
@@ -820,7 +837,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request, sizeof(sem_select_ver_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request, sizeof(sem_dl_file_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request, sizeof(sem_check_update_request));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition_num, sizeof(sem_selected_edition_num));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition, sizeof(sem_selected_edition));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size, sizeof(sem_installed_size));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size, sizeof(sem_dled_size));
 
@@ -990,7 +1007,7 @@ void Sem_draw_init(void)
 	sem_monitor_cpu_usage_off_button = Draw_get_empty_image();
 #endif //DEF_CPU_USAGE_API_ENABLE
 
-	for(uint8_t i = 0; i < 9; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		sem_menu_button[i] = Draw_get_empty_image();
 	for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		sem_ex_font_button[i] = Draw_get_empty_image();
@@ -1084,7 +1101,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected);
 
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_back_button.selected);
-	for(uint8_t i = 0; i < 9; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected);
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
@@ -1093,7 +1110,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition_num);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size);
 
@@ -1348,7 +1365,7 @@ void Sem_main(void)
 				Draw_texture(&sem_cia_button, sem_cia_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 45, 100, 25);
 
 				//3dsx.
-				if(sem_selected_edition_num == EDTION_3DSX)
+				if(sem_selected_edition == EDTION_3DSX)
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
 				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
@@ -1356,14 +1373,14 @@ void Sem_main(void)
 					Draw(&sem_msg[MSG_3DSX], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 				//Cia.
-				if(sem_selected_edition_num == EDTION_CIA)
+				if(sem_selected_edition == EDTION_CIA)
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
 				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
 					Draw(&sem_msg[MSG_CIA], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
-				if (sem_selected_edition_num == EDTION_3DSX)
+				if (sem_selected_edition == EDTION_3DSX)
 				{
 					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
 					Draw(&sem_msg[MSG_FILE_PATH], 17.5, 110, 0.5, 0.5, DEF_DRAW_BLACK);
@@ -1401,8 +1418,8 @@ void Sem_main(void)
 				else if (sem_update_progress == -2)
 					Draw(&sem_msg[MSG_FAILURE], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 
-				if((sem_selected_edition_num != EDTION_NONE)
-				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition_num]))[0] == '1')
+				if((sem_selected_edition != EDTION_NONE)
+				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition]))[0] == '1')
 					can_press = true;
 
 				//Temporal workaround for UI overflow.
@@ -1776,8 +1793,6 @@ void Sem_main(void)
 
 void Sem_hid(const Hid_info* key)
 {
-	const int8_t menu_button_list[9] = { MENU_UPDATE, MENU_LANGAGES, MENU_LCD, MENU_CONTROL,
-	MENU_FONT, MENU_WIFI, MENU_ADVANCED, MENU_BATTERY, MENU_RECORDING };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
@@ -1799,7 +1814,7 @@ void Sem_hid(const Hid_info* key)
 		bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1');
 		bool is_exfont_busy = (Exfont_is_loading_external_font() || Exfont_is_unloading_external_font());
 		bool record_request = false;
-		const bool is_available[2] = { is_3dsx_available, is_cia_available, };
+		const bool is_available[EDTION_MAX] = { is_3dsx_available, is_cia_available, };
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
 
@@ -1815,10 +1830,10 @@ void Sem_hid(const Hid_info* key)
 			Draw_get_bot_ui_button()->selected = true;
 		else if (sem_selected_menu_mode == MENU_TOP)
 		{
-			for(uint8_t i = 0; i < 9; i++)
+			for(uint32_t i = 0; i < MENU_MAX; i++)
 			{
-				if(HID_SUB_MENU_SEL(*key, menu_button_list[i]))
-					sem_menu_button[menu_button_list[i]].selected = true;
+				if(HID_SUB_MENU_SEL(*key, i))
+					sem_menu_button[i].selected = true;
 			}
 
 			if(HID_SCROLL_MODE_SEL(*key))
@@ -1846,8 +1861,8 @@ void Sem_hid(const Hid_info* key)
 						sem_cia_button.selected = true;
 					if (HID_UPDATE_BACK_PATCH_NOTE_SEL(*key))
 						sem_back_to_patch_note_button.selected = true;
-					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition_num != EDTION_NONE
-					&& is_available[sem_selected_edition_num])
+					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDTION_NONE
+					&& is_available[sem_selected_edition])
 						sem_dl_install_button.selected = true;
 					if(HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == 4)
 						sem_close_app_button.selected = true;
@@ -1991,13 +2006,13 @@ void Sem_hid(const Hid_info* key)
 		{
 			if (sem_selected_menu_mode == MENU_TOP)
 			{
-				for(uint8_t i = 0; i < 9; i++)
+				for(uint32_t i = 0; i < MENU_MAX; i++)
 				{
-					if(HID_SUB_MENU_CFM(*key, menu_button_list[i]))
+					if(HID_SUB_MENU_CFM(*key, i))
 					{
 						//Go to selected page.
 						sem_y_offset = 0.0;
-						sem_selected_menu_mode = menu_button_list[i];
+						sem_selected_menu_mode = (Sem_menu)i;
 						if (sem_selected_menu_mode == MENU_LANGAGES)
 							sem_y_max = -75.0;
 						else if (sem_selected_menu_mode == MENU_LCD)
@@ -2038,16 +2053,16 @@ void Sem_hid(const Hid_info* key)
 					else if (sem_select_ver_request && !sem_dl_file_request)
 					{
 						if (HID_UPDATE_3DSX_CFM(*key) && is_3dsx_available)
-							sem_selected_edition_num = EDTION_3DSX;
+							sem_selected_edition = EDTION_3DSX;
 						else if (HID_UPDATE_CIA_CFM(*key) && is_cia_available)
-							sem_selected_edition_num = EDTION_CIA;
+							sem_selected_edition = EDTION_CIA;
 						else if (HID_UPDATE_BACK_PATCH_NOTE_CFM(*key))
 						{
 							sem_show_patch_note_request = true;
 							sem_select_ver_request = false;
 						}
-						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition_num != EDTION_NONE
-						&& is_available[sem_selected_edition_num])
+						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDTION_NONE
+						&& is_available[sem_selected_edition])
 							sem_dl_file_request = true;
 						else if(HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == 4)
 							Menu_set_must_exit_flag(true);
@@ -2416,8 +2431,8 @@ void Sem_hid(const Hid_info* key)
 			Draw_get_bot_ui_button()->selected = false;
 		if(HID_SUB_MENU_DESEL(*key) || sem_scroll_mode)
 		{
-			for(uint8_t i = 0; i < 9; i++)
-				sem_menu_button[menu_button_list[i]].selected = false;
+			for(uint32_t i = 0; i < MENU_MAX; i++)
+				sem_menu_button[i].selected = false;
 		}
 		if(HID_BACK_DESEL(*key) || sem_scroll_mode)
 			sem_back_button.selected = false;
@@ -2930,7 +2945,6 @@ void Sem_record_thread(void* arg)
 	{
 		if (sem_record_request)
 		{
-			uint8_t mode = 0;
 			uint8_t rec_framerate = 10;
 			uint8_t* top_bgr = NULL;
 			uint8_t* bot_bgr = NULL;
@@ -2938,6 +2952,7 @@ void Sem_record_thread(void* arg)
 			uint16_t rec_width = 400;
 			uint16_t rec_height = 480;
 			uint32_t result = DEF_ERR_OTHER;
+			Sem_record mode = 0;
 			Str_data path = { 0, };
 			Sem_state state = { 0, };
 
@@ -3201,7 +3216,7 @@ void Sem_update_thread(void* arg)
 			if (sem_check_update_request)
 			{
 				sem_update_progress = 0;
-				sem_selected_edition_num = EDTION_NONE;
+				sem_selected_edition = EDTION_NONE;
 				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
 				for (uint8_t i = 0; i < 6; i++)
@@ -3210,7 +3225,7 @@ void Sem_update_thread(void* arg)
 			else if (sem_dl_file_request)
 			{
 				sem_update_progress = 2;
-				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[3 + sem_selected_edition_num]));
+				Util_str_set(&url, DEF_STR_NEVER_NULL(&sem_newest_ver_data[3 + sem_selected_edition]));
 			}
 			Draw_set_refresh_needed(true);
 
@@ -3219,9 +3234,9 @@ void Sem_update_thread(void* arg)
 				Util_str_set(&dir_path, DEF_MENU_MAIN_DIR "ver/");
 
 				Util_str_format(&filename, UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
-				if(sem_selected_edition_num == EDTION_3DSX)
+				if(sem_selected_edition == EDTION_3DSX)
 					Util_str_format_append(&filename, "3dsx");
-				else if(sem_selected_edition_num == EDTION_CIA)
+				else if(sem_selected_edition == EDTION_CIA)
 					Util_str_format_append(&filename, "cia");
 
 				Util_file_delete_file(filename.buffer, dir_path.buffer);//Delete old file if exist.
@@ -3317,9 +3332,9 @@ void Sem_update_thread(void* arg)
 							sem_new_version_available = false;
 
 						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
-							sem_selected_edition_num = EDTION_3DSX;
+							sem_selected_edition = EDTION_3DSX;
 						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
-							sem_selected_edition_num = EDTION_CIA;
+							sem_selected_edition = EDTION_CIA;
 					}
 
 					sem_update_progress = 1;
@@ -3328,11 +3343,11 @@ void Sem_update_thread(void* arg)
 				else if (sem_dl_file_request)
 				{
 					sem_update_progress = 3;
-					if (sem_selected_edition_num == EDTION_3DSX)
+					if (sem_selected_edition == EDTION_3DSX)
 						sem_update_progress = 4;
 
 					Draw_set_refresh_needed(true);
-					if (sem_selected_edition_num == EDTION_CIA)
+					if (sem_selected_edition == EDTION_CIA)
 					{
 						uint64_t offset = 0;
 						Handle am_handle = 0;

@@ -1153,7 +1153,7 @@ void Vid_hid(const Hid_info* key)
 						//Update texture filter.
 						for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 						{
-							for(uint8_t k = 0; k < EYE_MAX; k++)
+							for(uint32_t k = 0; k < EYE_MAX; k++)
 								Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 						}
 					}
@@ -1695,7 +1695,6 @@ void Vid_main(void)
 	double text_subtitle_width = 0;
 	double text_subtitle_height = 0;
 	double y_offset = 0;
-	//Array 0 == for top screen left eye, array 1 == for top screen right eye.
 	uint8_t image_index[EYE_MAX] = { 0, };
 	double image_width[EYE_MAX] = { 0, };
 	double image_height[EYE_MAX] = { 0, };
@@ -1723,7 +1722,7 @@ void Vid_main(void)
 	}
 
 	//Assign previous frame index first.
-	for(uint8_t i = 0; i < EYE_MAX; i++)
+	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
 		if(vid_player.next_draw_index[i] > 0)
 			image_index[i] = vid_player.next_draw_index[i] - 1;
@@ -1737,14 +1736,13 @@ void Vid_main(void)
 
 		if(vid_player.next_frame_update_time <= current_ts)
 		{
-			//Array 0 == for left eye, array 1 == for right eye.
 			bool is_both_buffer_ready = false;
 			bool is_buffer_full = false;
 			uint8_t buffer_health[EYE_MAX] = { 0, };
 			double next_ts = 0;
 
 			//Check for buffer health.
-			for(uint8_t i = 0; i < EYE_MAX; i++)
+			for(uint32_t i = 0; i < EYE_MAX; i++)
 			{
 				if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
 					buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
@@ -1754,13 +1752,13 @@ void Vid_main(void)
 
 			if(vid_player.num_of_video_tracks >= 2)
 			{
-				is_both_buffer_ready = ((buffer_health[0] > 0) && (buffer_health[1] > 0));
-				is_buffer_full = ((buffer_health[0] >= (VIDEO_BUFFERS - 1)) || (buffer_health[1] >= (VIDEO_BUFFERS - 1)));
+				is_both_buffer_ready = ((buffer_health[EYE_LEFT] > 0) && (buffer_health[EYE_RIGHT] > 0));
+				is_buffer_full = ((buffer_health[EYE_LEFT] >= (VIDEO_BUFFERS - 1)) || (buffer_health[EYE_RIGHT] >= (VIDEO_BUFFERS - 1)));
 			}
 			else
 			{
-				is_both_buffer_ready = (buffer_health[0] > 0);
-				is_buffer_full = (buffer_health[0] >= (VIDEO_BUFFERS - 1));
+				is_both_buffer_ready = (buffer_health[EYE_LEFT] > 0);
+				is_buffer_full = (buffer_health[EYE_LEFT] >= (VIDEO_BUFFERS - 1));
 			}
 
 			//Update video frame if any of them is true :
@@ -1779,9 +1777,9 @@ void Vid_main(void)
 					//todo consider EYE_RIGHT
 					//We only use EYE_LEFT for delay checking.
 					Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
-					Vid_update_video_delay(0);
+					Vid_update_video_delay(EYE_LEFT);
 					if(vid_player.num_of_video_tracks > 1)
-						Vid_update_video_delay(1);
+						Vid_update_video_delay(EYE_RIGHT);
 
 					video_delay = vid_player.video_delay_ms[EYE_LEFT][DELAY_SAMPLES - 1];
 					Util_sync_unlock(&vid_player.delay_update_lock);
@@ -1818,7 +1816,7 @@ void Vid_main(void)
 				}
 				else
 				{
-					for(uint8_t i = 0; i < EYE_MAX; i++)
+					for(uint32_t i = 0; i < EYE_MAX; i++)
 					{
 						if(vid_player.num_of_video_tracks <= i)
 							break;
@@ -1873,7 +1871,7 @@ void Vid_main(void)
 	}
 
 	//Calculate image size and drawing position.
-	for(uint8_t i = 0; i < EYE_MAX; i++)
+	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
 		double sar_width_ratio = 0;
 		double sar_height_ratio = 0;
@@ -1922,7 +1920,7 @@ void Vid_main(void)
 		text_subtitle_width = 0.5 * vid_player.subtitle_zoom;
 		text_subtitle_height = 0.5 * vid_player.subtitle_zoom;
 
-		for(uint8_t i = 0; i < SCREEN_POS_MAX; i++)
+		for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 		{
 			bitmap_subtitle_x_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_x * vid_player.video_zoom) + vid_player.video_x_offset + vid_player.subtitle_x_offset;
 			bitmap_subtitle_y_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_y * vid_player.video_zoom) + vid_player.video_y_offset + vid_player.subtitle_y_offset;
@@ -3325,8 +3323,8 @@ static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height)
 
 		vid_player.video_x_offset = (screen_width - (vid_player.video_info[EYE_LEFT].width * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1))) / 2;
 		vid_player.video_y_offset = (screen_height - (vid_player.video_info[EYE_LEFT].height * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1))) / 2;
-		vid_player.video_y_offset += (TOP_SCREEN_HEIGHT - screen_height);
 		vid_player.video_x_offset += (TOP_SCREEN_WIDTH - screen_width);
+		vid_player.video_y_offset += (TOP_SCREEN_HEIGHT - screen_height);
 	}
 	vid_player.subtitle_x_offset = 0;
 	vid_player.subtitle_y_offset = 0;
@@ -3483,7 +3481,7 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 		{
 			vid_player.packet_buffer_list[i - 1] = vid_player.packet_buffer_list[i];
 			vid_player.raw_audio_buffer_list[i - 1] = vid_player.raw_audio_buffer_list[i];
-			for(uint8_t k = 0; k < EYE_MAX; k++)
+			for(uint32_t k = 0; k < EYE_MAX; k++)
 				vid_player.raw_video_buffer_list[k][i - 1] = vid_player.raw_video_buffer_list[k][i];
 		}
 
@@ -3654,7 +3652,7 @@ static void Vid_init_debug_view_data(void)
 		vid_player.video_decoding_time_list[i] = 0;
 		vid_player.audio_decoding_time_list[i] = 0;
 		vid_player.conversion_time_list[i] = 0;
-		for(uint8_t k = 0; k < EYE_MAX; k++)
+		for(uint32_t k = 0; k < EYE_MAX; k++)
 			vid_player.raw_video_buffer_list[k][i] = 0;
 	}
 
@@ -3679,7 +3677,7 @@ static void Vid_init_desync_data(void)
 	vid_player.wait_threshold_exceeded_ts = 0;
 	vid_player.drop_threshold_exceeded_ts = 0;
 	vid_player.last_video_frame_updated_ts = 0;
-	for(uint8_t i = 0; i < EYE_MAX; i++)
+	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
 		vid_player.video_delay_avg_ms[i] = 0;
 		for(uint16_t k = 0; k < DELAY_SAMPLES; k++)
@@ -3707,7 +3705,7 @@ static void Vid_init_video_data(void)
 	vid_player.video_frametime = 0;
 	vid_player._3d_slider_pos = osGet3DSliderState();
 
-	for(uint8_t i = 0; i < EYE_MAX; i++)
+	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
 		vid_player.next_store_index[i] = 0;
 		vid_player.next_draw_index[i] = 0;
@@ -3731,7 +3729,7 @@ static void Vid_init_video_data(void)
 	Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 	for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 	{
-		for(uint8_t k = 0; k < EYE_MAX; k++)
+		for(uint32_t k = 0; k < EYE_MAX; k++)
 			Vid_large_texture_free(&vid_player.large_image[i][k]);
 	}
 	Util_sync_unlock(&vid_player.texture_init_free_lock);
@@ -4126,7 +4124,7 @@ void Vid_init_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		vid_player.subtitle_track_button[i] = Draw_get_empty_image();
 
-	for(uint8_t i = 0; i < MENU_MAX; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		vid_player.menu_button[i] = Draw_get_empty_image();
 
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state, sizeof(vid_player.state));
@@ -4208,7 +4206,7 @@ void Vid_init_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_button[i].selected, sizeof(vid_player.subtitle_track_button[i].selected));
 
-	for(uint8_t i = 0; i < MENU_MAX; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected, sizeof(vid_player.menu_button[i].selected));
 
 	Util_str_add(&vid_status, "\nInitializing queue...");
@@ -4368,7 +4366,7 @@ void Vid_exit_thread(void* arg)
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_button[i].selected);
 
-	for(uint8_t i = 0; i < MENU_MAX; i++)
+	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected);
 
 	Util_queue_delete(&vid_player.decode_thread_command_queue);
@@ -4637,7 +4635,7 @@ void Vid_decode_thread(void* arg)
 								//Apply texture filter.
 								for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 								{
-									for(uint8_t k = 0; k < EYE_MAX; k++)
+									for(uint32_t k = 0; k < EYE_MAX; k++)
 										Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 								}
 
@@ -5021,7 +5019,7 @@ void Vid_decode_thread(void* arg)
 					Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 					for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 					{
-						for(uint8_t k = 0; k < EYE_MAX; k++)
+						for(uint32_t k = 0; k < EYE_MAX; k++)
 							Vid_large_texture_free(&vid_player.large_image[i][k]);
 					}
 					Util_sync_unlock(&vid_player.texture_init_free_lock);

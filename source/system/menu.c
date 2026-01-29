@@ -31,44 +31,44 @@
 #include "video_player.h"
 
 //Defines.
-#define DEF_MENU_APP_INFO				/*(const char*)(*/"Video_player_for_3ds/" DEF_MENU_CURRENT_APP_VER/*)*/
-#define DEF_MENU_SEND_APP_INFO_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
+#define APP_INFO					/*(const char*)(*/"Video_player_for_3ds/" DEF_MENU_CURRENT_APP_VER/*)*/
+#define SEND_APP_INFO_URL			/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
 
-#define DEF_MENU_NUM_OF_CALLBACKS		(uint16_t)(32)
-#define DEF_MENU_SOCKET_BUFFER_SIZE		(uint32_t)(0x40000)
-#define DEF_MENU_HTTP_POST_BUFFER_SIZE	(uint32_t)(0x80000)
+#define NUM_OF_CALLBACKS			(uint16_t)(32)
+#define SOCKET_BUFFER_SIZE			(uint32_t)(0x40000)
+#define HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)
 
-#define DEF_MENU_NUM_OF_MSG				(uint16_t)(5)
-#define DEF_MENU_EXIST_MSG				(uint16_t)(0)
-#define DEF_MENU_CONFIRM_MSG			(uint16_t)(1)
-#define DEF_MENU_CANCEL_MSG				(uint16_t)(2)
-#define DEF_MENU_NEW_VERSION_MSG		(uint16_t)(3)
-#define DEF_MENU_HOW_TO_UPDATE_MSG		(uint16_t)(4)
+#define NUM_OF_MSG					(uint16_t)(5)
+#define EXIST_MSG					(uint16_t)(0)
+#define CONFIRM_MSG					(uint16_t)(1)
+#define CANCEL_MSG					(uint16_t)(2)
+#define NEW_VERSION_MSG				(uint16_t)(3)
+#define HOW_TO_UPDATE_MSG			(uint16_t)(4)
 
-#define DEF_MENU_NUM_OF_SUB_APP		(uint8_t)(8)
-#define DEF_MENU_SEND_INFO_FMT_VER	(uint32_t)(1)
+#define NUM_OF_SUB_APP				(uint8_t)(8)
+#define SEND_INFO_FMT_VER			(uint32_t)(1)
 
 //Exit check.
-#define DEF_MENU_HID_EXIT_CFM(k)			(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
-#define DEF_MENU_HID_EXIT_CANCEL_CFM(k)		(bool)(DEF_HID_PR_EM(k.b,1 ) || DEF_HID_HD(k.b))
+#define HID_EXIT_CFM(k)				(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
+#define HID_EXIT_CANCEL_CFM(k)		(bool)(DEF_HID_PR_EM(k.b,1 ) || DEF_HID_HD(k.b))
 //System UI.
-#define DEF_MENU_HID_SYSTEM_UI_SEL(k)		(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
-#define DEF_MENU_HID_SYSTEM_UI_CFM(k)		(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
-#define DEF_MENU_HID_SYSTEM_UI_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
+#define HID_SYSTEM_UI_SEL(k)		(bool)((DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), k)) || DEF_HID_PHY_PR(k.start))
+#define HID_SYSTEM_UI_CFM(k)		(bool)(((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), k)) || (DEF_HID_PR_EM(k.start, 1) || DEF_HID_HD(k.start)))
+#define HID_SYSTEM_UI_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch) && DEF_HID_PHY_NP(k.start))
 //Toggle log.
-#define DEF_MENU_HID_LOG_CFM(k)				(bool)(DEF_HID_PR_EM(k.select, 1) || DEF_HID_HD(k.select))
+#define HID_LOG_CFM(k)				(bool)(DEF_HID_PR_EM(k.select, 1) || DEF_HID_HD(k.select))
 //Settings menu.
-#define DEF_MENU_HID_SEM_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sem_button, k))
-#define DEF_MENU_HID_SEM_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sem_button, k))
-#define DEF_MENU_HID_SEM_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
+#define HID_SEM_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sem_button, k))
+#define HID_SEM_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sem_button, k))
+#define HID_SEM_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
 //Sub applications : Close.
-#define DEF_MENU_HID_SAPP_CLOSE_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_close_button[id], k))
-#define DEF_MENU_HID_SAPP_CLOSE_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_close_button[id], k))
-#define DEF_MENU_HID_SAPP_CLOSE_DESEL(k)	(bool)(DEF_HID_PHY_NP(k.touch))
+#define HID_SAPP_CLOSE_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_close_button[id], k))
+#define HID_SAPP_CLOSE_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_close_button[id], k))
+#define HID_SAPP_CLOSE_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
 //Sub applications : Open.
-#define DEF_MENU_HID_SAPP_OPEN_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_button[id], k))
-#define DEF_MENU_HID_SAPP_OPEN_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_button[id], k) && !menu_sapp_close_button[id].selected)
-#define DEF_MENU_HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
+#define HID_SAPP_OPEN_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_button[id], k))
+#define HID_SAPP_OPEN_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_button[id], k) && !menu_sapp_close_button[id].selected)
+#define HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
 
 //Typedefs.
 //N/A.
@@ -89,16 +89,16 @@ static bool menu_main_run = true;
 static bool menu_must_exit = false;
 static bool menu_check_exit_request = false;
 static bool menu_update_available = false;
-static bool menu_init_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-static bool menu_exit_request[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-static uint32_t menu_icon_texture_num[DEF_MENU_NUM_OF_SUB_APP + 1] = { 0, };
-static void (*menu_worker_thread_callbacks[DEF_MENU_NUM_OF_CALLBACKS])(void) = { 0, };
-static Str_data menu_msg[DEF_MENU_NUM_OF_MSG] = { 0, };
+static bool menu_init_request[NUM_OF_SUB_APP] = { 0, };
+static bool menu_exit_request[NUM_OF_SUB_APP] = { 0, };
+static uint32_t menu_icon_texture_num[NUM_OF_SUB_APP + 1] = { 0, };
+static void (*menu_worker_thread_callbacks[NUM_OF_CALLBACKS])(void) = { 0, };
+static Str_data menu_msg[NUM_OF_MSG] = { 0, };
 static Thread menu_worker_thread = NULL;
 static Sync_data menu_callback_mutex = { 0, };
-static Draw_image_data menu_icon_image[DEF_MENU_NUM_OF_SUB_APP + 2] = { 0, };
-static Draw_image_data menu_sapp_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
-static Draw_image_data menu_sapp_close_button[DEF_MENU_NUM_OF_SUB_APP] = { 0, };
+static Draw_image_data menu_icon_image[NUM_OF_SUB_APP + 2] = { 0, };
+static Draw_image_data menu_sapp_button[NUM_OF_SUB_APP] = { 0, };
+static Draw_image_data menu_sapp_close_button[NUM_OF_SUB_APP] = { 0, };
 static Draw_image_data menu_sem_button = { 0, };
 
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
@@ -134,7 +134,7 @@ uint32_t Menu_load_msg(const char* lang)
 	char file_name[32] = { 0, };
 
 	snprintf(file_name, sizeof(file_name), "menu_%s.txt", (lang ? lang : ""));
-	return Util_load_msg(file_name, menu_msg, DEF_MENU_NUM_OF_MSG);
+	return Util_load_msg(file_name, menu_msg, NUM_OF_MSG);
 }
 
 void Menu_init(void)
@@ -151,10 +151,10 @@ void Menu_init(void)
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
-	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 		menu_worker_thread_callbacks[i] = NULL;
 
-	for(uint16_t i = 0; i < (DEF_MENU_NUM_OF_SUB_APP + 1); i++)
+	for(uint16_t i = 0; i < (NUM_OF_SUB_APP + 1); i++)
 		menu_icon_texture_num[i] = UINT32_MAX;
 
 	sync_init_result = Util_sync_init();
@@ -228,8 +228,8 @@ void Menu_init(void)
 	Sem_draw_init();
 
 	//Init rest of our modules.
-	DEF_LOG_RESULT_SMART(result, Util_httpc_init(DEF_MENU_HTTP_POST_BUFFER_SIZE), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_curl_init(DEF_MENU_SOCKET_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_httpc_init(HTTP_POST_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_curl_init(SOCKET_BUFFER_SIZE), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_add_callback(Menu_hid_callback), result, result);
 	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result == DEF_SUCCESS), result);
@@ -318,7 +318,7 @@ void Menu_init(void)
 	menu_icon_image[9].c2d = cache[1];
 #endif //DEF_SEM_ENABLE_ICON
 
-	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+	for(uint8_t i = 0; i < NUM_OF_SUB_APP; i++)
 	{
 		menu_sapp_button[i] = Draw_get_empty_image();
 		menu_sapp_close_button[i] = Draw_get_empty_image();
@@ -329,7 +329,7 @@ void Menu_init(void)
 	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request, sizeof(menu_check_exit_request));
 
 	Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected, sizeof(menu_sem_button.selected));
-	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+	for(uint8_t i = 0; i < NUM_OF_SUB_APP; i++)
 	{
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i], sizeof(menu_init_request[i]));
 		Util_watch_add(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i], sizeof(menu_exit_request[i]));
@@ -393,7 +393,7 @@ void Menu_exit(void)
 	if (Sem_query_init_flag())
 		Sem_exit();
 
-	for(uint8_t i = 0; i < (DEF_MENU_NUM_OF_SUB_APP + 1); i++)
+	for(uint8_t i = 0; i < (NUM_OF_SUB_APP + 1); i++)
 		Draw_free_texture(menu_icon_texture_num[i]);
 
 	Util_hid_remove_callback(Menu_hid_callback);
@@ -417,7 +417,7 @@ void Menu_exit(void)
 	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_check_exit_request);
 
 	Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_sem_button.selected);
-	for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+	for(uint8_t i = 0; i < NUM_OF_SUB_APP; i++)
 	{
 		Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_init_request[i]);
 		Util_watch_remove(WATCH_HANDLE_MAIN_MENU, &menu_exit_request[i]);
@@ -453,13 +453,13 @@ bool Menu_add_worker_thread_callback(void (*const callback)(void))
 {
 	Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
-	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 	{
 		if(menu_worker_thread_callbacks[i] == callback)
 			goto success;//Already exist.
 	}
 
-	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 	{
 		if(!menu_worker_thread_callbacks[i])
 		{
@@ -481,7 +481,7 @@ void Menu_remove_worker_thread_callback(void (*const callback)(void))
 {
 	Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
-	for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+	for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 	{
 		if(menu_worker_thread_callbacks[i] == callback)
 		{
@@ -571,14 +571,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw_align(&menu_msg[DEF_MENU_EXIST_MSG], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align(&menu_msg[DEF_MENU_CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw_align(&menu_msg[DEF_MENU_CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[EXIST_MSG], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw_align(&menu_msg[CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
-				Draw(&menu_msg[DEF_MENU_NEW_VERSION_MSG], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(&menu_msg[DEF_MENU_HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
+				Draw(&menu_msg[NEW_VERSION_MSG], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
+				Draw(&menu_msg[HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_show_flag())
@@ -949,64 +949,64 @@ static void Menu_hid_callback(void)
 				//Notify user that button is being pressed.
 				if(!menu_check_exit_request)
 				{
-					if(DEF_MENU_HID_SYSTEM_UI_SEL(key))
+					if(HID_SYSTEM_UI_SEL(key))
 						Draw_get_bot_ui_button()->selected = true;
-					if(DEF_MENU_HID_SEM_SEL(key))
+					if(HID_SEM_SEL(key))
 						menu_sem_button.selected = true;
 
 #ifdef DEF_VID_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 0) && Vid_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 0) && Vid_query_init_flag())
 						menu_sapp_close_button[0].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 0))
+					else if (HID_SAPP_OPEN_SEL(key, 0))
 						menu_sapp_button[0].selected = true;
 #endif //DEF_VID_ENABLE
 
 #ifdef DEF_SAPP1_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 1) && Sapp1_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 1) && Sapp1_query_init_flag())
 						menu_sapp_close_button[1].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 1))
+					else if (HID_SAPP_OPEN_SEL(key, 1))
 						menu_sapp_button[1].selected = true;
 #endif //DEF_SAPP1_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 2) && Sapp2_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 2) && Sapp2_query_init_flag())
 						menu_sapp_close_button[2].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 2))
+					else if (HID_SAPP_OPEN_SEL(key, 2))
 						menu_sapp_button[2].selected = true;
 #endif //DEF_SAPP2_ENABLE
 
 #ifdef DEF_SAPP3_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 3) && Sapp3_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 3) && Sapp3_query_init_flag())
 						menu_sapp_close_button[3].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 3))
+					else if (HID_SAPP_OPEN_SEL(key, 3))
 						menu_sapp_button[3].selected = true;
 #endif //DEF_SAPP3_ENABLE
 
 #ifdef DEF_SAPP4_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 4) && Sapp4_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 4) && Sapp4_query_init_flag())
 						menu_sapp_close_button[4].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 4))
+					else if (HID_SAPP_OPEN_SEL(key, 4))
 						menu_sapp_button[4].selected = true;
 #endif //DEF_SAPP4_ENABLE
 
 #ifdef DEF_SAPP5_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 5) && Sapp5_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 5) && Sapp5_query_init_flag())
 						menu_sapp_close_button[5].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 5))
+					else if (HID_SAPP_OPEN_SEL(key, 5))
 						menu_sapp_button[5].selected = true;
 #endif //DEF_SAPP5_ENABLE
 
 #ifdef DEF_SAPP6_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 6) && Sapp6_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 6) && Sapp6_query_init_flag())
 						menu_sapp_close_button[6].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 6))
+					else if (HID_SAPP_OPEN_SEL(key, 6))
 						menu_sapp_button[6].selected = true;
 #endif //DEF_SAPP6_ENABLE
 
 #ifdef DEF_SAPP7_ENABLE
-					if (DEF_MENU_HID_SAPP_CLOSE_SEL(key, 7) && Sapp7_query_init_flag())
+					if (HID_SAPP_CLOSE_SEL(key, 7) && Sapp7_query_init_flag())
 						menu_sapp_close_button[7].selected = true;
-					else if (DEF_MENU_HID_SAPP_OPEN_SEL(key, 7))
+					else if (HID_SAPP_OPEN_SEL(key, 7))
 						menu_sapp_button[7].selected = true;
 #endif //DEF_SAPP7_ENABLE
 				}
@@ -1014,28 +1014,28 @@ static void Menu_hid_callback(void)
 				//Execute functions if conditions are satisfied.
 				if(menu_check_exit_request)
 				{
-					if (DEF_MENU_HID_EXIT_CFM(key))
+					if (HID_EXIT_CFM(key))
 						menu_must_exit = true;
-					else if (DEF_MENU_HID_EXIT_CANCEL_CFM(key))
+					else if (HID_EXIT_CANCEL_CFM(key))
 						menu_check_exit_request = false;
 				}
 				else
 				{
-					if(DEF_MENU_HID_SYSTEM_UI_CFM(key))
+					if(HID_SYSTEM_UI_CFM(key))
 						menu_check_exit_request = true;
-					else if (DEF_MENU_HID_LOG_CFM(key))
+					else if (HID_LOG_CFM(key))
 						Util_log_set_show_flag(!Util_log_query_show_flag());
-					else if (DEF_MENU_HID_SEM_CFM(key))
+					else if (HID_SEM_CFM(key))
 						Sem_resume();
 
 #ifdef DEF_VID_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 0) && Vid_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 0) && Vid_query_init_flag())
 					{
 						menu_exit_request[0] = true;
 						while(menu_exit_request[0])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 0))
+					else if (HID_SAPP_OPEN_CFM(key, 0))
 					{
 						if (!Vid_query_init_flag())
 						{
@@ -1049,13 +1049,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_VID_ENABLE
 
 #ifdef DEF_SAPP1_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 1) && Sapp1_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 1) && Sapp1_query_init_flag())
 					{
 						menu_exit_request[1] = true;
 						while(menu_exit_request[1])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 1))
+					else if (HID_SAPP_OPEN_CFM(key, 1))
 					{
 						if (!Sapp1_query_init_flag())
 						{
@@ -1069,13 +1069,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP1_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 2) && Sapp2_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 2) && Sapp2_query_init_flag())
 					{
 						menu_exit_request[2] = true;
 						while(menu_exit_request[2])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 2))
+					else if (HID_SAPP_OPEN_CFM(key, 2))
 					{
 						if (!Sapp2_query_init_flag())
 						{
@@ -1089,13 +1089,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP2_ENABLE
 
 #ifdef DEF_SAPP3_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 3) && Sapp3_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 3) && Sapp3_query_init_flag())
 					{
 						menu_exit_request[3] = true;
 						while(menu_exit_request[3])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 3))
+					else if (HID_SAPP_OPEN_CFM(key, 3))
 					{
 						if (!Sapp3_query_init_flag())
 						{
@@ -1109,13 +1109,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP3_ENABLE
 
 #ifdef DEF_SAPP4_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 4) && Sapp4_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 4) && Sapp4_query_init_flag())
 					{
 						menu_exit_request[4] = true;
 						while(menu_exit_request[4])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 4))
+					else if (HID_SAPP_OPEN_CFM(key, 4))
 					{
 						if (!Sapp4_query_init_flag())
 						{
@@ -1129,13 +1129,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP4_ENABLE
 
 #ifdef DEF_SAPP5_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 5) && Sapp5_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 5) && Sapp5_query_init_flag())
 					{
 						menu_exit_request[5] = true;
 						while(menu_exit_request[5])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 5))
+					else if (HID_SAPP_OPEN_CFM(key, 5))
 					{
 						if (!Sapp5_query_init_flag())
 						{
@@ -1149,13 +1149,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP5_ENABLE
 
 #ifdef DEF_SAPP6_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 6) && Sapp6_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 6) && Sapp6_query_init_flag())
 					{
 						menu_exit_request[6] = true;
 						while(menu_exit_request[6])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 6))
+					else if (HID_SAPP_OPEN_CFM(key, 6))
 					{
 						if (!Sapp6_query_init_flag())
 						{
@@ -1169,13 +1169,13 @@ static void Menu_hid_callback(void)
 #endif //DEF_SAPP6_ENABLE
 
 #ifdef DEF_SAPP7_ENABLE
-					else if (DEF_MENU_HID_SAPP_CLOSE_CFM(key, 7) && Sapp7_query_init_flag())
+					else if (HID_SAPP_CLOSE_CFM(key, 7) && Sapp7_query_init_flag())
 					{
 						menu_exit_request[7] = true;
 						while(menu_exit_request[7])
 							Util_sleep(20000);
 					}
-					else if (DEF_MENU_HID_SAPP_OPEN_CFM(key, 7))
+					else if (HID_SAPP_OPEN_CFM(key, 7))
 					{
 						if (!Sapp7_query_init_flag())
 						{
@@ -1190,18 +1190,18 @@ static void Menu_hid_callback(void)
 				}
 
 				//Notify user that button is NOT being pressed anymore.
-				if(DEF_MENU_HID_SYSTEM_UI_DESEL(key))
+				if(HID_SYSTEM_UI_DESEL(key))
 					Draw_get_bot_ui_button()->selected = false;
-				if(DEF_MENU_HID_SEM_DESEL(key))
+				if(HID_SEM_DESEL(key))
 					menu_sem_button.selected = false;
-				if(DEF_MENU_HID_SAPP_CLOSE_DESEL(key))
+				if(HID_SAPP_CLOSE_DESEL(key))
 				{
-					for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+					for(uint8_t i = 0; i < NUM_OF_SUB_APP; i++)
 						menu_sapp_close_button[i].selected = false;
 				}
-				if(DEF_MENU_HID_SAPP_OPEN_DESEL(key))
+				if(HID_SAPP_OPEN_DESEL(key))
 				{
-					for(uint8_t i = 0; i < DEF_MENU_NUM_OF_SUB_APP; i++)
+					for(uint8_t i = 0; i < NUM_OF_SUB_APP; i++)
 						menu_sapp_button[i].selected = false;
 				}
 			}
@@ -1265,7 +1265,7 @@ void Menu_worker_thread(void* arg)
 		Util_sync_lock(&menu_callback_mutex, UINT64_MAX);
 
 		//Call callback functions.
-		for(uint16_t i = 0; i < DEF_MENU_NUM_OF_CALLBACKS; i++)
+		for(uint16_t i = 0; i < NUM_OF_CALLBACKS; i++)
 		{
 			if(menu_worker_thread_callbacks[i])
 				menu_worker_thread_callbacks[i]();
@@ -1297,9 +1297,9 @@ void Menu_send_app_info_thread(void* arg)
 	Sem_state state = { 0, };
 
 #if DEF_CURL_API_ENABLE
-	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_curl_get_default_user_agent(), DEF_MENU_APP_INFO);
+	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_curl_get_default_user_agent(), APP_INFO);
 #else
-	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_httpc_get_default_user_agent(), DEF_MENU_APP_INFO);
+	snprintf(user_agent, sizeof(user_agent), "%s %s", Util_httpc_get_default_user_agent(), APP_INFO);
 #endif //DEF_CURL_API_ENABLE
 
 	Util_str_init(&send_data);
@@ -1327,7 +1327,7 @@ void Menu_send_app_info_thread(void* arg)
 
 	//Make a json data, then send it.
 	Util_str_format(&send_data, DEF_JSON_START_OBJECT);
-	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("fmt_ver", "%" PRIu32, DEF_MENU_SEND_INFO_FMT_VER));
+	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY("fmt_ver", "%" PRIu32, SEND_INFO_FMT_VER));
 	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("app_ver", "v%s", DEF_MENU_CURRENT_APP_VER));
 	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("system_ver", "%s", system_ver_char));
 	Util_str_format_append(&send_data, DEF_JSON_STR_DATA_WITH_KEY("model", "%s", sem_model_name[state.console_model]));
@@ -1344,7 +1344,7 @@ void Menu_send_app_info_thread(void* arg)
 	Util_str_format_append(&send_data, DEF_JSON_NON_STR_DATA_WITH_KEY_WITHOUT_COMMA("is_wifi_on", "%s", (config.is_wifi_on ? "true" : "false")));
 	Util_str_format_append(&send_data, DEF_JSON_END_OBJECT);
 
-	post_parameters.dl.url = DEF_MENU_SEND_APP_INFO_URL;
+	post_parameters.dl.url = SEND_APP_INFO_URL;
 	post_parameters.dl.max_redirect = 5;
 	post_parameters.dl.max_size = 0x10000;
 	post_parameters.u.data.data = (uint8_t*)send_data.buffer;

@@ -34,19 +34,12 @@
 #define APP_INFO					/*(const char*)(*/"Video_player_for_3ds/" DEF_MENU_CURRENT_APP_VER/*)*/
 #define SEND_APP_INFO_URL			/*(const char*)(*/"https://script.google.com/macros/s/AKfycbyn_blFyKWXCgJr6NIF8x6ETs7CHRN5FXKYEAAIrzV6jPYcCkI/exec"/*)*/
 
-#define NUM_OF_CALLBACKS			(uint16_t)(32)
-#define SOCKET_BUFFER_SIZE			(uint32_t)(0x40000)
-#define HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)
+#define SEND_INFO_FMT_VER			(uint32_t)(1)			//Version of system info.
 
-#define NUM_OF_MSG					(uint16_t)(5)
-#define EXIST_MSG					(uint16_t)(0)
-#define CONFIRM_MSG					(uint16_t)(1)
-#define CANCEL_MSG					(uint16_t)(2)
-#define NEW_VERSION_MSG				(uint16_t)(3)
-#define HOW_TO_UPDATE_MSG			(uint16_t)(4)
-
-#define NUM_OF_SUB_APP				(uint8_t)(8)
-#define SEND_INFO_FMT_VER			(uint32_t)(1)
+#define NUM_OF_CALLBACKS			(uint16_t)(32)			//Number of worker thread callbacks.
+#define NUM_OF_SUB_APP				(uint8_t)(8)			//Number of sub applications.
+#define CURL_BUFFER_SIZE			(uint32_t)(0x40000)		//Buffer size for curl.
+#define HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)		//Buffer size for httpc.
 
 //Exit check.
 #define HID_EXIT_CFM(k)				(bool)(DEF_HID_PR_EM(k.a, 1) || DEF_HID_HD(k.a))
@@ -71,7 +64,16 @@
 #define HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
 
 //Typedefs.
-//N/A.
+typedef enum
+{
+	MSG_EXIST,
+	MSG_CONFIRM,
+	MSG_CANCEL,
+	MSG_NEW_VERSION,
+	MSG_HOW_TO_UPDATE,
+
+	MSG_MAX,
+} Menu_msg;
 
 //Prototypes.
 static uint32_t Menu_update_main_directory(void);
@@ -93,7 +95,7 @@ static bool menu_init_request[NUM_OF_SUB_APP] = { 0, };
 static bool menu_exit_request[NUM_OF_SUB_APP] = { 0, };
 static uint32_t menu_icon_texture_num[NUM_OF_SUB_APP + 1] = { 0, };
 static void (*menu_worker_thread_callbacks[NUM_OF_CALLBACKS])(void) = { 0, };
-static Str_data menu_msg[NUM_OF_MSG] = { 0, };
+static Str_data menu_msg[MSG_MAX] = { 0, };
 static Thread menu_worker_thread = NULL;
 static Sync_data menu_callback_mutex = { 0, };
 static Draw_image_data menu_icon_image[NUM_OF_SUB_APP + 2] = { 0, };
@@ -134,7 +136,7 @@ uint32_t Menu_load_msg(const char* lang)
 	char file_name[32] = { 0, };
 
 	snprintf(file_name, sizeof(file_name), "menu_%s.txt", (lang ? lang : ""));
-	return Util_load_msg(file_name, menu_msg, NUM_OF_MSG);
+	return Util_load_msg(file_name, menu_msg, MSG_MAX);
 }
 
 void Menu_init(void)
@@ -229,7 +231,7 @@ void Menu_init(void)
 
 	//Init rest of our modules.
 	DEF_LOG_RESULT_SMART(result, Util_httpc_init(HTTP_POST_BUFFER_SIZE), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_curl_init(SOCKET_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_curl_init(CURL_BUFFER_SIZE), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_add_callback(Menu_hid_callback), result, result);
 	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result == DEF_SUCCESS), result);
@@ -571,14 +573,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw_align(&menu_msg[EXIST_MSG], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align(&menu_msg[CONFIRM_MSG], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw_align(&menu_msg[CANCEL_MSG], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[MSG_EXIST], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw_align(&menu_msg[MSG_CONFIRM], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[MSG_CANCEL], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
-				Draw(&menu_msg[NEW_VERSION_MSG], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(&menu_msg[HOW_TO_UPDATE_MSG], 10, 60, 0.5, 0.5, color);
+				Draw(&menu_msg[MSG_NEW_VERSION], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
+				Draw(&menu_msg[MSG_HOW_TO_UPDATE], 10, 60, 0.5, 0.5, color);
 			}
 
 			if(Util_log_query_show_flag())

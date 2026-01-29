@@ -32,6 +32,11 @@
 #define CHECK_INTERNET_URL					/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
 #define UPDATE_FILE_PREFIX					/*(const char*)(*/"Vid_"/*)*/
 
+#define MENU_TOP_Y_OFFSET_MIN				(double)(0)			//Minimum y offset in top menu.
+#define MENU_LANGUAGES_Y_OFFSET_MIN			(double)(-75)		//Minimum y offset in languages menu.
+#define MENU_LCD_Y_OFFSET_MIN				(double)(-60)		//Minimum y offset in LCD menu.
+#define MENU_FONT_Y_OFFSET_MIN				(double)(-950)		//Minimum y offset in font menu.
+
 //System UI.
 #define HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
@@ -404,7 +409,7 @@ static bool sem_scroll_mode = false;
 static bool sem_dump_log_request = false;
 static bool sem_should_wifi_enabled = false;
 static double sem_y_offset = 0;
-static double sem_y_max = 0;
+static double sem_y_min = MENU_TOP_Y_OFFSET_MIN;
 static double sem_touch_x_move_left = 0;
 static double sem_touch_y_move_left = 0;
 static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
@@ -834,7 +839,7 @@ void Sem_init(void)
 
 	//Global.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_y_offset, sizeof(sem_y_offset));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_y_max, sizeof(sem_y_max));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_y_min, sizeof(sem_y_min));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_menu_mode, sizeof(sem_selected_menu_mode));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_mode, sizeof(sem_scroll_mode));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected, sizeof(sem_scroll_bar.selected));
@@ -1107,7 +1112,7 @@ void Sem_exit(void)
 	//Global.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &Draw_get_bot_ui_button()->selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_y_offset);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_y_max);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_y_min);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_menu_mode);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_mode);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_scroll_bar.selected);
@@ -1294,7 +1299,7 @@ void Sem_main(void)
 		{
 			Draw_texture(&background, color, 312.5, 0.0, 7.5, 15.0);
 			Draw_texture(&background, color, 312.5, 215.0, 7.5, 10.0);
-			Draw_texture(&sem_scroll_bar, sem_scroll_bar.selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_max)), 7.5, 5.0);
+			Draw_texture(&sem_scroll_bar, sem_scroll_bar.selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_min)), 7.5, 5.0);
 		}
 
 		if (sem_selected_menu_mode == MENU_TOP)
@@ -2026,11 +2031,11 @@ void Sem_hid(const Hid_info* key)
 						sem_y_offset = 0.0;
 						sem_selected_menu_mode = (Sem_menu)i;
 						if (sem_selected_menu_mode == MENU_LANGAGES)
-							sem_y_max = -75.0;
+							sem_y_min = MENU_LANGUAGES_Y_OFFSET_MIN;
 						else if (sem_selected_menu_mode == MENU_LCD)
-							sem_y_max = -60.0;
+							sem_y_min = MENU_LCD_Y_OFFSET_MIN;
 						else if (sem_selected_menu_mode == MENU_FONT)
-							sem_y_max = -950.0;
+							sem_y_min = MENU_FONT_Y_OFFSET_MIN;
 
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -2044,7 +2049,7 @@ void Sem_hid(const Hid_info* key)
 				{
 					//Back to top page.
 					sem_y_offset = 0.0;
-					sem_y_max = 0.0;
+					sem_y_min = MENU_TOP_Y_OFFSET_MIN;
 					sem_selected_menu_mode = MENU_TOP;
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -2403,7 +2408,7 @@ void Sem_hid(const Hid_info* key)
 			sem_touch_x_move_left = 0;
 			sem_touch_y_move_left = 0;
 
-			sem_y_offset = ((key->touch_y - 15.0) / 195.0) * sem_y_max;
+			sem_y_offset = ((key->touch_y - 15.0) / 195.0) * sem_y_min;
 		}
 		else if(DEF_HID_PHY_PR(key->touch) || DEF_HID_PHY_HE(key->touch))
 		{
@@ -2431,8 +2436,8 @@ void Sem_hid(const Hid_info* key)
 
 		if (sem_y_offset >= 0)
 			sem_y_offset = 0.0;
-		else if (sem_y_offset <= sem_y_max)
-			sem_y_offset = sem_y_max;
+		else if (sem_y_offset <= sem_y_min)
+			sem_y_offset = sem_y_min;
 
 		//Notify user that button is NOT being pressed anymore.
 		if(HID_SCROLL_MODE_DESEL(*key))

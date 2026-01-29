@@ -29,311 +29,311 @@
 #include "video_player.h"
 
 //Defines.
-#define DEF_SEM_CHECK_INTERNET_URL					/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
-#define DEF_SEM_UPDATE_FILE_PREFIX		/*(const char*)(*/"Vid_"/*)*/
+#define CHECK_INTERNET_URL			/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+#define UPDATE_FILE_PREFIX			/*(const char*)(*/"Vid_"/*)*/
 
-#define DEF_SEM_NUM_OF_MSG				(uint16_t)(72)
+#define NUM_OF_MSG					(uint16_t)(72)
 
-#define DEF_SEM_UPDATE_MSG					(uint16_t)(0)
-#define DEF_SEM_LANGAGES_MSG				(uint16_t)(1)
-#define DEF_SEM_LCD_MSG						(uint16_t)(2)
-#define DEF_SEM_CONTROL_MSG					(uint16_t)(3)
-#define DEF_SEM_FONT_MSG					(uint16_t)(4)
-#define DEF_SEM_WIFI_MSG					(uint16_t)(5)
-#define DEF_SEM_ADVANCED_MSG				(uint16_t)(6)
-#define DEF_SEM_BATTERY_MSG					(uint16_t)(7)
-#define DEF_SEM_CHECK_UPDATE_MSG			(uint16_t)(8)
-#define DEF_SEM_ENGLISH_MSG					(uint16_t)(9)
-#define DEF_SEM_JAPANESE_MSG				(uint16_t)(10)
-#define DEF_SEM_NIGHT_MODE_MSG				(uint16_t)(11)
-#define DEF_SEM_ON_MSG						(uint16_t)(12)
-#define DEF_SEM_OFF_MSG						(uint16_t)(13)
-#define DEF_SEM_FLASH_MSG					(uint16_t)(14)
-#define DEF_SEM_BRIGHTNESS_MSG				(uint16_t)(15)
-#define DEF_SEM_LCD_OFF_TIME_0_MSG			(uint16_t)(16)
-#define DEF_SEM_LCD_OFF_TIME_1_MSG			(uint16_t)(17)
-#define DEF_SEM_SCROLL_SPEED_MSG			(uint16_t)(18)
-// #define DEF_SEM_JAPANESE_FONT_MSG			(uint16_t)(19)
-// #define DEF_SEM_CHINESE_FONT_MSG			(uint16_t)(20)
-// #define DEF_SEM_KOREAN_FONT_MSG				(uint16_t)(21)
-// #define DEF_SEM_TAIWANESE_FONT_MSG			(uint16_t)(22)
-#define DEF_SEM_LOAD_ALL_FONT_MSG			(uint16_t)(23)
-#define DEF_SEM_UNLOAD_ALL_FONT_MSG			(uint16_t)(24)
-#define DEF_SEM_SEND_INFO_MODE_MSG			(uint16_t)(25)
-#define DEF_SEM_ALLOW_MSG					(uint16_t)(26)
-#define DEF_SEM_DENY_MSG					(uint16_t)(27)
-#define DEF_SEM_DEBUG_MODE_MSG				(uint16_t)(28)
-#define DEF_SEM_ECO_MODE_MSG				(uint16_t)(29)
-#define DEF_SEM_BACK_MSG					(uint16_t)(30)
-#define DEF_SEM_CHECKING_UPDATE_MSG			(uint16_t)(31)
-#define DEF_SEM_CHECKING_UPDATE_FAILED_MSG	(uint16_t)(32)
-#define DEF_SEM_UP_TO_DATE_MSG				(uint16_t)(33)
-#define DEF_SEM_NEW_VERSION_AVAILABLE_MSG	(uint16_t)(34)
-#define DEF_SEM_CLOSE_UPDATER_MSG			(uint16_t)(35)
-#define DEF_SEM_BACK_TO_PATCH_NOTE_MSG		(uint16_t)(35)	//Same as CLOSE_UPDATER_MSG.
-#define DEF_SEM_SELECT_EDITION_MSG			(uint16_t)(36)
-#define DEF_SEM_3DSX_MSG					(uint16_t)(37)
-#define DEF_SEM_CIA_MSG						(uint16_t)(38)
-#define DEF_SEM_FILE_PATH_MSG				(uint16_t)(39)
-#define DEF_SEM_DOWNLOADING_MSG				(uint16_t)(40)
-#define DEF_SEM_INSTALLING_MSG				(uint16_t)(41)
-#define DEF_SEM_SUCCESS_MSG					(uint16_t)(42)
-#define DEF_SEM_FAILURE_MSG					(uint16_t)(43)
-#define DEF_SEM_RESTART_MSG					(uint16_t)(44)
-#define DEF_SEM_DL_INSTALL_MSG				(uint16_t)(45)
-#define DEF_SEM_CLOSE_APP_MSG				(uint16_t)(46)
-#define DEF_SEM_WIFI_MODE_MSG				(uint16_t)(47)
-#define DEF_SEM_CONNECTED_SSID_MSG			(uint16_t)(48)
-#define DEF_SEM_RECORDING_MSG				(uint16_t)(49)
-// #define DEF_SEM_RECORD_BOTH_LCD_MSG			(uint16_t)(50)
-// #define DEF_SEM_RECORD_TOP_LCD_MSG			(uint16_t)(51)
-// #define DEF_SEM_RECORD_BOTTOM_LCD_MSG		(uint16_t)(52)
-// #define DEF_SEM_STOP_RECORDING_MSG			(uint16_t)(53)
-#define DEF_SEM_LCD_MODE_MSG				(uint16_t)(54)
-// #define DEF_SEM_CANNOT_RECORD_MSG			(uint16_t)(55)
-#define DEF_SEM_800PX_MSG					(uint16_t)(56)
-#define DEF_SEM_3D_MSG						(uint16_t)(57)
-#define DEF_SEM_400PX_MSG					(uint16_t)(58)
-#define DEF_SEM_HUNGARIAN_MSG				(uint16_t)(59)
-#define DEF_SEM_CHINESE_MSG					(uint16_t)(60)
-#define DEF_SEM_ITALIAN_MSG					(uint16_t)(61)
-#define DEF_SEM_FAKE_MODEL_MSG				(uint16_t)(62)
-#define DEF_SEM_SPANISH_MSG					(uint16_t)(63)
-#define DEF_SEM_ROMANIAN_MSG				(uint16_t)(64)
-#define DEF_SEM_POLISH_MSG					(uint16_t)(65)
-#define DEF_SEM_CPU_USAGE_MONITOR_MSG		(uint16_t)(66)
-#define DEF_SEM_DUMP_LOGS_MSG				(uint16_t)(67)
-#define DEF_SEM_RYUKYUAN_MSG				(uint16_t)(68)
-#define DEF_SEM_AUTO_MSG					(uint16_t)(69)
-#define DEF_SEM_SLEEP_TIME_MSG				(uint16_t)(70)
-#define DEF_SEM_GERMAN_MSG					(uint16_t)(71)
+#define UPDATE_MSG					(uint16_t)(0)
+#define LANGAGES_MSG				(uint16_t)(1)
+#define LCD_MSG						(uint16_t)(2)
+#define CONTROL_MSG					(uint16_t)(3)
+#define FONT_MSG					(uint16_t)(4)
+#define WIFI_MSG					(uint16_t)(5)
+#define ADVANCED_MSG				(uint16_t)(6)
+#define BATTERY_MSG					(uint16_t)(7)
+#define CHECK_UPDATE_MSG			(uint16_t)(8)
+#define ENGLISH_MSG					(uint16_t)(9)
+#define JAPANESE_MSG				(uint16_t)(10)
+#define NIGHT_MODE_MSG				(uint16_t)(11)
+#define ON_MSG						(uint16_t)(12)
+#define OFF_MSG						(uint16_t)(13)
+#define FLASH_MSG					(uint16_t)(14)
+#define BRIGHTNESS_MSG				(uint16_t)(15)
+#define LCD_OFF_TIME_0_MSG			(uint16_t)(16)
+#define LCD_OFF_TIME_1_MSG			(uint16_t)(17)
+#define SCROLL_SPEED_MSG			(uint16_t)(18)
+// #define JAPANESE_FONT_MSG			(uint16_t)(19)
+// #define CHINESE_FONT_MSG			(uint16_t)(20)
+// #define KOREAN_FONT_MSG				(uint16_t)(21)
+// #define TAIWANESE_FONT_MSG			(uint16_t)(22)
+#define LOAD_ALL_FONT_MSG			(uint16_t)(23)
+#define UNLOAD_ALL_FONT_MSG			(uint16_t)(24)
+#define SEND_INFO_MODE_MSG			(uint16_t)(25)
+#define ALLOW_MSG					(uint16_t)(26)
+#define DENY_MSG					(uint16_t)(27)
+#define DEBUG_MODE_MSG				(uint16_t)(28)
+#define ECO_MODE_MSG				(uint16_t)(29)
+#define BACK_MSG					(uint16_t)(30)
+#define CHECKING_UPDATE_MSG			(uint16_t)(31)
+#define CHECKING_UPDATE_FAILED_MSG	(uint16_t)(32)
+#define UP_TO_DATE_MSG				(uint16_t)(33)
+#define NEW_VERSION_AVAILABLE_MSG	(uint16_t)(34)
+#define CLOSE_UPDATER_MSG			(uint16_t)(35)
+#define BACK_TO_PATCH_NOTE_MSG		(uint16_t)(35)	//Same as CLOSE_UPDATER_MSG.
+#define SELECT_EDITION_MSG			(uint16_t)(36)
+#define _3DSX_MSG					(uint16_t)(37)
+#define CIA_MSG						(uint16_t)(38)
+#define FILE_PATH_MSG				(uint16_t)(39)
+#define DOWNLOADING_MSG				(uint16_t)(40)
+#define INSTALLING_MSG				(uint16_t)(41)
+#define SUCCESS_MSG					(uint16_t)(42)
+#define FAILURE_MSG					(uint16_t)(43)
+#define RESTART_MSG					(uint16_t)(44)
+#define DL_INSTALL_MSG				(uint16_t)(45)
+#define CLOSE_APP_MSG				(uint16_t)(46)
+#define WIFI_MODE_MSG				(uint16_t)(47)
+#define CONNECTED_SSID_MSG			(uint16_t)(48)
+#define RECORDING_MSG				(uint16_t)(49)
+// #define RECORD_BOTH_LCD_MSG			(uint16_t)(50)
+// #define RECORD_TOP_LCD_MSG			(uint16_t)(51)
+// #define RECORD_BOTTOM_LCD_MSG		(uint16_t)(52)
+// #define STOP_RECORDING_MSG			(uint16_t)(53)
+#define LCD_MODE_MSG				(uint16_t)(54)
+// #define CANNOT_RECORD_MSG			(uint16_t)(55)
+#define _800PX_MSG					(uint16_t)(56)
+#define _3D_MSG						(uint16_t)(57)
+#define _400PX_MSG					(uint16_t)(58)
+#define HUNGARIAN_MSG				(uint16_t)(59)
+#define CHINESE_MSG					(uint16_t)(60)
+#define ITALIAN_MSG					(uint16_t)(61)
+#define FAKE_MODEL_MSG				(uint16_t)(62)
+#define SPANISH_MSG					(uint16_t)(63)
+#define ROMANIAN_MSG				(uint16_t)(64)
+#define POLISH_MSG					(uint16_t)(65)
+#define CPU_USAGE_MONITOR_MSG		(uint16_t)(66)
+#define DUMP_LOGS_MSG				(uint16_t)(67)
+#define RYUKYUAN_MSG				(uint16_t)(68)
+#define AUTO_MSG					(uint16_t)(69)
+#define SLEEP_TIME_MSG				(uint16_t)(70)
+#define GERMAN_MSG					(uint16_t)(71)
 
-#define DEF_SEM_MENU_TOP				(int8_t)(-1)
-#define DEF_SEM_MENU_UPDATE				(int8_t)(0)
-#define DEF_SEM_MENU_LANGAGES			(int8_t)(1)
-#define DEF_SEM_MENU_LCD				(int8_t)(2)
-#define DEF_SEM_MENU_CONTROL			(int8_t)(3)
-#define DEF_SEM_MENU_FONT				(int8_t)(4)
-#define DEF_SEM_MENU_WIFI				(int8_t)(5)
-#define DEF_SEM_MENU_ADVANCED			(int8_t)(6)
-#define DEF_SEM_MENU_BATTERY			(int8_t)(7)
-#define DEF_SEM_MENU_RECORDING			(int8_t)(8)
+#define MENU_TOP					(int8_t)(-1)
+#define MENU_UPDATE					(int8_t)(0)
+#define MENU_LANGAGES				(int8_t)(1)
+#define MENU_LCD					(int8_t)(2)
+#define MENU_CONTROL				(int8_t)(3)
+#define MENU_FONT					(int8_t)(4)
+#define MENU_WIFI					(int8_t)(5)
+#define MENU_ADVANCED				(int8_t)(6)
+#define MENU_BATTERY				(int8_t)(7)
+#define MENU_RECORDING				(int8_t)(8)
 
-// #define DEF_SEM_RECORD_BOTH				(uint8_t)(0)
-// #define DEF_SEM_RECORD_TOP				(uint8_t)(1)
-// #define DEF_SEM_RECORD_BOTTOM			(uint8_t)(2)
+// #define RECORD_BOTH				(uint8_t)(0)
+// #define RECORD_TOP				(uint8_t)(1)
+// #define RECORD_BOTTOM			(uint8_t)(2)
 
-#define DEF_SEM_EDTION_NONE				(int8_t)(-1)
-#define DEF_SEM_EDTION_3DSX				(int8_t)(0)
-#define DEF_SEM_EDTION_CIA				(int8_t)(1)
+#define EDTION_NONE					(int8_t)(-1)
+#define EDTION_3DSX					(int8_t)(0)
+#define EDTION_CIA					(int8_t)(1)
 
 //System UI.
-#define DEF_SEM_HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
-#define DEF_SEM_HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
-#define DEF_SEM_HID_SYSTEM_UI_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
+#define HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
+#define HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
+#define HID_SYSTEM_UI_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).start))
 //Sub menu selection.
-#define DEF_SEM_HID_SUB_MENU_SEL(k, id)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_menu_button[id], (k)))
-#define DEF_SEM_HID_SUB_MENU_CFM(k, id)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_menu_button[id], (k)))
-#define DEF_SEM_HID_SUB_MENU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_SUB_MENU_SEL(k, id)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_menu_button[id], (k)))
+#define HID_SUB_MENU_CFM(k, id)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_menu_button[id], (k)))
+#define HID_SUB_MENU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Back to sub menu selection.
-#define DEF_SEM_HID_BACK_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_button, (k)))
-#define DEF_SEM_HID_BACK_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_button, (k)))
-#define DEF_SEM_HID_BACK_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_BACK_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_button, (k)))
+#define HID_BACK_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_button, (k)))
+#define HID_BACK_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Scroll mode.
-#define DEF_SEM_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)) && !DEF_SEM_HID_SCROLL_MODE_DESEL((k)))
-#define DEF_SEM_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch) || sem_screen_brightness_bar.selected || sem_screen_off_time_bar.selected || sem_sleep_time_bar.selected || sem_scroll_speed_bar.selected || sem_scroll_bar.selected)
+#define HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)) && !HID_SCROLL_MODE_DESEL((k)))
+#define HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch) || sem_screen_brightness_bar.selected || sem_screen_off_time_bar.selected || sem_sleep_time_bar.selected || sem_scroll_speed_bar.selected || sem_scroll_bar.selected)
 //Scroll bar.
-#define DEF_SEM_HID_SCROLL_BAR_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_scroll_bar, (k)))
-#define DEF_SEM_HID_SCROLL_BAR_CFM(k)				(bool)(DEF_SEM_HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
-#define DEF_SEM_HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_SCROLL_BAR_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_scroll_bar, (k)))
+#define HID_SCROLL_BAR_CFM(k)				(bool)(HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
+#define HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Open updater (to check for update).
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_check_update_button, (k)))
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, (k)))
-#define DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_check_update_button, (k)))
+#define HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, (k)))
+#define HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Close updater.
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_updater_button, (k)))
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
-#define DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
+#define HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_updater_button, (k)))
+#define HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
+#define HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
 //Updater : Edition selection.
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_select_edtion_button, (k)))
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-#define DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
+#define HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_select_edtion_button, (k)))
+#define HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Updater : Edition list (.3dsx and .cia).
-#define DEF_SEM_HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
-#define DEF_SEM_HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
-#define DEF_SEM_HID_UPDATE_3DSX_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-#define DEF_SEM_HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_cia_button, (k)))
-#define DEF_SEM_HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, (k)))
-#define DEF_SEM_HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
+#define HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
+#define HID_UPDATE_3DSX_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_cia_button, (k)))
+#define HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, (k)))
+#define HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Updater : Back to patch note.
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, (k)))
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b)))
-#define DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
+#define HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, (k)))
+#define HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b)))
+#define HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
 //Updater : Download and install an update.
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dl_install_button, (k)))
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
-#define DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).x))
+#define HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dl_install_button, (k)))
+#define HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
+#define HID_UPDATE_DL_INSTALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).x))
 //Updater : Close app to apply.
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_app_button, (k)))
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, (k)))
-#define DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_app_button, (k)))
+#define HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, (k)))
+#define HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : English.
-#define DEF_SEM_HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_english_button, (k)))
-#define DEF_SEM_HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, (k)))
-#define DEF_SEM_HID_LANG_EN_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_english_button, (k)))
+#define HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, (k)))
+#define HID_LANG_EN_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Japanese.
-#define DEF_SEM_HID_LANG_JP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_japanese_button, (k)))
-#define DEF_SEM_HID_LANG_JP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_japanese_button, (k)))
-#define DEF_SEM_HID_LANG_JP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_JP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_japanese_button, (k)))
+#define HID_LANG_JP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_japanese_button, (k)))
+#define HID_LANG_JP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Hungarian.
-#define DEF_SEM_HID_LANG_HU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_hungarian_button, (k)))
-#define DEF_SEM_HID_LANG_HU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_hungarian_button, (k)))
-#define DEF_SEM_HID_LANG_HU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_HU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_hungarian_button, (k)))
+#define HID_LANG_HU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_hungarian_button, (k)))
+#define HID_LANG_HU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Simplified Chinese.
-#define DEF_SEM_HID_LANG_ZHS_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_chinese_button, (k)))
-#define DEF_SEM_HID_LANG_ZHS_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_chinese_button, (k)))
-#define DEF_SEM_HID_LANG_ZHS_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_ZHS_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_chinese_button, (k)))
+#define HID_LANG_ZHS_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_chinese_button, (k)))
+#define HID_LANG_ZHS_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Italian.
-#define DEF_SEM_HID_LANG_IT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_italian_button, (k)))
-#define DEF_SEM_HID_LANG_IT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_italian_button, (k)))
-#define DEF_SEM_HID_LANG_IT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_IT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_italian_button, (k)))
+#define HID_LANG_IT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_italian_button, (k)))
+#define HID_LANG_IT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Spanish.
-#define DEF_SEM_HID_LANG_ES_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_spanish_button, (k)))
-#define DEF_SEM_HID_LANG_ES_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_spanish_button, (k)))
-#define DEF_SEM_HID_LANG_ES_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_ES_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_spanish_button, (k)))
+#define HID_LANG_ES_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_spanish_button, (k)))
+#define HID_LANG_ES_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Romanian.
-#define DEF_SEM_HID_LANG_RO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_romanian_button, (k)))
-#define DEF_SEM_HID_LANG_RO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_romanian_button, (k)))
-#define DEF_SEM_HID_LANG_RO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_RO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_romanian_button, (k)))
+#define HID_LANG_RO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_romanian_button, (k)))
+#define HID_LANG_RO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Polish.
-#define DEF_SEM_HID_LANG_PO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_polish_button, (k)))
-#define DEF_SEM_HID_LANG_PO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_polish_button, (k)))
-#define DEF_SEM_HID_LANG_PO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_PO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_polish_button, (k)))
+#define HID_LANG_PO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_polish_button, (k)))
+#define HID_LANG_PO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : Ryukyuan.
-#define DEF_SEM_HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, (k)))
-#define DEF_SEM_HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, (k)))
-#define DEF_SEM_HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, (k)))
+#define HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, (k)))
+#define HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Language : German.
-#define DEF_SEM_HID_LANG_DE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_german_button, (k)))
-#define DEF_SEM_HID_LANG_DE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_german_button, (k)))
-#define DEF_SEM_HID_LANG_DE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LANG_DE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_german_button, (k)))
+#define HID_LANG_DE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_german_button, (k)))
+#define HID_LANG_DE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Night mode on.
-#define DEF_SEM_HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, (k)))
-#define DEF_SEM_HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, (k)))
-#define DEF_SEM_HID_LCD_NIGHT_ON_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, (k)))
+#define HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, (k)))
+#define HID_LCD_NIGHT_ON_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Night mode off.
-#define DEF_SEM_HID_LCD_NIGHT_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_off_button, (k)))
-#define DEF_SEM_HID_LCD_NIGHT_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_off_button, (k)))
-#define DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_NIGHT_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_off_button, (k)))
+#define HID_LCD_NIGHT_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_off_button, (k)))
+#define HID_LCD_NIGHT_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Flash mode.
-#define DEF_SEM_HID_LCD_FLASH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_flash_mode_button, (k)))
-#define DEF_SEM_HID_LCD_FLASH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_flash_mode_button, (k)))
-#define DEF_SEM_HID_LCD_FLASH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_FLASH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_flash_mode_button, (k)))
+#define HID_LCD_FLASH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_flash_mode_button, (k)))
+#define HID_LCD_FLASH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Brightness level bar.
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_brightness_bar, (k)) || DEF_HID_INIT_IN(sem_screen_brightness_slider, (k))))
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(k)		(bool)(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_brightness_bar.selected))
-#define DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_BRIGHTNESS_BAR_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_brightness_bar, (k)) || DEF_HID_INIT_IN(sem_screen_brightness_slider, (k))))
+#define HID_LCD_BRIGHTNESS_BAR_CFM(k)		(bool)(HID_LCD_BRIGHTNESS_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_brightness_bar.selected))
+#define HID_LCD_BRIGHTNESS_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Turn off LCD time bar.
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_off_time_bar, (k)) || DEF_HID_INIT_IN(sem_screen_off_time_slider, (k))))
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_off_time_bar.selected))
-#define DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_LCD_OFF_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_off_time_bar, (k)) || DEF_HID_INIT_IN(sem_screen_off_time_slider, (k))))
+#define HID_LCD_LCD_OFF_BAR_CFM(k)			(bool)(HID_LCD_LCD_OFF_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_off_time_bar.selected))
+#define HID_LCD_LCD_OFF_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Sleep time bar.
-#define DEF_SEM_HID_LCD_SLEEP_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_sleep_time_bar, (k)) || DEF_HID_INIT_IN(sem_sleep_time_slider, (k))))
-#define DEF_SEM_HID_LCD_SLEEP_BAR_CFM(k)			(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_sleep_time_bar.selected))
-#define DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_SLEEP_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_sleep_time_bar, (k)) || DEF_HID_INIT_IN(sem_sleep_time_slider, (k))))
+#define HID_LCD_SLEEP_BAR_CFM(k)			(bool)(HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_sleep_time_bar.selected))
+#define HID_LCD_SLEEP_BAR_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 800px mode.
-#define DEF_SEM_HID_LCD_800PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_800px_mode_button, (k)))
-#define DEF_SEM_HID_LCD_800PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_800px_mode_button, (k)))
-#define DEF_SEM_HID_LCD_800PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_800PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_800px_mode_button, (k)))
+#define HID_LCD_800PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_800px_mode_button, (k)))
+#define HID_LCD_800PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 3D mode.
-#define DEF_SEM_HID_LCD_3D_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3d_mode_button, (k)))
-#define DEF_SEM_HID_LCD_3D_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3d_mode_button, (k)))
-#define DEF_SEM_HID_LCD_3D_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_3D_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3d_mode_button, (k)))
+#define HID_LCD_3D_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3d_mode_button, (k)))
+#define HID_LCD_3D_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : 400px mode.
-#define DEF_SEM_HID_LCD_400PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_400px_mode_button, (k)))
-#define DEF_SEM_HID_LCD_400PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_400px_mode_button, (k)))
-#define DEF_SEM_HID_LCD_400PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_400PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_400px_mode_button, (k)))
+#define HID_LCD_400PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_400px_mode_button, (k)))
+#define HID_LCD_400PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //LCD : Auto mode.
-#define DEF_SEM_HID_LCD_AUTO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_auto_mode_button, (k)))
-#define DEF_SEM_HID_LCD_AUTO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_auto_mode_button, (k)))
-#define DEF_SEM_HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_LCD_AUTO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_auto_mode_button, (k)))
+#define HID_LCD_AUTO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_auto_mode_button, (k)))
+#define HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Control : Scroll speed bar.
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, (k)) || DEF_HID_INIT_IN(sem_scroll_speed_slider, (k))))
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(DEF_SEM_HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
-#define DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, (k)) || DEF_HID_INIT_IN(sem_scroll_speed_slider, (k))))
+#define HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
+#define HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Font loading (all fonts).
-#define DEF_SEM_HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, (k)))
-#define DEF_SEM_HID_FONT_LOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_load_all_ex_font_button, (k)))
-#define DEF_SEM_HID_FONT_LOAD_ALL_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, (k)))
+#define HID_FONT_LOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_load_all_ex_font_button, (k)))
+#define HID_FONT_LOAD_ALL_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Font unloading (all fonts except basic latin).
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_unload_all_ex_font_button, (k)))
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_unload_all_ex_font_button, (k)))
-#define DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_FONT_UNLOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_unload_all_ex_font_button, (k)))
+#define HID_FONT_UNLOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_unload_all_ex_font_button, (k)))
+#define HID_FONT_UNLOAD_ALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Font : Loading or unloading (selected font).
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(k, id)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ex_font_button[id], (k)))
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ex_font_button[id], (k)))
-#define DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_FONT_LOAD_UNLOAD_SEL(k, id)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ex_font_button[id], (k)))
+#define HID_FONT_LOAD_UNLOAD_CFM(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ex_font_button[id], (k)))
+#define HID_FONT_LOAD_UNLOAD_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Wireless : Wi-Fi on.
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_on_button, (k)))
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_on_button, (k)))
-#define DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_WIRELESS_WIFI_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_on_button, (k)))
+#define HID_WIRELESS_WIFI_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_on_button, (k)))
+#define HID_WIRELESS_WIFI_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Wireless : Wi-Fi off.
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_off_button, (k)))
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_off_button, (k)))
-#define DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_WIRELESS_WIFI_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_off_button, (k)))
+#define HID_WIRELESS_WIFI_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_off_button, (k)))
+#define HID_WIRELESS_WIFI_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Sending app info on.
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_allow_send_info_button, (k)))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_allow_send_info_button, (k)))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_SEND_INFO_ON_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_allow_send_info_button, (k)))
+#define HID_ADVANCED_SEND_INFO_ON_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_allow_send_info_button, (k)))
+#define HID_ADVANCED_SEND_INFO_ON_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Sending app info off.
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_deny_send_info_button, (k)))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_deny_send_info_button, (k)))
-#define DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_SEND_INFO_OFF_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_deny_send_info_button, (k)))
+#define HID_ADVANCED_SEND_INFO_OFF_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_deny_send_info_button, (k)))
+#define HID_ADVANCED_SEND_INFO_OFF_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Debug on.
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_on_button, (k)))
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_on_button, (k)))
-#define DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_DEBUG_ON_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_on_button, (k)))
+#define HID_ADVANCED_DEBUG_ON_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_on_button, (k)))
+#define HID_ADVANCED_DEBUG_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Debug off.
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_off_button, (k)))
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_off_button, (k)))
-#define DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_DEBUG_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_off_button, (k)))
+#define HID_ADVANCED_DEBUG_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_off_button, (k)))
+#define HID_ADVANCED_DEBUG_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Fake model.
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_use_fake_model_button, (k)))
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_use_fake_model_button, (k)))
-#define DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_FAKE_MODEL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_use_fake_model_button, (k)))
+#define HID_ADVANCED_FAKE_MODEL_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_use_fake_model_button, (k)))
+#define HID_ADVANCED_FAKE_MODEL_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : Log dump.
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dump_log_button, (k)))
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, (k)))
-#define DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dump_log_button, (k)))
+#define HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, (k)))
+#define HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : CPU monitor on.
-#define DEF_SEM_HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, (k)))
-#define DEF_SEM_HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, (k)))
-#define DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, (k)))
+#define HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, (k)))
+#define HID_ADVANCED_CPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Advanced : CPU monitor off.
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, (k)))
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, (k)))
-#define DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, (k)))
+#define HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, (k)))
+#define HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Battery : Eco on.
-#define DEF_SEM_HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
-#define DEF_SEM_HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
-#define DEF_SEM_HID_BAT_ECO_ON_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
+#define HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
+#define HID_BAT_ECO_ON_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Battery : Eco off.
-#define DEF_SEM_HID_BAT_ECO_OFF_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_off_button, (k)))
-#define DEF_SEM_HID_BAT_ECO_OFF_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_off_button, (k)))
-#define DEF_SEM_HID_BAT_ECO_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_BAT_ECO_OFF_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_off_button, (k)))
+#define HID_BAT_ECO_OFF_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_off_button, (k)))
+#define HID_BAT_ECO_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 //Screen recording : Both LCDs.
-#define DEF_SEM_HID_REC_BOTH_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_both_lcd_button, (k)))
-#define DEF_SEM_HID_REC_BOTH_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_both_lcd_button, (k)))
-#define DEF_SEM_HID_REC_BOTH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_REC_BOTH_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_both_lcd_button, (k)))
+#define HID_REC_BOTH_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_both_lcd_button, (k)))
+#define HID_REC_BOTH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Screen recording : Top LCD.
-#define DEF_SEM_HID_REC_TOP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_top_lcd_button, (k)))
-#define DEF_SEM_HID_REC_TOP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_top_lcd_button, (k)))
-#define DEF_SEM_HID_REC_TOP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_REC_TOP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_top_lcd_button, (k)))
+#define HID_REC_TOP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_top_lcd_button, (k)))
+#define HID_REC_TOP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Screen recording : Bottom LCD.
-#define DEF_SEM_HID_REC_BOT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_bottom_lcd_button, (k)))
-#define DEF_SEM_HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
-#define DEF_SEM_HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_REC_BOT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_bottom_lcd_button, (k)))
+#define HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
+#define HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 //Typedefs.
@@ -371,13 +371,13 @@ static bool sem_reload_msg_request = false;
 static bool sem_scroll_mode = false;
 static bool sem_dump_log_request = false;
 static bool sem_should_wifi_enabled = false;
-static int8_t sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+static int8_t sem_selected_menu_mode = MENU_TOP;
 static double sem_y_offset = 0;
 static double sem_y_max = 0;
 static double sem_touch_x_move_left = 0;
 static double sem_touch_y_move_left = 0;
 static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
-static Str_data sem_msg[DEF_SEM_NUM_OF_MSG] = { 0, };
+static Str_data sem_msg[NUM_OF_MSG] = { 0, };
 static Str_data sem_newest_ver_data[6] = { 0, };//0 newest version number, 1 3dsx available, 2 cia available, 3 3dsx dl url, 4 cia dl url, 5 patch note.
 static Sync_data sem_config_state_mutex = { 0, };
 static Thread sem_hw_config_thread = NULL;
@@ -412,7 +412,7 @@ static bool sem_show_patch_note_request = false;
 static bool sem_select_ver_request = false;
 static bool sem_dl_file_request = false;
 static int8_t sem_update_progress = -1;
-static int8_t sem_selected_edition_num = DEF_SEM_EDTION_NONE;
+static int8_t sem_selected_edition_num = EDTION_NONE;
 static uint32_t sem_installed_size = 0;
 static uint32_t sem_total_cia_size = 0;
 static uint32_t sem_dled_size = 0;
@@ -471,7 +471,7 @@ uint32_t Sem_load_msg(const char* lang)
 	char file_name[32] = { 0, };
 
 	snprintf(file_name, sizeof(file_name), "sem_%s.txt", (lang ? lang : ""));
-	return Util_load_msg(file_name, sem_msg, DEF_SEM_NUM_OF_MSG);
+	return Util_load_msg(file_name, sem_msg, NUM_OF_MSG);
 }
 
 void Sem_get_config(Sem_config* config)
@@ -1245,69 +1245,69 @@ void Sem_main(void)
 
 		Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-		if (sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
+		if (sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
 		{
 			draw_y = 0.0;
 			if (draw_y + sem_y_offset >= -30 && draw_y + sem_y_offset <= 240)
 			{
 				//Back.
-				Draw_with_background(&sem_msg[DEF_SEM_BACK_MSG], 0.0, draw_y + sem_y_offset, 0.55, 0.55, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				Draw_with_background(&sem_msg[BACK_MSG], 0.0, draw_y + sem_y_offset, 0.55, 0.55, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 				55, 25, DRAW_BACKGROUND_ENTIRE_BOX, &sem_back_button, sem_back_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 			}
 		}
 
 		//Scroll bar.
-		if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES || sem_selected_menu_mode == DEF_SEM_MENU_LCD
-		|| sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+		if (sem_selected_menu_mode == MENU_LANGAGES || sem_selected_menu_mode == MENU_LCD
+		|| sem_selected_menu_mode == MENU_FONT)
 		{
 			Draw_texture(&background, color, 312.5, 0.0, 7.5, 15.0);
 			Draw_texture(&background, color, 312.5, 215.0, 7.5, 10.0);
 			Draw_texture(&sem_scroll_bar, sem_scroll_bar.selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_max)), 7.5, 5.0);
 		}
 
-		if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
+		if (sem_selected_menu_mode == MENU_TOP)
 		{
 			//Update.
-			Draw_with_background(&sem_msg[DEF_SEM_UPDATE_MSG], 0, 0, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_UPDATE], sem_menu_button[DEF_SEM_MENU_UPDATE].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[UPDATE_MSG], 0, 0, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_UPDATE], sem_menu_button[MENU_UPDATE].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Languages.
-			Draw_with_background(&sem_msg[DEF_SEM_LANGAGES_MSG], 0, 25, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_LANGAGES], sem_menu_button[DEF_SEM_MENU_LANGAGES].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[LANGAGES_MSG], 0, 25, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_LANGAGES], sem_menu_button[MENU_LANGAGES].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//LCD.
-			Draw_with_background(&sem_msg[DEF_SEM_LCD_MSG], 0, 50, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_LCD], sem_menu_button[DEF_SEM_MENU_LCD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[LCD_MSG], 0, 50, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_LCD], sem_menu_button[MENU_LCD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Control.
-			Draw_with_background(&sem_msg[DEF_SEM_CONTROL_MSG], 0, 75, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_CONTROL], sem_menu_button[DEF_SEM_MENU_CONTROL].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[CONTROL_MSG], 0, 75, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_CONTROL], sem_menu_button[MENU_CONTROL].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Font.
-			Draw_with_background(&sem_msg[DEF_SEM_FONT_MSG], 0, 100, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_FONT], sem_menu_button[DEF_SEM_MENU_FONT].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[FONT_MSG], 0, 100, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_FONT], sem_menu_button[MENU_FONT].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Wireless.
-			Draw_with_background(&sem_msg[DEF_SEM_WIFI_MSG], 0, 125, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_WIFI], sem_menu_button[DEF_SEM_MENU_WIFI].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[WIFI_MSG], 0, 125, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_WIFI], sem_menu_button[MENU_WIFI].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Advanced.
-			Draw_with_background(&sem_msg[DEF_SEM_ADVANCED_MSG], 0, 150, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_ADVANCED], sem_menu_button[DEF_SEM_MENU_ADVANCED].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[ADVANCED_MSG], 0, 150, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_ADVANCED], sem_menu_button[MENU_ADVANCED].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Battery.
-			Draw_with_background(&sem_msg[DEF_SEM_BATTERY_MSG], 0, 175, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_BATTERY], sem_menu_button[DEF_SEM_MENU_BATTERY].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[BATTERY_MSG], 0, 175, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_BATTERY], sem_menu_button[MENU_BATTERY].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Screen recording.
-			Draw_with_background(&sem_msg[DEF_SEM_RECORDING_MSG], 0, 200, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
-			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[DEF_SEM_MENU_RECORDING], sem_menu_button[DEF_SEM_MENU_RECORDING].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+			Draw_with_background(&sem_msg[RECORDING_MSG], 0, 200, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_RECORDING], sem_menu_button[MENU_RECORDING].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
+		else if (sem_selected_menu_mode == MENU_UPDATE)
 		{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			//Check for updates.
-			Draw_with_background(&sem_msg[DEF_SEM_CHECK_UPDATE_MSG], 10, 25, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
+			Draw_with_background(&sem_msg[CHECK_UPDATE_MSG], 10, 25, 0.75, 0.75, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20,
 			DRAW_BACKGROUND_ENTIRE_BOX, &sem_check_update_button, sem_check_update_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			if (sem_show_patch_note_request)
@@ -1317,22 +1317,22 @@ void Sem_main(void)
 				Draw_texture(&sem_close_updater_button, sem_close_updater_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
 
 				if(sem_update_progress == 0)//Checking.
-					Draw(&sem_msg[DEF_SEM_CHECKING_UPDATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+					Draw(&sem_msg[CHECKING_UPDATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 				else if(sem_update_progress == -1)//Failed.
-					Draw(&sem_msg[DEF_SEM_CHECKING_UPDATE_FAILED_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+					Draw(&sem_msg[CHECKING_UPDATE_FAILED_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 				else if (sem_update_progress == 1)//Success.
 				{
-					Draw(&sem_msg[sem_new_version_available ? DEF_SEM_NEW_VERSION_AVAILABLE_MSG : DEF_SEM_UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
+					Draw(&sem_msg[sem_new_version_available ? NEW_VERSION_AVAILABLE_MSG : UP_TO_DATE_MSG], 17.5, 15, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&sem_newest_ver_data[5], 17.5, 35, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 
 				//Temporal workaround for UI overflow.
 				if(strcmp(config.lang, "ro") == 0)
-					Draw(&sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
+					Draw(&sem_msg[SELECT_EDITION_MSG], 17.5, 200, 0.35, 0.35, DEF_DRAW_BLACK);
 				else
-					Draw(&sem_msg[DEF_SEM_SELECT_EDITION_MSG], 17.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw(&sem_msg[SELECT_EDITION_MSG], 17.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
 
-				Draw(&sem_msg[DEF_SEM_CLOSE_UPDATER_MSG], 162.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
+				Draw(&sem_msg[CLOSE_UPDATER_MSG], 162.5, 200, 0.425, 0.425, DEF_DRAW_BLACK);
 			}
 			else if (sem_select_ver_request)
 			{
@@ -1345,25 +1345,25 @@ void Sem_main(void)
 				Draw_texture(&sem_cia_button, sem_cia_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 45, 100, 25);
 
 				//3dsx.
-				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
-					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
+				if(sem_selected_edition_num == EDTION_3DSX)
+					Draw(&sem_msg[_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_RED);
 				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
-					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
+					Draw(&sem_msg[_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
-					Draw(&sem_msg[DEF_SEM_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
+					Draw(&sem_msg[_3DSX_MSG], 17.5, 15, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
 				//Cia.
-				if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
-					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
+				if(sem_selected_edition_num == EDTION_CIA)
+					Draw(&sem_msg[CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_RED);
 				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
-					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
+					Draw(&sem_msg[CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_BLACK);
 				else
-					Draw(&sem_msg[DEF_SEM_CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
+					Draw(&sem_msg[CIA_MSG], 17.5, 45, 0.8, 0.8, DEF_DRAW_WEAK_BLACK);
 
-				if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+				if (sem_selected_edition_num == EDTION_3DSX)
 				{
-					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", DEF_SEM_UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
-					Draw(&sem_msg[DEF_SEM_FILE_PATH_MSG], 17.5, 110, 0.5, 0.5, DEF_DRAW_BLACK);
+					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
+					Draw(&sem_msg[FILE_PATH_MSG], 17.5, 110, 0.5, 0.5, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 120, 0.425, 0.425, DEF_DRAW_RED);
 				}
 
@@ -1374,7 +1374,7 @@ void Sem_main(void)
 
 					//Downloading.
 					Util_str_format(&format_str, "%.2fMB(%" PRIu32 "KB)", dled_size_mb, dled_size_kb);
-					Draw(&sem_msg[DEF_SEM_DOWNLOADING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[DOWNLOADING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if(sem_update_progress == 3)
@@ -1384,50 +1384,50 @@ void Sem_main(void)
 
 					//Installing.
 					Util_str_format(&format_str, "%.2fMB/%.2fMB", installed_size_mb, total_size_mb);
-					Draw(&sem_msg[DEF_SEM_INSTALLING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[INSTALLING_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 					Draw(&format_str, 17.5, 150, 0.425, 0.425, DEF_DRAW_BLACK);
 				}
 				else if (sem_update_progress == 4)
 				{
 					//Success.
-					Draw(&sem_msg[DEF_SEM_SUCCESS_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
-					Draw(&sem_msg[DEF_SEM_RESTART_MSG], 17.5, 150, 0.45, 0.45, DEF_DRAW_BLACK);
-					Draw_with_background(&sem_msg[DEF_SEM_CLOSE_APP_MSG], 15, 180, 0.45, 0.45, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+					Draw(&sem_msg[SUCCESS_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[RESTART_MSG], 17.5, 150, 0.45, 0.45, DEF_DRAW_BLACK);
+					Draw_with_background(&sem_msg[CLOSE_APP_MSG], 15, 180, 0.45, 0.45, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 					290, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_close_app_button, (sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW));
 				}
 				else if (sem_update_progress == -2)
-					Draw(&sem_msg[DEF_SEM_FAILURE_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
+					Draw(&sem_msg[FAILURE_MSG], 17.5, 130, 0.75, 0.75, DEF_DRAW_BLACK);
 
-				if((sem_selected_edition_num != DEF_SEM_EDTION_NONE)
+				if((sem_selected_edition_num != EDTION_NONE)
 				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1 + sem_selected_edition_num]))[0] == '1')
 					can_press = true;
 
 				//Temporal workaround for UI overflow.
 				if(strcmp(config.lang, "de") == 0)
-					Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.375, 0.375, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
+					Draw(&sem_msg[DL_INSTALL_MSG], 162.5, 200, 0.375, 0.375, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
 				else
-					Draw(&sem_msg[DEF_SEM_DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
+					Draw(&sem_msg[DL_INSTALL_MSG], 162.5, 200, 0.425, 0.425, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
 
-				Draw(&sem_msg[DEF_SEM_BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
+				Draw(&sem_msg[BACK_TO_PATCH_NOTE_MSG], 17.5, 200, 0.45, 0.45, DEF_DRAW_BLACK);
 			}
 #else
 			Draw_c("☢Updater is disabled\non this app.☢", 10, 25, 0.75, 0.75, DEF_DRAW_RED);
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
+		else if (sem_selected_menu_mode == MENU_LANGAGES)
 		{
 			//Languages.
 
 			//English.
-			Draw_with_background(&sem_msg[DEF_SEM_ENGLISH_MSG], 10, 25 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "en") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[ENGLISH_MSG], 10, 25 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "en") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_english_button, sem_english_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Japanese.
-			Draw_with_background(&sem_msg[DEF_SEM_JAPANESE_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "jp") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[JAPANESE_MSG], 10, 50 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "jp") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_japanese_button, sem_japanese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Hungarian.
-			Draw_with_background(&sem_msg[DEF_SEM_HUNGARIAN_MSG], 10, 75 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "hu") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[HUNGARIAN_MSG], 10, 75 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "hu") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_hungarian_button, sem_hungarian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Chinese.
@@ -1435,40 +1435,40 @@ void Sem_main(void)
 			//Temporal workaround for UI overflow.
 			if(strcmp(config.lang, "de") == 0)
 			{
-				Draw_with_background(&sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.55, 0.55, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
+				Draw_with_background(&sem_msg[CHINESE_MSG], 10, 100 + sem_y_offset, 0.55, 0.55, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
 				DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
 			else
 			{
-				Draw_with_background(&sem_msg[DEF_SEM_CHINESE_MSG], 10, 100 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
+				Draw_with_background(&sem_msg[CHINESE_MSG], 10, 100 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color,
 				DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
 
 			//Italian.
-			Draw_with_background(&sem_msg[DEF_SEM_ITALIAN_MSG], 10, 125 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "it") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[ITALIAN_MSG], 10, 125 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "it") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_italian_button, sem_italian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Spanish.
-			Draw_with_background(&sem_msg[DEF_SEM_SPANISH_MSG], 10, 150 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "es") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[SPANISH_MSG], 10, 150 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "es") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_spanish_button, sem_spanish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Romanian.
-			Draw_with_background(&sem_msg[DEF_SEM_ROMANIAN_MSG], 10, 175 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "ro") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[ROMANIAN_MSG], 10, 175 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "ro") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_romanian_button, sem_romanian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Polish.
-			Draw_with_background(&sem_msg[DEF_SEM_POLISH_MSG], 10, 200 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "pl") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[POLISH_MSG], 10, 200 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "pl") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_polish_button, sem_polish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Ryukyuan.
-			Draw_with_background(&sem_msg[DEF_SEM_RYUKYUAN_MSG], 10, 225 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "ryu") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[RYUKYUAN_MSG], 10, 225 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "ryu") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_ryukyuan_button, sem_ryukyuan_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//German.
-			Draw_with_background(&sem_msg[DEF_SEM_GERMAN_MSG], 10, 250 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "de") == 0) ? DEF_DRAW_RED : color,
+			Draw_with_background(&sem_msg[GERMAN_MSG], 10, 250 + sem_y_offset, 0.75, 0.75, (strcmp(config.lang, "de") == 0) ? DEF_DRAW_RED : color,
 			DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_german_button, sem_german_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
+		else if (sem_selected_menu_mode == MENU_LCD)
 		{
 			uint8_t brightness = Util_max(config.top_lcd_brightness, config.bottom_lcd_brightness);
 			double bar_pos = 0;
@@ -1506,25 +1506,25 @@ void Sem_main(void)
 
 			//Night mode.
 			draw_y = 25;
-			Draw(&sem_msg[DEF_SEM_NIGHT_MODE_MSG], 0, draw_y + sem_y_offset, 0.5, 0.5, color);
+			Draw(&sem_msg[NIGHT_MODE_MSG], 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 
 			//ON.
 			draw_y += 20;
-			Draw_with_background(&sem_msg[DEF_SEM_ON_MSG], 10, draw_y + sem_y_offset, 0.55, 0.55, config.is_night ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ON_MSG], 10, draw_y + sem_y_offset, 0.55, 0.55, config.is_night ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 140, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_night_mode_on_button, sem_night_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//OFF.
-			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 170, draw_y + sem_y_offset, 0.55, 0.55, config.is_night ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[OFF_MSG], 170, draw_y + sem_y_offset, 0.55, 0.55, config.is_night ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 140, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_night_mode_off_button, sem_night_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Flash.
 			draw_y += 25;
-			Draw_with_background(&sem_msg[DEF_SEM_FLASH_MSG], 10, draw_y + sem_y_offset, 0.8, 0.8, sem_config.is_flash ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[FLASH_MSG], 10, draw_y + sem_y_offset, 0.8, 0.8, sem_config.is_flash ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_flash_mode_button, sem_flash_mode_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 
 			//Screen brightness.
 			draw_y += 30;
 			bar_pos = 10 + (290 * (brightness / 180.0));
-			Util_str_format(&format_str, "%s%" PRIu8, DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_BRIGHTNESS_MSG]), brightness);
+			Util_str_format(&format_str, "%s%" PRIu8, DEF_STR_NEVER_NULL(&sem_msg[BRIGHTNESS_MSG]), brightness);
 			Draw(&format_str, 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 			//Bar.
 			draw_y += 15;
@@ -1536,16 +1536,16 @@ void Sem_main(void)
 			if(config.time_to_turn_off_lcd > 0)
 			{
 				bar_pos = 10 + (290 * ((config.time_to_turn_off_lcd - 20) / 580.0));
-				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG]), config.time_to_turn_off_lcd);
-				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG]));
+				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[LCD_OFF_TIME_0_MSG]), config.time_to_turn_off_lcd);
+				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[LCD_OFF_TIME_1_MSG]));
 				Draw(&format_str, 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 			}
 			else
 			{
 				//Never turn off LCD automatically.
 				bar_pos = 300;
-				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_LCD_OFF_TIME_0_MSG]));
-				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_OFF_MSG]));
+				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[LCD_OFF_TIME_0_MSG]));
+				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[OFF_MSG]));
 				Draw(&format_str, 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 			}
 
@@ -1559,16 +1559,16 @@ void Sem_main(void)
 			if(config.time_to_enter_sleep > 0)
 			{
 				bar_pos = 10 + (290 * ((config.time_to_enter_sleep - 20) / 580.0));
-				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_SLEEP_TIME_MSG]), config.time_to_enter_sleep);
-				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_LCD_OFF_TIME_1_MSG]));//DEF_SEM_LCD_OFF_TIME_1_MSG is intentional.
+				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[SLEEP_TIME_MSG]), config.time_to_enter_sleep);
+				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[LCD_OFF_TIME_1_MSG]));//LCD_OFF_TIME_1_MSG is intentional.
 				Draw(&format_str, 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 			}
 			else
 			{
 				//Never enter sleep automatically.
 				bar_pos = 300;
-				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_SLEEP_TIME_MSG]));
-				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_OFF_MSG]));
+				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[SLEEP_TIME_MSG]));
+				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[OFF_MSG]));
 				Draw(&format_str, 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 			}
 
@@ -1579,34 +1579,34 @@ void Sem_main(void)
 
 			//Screen mode.
 			draw_y += 25;
-			Draw(&sem_msg[DEF_SEM_LCD_MODE_MSG], 0, draw_y + sem_y_offset, 0.5, 0.5, color);
+			Draw(&sem_msg[LCD_MODE_MSG], 0, draw_y + sem_y_offset, 0.5, 0.5, color);
 
 			//800px.
 			draw_y += 15;
-			Draw_with_background(&sem_msg[DEF_SEM_800PX_MSG], 10, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_800PX) ? DEF_DRAW_RED : cache_color[0],
+			Draw_with_background(&sem_msg[_800PX_MSG], 10, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_800PX) ? DEF_DRAW_RED : cache_color[0],
 			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_800px_mode_button, sem_800px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//3D.
-			Draw_with_background(&sem_msg[DEF_SEM_3D_MSG], 85, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_3D) ? DEF_DRAW_RED : cache_color[1],
+			Draw_with_background(&sem_msg[_3D_MSG], 85, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_3D) ? DEF_DRAW_RED : cache_color[1],
 			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_3d_mode_button, sem_3d_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//Nothing.
-			Draw_with_background(&sem_msg[DEF_SEM_400PX_MSG], 160, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX) ? DEF_DRAW_RED : cache_color[2],
+			Draw_with_background(&sem_msg[_400PX_MSG], 160, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX) ? DEF_DRAW_RED : cache_color[2],
 			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_400px_mode_button, sem_400px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//Auto.
-			Draw_with_background(&sem_msg[DEF_SEM_AUTO_MSG], 235, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO) ? DEF_DRAW_RED : cache_color[2],
+			Draw_with_background(&sem_msg[AUTO_MSG], 235, draw_y + sem_y_offset, 0.65, 0.65, (config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO) ? DEF_DRAW_RED : cache_color[2],
 			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_auto_mode_button, sem_auto_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
+		else if (sem_selected_menu_mode == MENU_CONTROL)
 		{
 			//Scroll speed.
 			double bar_pos = 10 + (290 * ((config.scroll_speed - 0.05) / 1.95));
 
-			Util_str_format(&format_str, "%s%f", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_SCROLL_SPEED_MSG]), config.scroll_speed);
+			Util_str_format(&format_str, "%s%f", DEF_STR_NEVER_NULL(&sem_msg[SCROLL_SPEED_MSG]), config.scroll_speed);
 			Draw(&format_str, 0, 25, 0.5, 0.5, color);
 			//Bar.
 			Draw_texture(&sem_scroll_speed_slider, DEF_DRAW_WEAK_RED, 10, 46.5, 300, 7);
 			Draw_texture(&sem_scroll_speed_bar, sem_scroll_speed_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, 40, 10, 20);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+		else if (sem_selected_menu_mode == MENU_FONT)
 		{
 			//Font.
 			if (30 + sem_y_offset >= -30 && 30 + sem_y_offset <= 240)
@@ -1618,11 +1618,11 @@ void Sem_main(void)
 					cache_color[0] = DEF_DRAW_WEAK_BLACK;
 
 				//Load all.
-				Draw_with_background(&sem_msg[DEF_SEM_LOAD_ALL_FONT_MSG], 10, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				Draw_with_background(&sem_msg[LOAD_ALL_FONT_MSG], 10, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 				150, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_load_all_ex_font_button, sem_load_all_ex_font_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 
 				//Unload all.
-				Draw_with_background(&sem_msg[DEF_SEM_UNLOAD_ALL_FONT_MSG], 160, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				Draw_with_background(&sem_msg[UNLOAD_ALL_FONT_MSG], 160, 30 + sem_y_offset, 0.65, 0.65, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 				150, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_unload_all_ex_font_button, sem_unload_all_ex_font_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
 			}
 
@@ -1653,86 +1653,86 @@ void Sem_main(void)
 				draw_y += 20.0;
 			}
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
+		else if (sem_selected_menu_mode == MENU_WIFI)
 		{
 			//Wifi.
-			Draw(&sem_msg[DEF_SEM_WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
+			Draw(&sem_msg[WIFI_MODE_MSG], 0, 25, 0.5, 0.5, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, config.is_wifi_on ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ON_MSG], 10, 40, 0.55, 0.55, config.is_wifi_on ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_wifi_on_button, sem_wifi_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//OFF.
-			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, config.is_wifi_on ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[OFF_MSG], 110, 40, 0.55, 0.55, config.is_wifi_on ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_wifi_off_button, sem_wifi_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Connected SSID.
-			Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_CONNECTED_SSID_MSG]), state.connected_wifi);
+			Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&sem_msg[CONNECTED_SSID_MSG]), state.connected_wifi);
 			Draw(&format_str, 0, 65, 0.425, 0.425, color);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
+		else if (sem_selected_menu_mode == MENU_ADVANCED)
 		{
 			//Allow send app info.
-			Draw(&sem_msg[DEF_SEM_SEND_INFO_MODE_MSG], 0, 25, 0.5, 0.5, color);
+			Draw(&sem_msg[SEND_INFO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 
 			//Allow.
-			Draw_with_background(&sem_msg[DEF_SEM_ALLOW_MSG], 10, 40, 0.65, 0.65, config.is_send_info_allowed ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ALLOW_MSG], 10, 40, 0.65, 0.65, config.is_send_info_allowed ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_allow_send_info_button, sem_allow_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//Deny.
-			Draw_with_background(&sem_msg[DEF_SEM_DENY_MSG], 110, 40, 0.65, 0.65, config.is_send_info_allowed ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[DENY_MSG], 110, 40, 0.65, 0.65, config.is_send_info_allowed ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_deny_send_info_button, sem_deny_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Debug mode.
-			Draw(&sem_msg[DEF_SEM_DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
+			Draw(&sem_msg[DEBUG_MODE_MSG], 0, 65, 0.5, 0.5, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[DEF_SEM_ON_MSG], 10, 80, 0.55, 0.55, config.is_debug ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ON_MSG], 10, 80, 0.55, 0.55, config.is_debug ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_debug_mode_on_button, sem_debug_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//OFF.
-			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 110, 80, 0.55, 0.55, config.is_debug ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[OFF_MSG], 110, 80, 0.55, 0.55, config.is_debug ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_debug_mode_off_button, sem_debug_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Fake model.
-			Draw(&sem_msg[DEF_SEM_FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
+			Draw(&sem_msg[FAKE_MODEL_MSG], 0, 105, 0.5, 0.5, color);
 			if(sem_internal_state.fake_model < DEF_SEM_MODEL_MAX)
 			{
-				Util_str_format(&format_str, "%s (%s)", DEF_STR_NEVER_NULL(&sem_msg[DEF_SEM_ON_MSG]), sem_model_name[sem_internal_state.fake_model]);
+				Util_str_format(&format_str, "%s (%s)", DEF_STR_NEVER_NULL(&sem_msg[ON_MSG]), sem_model_name[sem_internal_state.fake_model]);
 				Draw_with_background(&format_str, 10, 135, 0.65, 0.65, color, DRAW_X_ALIGN_CENTER,
 				DRAW_Y_ALIGN_CENTER, 190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
 			else
 			{
-				Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 10, 135, 0.65, 0.65, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 190, 20,
+				Draw_with_background(&sem_msg[OFF_MSG], 10, 135, 0.65, 0.65, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 190, 20,
 				DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			}
 
-			Draw_with_background(&sem_msg[DEF_SEM_DUMP_LOGS_MSG], 10, 165, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 190, 20,
+			Draw_with_background(&sem_msg[DUMP_LOGS_MSG], 10, 165, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 190, 20,
 			DRAW_BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, sem_dump_log_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 #if DEF_CPU_USAGE_API_ENABLE
 			//CPU usage monitor.
-			Draw(&sem_msg[DEF_SEM_CPU_USAGE_MONITOR_MSG], 0, 185, 0.5, 0.5, color);
+			Draw(&sem_msg[CPU_USAGE_MONITOR_MSG], 0, 185, 0.5, 0.5, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[DEF_SEM_ON_MSG], 10, 200, 0.55, 0.55, sem_is_cpu_usage_monitor_running ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ON_MSG], 10, 200, 0.55, 0.55, sem_is_cpu_usage_monitor_running ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_on_button, sem_monitor_cpu_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//OFF.
-			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 110, 200, 0.55, 0.55, sem_is_cpu_usage_monitor_running ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[OFF_MSG], 110, 200, 0.55, 0.55, sem_is_cpu_usage_monitor_running ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_off_button, sem_monitor_cpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 #endif //DEF_CPU_USAGE_API_ENABLE
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
+		else if (sem_selected_menu_mode == MENU_BATTERY)
 		{
 			//Eco mode.
-			Draw(&sem_msg[DEF_SEM_ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
+			Draw(&sem_msg[ECO_MODE_MSG], 0, 25, 0.5, 0.5, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[DEF_SEM_ON_MSG], 10, 40, 0.55, 0.55, config.is_eco ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[ON_MSG], 10, 40, 0.55, 0.55, config.is_eco ? DEF_DRAW_RED : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_eco_mode_on_button, sem_eco_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 			//OFF.
-			Draw_with_background(&sem_msg[DEF_SEM_OFF_MSG], 110, 40, 0.55, 0.55, config.is_eco ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[OFF_MSG], 110, 40, 0.55, 0.55, config.is_eco ? color : DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_eco_mode_off_button, sem_eco_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		}
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
+		else if (sem_selected_menu_mode == MENU_RECORDING)
 		{
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
@@ -1741,19 +1741,19 @@ void Sem_main(void)
 				cache_color[0] = (config.is_night ? DEF_DRAW_WEAK_WHITE : DEF_DRAW_WEAK_BLACK);
 
 			//Record both screen.
-			Draw_with_background(&sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTH_LCD_MSG], 10, 25, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[sem_record_request ? STOP_RECORDING_MSG : RECORD_BOTH_LCD_MSG], 10, 25, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_both_lcd_button, sem_record_both_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Record top screen.
-			Draw_with_background(&sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_TOP_LCD_MSG], 10, 60, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[sem_record_request ? STOP_RECORDING_MSG : RECORD_TOP_LCD_MSG], 10, 60, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_top_lcd_button, sem_record_top_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			//Record bottom screen.
-			Draw_with_background(&sem_msg[sem_record_request ? DEF_SEM_STOP_RECORDING_MSG : DEF_SEM_RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[sem_record_request ? STOP_RECORDING_MSG : RECORD_BOTTOM_LCD_MSG], 10, 95, 0.475, 0.475, cache_color[0], DRAW_X_ALIGN_CENTER,
 			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_bottom_lcd_button, sem_record_bottom_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 			if(!can_record)
-				Draw(&sem_msg[DEF_SEM_CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
+				Draw(&sem_msg[CANNOT_RECORD_MSG], 10, 120, 0.5, 0.5, DEF_DRAW_RED);
 #else
 			Draw_c("☢Screen recorder is disabled\non this app.☢", 10, 25, 0.75, 0.75, DEF_DRAW_RED);
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
@@ -1773,8 +1773,8 @@ void Sem_main(void)
 
 void Sem_hid(const Hid_info* key)
 {
-	const int8_t menu_button_list[9] = { DEF_SEM_MENU_UPDATE, DEF_SEM_MENU_LANGAGES, DEF_SEM_MENU_LCD, DEF_SEM_MENU_CONTROL,
-	DEF_SEM_MENU_FONT, DEF_SEM_MENU_WIFI, DEF_SEM_MENU_ADVANCED, DEF_SEM_MENU_BATTERY, DEF_SEM_MENU_RECORDING };
+	const int8_t menu_button_list[9] = { MENU_UPDATE, MENU_LANGAGES, MENU_LCD, MENU_CONTROL,
+	MENU_FONT, MENU_WIFI, MENU_ADVANCED, MENU_BATTERY, MENU_RECORDING };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 
@@ -1808,198 +1808,198 @@ void Sem_hid(const Hid_info* key)
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 		//Notify user that button is being pressed.
-		if(DEF_SEM_HID_SYSTEM_UI_SEL(*key))
+		if(HID_SYSTEM_UI_SEL(*key))
 			Draw_get_bot_ui_button()->selected = true;
-		else if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
+		else if (sem_selected_menu_mode == MENU_TOP)
 		{
 			for(uint8_t i = 0; i < 9; i++)
 			{
-				if(DEF_SEM_HID_SUB_MENU_SEL(*key, menu_button_list[i]))
+				if(HID_SUB_MENU_SEL(*key, menu_button_list[i]))
 					sem_menu_button[menu_button_list[i]].selected = true;
 			}
 
-			if(DEF_SEM_HID_SCROLL_MODE_SEL(*key))
+			if(HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
 		}
-		else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
+		else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
 		{
-			if (DEF_SEM_HID_BACK_SEL(*key) && enable_back_button)
+			if (HID_BACK_SEL(*key) && enable_back_button)
 				sem_back_button.selected = true;
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
+			else if (sem_selected_menu_mode == MENU_UPDATE)
 			{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 				if (sem_show_patch_note_request)
 				{
-					if (DEF_SEM_HID_UPDATE_CLOSE_UPDATER_SEL(*key))
+					if (HID_UPDATE_CLOSE_UPDATER_SEL(*key))
 						sem_close_updater_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_EDITION_SELECTION_SEL(*key))
+					if (HID_UPDATE_EDITION_SELECTION_SEL(*key))
 						sem_select_edtion_button.selected = true;
 				}
 				else if (sem_select_ver_request && !sem_dl_file_request)
 				{
-					if (DEF_SEM_HID_UPDATE_3DSX_SEL(*key) && is_3dsx_available)
+					if (HID_UPDATE_3DSX_SEL(*key) && is_3dsx_available)
 						sem_3dsx_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_CIA_SEL(*key) && is_cia_available)
+					if (HID_UPDATE_CIA_SEL(*key) && is_cia_available)
 						sem_cia_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_SEL(*key))
+					if (HID_UPDATE_BACK_PATCH_NOTE_SEL(*key))
 						sem_back_to_patch_note_button.selected = true;
-					if (DEF_SEM_HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
+					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition_num != EDTION_NONE
 					&& is_available[sem_selected_edition_num])
 						sem_dl_install_button.selected = true;
-					if(DEF_SEM_HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == 4)
+					if(HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == 4)
 						sem_close_app_button.selected = true;
 				}
 				else
 				{
-					if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_SEL(*key))
+					if(HID_UPDATE_OPEN_UPDATER_SEL(*key))
 						sem_check_update_button.selected = true;
 				}
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
+			else if (sem_selected_menu_mode == MENU_LANGAGES)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
+				if(HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
 				if(!sem_reload_msg_request)
 				{
-					if(DEF_SEM_HID_LANG_EN_SEL(*key))
+					if(HID_LANG_EN_SEL(*key))
 						sem_english_button.selected = true;
-					if(DEF_SEM_HID_LANG_JP_SEL(*key))
+					if(HID_LANG_JP_SEL(*key))
 						sem_japanese_button.selected = true;
-					if(DEF_SEM_HID_LANG_HU_SEL(*key))
+					if(HID_LANG_HU_SEL(*key))
 						sem_hungarian_button.selected = true;
-					if(DEF_SEM_HID_LANG_ZHS_SEL(*key))
+					if(HID_LANG_ZHS_SEL(*key))
 						sem_chinese_button.selected = true;
-					if(DEF_SEM_HID_LANG_IT_SEL(*key))
+					if(HID_LANG_IT_SEL(*key))
 						sem_italian_button.selected = true;
-					if(DEF_SEM_HID_LANG_ES_SEL(*key))
+					if(HID_LANG_ES_SEL(*key))
 						sem_spanish_button.selected = true;
-					if(DEF_SEM_HID_LANG_RO_SEL(*key))
+					if(HID_LANG_RO_SEL(*key))
 						sem_romanian_button.selected = true;
-					if(DEF_SEM_HID_LANG_PO_SEL(*key))
+					if(HID_LANG_PO_SEL(*key))
 						sem_polish_button.selected = true;
-					if(DEF_SEM_HID_LANG_RYU_SEL(*key))
+					if(HID_LANG_RYU_SEL(*key))
 						sem_ryukyuan_button.selected = true;
-					if(DEF_SEM_HID_LANG_DE_SEL(*key))
+					if(HID_LANG_DE_SEL(*key))
 						sem_german_button.selected = true;
 				}
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
+			else if (sem_selected_menu_mode == MENU_LCD)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
+				if(HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
-				if(DEF_SEM_HID_LCD_NIGHT_ON_SEL(*key))
+				if(HID_LCD_NIGHT_ON_SEL(*key))
 					sem_night_mode_on_button.selected = true;
-				if(DEF_SEM_HID_LCD_NIGHT_OFF_SEL(*key))
+				if(HID_LCD_NIGHT_OFF_SEL(*key))
 					sem_night_mode_off_button.selected = true;
-				if(DEF_SEM_HID_LCD_FLASH_SEL(*key))
+				if(HID_LCD_FLASH_SEL(*key))
 					sem_flash_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_SEL(*key))
+				if(HID_LCD_BRIGHTNESS_BAR_SEL(*key))
 					sem_screen_brightness_bar.selected = true;
-				if(DEF_SEM_HID_LCD_LCD_OFF_BAR_SEL(*key))
+				if(HID_LCD_LCD_OFF_BAR_SEL(*key))
 					sem_screen_off_time_bar.selected = true;
-				if(DEF_SEM_HID_LCD_SLEEP_BAR_SEL(*key))
+				if(HID_LCD_SLEEP_BAR_SEL(*key))
 					sem_sleep_time_bar.selected = true;
-				if(DEF_SEM_HID_LCD_800PX_SEL(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
+				if(HID_LCD_800PX_SEL(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
 					sem_800px_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_3D_SEL(*key) && !record_request
-				&& state.console_model != DEF_SEM_MODEL_OLD2DS && state.console_model != DEF_SEM_MODEL_NEW2DSXL)
+				if(HID_LCD_3D_SEL(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS
+				&& state.console_model != DEF_SEM_MODEL_NEW2DSXL)
 					sem_3d_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_400PX_SEL(*key) && !record_request)
+				if(HID_LCD_400PX_SEL(*key) && !record_request)
 					sem_400px_mode_button.selected = true;
-				if(DEF_SEM_HID_LCD_AUTO_SEL(*key) && !record_request)
+				if(HID_LCD_AUTO_SEL(*key) && !record_request)
 					sem_auto_mode_button.selected = true;
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
+			else if (sem_selected_menu_mode == MENU_CONTROL)
 			{
-				if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_SEL(*key))
+				if(HID_CTRL_SCROLL_SPEED_BAR_SEL(*key))
 					sem_scroll_speed_bar.selected = true;
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+			else if (sem_selected_menu_mode == MENU_FONT)
 			{
-				if(DEF_SEM_HID_SCROLL_BAR_SEL(*key))
+				if(HID_SCROLL_BAR_SEL(*key))
 					sem_scroll_bar.selected = true;
-				if(DEF_SEM_HID_FONT_LOAD_ALL_SEL(*key) && !is_exfont_busy)
+				if(HID_FONT_LOAD_ALL_SEL(*key) && !is_exfont_busy)
 					sem_load_all_ex_font_button.selected = true;
-				if(DEF_SEM_HID_FONT_UNLOAD_ALL_SEL(*key) && !is_exfont_busy)
+				if(HID_FONT_UNLOAD_ALL_SEL(*key) && !is_exfont_busy)
 					sem_unload_all_ex_font_button.selected = true;
 
 				for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				{
-					if (DEF_SEM_HID_FONT_LOAD_UNLOAD_SEL(*key, i) && !is_exfont_busy)
+					if (HID_FONT_LOAD_UNLOAD_SEL(*key, i) && !is_exfont_busy)
 						sem_ex_font_button[i].selected = true;
 				}
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
+			else if (sem_selected_menu_mode == MENU_WIFI)
 			{
-				if(DEF_SEM_HID_WIRELESS_WIFI_ON_SEL(*key))
+				if(HID_WIRELESS_WIFI_ON_SEL(*key))
 					sem_wifi_on_button.selected = true;
-				if(DEF_SEM_HID_WIRELESS_WIFI_OFF_SEL(*key))
+				if(HID_WIRELESS_WIFI_OFF_SEL(*key))
 					sem_wifi_off_button.selected = true;
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
+			else if (sem_selected_menu_mode == MENU_ADVANCED)
 			{
-				if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_SEL(*key))
+				if(HID_ADVANCED_SEND_INFO_ON_SEL(*key))
 					sem_allow_send_info_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_SEL(*key))
+				if(HID_ADVANCED_SEND_INFO_OFF_SEL(*key))
 					sem_deny_send_info_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_DEBUG_ON_SEL(*key))
+				if(HID_ADVANCED_DEBUG_ON_SEL(*key))
 					sem_debug_mode_on_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_SEL(*key))
+				if(HID_ADVANCED_DEBUG_OFF_SEL(*key))
 					sem_debug_mode_off_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_SEL(*key))
+				if(HID_ADVANCED_FAKE_MODEL_SEL(*key))
 					sem_use_fake_model_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_LOG_DUMP_SEL(*key) && !sem_dump_log_request)
+				if(HID_ADVANCED_LOG_DUMP_SEL(*key) && !sem_dump_log_request)
 					sem_dump_log_button.selected = true;
 #if DEF_CPU_USAGE_API_ENABLE
-				if(DEF_SEM_HID_ADVANCED_CPU_ON_SEL(*key))
+				if(HID_ADVANCED_CPU_ON_SEL(*key))
 					sem_monitor_cpu_usage_on_button.selected = true;
-				if(DEF_SEM_HID_ADVANCED_CPU_OFF_SEL(*key))
+				if(HID_ADVANCED_CPU_OFF_SEL(*key))
 					sem_monitor_cpu_usage_off_button.selected = true;
 #endif //DEF_CPU_USAGE_API_ENABLE
 			}
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
+			else if (sem_selected_menu_mode == MENU_BATTERY)
 			{
-				if(DEF_SEM_HID_BAT_ECO_ON_SEL(*key))
+				if(HID_BAT_ECO_ON_SEL(*key))
 					sem_eco_mode_on_button.selected = true;
-				if(DEF_SEM_HID_BAT_ECO_OFF_SEL(*key))
+				if(HID_BAT_ECO_OFF_SEL(*key))
 					sem_eco_mode_off_button.selected = true;
 			}
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-			else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
+			else if (sem_selected_menu_mode == MENU_RECORDING)
 			{
-				if(DEF_SEM_HID_REC_BOTH_SEL(*key) && can_record)
+				if(HID_REC_BOTH_SEL(*key) && can_record)
 					sem_record_both_lcd_button.selected = true;
-				if(DEF_SEM_HID_REC_TOP_SEL(*key) && can_record)
+				if(HID_REC_TOP_SEL(*key) && can_record)
 					sem_record_top_lcd_button.selected = true;
-				if(DEF_SEM_HID_REC_BOT_SEL(*key) && can_record)
+				if(HID_REC_BOT_SEL(*key) && can_record)
 					sem_record_bottom_lcd_button.selected = true;
 			}
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
-			if(DEF_SEM_HID_SCROLL_MODE_SEL(*key))
+			if(HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
 		}
 
 		//Execute functions if conditions are satisfied.
-		if(DEF_SEM_HID_SYSTEM_UI_CFM(*key))
+		if(HID_SYSTEM_UI_CFM(*key))
 			Sem_suspend();
 		else if(!sem_scroll_mode)
 		{
-			if (sem_selected_menu_mode == DEF_SEM_MENU_TOP)
+			if (sem_selected_menu_mode == MENU_TOP)
 			{
 				for(uint8_t i = 0; i < 9; i++)
 				{
-					if(DEF_SEM_HID_SUB_MENU_CFM(*key, menu_button_list[i]))
+					if(HID_SUB_MENU_CFM(*key, menu_button_list[i]))
 					{
 						//Go to selected page.
 						sem_y_offset = 0.0;
 						sem_selected_menu_mode = menu_button_list[i];
-						if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
+						if (sem_selected_menu_mode == MENU_LANGAGES)
 							sem_y_max = -75.0;
-						else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
+						else if (sem_selected_menu_mode == MENU_LCD)
 							sem_y_max = -60.0;
-						else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+						else if (sem_selected_menu_mode == MENU_FONT)
 							sem_y_max = -950.0;
 
 						//Reset key state on scene change.
@@ -2008,25 +2008,25 @@ void Sem_hid(const Hid_info* key)
 					}
 				}
 			}
-			else if(sem_selected_menu_mode >= DEF_SEM_MENU_UPDATE && sem_selected_menu_mode <= DEF_SEM_MENU_RECORDING)
+			else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
 			{
-				if (DEF_SEM_HID_BACK_CFM(*key) && enable_back_button)
+				if (HID_BACK_CFM(*key) && enable_back_button)
 				{
 					//Back to top page.
 					sem_y_offset = 0.0;
 					sem_y_max = 0.0;
-					sem_selected_menu_mode = DEF_SEM_MENU_TOP;
+					sem_selected_menu_mode = MENU_TOP;
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_UPDATE)
+				else if (sem_selected_menu_mode == MENU_UPDATE)
 				{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 					if (sem_show_patch_note_request)
 					{
-						if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_CFM(*key))
+						if(HID_UPDATE_CLOSE_UPDATER_CFM(*key))
 							sem_show_patch_note_request = false;
-						else if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_CFM(*key))
+						else if(HID_UPDATE_EDITION_SELECTION_CFM(*key))
 						{
 							sem_show_patch_note_request = false;
 							sem_select_ver_request = true;
@@ -2034,24 +2034,24 @@ void Sem_hid(const Hid_info* key)
 					}
 					else if (sem_select_ver_request && !sem_dl_file_request)
 					{
-						if (DEF_SEM_HID_UPDATE_3DSX_CFM(*key) && is_3dsx_available)
-							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
-						else if (DEF_SEM_HID_UPDATE_CIA_CFM(*key) && is_cia_available)
-							sem_selected_edition_num = DEF_SEM_EDTION_CIA;
-						else if (DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_CFM(*key))
+						if (HID_UPDATE_3DSX_CFM(*key) && is_3dsx_available)
+							sem_selected_edition_num = EDTION_3DSX;
+						else if (HID_UPDATE_CIA_CFM(*key) && is_cia_available)
+							sem_selected_edition_num = EDTION_CIA;
+						else if (HID_UPDATE_BACK_PATCH_NOTE_CFM(*key))
 						{
 							sem_show_patch_note_request = true;
 							sem_select_ver_request = false;
 						}
-						else if (DEF_SEM_HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition_num != DEF_SEM_EDTION_NONE
+						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition_num != EDTION_NONE
 						&& is_available[sem_selected_edition_num])
 							sem_dl_file_request = true;
-						else if(DEF_SEM_HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == 4)
+						else if(HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == 4)
 							Menu_set_must_exit_flag(true);
 					}
 					else
 					{
-						if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_CFM(*key))
+						if(HID_UPDATE_OPEN_UPDATER_CFM(*key))
 						{
 							sem_check_update_request = true;
 							sem_show_patch_note_request = true;
@@ -2059,65 +2059,65 @@ void Sem_hid(const Hid_info* key)
 					}
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_LANGAGES)
+				else if (sem_selected_menu_mode == MENU_LANGAGES)
 				{
 					if(!sem_reload_msg_request)
 					{
-						if(DEF_SEM_HID_LANG_EN_CFM(*key))
+						if(HID_LANG_EN_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "en");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_JP_CFM(*key))
+						else if(HID_LANG_JP_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "jp");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_HU_CFM(*key))
+						else if(HID_LANG_HU_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "hu");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_ZHS_CFM(*key))
+						else if(HID_LANG_ZHS_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "zh-cn");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_IT_CFM(*key))
+						else if(HID_LANG_IT_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "it");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_ES_CFM(*key))
+						else if(HID_LANG_ES_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "es");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_RO_CFM(*key))
+						else if(HID_LANG_RO_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "ro");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_PO_CFM(*key))
+						else if(HID_LANG_PO_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "pl");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_RYU_CFM(*key))
+						else if(HID_LANG_RYU_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "ryu");
 							Sem_set_config(&config);
 							sem_reload_msg_request = true;
 						}
-						else if(DEF_SEM_HID_LANG_DE_CFM(*key))
+						else if(HID_LANG_DE_CFM(*key))
 						{
 							snprintf(config.lang, sizeof(config.lang), "de");
 							Sem_set_config(&config);
@@ -2125,24 +2125,24 @@ void Sem_hid(const Hid_info* key)
 						}
 					}
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_LCD)
+				else if (sem_selected_menu_mode == MENU_LCD)
 				{
-					if(DEF_SEM_HID_LCD_NIGHT_ON_CFM(*key))
+					if(HID_LCD_NIGHT_ON_CFM(*key))
 					{
 						config.is_night = true;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_NIGHT_OFF_CFM(*key))
+					else if(HID_LCD_NIGHT_OFF_CFM(*key))
 					{
 						config.is_night = false;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_FLASH_CFM(*key))
+					else if(HID_LCD_FLASH_CFM(*key))
 					{
 						config.is_flash = !config.is_flash;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_CFM(*key))
+					else if(HID_LCD_BRIGHTNESS_BAR_CFM(*key))
 					{
 						//Update screen brightness.
 						int32_t new_brightness = 180 * ((key->touch_x - 15) / 290.0);
@@ -2156,7 +2156,7 @@ void Sem_hid(const Hid_info* key)
 						config.bottom_lcd_brightness = new_brightness;
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_LCD_OFF_BAR_CFM(*key))
+					else if(HID_LCD_LCD_OFF_BAR_CFM(*key))
 					{
 						//Update time to turn off LCD.
 						uint16_t new_time = (580 * ((key->touch_x - 15) / 290.0)) + 20;
@@ -2172,7 +2172,7 @@ void Sem_hid(const Hid_info* key)
 
 						Sem_set_config(&config);
 					}
-					else if(DEF_SEM_HID_LCD_SLEEP_BAR_CFM(*key))
+					else if(HID_LCD_SLEEP_BAR_CFM(*key))
 					{
 						//Update time enter sleep.
 						uint16_t new_time = (580 * ((key->touch_x - 15) / 290.0)) + 20;
@@ -2188,31 +2188,31 @@ void Sem_hid(const Hid_info* key)
 
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_800PX_CFM(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
+					else if (HID_LCD_800PX_CFM(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_800PX;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_3D_CFM(*key) && !record_request
-					&& state.console_model != DEF_SEM_MODEL_OLD2DS && state.console_model != DEF_SEM_MODEL_NEW2DSXL)
+					else if (HID_LCD_3D_CFM(*key) && !record_request && state.console_model != DEF_SEM_MODEL_OLD2DS
+					&& state.console_model != DEF_SEM_MODEL_NEW2DSXL)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_3D;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_400PX_CFM(*key) && !record_request)
+					else if (HID_LCD_400PX_CFM(*key) && !record_request)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_400PX;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_LCD_AUTO_CFM(*key) && !record_request)
+					else if (HID_LCD_AUTO_CFM(*key) && !record_request)
 					{
 						config.screen_mode = DEF_SEM_SCREEN_MODE_AUTO;
 						Sem_set_config(&config);
 					}
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_CONTROL)
+				else if (sem_selected_menu_mode == MENU_CONTROL)
 				{
-					if (DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_CFM(*key))
+					if (HID_CTRL_SCROLL_SPEED_BAR_CFM(*key))
 					{
 						//Update time to turn off LCD.
 						double new_speed = (1.95 * ((key->touch_x - 15) / 290.0)) + 0.05;
@@ -2226,16 +2226,16 @@ void Sem_hid(const Hid_info* key)
 						Sem_set_config(&config);
 					}
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_FONT)
+				else if (sem_selected_menu_mode == MENU_FONT)
 				{
-					if (DEF_SEM_HID_FONT_LOAD_ALL_CFM(*key) && !is_exfont_busy)
+					if (HID_FONT_LOAD_ALL_CFM(*key) && !is_exfont_busy)
 					{
 						for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 							Exfont_set_external_font_request_state(i ,true);
 
 						Exfont_request_load_external_font();
 					}
-					else if (DEF_SEM_HID_FONT_UNLOAD_ALL_CFM(*key) && !is_exfont_busy)
+					else if (HID_FONT_UNLOAD_ALL_CFM(*key) && !is_exfont_busy)
 					{
 						for (uint16_t i = 1; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 							Exfont_set_external_font_request_state(i ,false);
@@ -2246,7 +2246,7 @@ void Sem_hid(const Hid_info* key)
 					{
 						for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 						{
-							if (DEF_SEM_HID_FONT_LOAD_UNLOAD_CFM(*key, i) && !is_exfont_busy)
+							if (HID_FONT_LOAD_UNLOAD_CFM(*key, i) && !is_exfont_busy)
 							{
 								if (Exfont_is_loaded_external_font(i))
 								{
@@ -2267,36 +2267,36 @@ void Sem_hid(const Hid_info* key)
 						}
 					}
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_WIFI)
+				else if (sem_selected_menu_mode == MENU_WIFI)
 				{
-					if (DEF_SEM_HID_WIRELESS_WIFI_ON_CFM(*key))
+					if (HID_WIRELESS_WIFI_ON_CFM(*key))
 						sem_should_wifi_enabled = true;
-					else if (DEF_SEM_HID_WIRELESS_WIFI_OFF_CFM(*key))
+					else if (HID_WIRELESS_WIFI_OFF_CFM(*key))
 						sem_should_wifi_enabled = false;
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_ADVANCED)
+				else if (sem_selected_menu_mode == MENU_ADVANCED)
 				{
-					if (DEF_SEM_HID_ADVANCED_SEND_INFO_ON_CFM(*key))
+					if (HID_ADVANCED_SEND_INFO_ON_CFM(*key))
 					{
 						config.is_send_info_allowed = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_CFM(*key))
+					else if (HID_ADVANCED_SEND_INFO_OFF_CFM(*key))
 					{
 						config.is_send_info_allowed = false;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_DEBUG_ON_CFM(*key))
+					else if (HID_ADVANCED_DEBUG_ON_CFM(*key))
 					{
 						config.is_debug = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_DEBUG_OFF_CFM(*key))
+					else if (HID_ADVANCED_DEBUG_OFF_CFM(*key))
 					{
 						config.is_debug = false;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_ADVANCED_FAKE_MODEL_CFM(*key))
+					else if (HID_ADVANCED_FAKE_MODEL_CFM(*key))
 					{
 						if(sem_internal_state.fake_model == 255)
 							sem_internal_state.fake_model = 0;
@@ -2307,58 +2307,58 @@ void Sem_hid(const Hid_info* key)
 
 						Draw_set_refresh_needed(true);
 					}
-					else if(DEF_SEM_HID_ADVANCED_LOG_DUMP_CFM(*key) && !sem_dump_log_request)
+					else if(HID_ADVANCED_LOG_DUMP_CFM(*key) && !sem_dump_log_request)
 						sem_dump_log_request = true;
 #if DEF_CPU_USAGE_API_ENABLE
-					else if (DEF_SEM_HID_ADVANCED_CPU_ON_CFM(*key))
+					else if (HID_ADVANCED_CPU_ON_CFM(*key))
 						sem_should_cpu_usage_monitor_running = true;
-					else if (DEF_SEM_HID_ADVANCED_CPU_OFF_CFM(*key))
+					else if (HID_ADVANCED_CPU_OFF_CFM(*key))
 						sem_should_cpu_usage_monitor_running = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
 				}
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_BATTERY)
+				else if (sem_selected_menu_mode == MENU_BATTERY)
 				{
-					if (DEF_SEM_HID_BAT_ECO_ON_CFM(*key))
+					if (HID_BAT_ECO_ON_CFM(*key))
 					{
 						config.is_eco = true;
 						Sem_set_config(&config);
 					}
-					else if (DEF_SEM_HID_BAT_ECO_OFF_CFM(*key))
+					else if (HID_BAT_ECO_OFF_CFM(*key))
 					{
 						config.is_eco = false;
 						Sem_set_config(&config);
 					}
 				}
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-				else if (sem_selected_menu_mode == DEF_SEM_MENU_RECORDING)
+				else if (sem_selected_menu_mode == MENU_RECORDING)
 				{
-					if (DEF_SEM_HID_REC_BOTH_CFM(*key) && can_record)
+					if (HID_REC_BOTH_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
 						else
 						{
-							sem_selected_recording_mode = DEF_SEM_RECORD_BOTH;
+							sem_selected_recording_mode = RECORD_BOTH;
 							sem_record_request = true;
 						}
 					}
-					else if (DEF_SEM_HID_REC_TOP_CFM(*key) && can_record)
+					else if (HID_REC_TOP_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
 						else
 						{
-							sem_selected_recording_mode = DEF_SEM_RECORD_TOP;
+							sem_selected_recording_mode = RECORD_TOP;
 							sem_record_request = true;
 						}
 					}
-					else if (DEF_SEM_HID_REC_BOT_CFM(*key) && can_record)
+					else if (HID_REC_BOT_CFM(*key) && can_record)
 					{
 						if(sem_record_request)
 							sem_stop_record_request = true;
 						else
 						{
-							sem_selected_recording_mode = DEF_SEM_RECORD_BOTTOM;
+							sem_selected_recording_mode = RECORD_BOTTOM;
 							sem_record_request = true;
 						}
 					}
@@ -2368,7 +2368,7 @@ void Sem_hid(const Hid_info* key)
 		}
 
 		//Scroll.
-		if(DEF_SEM_HID_SCROLL_BAR_CFM(*key))
+		if(HID_SCROLL_BAR_CFM(*key))
 		{
 			sem_touch_x_move_left = 0;
 			sem_touch_y_move_left = 0;
@@ -2405,118 +2405,118 @@ void Sem_hid(const Hid_info* key)
 			sem_y_offset = sem_y_max;
 
 		//Notify user that button is NOT being pressed anymore.
-		if(DEF_SEM_HID_SCROLL_MODE_DESEL(*key))
+		if(HID_SCROLL_MODE_DESEL(*key))
 			sem_scroll_mode = false;
-		if(DEF_SEM_HID_SCROLL_BAR_DESEL(*key))
+		if(HID_SCROLL_BAR_DESEL(*key))
 			sem_scroll_bar.selected = false;
-		if(DEF_SEM_HID_SYSTEM_UI_DESEL(*key) || sem_scroll_mode)
+		if(HID_SYSTEM_UI_DESEL(*key) || sem_scroll_mode)
 			Draw_get_bot_ui_button()->selected = false;
-		if(DEF_SEM_HID_SUB_MENU_DESEL(*key) || sem_scroll_mode)
+		if(HID_SUB_MENU_DESEL(*key) || sem_scroll_mode)
 		{
 			for(uint8_t i = 0; i < 9; i++)
 				sem_menu_button[menu_button_list[i]].selected = false;
 		}
-		if(DEF_SEM_HID_BACK_DESEL(*key) || sem_scroll_mode)
+		if(HID_BACK_DESEL(*key) || sem_scroll_mode)
 			sem_back_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_OPEN_UPDATER_DESEL(*key) || sem_scroll_mode)
+		if(HID_UPDATE_OPEN_UPDATER_DESEL(*key) || sem_scroll_mode)
 			sem_check_update_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CLOSE_UPDATER_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_CLOSE_UPDATER_DESEL(*key))//No scroll exists in the sub window.
 			sem_close_updater_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_EDITION_SELECTION_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_EDITION_SELECTION_DESEL(*key))//No scroll exists in the sub window.
 			sem_select_edtion_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_3DSX_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_3DSX_DESEL(*key))//No scroll exists in the sub window.
 			sem_3dsx_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CIA_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_CIA_DESEL(*key))//No scroll exists in the sub window.
 			sem_cia_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_BACK_PATCH_NOTE_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_BACK_PATCH_NOTE_DESEL(*key))//No scroll exists in the sub window.
 			sem_back_to_patch_note_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_DL_INSTALL_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_DL_INSTALL_DESEL(*key))//No scroll exists in the sub window.
 			sem_dl_install_button.selected = false;
-		if(DEF_SEM_HID_UPDATE_CLOSE_APP_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_CLOSE_APP_DESEL(*key))//No scroll exists in the sub window.
 			sem_close_app_button.selected = false;
-		if(DEF_SEM_HID_LANG_EN_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_EN_DESEL(*key) || sem_scroll_mode)
 			sem_english_button.selected = false;
-		if(DEF_SEM_HID_LANG_JP_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_JP_DESEL(*key) || sem_scroll_mode)
 			sem_japanese_button.selected = false;
-		if(DEF_SEM_HID_LANG_HU_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_HU_DESEL(*key) || sem_scroll_mode)
 			sem_hungarian_button.selected = false;
-		if(DEF_SEM_HID_LANG_ZHS_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_ZHS_DESEL(*key) || sem_scroll_mode)
 			sem_chinese_button.selected = false;
-		if(DEF_SEM_HID_LANG_IT_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_IT_DESEL(*key) || sem_scroll_mode)
 			sem_italian_button.selected = false;
-		if(DEF_SEM_HID_LANG_ES_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_ES_DESEL(*key) || sem_scroll_mode)
 			sem_spanish_button.selected = false;
-		if(DEF_SEM_HID_LANG_RO_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_RO_DESEL(*key) || sem_scroll_mode)
 			sem_romanian_button.selected = false;
-		if(DEF_SEM_HID_LANG_PO_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_PO_DESEL(*key) || sem_scroll_mode)
 			sem_polish_button.selected = false;
-		if(DEF_SEM_HID_LANG_RYU_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_RYU_DESEL(*key) || sem_scroll_mode)
 			sem_ryukyuan_button.selected = false;
-		if(DEF_SEM_HID_LANG_DE_DESEL(*key) || sem_scroll_mode)
+		if(HID_LANG_DE_DESEL(*key) || sem_scroll_mode)
 			sem_german_button.selected = false;
-		if(DEF_SEM_HID_LCD_NIGHT_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_NIGHT_ON_DESEL(*key) || sem_scroll_mode)
 			sem_night_mode_on_button.selected = false;
-		if(DEF_SEM_HID_LCD_NIGHT_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_NIGHT_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_night_mode_off_button.selected = false;
-		if(DEF_SEM_HID_LCD_FLASH_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_FLASH_DESEL(*key) || sem_scroll_mode)
 			sem_flash_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_BRIGHTNESS_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_BRIGHTNESS_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_screen_brightness_bar.selected = false;
-		if(DEF_SEM_HID_LCD_LCD_OFF_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_LCD_OFF_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_screen_off_time_bar.selected = false;
-		if(DEF_SEM_HID_LCD_SLEEP_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_SLEEP_BAR_DESEL(*key))//We prioritize this over scroll mode.
 			sem_sleep_time_bar.selected = false;
-		if(DEF_SEM_HID_LCD_800PX_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_800PX_DESEL(*key) || sem_scroll_mode)
 			sem_800px_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_3D_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_3D_DESEL(*key) || sem_scroll_mode)
 			sem_3d_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_400PX_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_400PX_DESEL(*key) || sem_scroll_mode)
 			sem_400px_mode_button.selected = false;
-		if(DEF_SEM_HID_LCD_AUTO_DESEL(*key) || sem_scroll_mode)
+		if(HID_LCD_AUTO_DESEL(*key) || sem_scroll_mode)
 			sem_auto_mode_button.selected = false;
-		if(DEF_SEM_HID_CTRL_SCROLL_SPEED_BAR_DESEL(*key) || sem_scroll_mode)
+		if(HID_CTRL_SCROLL_SPEED_BAR_DESEL(*key) || sem_scroll_mode)
 			sem_scroll_speed_bar.selected = false;
-		if(DEF_SEM_HID_FONT_LOAD_ALL_DESEL(*key) || sem_scroll_mode)
+		if(HID_FONT_LOAD_ALL_DESEL(*key) || sem_scroll_mode)
 			sem_load_all_ex_font_button.selected = false;
-		if(DEF_SEM_HID_FONT_UNLOAD_ALL_DESEL(*key) || sem_scroll_mode)
+		if(HID_FONT_UNLOAD_ALL_DESEL(*key) || sem_scroll_mode)
 			sem_unload_all_ex_font_button.selected = false;
-		if(DEF_SEM_HID_FONT_LOAD_UNLOAD_DESEL(*key) || sem_scroll_mode)
+		if(HID_FONT_LOAD_UNLOAD_DESEL(*key) || sem_scroll_mode)
 		{
 			for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 				sem_ex_font_button[i].selected = false;
 		}
-		if(DEF_SEM_HID_WIRELESS_WIFI_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_WIRELESS_WIFI_ON_DESEL(*key) || sem_scroll_mode)
 			sem_wifi_on_button.selected = false;
-		if(DEF_SEM_HID_WIRELESS_WIFI_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_WIRELESS_WIFI_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_wifi_off_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_SEND_INFO_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_SEND_INFO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_allow_send_info_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_SEND_INFO_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_SEND_INFO_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_deny_send_info_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_DEBUG_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_DEBUG_ON_DESEL(*key) || sem_scroll_mode)
 			sem_debug_mode_on_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_DEBUG_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_DEBUG_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_debug_mode_off_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_FAKE_MODEL_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_FAKE_MODEL_DESEL(*key) || sem_scroll_mode)
 			sem_use_fake_model_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_LOG_DUMP_DESEL(*key)  || sem_scroll_mode)
+		if(HID_ADVANCED_LOG_DUMP_DESEL(*key)  || sem_scroll_mode)
 			sem_dump_log_button.selected = false;
 #if DEF_CPU_USAGE_API_ENABLE
-		if(DEF_SEM_HID_ADVANCED_CPU_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_CPU_ON_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_cpu_usage_on_button.selected = false;
-		if(DEF_SEM_HID_ADVANCED_CPU_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_ADVANCED_CPU_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_cpu_usage_off_button.selected = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
-		if(DEF_SEM_HID_BAT_ECO_ON_DESEL(*key) || sem_scroll_mode)
+		if(HID_BAT_ECO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_on_button.selected = false;
-		if(DEF_SEM_HID_BAT_ECO_OFF_DESEL(*key) || sem_scroll_mode)
+		if(HID_BAT_ECO_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_off_button.selected = false;
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-		if(DEF_SEM_HID_REC_BOTH_DESEL(*key) || sem_scroll_mode)
+		if(HID_REC_BOTH_DESEL(*key) || sem_scroll_mode)
 			sem_record_both_lcd_button.selected = false;
-		if(DEF_SEM_HID_REC_TOP_DESEL(*key) || sem_scroll_mode)
+		if(HID_REC_TOP_DESEL(*key) || sem_scroll_mode)
 			sem_record_top_lcd_button.selected = false;
-		if(DEF_SEM_HID_REC_BOT_DESEL(*key) || sem_scroll_mode)
+		if(HID_REC_BOT_DESEL(*key) || sem_scroll_mode)
 			sem_record_bottom_lcd_button.selected = false;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	}
@@ -2947,7 +2947,7 @@ void Sem_record_thread(void* arg)
 				APT_SetAppCpuTimeLimit(70);
 
 			mode = sem_selected_recording_mode;
-			if(mode == DEF_SEM_RECORD_BOTH)
+			if(mode == RECORD_BOTH)
 			{
 				rec_width = 400;
 				rec_height = 480;
@@ -2956,7 +2956,7 @@ void Sem_record_thread(void* arg)
 				else
 					rec_framerate = 5;
 			}
-			else if(mode == DEF_SEM_RECORD_TOP)
+			else if(mode == RECORD_TOP)
 			{
 				rec_width = 400;
 				rec_height = 240;
@@ -2965,7 +2965,7 @@ void Sem_record_thread(void* arg)
 				else
 					rec_framerate = 10;
 			}
-			else if(mode == DEF_SEM_RECORD_BOTTOM)
+			else if(mode == RECORD_BOTTOM)
 			{
 				rec_width = 320;
 				rec_height = 240;
@@ -3013,7 +3013,7 @@ void Sem_record_thread(void* arg)
 
 				osTickCounterUpdate(&counter);
 
-				if(mode == DEF_SEM_RECORD_BOTH)
+				if(mode == RECORD_BOTH)
 				{
 					uint32_t offset = (400 * 240 * 3);
 					uint32_t bot_bgr_offset = 0;
@@ -3055,7 +3055,7 @@ void Sem_record_thread(void* arg)
 					free(bot_bgr);
 					bot_bgr = NULL;
 				}
-				else if(mode == DEF_SEM_RECORD_TOP)
+				else if(mode == RECORD_TOP)
 				{
 					top_framebuffer = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, &width, &height);
 					result = Util_converter_rgb888_rotate_90_degree(top_framebuffer, &both_bgr, width, height, &new_width, &new_height);
@@ -3065,7 +3065,7 @@ void Sem_record_thread(void* arg)
 						break;
 					}
 				}
-				else if(mode == DEF_SEM_RECORD_BOTTOM)
+				else if(mode == RECORD_BOTTOM)
 				{
 					bot_framebuffer = gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, &width, &height);
 					result = Util_converter_rgb888_rotate_90_degree(bot_framebuffer, &both_bgr, width, height, &new_width, &new_height);
@@ -3145,7 +3145,7 @@ void Sem_check_connectivity_thread(void* arg)
 			Net_dl_parameters dl_parameters = { 0, };
 
 			count = 0;
-			dl_parameters.url = DEF_SEM_CHECK_INTERNET_URL;
+			dl_parameters.url = CHECK_INTERNET_URL;
 			dl_parameters.max_redirect = 0;
 			dl_parameters.max_size = 0x1000;
 			dl_parameters.status_code = &status_code;
@@ -3198,7 +3198,7 @@ void Sem_update_thread(void* arg)
 			if (sem_check_update_request)
 			{
 				sem_update_progress = 0;
-				sem_selected_edition_num = DEF_SEM_EDTION_NONE;
+				sem_selected_edition_num = EDTION_NONE;
 				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
 				for (uint8_t i = 0; i < 6; i++)
@@ -3215,10 +3215,10 @@ void Sem_update_thread(void* arg)
 			{
 				Util_str_set(&dir_path, DEF_MENU_MAIN_DIR "ver/");
 
-				Util_str_format(&filename, DEF_SEM_UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
-				if(sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+				Util_str_format(&filename, UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[0]));
+				if(sem_selected_edition_num == EDTION_3DSX)
 					Util_str_format_append(&filename, "3dsx");
-				else if(sem_selected_edition_num == DEF_SEM_EDTION_CIA)
+				else if(sem_selected_edition_num == EDTION_CIA)
 					Util_str_format_append(&filename, "cia");
 
 				Util_file_delete_file(filename.buffer, dir_path.buffer);//Delete old file if exist.
@@ -3314,9 +3314,9 @@ void Sem_update_thread(void* arg)
 							sem_new_version_available = false;
 
 						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[1]))[0] == '1')
-							sem_selected_edition_num = DEF_SEM_EDTION_3DSX;
+							sem_selected_edition_num = EDTION_3DSX;
 						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[2]))[0] == '1')
-							sem_selected_edition_num = DEF_SEM_EDTION_CIA;
+							sem_selected_edition_num = EDTION_CIA;
 					}
 
 					sem_update_progress = 1;
@@ -3325,11 +3325,11 @@ void Sem_update_thread(void* arg)
 				else if (sem_dl_file_request)
 				{
 					sem_update_progress = 3;
-					if (sem_selected_edition_num == DEF_SEM_EDTION_3DSX)
+					if (sem_selected_edition_num == EDTION_3DSX)
 						sem_update_progress = 4;
 
 					Draw_set_refresh_needed(true);
-					if (sem_selected_edition_num == DEF_SEM_EDTION_CIA)
+					if (sem_selected_edition_num == EDTION_CIA)
 					{
 						uint64_t offset = 0;
 						Handle am_handle = 0;

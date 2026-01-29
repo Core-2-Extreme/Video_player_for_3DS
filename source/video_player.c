@@ -78,6 +78,9 @@
 #define MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu.
 #define MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu.
 
+#define TIP_SCREEN_BRIGHTNESS_DURATION_MS			(uint64_t)(2500)						//Duration to show screen brightness on top screen when it's changed.
+#define TIP_MEDIA_POS_DURATION_MS					(uint64_t)(4000)						//Duration to show current media position on top screen when it's changed.
+
 //System UI.
 #define HID_SYSTEM_UI_SEL(k)						(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define HID_SYSTEM_UI_CFM(k)						(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
@@ -3372,7 +3375,7 @@ static void Vid_increase_screen_brightness(void)
 		if(!vid_player.is_full_screen)
 			config.bottom_lcd_brightness = config.top_lcd_brightness;
 
-		vid_player.show_screen_brightness_until = osGetTime() + 2500;
+		vid_player.show_screen_brightness_until = (osGetTime() + TIP_SCREEN_BRIGHTNESS_DURATION_MS);
 		Sem_set_config(&config);
 	}
 }
@@ -3389,7 +3392,7 @@ static void Vid_decrease_screen_brightness(void)
 		if(!vid_player.is_full_screen)
 			config.bottom_lcd_brightness = config.top_lcd_brightness;
 
-		vid_player.show_screen_brightness_until = osGetTime() + 2500;
+		vid_player.show_screen_brightness_until = (osGetTime() + TIP_SCREEN_BRIGHTNESS_DURATION_MS);
 		Sem_set_config(&config);
 	}
 }
@@ -5440,7 +5443,7 @@ void Vid_decode_thread(void* arg)
 				if(!(vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT) && vid_player.media_current_pos >= vid_player.seek_pos)
 				{
 					//Seek has finished.
-					vid_player.show_current_pos_until = osGetTime() + 4000;
+					vid_player.show_current_pos_until = (osGetTime() + TIP_MEDIA_POS_DURATION_MS);
 
 					if(vid_player.num_of_video_tracks > 0 && vid_player.video_frametime != 0)//Buffer some data before resuming playback if file contains video tracks.
 						vid_player.state = PLAYER_STATE_BUFFERING;

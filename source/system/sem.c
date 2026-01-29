@@ -29,8 +29,10 @@
 #include "video_player.h"
 
 //Defines.
-#define CHECK_INTERNET_URL					/*(const char*)(*/"http://connectivitycheck.gstatic.com/generate_204"/*)*/
+#define CHECK_INTERNET_URL					/*(const char*)(*/"http://network-test.debian.org/nm"/*)*/
 #define UPDATE_FILE_PREFIX					/*(const char*)(*/"Vid_"/*)*/
+#define CHECK_INTERNET_SUCCESS_TEXT			(const char*)("NetworkManager is online")
+#define CHECK_INTERNET_INTERVAL_MS			(uint64_t)(10000)
 
 #define MENU_TOP_Y_OFFSET_MIN				(double)(0)			//Minimum y offset in top menu.
 #define MENU_LANGUAGES_Y_OFFSET_MIN			(double)(-75)		//Minimum y offset in languages menu.
@@ -2581,7 +2583,7 @@ static void Sem_get_system_info(void)
 {
 	uint8_t is_charging = 0;
 	uint32_t result = DEF_ERR_OTHER;
-	char* ssid = (char*)malloc(512);
+	char ssid[33] = { 0, };
 	time_t unix_time = time(NULL);
 	const struct tm* time = gmtime(&unix_time);
 	Sem_config config = { 0, };
@@ -2600,7 +2602,7 @@ static void Sem_get_system_info(void)
 
 		MCUHWC_GetBatteryVoltage(&battery_voltage);
 		MCUHWC_ReadRegister(0x0A, &state.battery_temp, 1);
-		state.battery_voltage = 5.0 * (battery_voltage / 256.0);
+		state.battery_voltage = (5.0 * (battery_voltage / 256.0));
 	}
 	else
 	{
@@ -2623,18 +2625,12 @@ static void Sem_get_system_info(void)
 
 	//Connected SSID.
 	memset(state.connected_wifi, 0x00, sizeof(state.connected_wifi));
-	if(ssid)
+	result = ACU_GetSSID(ssid);
+	if(result == DEF_SUCCESS)
 	{
-		result = ACU_GetSSID(ssid);
-		if(result == DEF_SUCCESS)
-		{
-			uint8_t length = Util_min(strlen(ssid), (sizeof(state.connected_wifi) - 1));
-			memcpy(state.connected_wifi, ssid, length);
-		}
+		uint8_t length = Util_min(strlen(ssid), (sizeof(state.connected_wifi) - 1));
+		memcpy(state.connected_wifi, ssid, length);
 	}
-
-	free(ssid);
-	ssid = NULL;
 
 	state.wifi_signal = osGetWifiStrength();
 	//Get wifi state from shared memory #0x1FF81067.
@@ -2858,13 +2854,13 @@ void Sem_hw_config_thread(void* arg)
 		}
 
 		//If config.time_to_turn_off_lcd == 0, it means automatic turn off LCD feature has been disabled.
-		if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_turn_off_lcd)
+		if(config.time_to_turn_off_lcd > 0 && DEF_UTIL_MS_TO_S(hid_info.afk_time_ms) > config.time_to_turn_off_lcd)
 		{
 			result = Util_hw_config_set_screen_state(true, true, false);
 			if(result != DEF_SUCCESS)
 				DEF_LOG_RESULT(Util_hw_config_set_screen_state, false, result);
 		}
-		else if(config.time_to_turn_off_lcd > 0 && (hid_info.afk_time_ms / 1000) > (uint16_t)(config.time_to_turn_off_lcd - 10))
+		else if(config.time_to_turn_off_lcd > 0 && DEF_UTIL_MS_TO_S(hid_info.afk_time_ms) > (uint16_t)(config.time_to_turn_off_lcd - 10))
 		{
 			result = Util_hw_config_set_screen_brightness(true, true, 10);
 			if(result != DEF_SUCCESS)
@@ -2899,7 +2895,7 @@ void Sem_hw_config_thread(void* arg)
 		}
 
 		//If config.time_to_enter_sleep == 0, it means automatic sleep feature has been disabled.
-		if(config.time_to_enter_sleep > 0 && (hid_info.afk_time_ms / 1000) > config.time_to_enter_sleep)
+		if(config.time_to_enter_sleep > 0 && DEF_UTIL_MS_TO_S(hid_info.afk_time_ms) > config.time_to_enter_sleep)
 		{
 			result = Util_hw_config_sleep_system((HW_CONFIG_WAKEUP_BIT_OPEN_SHELL | HW_CONFIG_WAKEUP_BIT_PRESS_HOME_BUTTON));
 			if(result == DEF_SUCCESS)
@@ -3187,31 +3183,45 @@ void Sem_check_connectivity_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	uint16_t count = 100;
+	uint32_t count = (CHECK_INTERNET_INTERVAL_MS / DEF_UTIL_US_TO_MS(DEF_THREAD_ACTIVE_SLEEP_TIME));
 
 	while (sem_thread_run)
 	{
-		if (count >= 100)
+		if (count >= (CHECK_INTERNET_INTERVAL_MS / DEF_UTIL_US_TO_MS(DEF_THREAD_ACTIVE_SLEEP_TIME)))
 		{
-			uint16_t status_code = 0;
-			Net_dl_parameters dl_parameters = { 0, };
+			Sem_state state = { 0, };
 
+			Sem_get_state(&state);
 			count = 0;
-			dl_parameters.url = CHECK_INTERNET_URL;
-			dl_parameters.max_redirect = 0;
-			dl_parameters.max_size = 0x1000;
-			dl_parameters.status_code = &status_code;
+
+			if(state.wifi_signal != DEF_SEM_WIFI_SIGNAL_DISABLED)
+			{
+				uint32_t dl_size = 0;
+				uint32_t result = DEF_ERR_OTHER;
+				Net_dl_parameters dl_parameters = { 0, };
+
+				dl_parameters.url = CHECK_INTERNET_URL;
+				dl_parameters.max_redirect = 0;
+				dl_parameters.max_size = 0x1000;
+				dl_parameters.downloaded_size = &dl_size;
 
 #if DEF_HTTPC_API_ENABLE//Curl uses more CPU so prefer to use httpc module here.
-			Util_httpc_dl_data(&dl_parameters);
+				result = Util_httpc_dl_data(&dl_parameters);
 #else
-			Util_curl_dl_data(&dl_parameters);
+				result = Util_curl_dl_data(&dl_parameters);
 #endif //DEF_HTTPC_API_ENABLE
 
-			free(dl_parameters.data);
-			dl_parameters.data = NULL;
+				if(result == DEF_SUCCESS && (dl_size - 1) == strlen(CHECK_INTERNET_SUCCESS_TEXT)
+				&& strncmp((char*)dl_parameters.data, CHECK_INTERNET_SUCCESS_TEXT, (dl_size - 1)) == 0)
+					sem_internal_state.is_connect_test_succes = true;
+				else
+					sem_internal_state.is_connect_test_succes = false;
 
-			sem_internal_state.is_connect_test_succes = (status_code == 204);
+				free(dl_parameters.data);
+				dl_parameters.data = NULL;
+			}
+			else
+				sem_internal_state.is_connect_test_succes = false;//Wi-Fi is disabled.
 		}
 		else
 			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);

@@ -557,12 +557,12 @@ typedef struct
 	double next_frame_update_time;					//Next timestamp to update a video frame.
 	double next_vfps_update;						//Next timestamp to update vps value.
 	double _3d_slider_pos;							//3D slider position (0.0~1.0).
-	double video_x_offset;							//X (horizontal) offset for video.
-	double video_y_offset;							//Y (vertical) offset for video.
-	double video_zoom;								//Zoom level for video.
 	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
 	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
+	double video_x_offset[EYE_MAX];					//X (horizontal) offset for video.
+	double video_y_offset[EYE_MAX];					//Y (vertical) offset for video.
+	double video_zoom[EYE_MAX];						//Zoom level for video.
 	double video_current_pos[EYE_MAX];				//Current video position in ms.
 	Media_v_info video_info[EYE_MAX];				//Video info.
 	Large_image large_image[VIDEO_BUFFERS][EYE_MAX];	//Texture for video images.
@@ -648,8 +648,8 @@ static void Vid_large_texture_crop(Large_image* large_image_data, uint32_t width
 static uint32_t Vid_large_texture_init(Large_image* large_image_data, uint32_t width, uint32_t height, Raw_pixel color_format, bool zero_initialize);
 static uint32_t Vid_large_texture_set_data(Large_image* large_image_data, uint8_t* raw_image, uint32_t width, uint32_t height, bool use_direct);
 static void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height);
-static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height);
-static void Vid_change_video_size(double change_px);
+static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height, Vid_eye eye_index);
+static void Vid_change_video_size(double change_px, Vid_eye eye_index);
 static void Vid_enter_full_screen(uint32_t bottom_screen_timeout);
 static void Vid_exit_full_screen(void);
 static void Vid_increase_screen_brightness(void);
@@ -747,7 +747,9 @@ void Vid_hid(const Hid_info* key)
 		if(vid_player.is_full_screen)
 		{
 			//Exit full-screen to avoid bottom LCD blackout.
-			Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT);
+			for(uint32_t i = 0; i < EYE_MAX; i++)
+				Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT, i);
+
 			Vid_exit_full_screen();
 		}
 
@@ -935,7 +937,9 @@ void Vid_hid(const Hid_info* key)
 		{
 			if(HID_FULL_EXIT_CFM(*key) || aptShouldJumpToHome())
 			{
-				Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT);
+				for(uint32_t i = 0; i < EYE_MAX; i++)
+					Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT, i);
+
 				Vid_exit_full_screen();
 				//Reset key state on scene change.
 				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -1053,7 +1057,9 @@ void Vid_hid(const Hid_info* key)
 			{
 				if(HID_ENTER_FULL_CFM(*key))
 				{
-					Vid_fit_to_screen(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+					for(uint32_t i = 0; i < EYE_MAX; i++)
+						Vid_fit_to_screen(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, i);
+
 					Vid_enter_full_screen(ENTER_FULL_SCREEN_TRANSITION_PERIOD);
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -1175,7 +1181,8 @@ void Vid_hid(const Hid_info* key)
 					else if(HID_SE0_CORRECT_ASPECT_RATIO_CFM(*key))//Correct aspect ratio button.
 					{
 						vid_player.correct_aspect_ratio = !vid_player.correct_aspect_ratio;
-						Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT);
+						for(uint32_t i = 0; i < EYE_MAX; i++)
+							Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT, i);
 					}
 					else if(HID_SE0_MOVE_CONTENT_MODE_CFM(*key))//Disable resize and move button.
 					{
@@ -1291,11 +1298,6 @@ void Vid_hid(const Hid_info* key)
 				double subtitle_size_changes = 0;
 				double y_changes = 0;
 				double x_changes = 0;
-				//todo consider EYE_RIGHT
-				double sar_width = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1);
-				double sar_height = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1);
-				double x_offset_min = -(vid_player.video_info[EYE_LEFT].width * sar_width * vid_player.video_zoom);
-				double y_offset_min = -(vid_player.video_info[EYE_LEFT].height * sar_height * vid_player.video_zoom);
 
 				if(HID_MOVE_CONTENT_UP_CFM(*key))
 				{
@@ -1370,56 +1372,63 @@ void Vid_hid(const Hid_info* key)
 					}
 				}
 
-				//Update position.
-				if(vid_player.move_content_mode == MOVE_VIDEO || vid_player.move_content_mode == MOVE_BOTH)
+				for(uint32_t i = 0; i < EYE_MAX; i++)
 				{
-					double new_width = 0;
-					double new_height = 0;
+					double sar_width = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
+					double sar_height = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
+					double x_offset_min = -(vid_player.video_info[i].width * sar_width * vid_player.video_zoom[i]);
+					double y_offset_min = -(vid_player.video_info[i].height * sar_height * vid_player.video_zoom[i]);
 
-					vid_player.video_y_offset += y_changes;
-					vid_player.video_x_offset += x_changes;
-					Vid_change_video_size(size_changes);
+					//Update position.
+					if(vid_player.move_content_mode == MOVE_VIDEO || vid_player.move_content_mode == MOVE_BOTH)
+					{
+						double new_width = 0;
+						double new_height = 0;
 
-					//todo consider EYE_RIGHT
-					new_width = (double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) * vid_player.video_zoom;
-					new_height = (double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1) * vid_player.video_zoom;
+						vid_player.video_y_offset[i] += y_changes;
+						vid_player.video_x_offset[i] += x_changes;
+						Vid_change_video_size(size_changes, i);
 
-					if(vid_player.video_x_offset > 400)
-						vid_player.video_x_offset = 400;
-					else if(vid_player.video_x_offset < x_offset_min)
-						vid_player.video_x_offset = x_offset_min;
+						new_width = (double)vid_player.video_info[i].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1) * vid_player.video_zoom[i];
+						new_height = (double)vid_player.video_info[i].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1) * vid_player.video_zoom[i];
 
-					if(vid_player.video_y_offset > 480)
-						vid_player.video_y_offset = 480;
-					else if(vid_player.video_y_offset < y_offset_min)
-						vid_player.video_y_offset = y_offset_min;
+						if(vid_player.video_x_offset[i] > 400)
+							vid_player.video_x_offset[i] = 400;
+						else if(vid_player.video_x_offset[i] < x_offset_min)
+							vid_player.video_x_offset[i] = x_offset_min;
 
-					//If video is too large or small, revert it.
-					if(new_width < 20 || new_height < 20)
-						Vid_change_video_size(abs(size_changes));
-					else if(new_width > 2000 || new_height > 2000)
-						Vid_change_video_size(-abs(size_changes));
-				}
-				if(vid_player.move_content_mode == MOVE_SUBTITLE || vid_player.move_content_mode == MOVE_BOTH)
-				{
-					vid_player.subtitle_y_offset += y_changes;
-					vid_player.subtitle_x_offset += x_changes;
-					vid_player.subtitle_zoom += subtitle_size_changes;
+						if(vid_player.video_y_offset[i] > 480)
+							vid_player.video_y_offset[i] = 480;
+						else if(vid_player.video_y_offset[i] < y_offset_min)
+							vid_player.video_y_offset[i] = y_offset_min;
 
-					if(vid_player.subtitle_x_offset > 400)
-						vid_player.subtitle_x_offset = 400;
-					else if(vid_player.subtitle_x_offset < x_offset_min)
-						vid_player.subtitle_x_offset = x_offset_min;
+						//If video is too large or small, revert it.
+						if(new_width < 20 || new_height < 20)
+							Vid_change_video_size(abs(size_changes), i);
+						else if(new_width > 2000 || new_height > 2000)
+							Vid_change_video_size(-abs(size_changes), i);
+					}
+					if(vid_player.move_content_mode == MOVE_SUBTITLE || vid_player.move_content_mode == MOVE_BOTH)
+					{
+						vid_player.subtitle_y_offset += y_changes;
+						vid_player.subtitle_x_offset += x_changes;
+						vid_player.subtitle_zoom += subtitle_size_changes;
 
-					if(vid_player.subtitle_y_offset > 480)
-						vid_player.subtitle_y_offset = 480;
-					else if(vid_player.subtitle_y_offset < y_offset_min)
-						vid_player.subtitle_y_offset = y_offset_min;
+						if(vid_player.subtitle_x_offset > 400)
+							vid_player.subtitle_x_offset = 400;
+						else if(vid_player.subtitle_x_offset < x_offset_min)
+							vid_player.subtitle_x_offset = x_offset_min;
 
-					if(vid_player.subtitle_zoom < 0.05)
-						vid_player.subtitle_zoom = 0.05;
-					else if(vid_player.subtitle_zoom > 10)
-						vid_player.subtitle_zoom = 10;
+						if(vid_player.subtitle_y_offset > 480)
+							vid_player.subtitle_y_offset = 480;
+						else if(vid_player.subtitle_y_offset < y_offset_min)
+							vid_player.subtitle_y_offset = y_offset_min;
+
+						if(vid_player.subtitle_zoom < 0.05)
+							vid_player.subtitle_zoom = 0.05;
+						else if(vid_player.subtitle_zoom > 10)
+							vid_player.subtitle_zoom = 10;
+					}
 				}
 			}
 		}
@@ -1693,14 +1702,14 @@ void Vid_main(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t disabled_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
-	double bitmap_subtitle_width = 0;
-	double bitmap_subtitle_height = 0;
 	double text_subtitle_width = 0;
 	double text_subtitle_height = 0;
 	double y_offset = 0;
 	uint8_t image_index[EYE_MAX] = { 0, };
 	double image_width[EYE_MAX] = { 0, };
 	double image_height[EYE_MAX] = { 0, };
+	double bitmap_subtitle_width[SCREEN_POS_MAX] = { 0, };
+	double bitmap_subtitle_height[SCREEN_POS_MAX] = { 0, };
 	double video_x_offset[SCREEN_POS_MAX] = { 0, };
 	double video_y_offset[SCREEN_POS_MAX] = { 0, };
 	double bitmap_subtitle_x_offset[SCREEN_POS_MAX] = { 0, };
@@ -1713,6 +1722,7 @@ void Vid_main(void)
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_VIDEO_PLAYER);
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
+	Vid_eye screen_pos_to_eye[SCREEN_POS_MAX] = { EYE_LEFT, EYE_RIGHT, EYE_LEFT, };
 
 	Sem_get_config(&config);
 	Sem_get_state(&state);
@@ -1884,14 +1894,14 @@ void Vid_main(void)
 
 		sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
 		sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
-		image_width[i] = vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom;
-		image_height[i] = vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom;
+		image_width[i] = vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom[i];
+		image_height[i] = vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom[i];
 	}
 
 	for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 	{
-		video_x_offset[i] = vid_player.video_x_offset;
-		video_y_offset[i] = vid_player.video_y_offset;
+		video_x_offset[i] = vid_player.video_x_offset[screen_pos_to_eye[i]];
+		video_y_offset[i] = vid_player.video_y_offset[screen_pos_to_eye[i]];
 	}
 
 	vid_player._3d_slider_pos = osGet3DSliderState();
@@ -1917,16 +1927,16 @@ void Vid_main(void)
 	//Calculate subtitle size and drawing position.
 	if(subtitle_index < SUBTITLE_BUFFERS)
 	{
-		//Use of vid_player.video_zoom is intended.
-		bitmap_subtitle_width = vid_player.subtitle_data[subtitle_index].bitmap_width * vid_player.video_zoom;
-		bitmap_subtitle_height = vid_player.subtitle_data[subtitle_index].bitmap_height * vid_player.video_zoom;
 		text_subtitle_width = 0.5 * vid_player.subtitle_zoom;
 		text_subtitle_height = 0.5 * vid_player.subtitle_zoom;
 
 		for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 		{
-			bitmap_subtitle_x_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_x * vid_player.video_zoom) + vid_player.video_x_offset + vid_player.subtitle_x_offset;
-			bitmap_subtitle_y_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_y * vid_player.video_zoom) + vid_player.video_y_offset + vid_player.subtitle_y_offset;
+			//Use of vid_player.video_zoom is intended.
+			bitmap_subtitle_width[i] = vid_player.subtitle_data[subtitle_index].bitmap_width * vid_player.video_zoom[screen_pos_to_eye[i]];
+			bitmap_subtitle_height[i] = vid_player.subtitle_data[subtitle_index].bitmap_height * vid_player.video_zoom[screen_pos_to_eye[i]];
+			bitmap_subtitle_x_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_x * vid_player.video_zoom[screen_pos_to_eye[i]]) + vid_player.video_x_offset[screen_pos_to_eye[i]] + vid_player.subtitle_x_offset;
+			bitmap_subtitle_y_offset[i] = (vid_player.subtitle_data[subtitle_index].bitmap_y * vid_player.video_zoom[screen_pos_to_eye[i]]) + vid_player.video_y_offset[screen_pos_to_eye[i]] + vid_player.subtitle_y_offset;
 			text_subtitle_x_offset[i] = vid_player.subtitle_x_offset;
 			text_subtitle_y_offset[i] = 195 + vid_player.subtitle_y_offset;
 		}
@@ -2017,7 +2027,7 @@ void Vid_main(void)
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
 						if(vid_player.subtitle_image[subtitle_index].subtex)
-							Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_width, bitmap_subtitle_height);
+							Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_LEFT], bitmap_subtitle_width[SCREEN_POS_TOP_LEFT], bitmap_subtitle_height[SCREEN_POS_TOP_LEFT]);
 
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
@@ -2131,7 +2141,7 @@ void Vid_main(void)
 						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
-								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_width, bitmap_subtitle_height);
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_y_offset[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_width[SCREEN_POS_TOP_RIGHT], bitmap_subtitle_height[SCREEN_POS_TOP_RIGHT]);
 
 							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
@@ -2226,7 +2236,7 @@ void Vid_main(void)
 						if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 						{
 							if(vid_player.subtitle_image[subtitle_index].subtex)
-								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_y_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_width, bitmap_subtitle_height);
+								Draw_texture(&vid_player.subtitle_image[subtitle_index], DEF_DRAW_NO_COLOR, bitmap_subtitle_x_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_y_offset[SCREEN_POS_BOTTOM], bitmap_subtitle_width[SCREEN_POS_BOTTOM], bitmap_subtitle_height[SCREEN_POS_BOTTOM]);
 
 							Util_sync_unlock(&vid_player.texture_init_free_lock);
 						}
@@ -3313,34 +3323,33 @@ static void Vid_large_texture_draw(Large_image* large_image_data, double x_offse
 	}
 }
 
-static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height)
+static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height, Vid_eye eye_index)
 {
-	//todo consider EYE_RIGHT
-	if(vid_player.video_info[EYE_LEFT].width != 0 && vid_player.video_info[EYE_LEFT].height != 0 && vid_player.video_info[EYE_LEFT].sar_width != 0 && vid_player.video_info[EYE_LEFT].sar_height != 0)
+	if(vid_player.video_info[eye_index].width != 0 && vid_player.video_info[eye_index].height != 0 && vid_player.video_info[eye_index].sar_width != 0 && vid_player.video_info[eye_index].sar_height != 0)
 	{
 		//Fit to screen size.
-		if((((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1)) / screen_width) >= (((double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1)) / screen_height))
-			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1)) / screen_width);
+		if((((double)vid_player.video_info[eye_index].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_width : 1)) / screen_width) >= (((double)vid_player.video_info[eye_index].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_height : 1)) / screen_height))
+			vid_player.video_zoom[eye_index] = (1.0 / (((double)vid_player.video_info[eye_index].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_width : 1)) / screen_width));
 		else
-			vid_player.video_zoom = 1.0 / (((double)vid_player.video_info[EYE_LEFT].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1)) / screen_height);
+			vid_player.video_zoom[eye_index] = (1.0 / (((double)vid_player.video_info[eye_index].height * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_height : 1)) / screen_height));
 
-		vid_player.video_x_offset = (screen_width - (vid_player.video_info[EYE_LEFT].width * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1))) / 2;
-		vid_player.video_y_offset = (screen_height - (vid_player.video_info[EYE_LEFT].height * vid_player.video_zoom * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1))) / 2;
-		vid_player.video_x_offset += (TOP_SCREEN_WIDTH - screen_width);
-		vid_player.video_y_offset += (TOP_SCREEN_HEIGHT - screen_height);
+		vid_player.video_x_offset[eye_index] = (screen_width - (vid_player.video_info[eye_index].width * vid_player.video_zoom[eye_index] * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_width : 1))) / 2;
+		vid_player.video_y_offset[eye_index] = (screen_height - (vid_player.video_info[eye_index].height * vid_player.video_zoom[eye_index] * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_height : 1))) / 2;
+		vid_player.video_x_offset[eye_index] += (TOP_SCREEN_WIDTH - screen_width);
+		vid_player.video_y_offset[eye_index] += (TOP_SCREEN_HEIGHT - screen_height);
 	}
+
 	vid_player.subtitle_x_offset = 0;
 	vid_player.subtitle_y_offset = 0;
 	vid_player.subtitle_zoom = 1;
 }
 
-static void Vid_change_video_size(double change_px)
+static void Vid_change_video_size(double change_px, Vid_eye eye_index)
 {
-	//todo consider EYE_RIGHT
-	double current_width = (double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) * vid_player.video_zoom;
+	double current_width = (double)vid_player.video_info[eye_index].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_width : 1) * vid_player.video_zoom[eye_index];
 
-	if(vid_player.video_info[EYE_LEFT].width != 0 && vid_player.video_info[EYE_LEFT].height != 0 && vid_player.video_info[EYE_LEFT].sar_width != 0 && vid_player.video_info[EYE_LEFT].sar_height != 0)
-		vid_player.video_zoom = 1.0 / ((double)vid_player.video_info[EYE_LEFT].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1) / (current_width + change_px));
+	if(vid_player.video_info[eye_index].width != 0 && vid_player.video_info[eye_index].height != 0 && vid_player.video_info[eye_index].sar_width != 0 && vid_player.video_info[eye_index].sar_height != 0)
+		vid_player.video_zoom[eye_index] = (1.0 / ((double)vid_player.video_info[eye_index].width * (vid_player.correct_aspect_ratio ? vid_player.video_info[eye_index].sar_width : 1) / (current_width + change_px)));
 }
 
 static void Vid_enter_full_screen(uint32_t bottom_screen_timeout)
@@ -3702,9 +3711,6 @@ static void Vid_init_video_data(void)
 	vid_player.next_frame_update_time = osGetTime();
 	vid_player.next_vfps_update = osGetTime() + 1000;
 	vid_player.vps = 0;
-	vid_player.video_x_offset = 0;
-	vid_player.video_y_offset = 15;
-	vid_player.video_zoom = 1;
 	vid_player.video_frametime = 0;
 	vid_player._3d_slider_pos = osGet3DSliderState();
 
@@ -3712,6 +3718,9 @@ static void Vid_init_video_data(void)
 	{
 		vid_player.next_store_index[i] = 0;
 		vid_player.next_draw_index[i] = 0;
+		vid_player.video_x_offset[i] = 0;
+		vid_player.video_y_offset[i] = 15;
+		vid_player.video_zoom[i] = 1;
 		vid_player.video_current_pos[i] = 0;
 		vid_player.video_info[i].width = 0;
 		vid_player.video_info[i].height = 0;
@@ -4164,9 +4173,6 @@ void Vid_init_thread(void* arg)
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset, sizeof(vid_player.subtitle_y_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom, sizeof(vid_player.subtitle_zoom));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos, sizeof(vid_player._3d_slider_pos));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_x_offset, sizeof(vid_player.video_x_offset));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_y_offset, sizeof(vid_player.video_y_offset));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_zoom, sizeof(vid_player.video_zoom));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache, sizeof(vid_player.selected_audio_track_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache, sizeof(vid_player.selected_subtitle_track_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.restart_playback_threshold, sizeof(vid_player.restart_playback_threshold));
@@ -4211,6 +4217,13 @@ void Vid_init_thread(void* arg)
 
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected, sizeof(vid_player.menu_button[i].selected));
+
+	for(uint32_t i = 0; i < EYE_MAX; i++)
+	{
+		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_x_offset[i], sizeof(vid_player.video_x_offset[i]));
+		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_y_offset[i], sizeof(vid_player.video_y_offset[i]));
+		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_zoom[i], sizeof(vid_player.video_zoom[i]));
+	}
 
 	Util_str_add(&vid_status, "\nInitializing queue...");
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.decode_thread_command_queue, 200), (result == DEF_SUCCESS), result);
@@ -4324,9 +4337,6 @@ void Vid_exit_thread(void* arg)
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_x_offset);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_y_offset);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_zoom);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.restart_playback_threshold);
@@ -4371,6 +4381,13 @@ void Vid_exit_thread(void* arg)
 
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.menu_button[i].selected);
+
+	for(uint32_t i = 0; i < EYE_MAX; i++)
+	{
+		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_x_offset[i]);
+		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_y_offset[i]);
+		Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_zoom[i]);
+	}
 
 	Util_queue_delete(&vid_player.decode_thread_command_queue);
 	Util_queue_delete(&vid_player.decode_thread_notification_queue);
@@ -4706,7 +4723,9 @@ void Vid_decode_thread(void* arg)
 						//Enter full-screen mode if file has video tracks.
 						if(num_of_video_tracks > 0 && !Util_err_query_show_flag() && !Util_expl_query_show_flag())
 						{
-							Vid_fit_to_screen(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+							for(uint32_t i = 0; i < EYE_MAX; i++)
+								Vid_fit_to_screen(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, i);
+
 							if(!vid_player.is_full_screen)
 							{
 								Vid_enter_full_screen(ENTER_FULL_SCREEN_TRANSITION_PERIOD);
@@ -4716,7 +4735,9 @@ void Vid_decode_thread(void* arg)
 						}
 						else
 						{
-							Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT);
+							for(uint32_t i = 0; i < EYE_MAX; i++)
+								Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT, i);
+
 							Vid_exit_full_screen();
 							//Reset key state on scene change.
 							Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -5081,7 +5102,9 @@ void Vid_decode_thread(void* arg)
 					}
 					else
 					{
-						Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT);
+						for(uint32_t i = 0; i < EYE_MAX; i++)
+							Vid_fit_to_screen(NON_FULL_SCREEN_WIDTH, NON_FULL_SCREEN_HEIGHT, i);
+
 						Vid_exit_full_screen();
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);

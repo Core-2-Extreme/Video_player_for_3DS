@@ -14,7 +14,7 @@
 #include "system/util/util.h"
 
 //Defines.
-#define DEF_SYNC_SPIN_MS		(uint16_t)(1000)
+#define SPIN_MS		(uint16_t)(1000)
 
 //Typedefs.
 typedef struct
@@ -203,10 +203,10 @@ uint32_t Util_sync_lock(Sync_data* lock_object, uint64_t wait_us)
 
 			do
 			{
-				if(remaining_us > (DEF_SYNC_SPIN_MS * 1000))
+				if(remaining_us > (SPIN_MS * 1000))
 				{
-					sleep_us = (DEF_SYNC_SPIN_MS * 1000);
-					remaining_us -= (DEF_SYNC_SPIN_MS * 1000);
+					sleep_us = (SPIN_MS * 1000);
+					remaining_us -= (SPIN_MS * 1000);
 				}
 				else
 				{

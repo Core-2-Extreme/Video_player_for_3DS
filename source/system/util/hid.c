@@ -11,7 +11,7 @@
 #include "system/util/thread_types.h"
 
 //Defines.
-#define DEF_HID_UPDATE_STATE_ARG(KEY, key)	(key_pressed & KEY), (key_held & KEY), (key_released & KEY), util_hid_info.ts, &util_hid_internal_keys.key, &util_hid_info.key
+#define UPDATE_STATE_ARG(KEY, key)	(key_pressed & KEY), (key_held & KEY), (key_released & KEY), util_hid_info.ts, &util_hid_internal_keys.key, &util_hid_info.key
 
 //Typedefs.
 typedef enum
@@ -629,29 +629,29 @@ void Util_hid_scan_hid_thread(void* arg)
 		util_hid_info.is_any_held = (key_held != 0);
 		util_hid_info.is_any_released = (key_released != 0);
 
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_A, a));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_B, b));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_X, x));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_Y, y));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_L, l));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_R, r));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_ZL, zl));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_ZR, zr));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_START, start));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_SELECT, select));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CPAD_UP, c_up));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CPAD_DOWN, c_down));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CPAD_LEFT, c_left));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CPAD_RIGHT, c_right));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_DUP, d_up));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_DDOWN, d_down));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_DLEFT, d_left));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_DRIGHT, d_right));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CSTICK_UP, cs_up));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CSTICK_DOWN, cs_down));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CSTICK_LEFT, cs_left));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_CSTICK_RIGHT, cs_right));
-		Util_hid_update_key_state(DEF_HID_UPDATE_STATE_ARG(KEY_TOUCH, touch));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_A, a));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_B, b));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_X, x));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_Y, y));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_L, l));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_R, r));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_ZL, zl));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_ZR, zr));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_START, start));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_SELECT, select));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CPAD_UP, c_up));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CPAD_DOWN, c_down));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CPAD_LEFT, c_left));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CPAD_RIGHT, c_right));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_DUP, d_up));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_DDOWN, d_down));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_DLEFT, d_left));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_DRIGHT, d_right));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CSTICK_UP, cs_up));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CSTICK_DOWN, cs_down));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CSTICK_LEFT, cs_left));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_CSTICK_RIGHT, cs_right));
+		Util_hid_update_key_state(UPDATE_STATE_ARG(KEY_TOUCH, touch));
 
 		//Process circle pad position and touch position.
 		if(util_hid_info.c_up.was_active || util_hid_info.c_up.is_active

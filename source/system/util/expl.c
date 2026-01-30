@@ -19,41 +19,41 @@
 #include "system/util/watch.h"
 
 //Defines.
-#define DEF_EXPL_SORT_TYPE_UNDEFINED		(uint8_t)(0)	//Unknown.
-#define DEF_EXPL_SORT_TYPE_SPECIAL_CHAR		(uint8_t)(1)	//Other than 0-9,a-z,A-Z.
-#define DEF_EXPL_SORT_TYPE_NUMBER			(uint8_t)(2)	//0-9.
-#define DEF_EXPL_SORT_TYPE_ALPHABET			(uint8_t)(3)	//a-z or A-Z.
+#define SORT_TYPE_UNDEFINED					(uint8_t)(0)	//Unknown.
+#define SORT_TYPE_SPECIAL_CHAR				(uint8_t)(1)	//Other than 0-9,a-z,A-Z.
+#define SORT_TYPE_NUMBER					(uint8_t)(2)	//0-9.
+#define SORT_TYPE_ALPHABET					(uint8_t)(3)	//a-z or A-Z.
 
-#define DEF_EXPL_NUM_OF_DISPLAYED_ITEMS		(uint8_t)(16)	//Number of displayed files on the screen.
+#define NUM_OF_DISPLAYED_ITEMS				(uint8_t)(16)	//Number of displayed files on the screen.
 
 //Close.
-#define DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define HID_NOT_INITED_CLOSE_CFM(k)			(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Cancel (close).
-#define DEF_EXPL_HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
+#define HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
 //File selection.
-#define DEF_EXPL_HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_expl_file_button[id], (k))))
-#define DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-#define DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(k, id)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_expl_file_button[id], (k)))
-#define DEF_EXPL_HID_FILE_DESELECTED_TOUCH(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_expl_file_button[id], (k))))
+#define HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define HID_FILE_CONFIRMED_TOUCH(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_expl_file_button[id], (k)))
+#define HID_FILE_DESELECTED_TOUCH(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 //Back to parent directory.
-#define DEF_EXPL_HID_PARENT_DIR_CFM(k)				(bool)(DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
+#define HID_PARENT_DIR_CFM(k)				(bool)(DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
 //Scroll mode.
-#define DEF_EXPL_HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)))
-#define DEF_EXPL_HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+#define HID_SCROLL_MODE_SEL(k)				(bool)(DEF_HID_PHY_HE((k).touch) && ((abs((k).touch_x_initial - (k).touch_x) > 6) || (abs((k).touch_y_initial - (k).touch_y) > 6)))
+#define HID_SCROLL_MODE_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 //Go to next file.
-#define DEF_EXPL_HID_NEXT_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
+#define HID_NEXT_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
 || DEF_HID_PHY_PR((k).c_right) || DEF_HID_HE((k).d_down) || DEF_HID_HE((k).c_down) || DEF_HID_PHY_HE((k).d_right) || DEF_HID_PHY_HE((k).c_right))
 
-#define DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_down, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_down, 200, is_new_range[1])
-#define DEF_EXPL_HID_NEXT_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
+#define HID_NEXT_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_down, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_down, 200, is_new_range[1])
+#define HID_NEXT_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_down) || DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_PR((k).d_right) \
 || DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).d_right) || DEF_HID_PHY_HE((k).c_right) || is_new_range[0] || is_new_range[1])
 
 //Go to previous file.
-#define DEF_EXPL_HID_PRE_FILE_PRE_CFM(k)			(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
+#define HID_PRE_FILE_PRE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
 || DEF_HID_PHY_PR((k).c_left) || DEF_HID_HE((k).d_up) || DEF_HID_HE((k).c_up) || DEF_HID_PHY_HE((k).d_left) || DEF_HID_PHY_HE((k).c_left))
 
-#define DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_up, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_up, 200, is_new_range[1])
-#define DEF_EXPL_HID_PRE_FILE_CFM(k)				(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
+#define HID_PRE_FILE_UPDATE_RANGE(k)		DEF_HID_HE_NEW_INTERVAL((k).d_up, 100, is_new_range[0]); DEF_HID_HE_NEW_INTERVAL((k).c_up, 200, is_new_range[1])
+#define HID_PRE_FILE_CFM(k)					(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
 || DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).d_left) || DEF_HID_PHY_HE((k).c_left) || is_new_range[0] || is_new_range[1])
 
 //Typedefs.
@@ -90,7 +90,7 @@ static uint32_t util_expl_num_of_files = 0;
 static uint32_t util_expl_check_file_size_index = 0;
 static uint32_t util_expl_y_offset = 0;
 static Str_data util_expl_current_dir = { 0, };
-static Draw_image_data util_expl_file_button[DEF_EXPL_NUM_OF_DISPLAYED_ITEMS] = { 0, };
+static Draw_image_data util_expl_file_button[NUM_OF_DISPLAYED_ITEMS] = { 0, };
 static Util_expl_files util_expl_files = { 0, };
 
 //Code.
@@ -138,7 +138,7 @@ uint32_t Util_expl_init(void)
 		}
 	}
 
-	for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+	for(uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 		util_expl_file_button[i] = Draw_get_empty_image();
 
 	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
@@ -151,7 +151,7 @@ uint32_t Util_expl_init(void)
 	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_expl_show_flag, sizeof(util_expl_show_flag));
 	Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_y_offset, sizeof(util_expl_y_offset));
 	Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_active_index, sizeof(util_expl_active_index));
-	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+	for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 		Util_watch_add(WATCH_HANDLE_EXPL, &util_expl_file_button[i].selected, sizeof(util_expl_file_button[i].selected));
 
 	util_expl_init = true;
@@ -180,7 +180,7 @@ void Util_expl_exit(void)
 	Util_watch_remove(WATCH_HANDLE_GLOBAL, &util_expl_show_flag);
 	Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_y_offset);
 	Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_active_index);
-	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+	for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 		Util_watch_remove(WATCH_HANDLE_EXPL, &util_expl_file_button[i].selected);
 }
 
@@ -345,7 +345,7 @@ void Util_expl_draw(void)
 	Draw_image_data background = Draw_get_empty_image();
 	uint32_t color = DEF_DRAW_BLACK;
 	float offset = 0;
-	float item_size = (160.0f / DEF_EXPL_NUM_OF_DISPLAYED_ITEMS);
+	float item_size = (160.0f / NUM_OF_DISPLAYED_ITEMS);
 	float text_size = ((item_size / 16.0f) * 0.68f);
 
 	if(!util_expl_init)
@@ -359,7 +359,7 @@ void Util_expl_draw(void)
 	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, 0.425, 0.425, DEF_DRAW_BLACK);
 	Draw(&util_expl_current_dir, 12.5, 195.0, 0.45, 0.45, DEF_DRAW_BLACK);
 
-	for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+	for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 	{
 		Str_data message = { 0, };
 		Str_data type = { 0, };
@@ -424,7 +424,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 	if(!util_expl_init)
 	{
 		//Execute functions if conditions are satisfied.
-		if (DEF_EXPL_HID_NOT_INITED_CLOSE_CFM(*key))
+		if (HID_NOT_INITED_CLOSE_CFM(*key))
 		{
 			util_expl_show_flag = false;
 			//Reset key state on scene change.
@@ -438,18 +438,18 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 	{
 		if(!util_expl_scroll_mode)
 		{
-			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+			for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if(DEF_EXPL_HID_FILE_SELECTED_TOUCH(*key, i) && util_expl_num_of_files > (i + util_expl_y_offset))
+				if(HID_FILE_SELECTED_TOUCH(*key, i) && util_expl_num_of_files > (i + util_expl_y_offset))
 					util_expl_file_button[i].selected = true;
 			}
 		}
 	}
-	if(DEF_EXPL_HID_SCROLL_MODE_SEL(*key))
+	if(HID_SCROLL_MODE_SEL(*key))
 		util_expl_scroll_mode = true;
 
 	//Execute functions if conditions are satisfied.
-	if (DEF_EXPL_HID_CANCEL_CFM(*key))
+	if (HID_CANCEL_CFM(*key))
 	{
 		if(util_expl_cancel_callback)
 			util_expl_cancel_callback();
@@ -462,7 +462,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 	{
 		if(util_expl_scroll_mode)
 		{
-			if(util_expl_num_of_files > DEF_EXPL_NUM_OF_DISPLAYED_ITEMS && key->touch_y_move != 0)
+			if(util_expl_num_of_files > NUM_OF_DISPLAYED_ITEMS && key->touch_y_move != 0)
 			{
 				uint32_t new_offset = util_expl_y_offset;
 				int32_t changes = 0;
@@ -475,8 +475,8 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 
 				if(changes >= 0)
 				{
-					if((new_offset + changes) > (util_expl_num_of_files - DEF_EXPL_NUM_OF_DISPLAYED_ITEMS))
-						new_offset = (util_expl_num_of_files - DEF_EXPL_NUM_OF_DISPLAYED_ITEMS);
+					if((new_offset + changes) > (util_expl_num_of_files - NUM_OF_DISPLAYED_ITEMS))
+						new_offset = (util_expl_num_of_files - NUM_OF_DISPLAYED_ITEMS);
 					else
 						new_offset += changes;
 				}
@@ -493,11 +493,11 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 		}
 		else
 		{
-			for (uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+			for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 			{
-				if (DEF_EXPL_HID_FILE_CONFIRMED_TOUCH(*key, i) || DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(*key))
+				if (HID_FILE_CONFIRMED_TOUCH(*key, i) || HID_FILE_CONFIRMED_BUTTON(*key))
 				{
-					if (DEF_EXPL_HID_FILE_CONFIRMED_BUTTON(*key) || (i == util_expl_active_index))
+					if (HID_FILE_CONFIRMED_BUTTON(*key) || (i == util_expl_active_index))
 					{
 						//User has released the button on the active item (i.e. file or dir), open it.
 						uint32_t selected_index = (util_expl_y_offset + util_expl_active_index);
@@ -580,7 +580,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 				}
 			}
 		}
-		if (DEF_EXPL_HID_PARENT_DIR_CFM(*key))
+		if (HID_PARENT_DIR_CFM(*key))
 		{
 			bool is_root_dir = false;
 			Str_data dir = { 0, };
@@ -625,27 +625,27 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 
 			Util_str_free(&dir);
 		}
-		else if (DEF_EXPL_HID_NEXT_FILE_PRE_CFM(*key))
+		else if (HID_NEXT_FILE_PRE_CFM(*key))
 		{
 			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
 
-			DEF_EXPL_HID_NEXT_FILE_UPDATE_RANGE(*key);
+			HID_NEXT_FILE_UPDATE_RANGE(*key);
 
-			if (DEF_EXPL_HID_NEXT_FILE_CFM(*key))
+			if (HID_NEXT_FILE_CFM(*key))
 			{
-				if (util_expl_active_index < (DEF_EXPL_NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
+				if (util_expl_active_index < (NUM_OF_DISPLAYED_ITEMS - 1) && ((uint32_t)util_expl_active_index + 1) < util_expl_num_of_files)
 					util_expl_active_index++; 
 				else if ((util_expl_y_offset + util_expl_active_index + 1) < util_expl_num_of_files)
 					util_expl_y_offset++;
 			}
 		}
-		else if (DEF_EXPL_HID_PRE_FILE_PRE_CFM(*key))
+		else if (HID_PRE_FILE_PRE_CFM(*key))
 		{
 			bool is_new_range[2] = { 0, };//Used by UPDATE_RANGE and CONFIRMED macro.
 
-			DEF_EXPL_HID_PRE_FILE_UPDATE_RANGE(*key);
+			HID_PRE_FILE_UPDATE_RANGE(*key);
 
-			if (DEF_EXPL_HID_PRE_FILE_CFM(*key))
+			if (HID_PRE_FILE_CFM(*key))
 			{
 				if (util_expl_active_index > 0)
 					util_expl_active_index--;
@@ -656,12 +656,12 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 	}
 
 	//Notify user that button is NOT being pressed anymore.
-	if(DEF_EXPL_HID_FILE_DESELECTED_TOUCH(*key) || util_expl_scroll_mode)
+	if(HID_FILE_DESELECTED_TOUCH(*key) || util_expl_scroll_mode)
 	{
-		for(uint8_t i = 0; i < DEF_EXPL_NUM_OF_DISPLAYED_ITEMS; i++)
+		for(uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 			util_expl_file_button[i].selected = false;
 	}
-	if(DEF_EXPL_HID_SCROLL_MODE_DESEL(*key))
+	if(HID_SCROLL_MODE_DESEL(*key))
 		util_expl_scroll_mode = false;
 }
 
@@ -716,8 +716,8 @@ static int Util_expl_compare_name(const void* a, const void* b)
 		{
 			char char_a = 0x00;
 			char char_b = 0x00;
-			uint8_t a_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
-			uint8_t b_type = DEF_EXPL_SORT_TYPE_UNDEFINED;
+			uint8_t a_type = SORT_TYPE_UNDEFINED;
+			uint8_t b_type = SORT_TYPE_UNDEFINED;
 
 			if(i < file_a->name.length)
 				char_a = file_a->name.buffer[i];
@@ -728,32 +728,32 @@ static int Util_expl_compare_name(const void* a, const void* b)
 				continue;
 
 			if(char_a >= '0' && char_a <= '9')
-				a_type = DEF_EXPL_SORT_TYPE_NUMBER;
+				a_type = SORT_TYPE_NUMBER;
 			else if((char_a >= 'a' && char_a <= 'z') || (char_a >= 'A' && char_a <= 'Z'))
-				a_type = DEF_EXPL_SORT_TYPE_ALPHABET;
+				a_type = SORT_TYPE_ALPHABET;
 			else
-				a_type = DEF_EXPL_SORT_TYPE_SPECIAL_CHAR;
+				a_type = SORT_TYPE_SPECIAL_CHAR;
 
 			if(char_b >= '0' && char_b <= '9')
-				b_type = DEF_EXPL_SORT_TYPE_NUMBER;
+				b_type = SORT_TYPE_NUMBER;
 			else if((char_b >= 'a' && char_b <= 'z') || (char_b >= 'A' && char_b <= 'Z'))
-				b_type = DEF_EXPL_SORT_TYPE_ALPHABET;
+				b_type = SORT_TYPE_ALPHABET;
 			else
-				b_type = DEF_EXPL_SORT_TYPE_SPECIAL_CHAR;
+				b_type = SORT_TYPE_SPECIAL_CHAR;
 
-			if(a_type == DEF_EXPL_SORT_TYPE_NUMBER && b_type == DEF_EXPL_SORT_TYPE_NUMBER)
+			if(a_type == SORT_TYPE_NUMBER && b_type == SORT_TYPE_NUMBER)
 			{
 				//Both characters are numbers, just compare with ASCII values.
 				result = ((int16_t)char_a - (int16_t)char_b);
 				break;
 			}
-			else if(a_type == DEF_EXPL_SORT_TYPE_ALPHABET && b_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+			else if(a_type == SORT_TYPE_ALPHABET && b_type == SORT_TYPE_ALPHABET)
 			{
 				//Both characters are alphabets, compare with ASCII values after lowering them.
 				result = ((int16_t)tolower(char_a) - (int16_t)tolower(char_b));
 				break;
 			}
-			else if(a_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR && b_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+			else if(a_type == SORT_TYPE_SPECIAL_CHAR && b_type == SORT_TYPE_SPECIAL_CHAR)
 			{
 				//Both characters are special characters, just compare with ASCII values.
 				result = ((int16_t)char_a - (int16_t)char_b);
@@ -763,17 +763,17 @@ static int Util_expl_compare_name(const void* a, const void* b)
 			{
 				//Both characters have the different type.
 				//Special characters should go first, then numbers, finally alphabets.
-				if(a_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+				if(a_type == SORT_TYPE_SPECIAL_CHAR)
 					result = -1;
-				else if(b_type == DEF_EXPL_SORT_TYPE_SPECIAL_CHAR)
+				else if(b_type == SORT_TYPE_SPECIAL_CHAR)
 					result = 1;
-				else if(a_type == DEF_EXPL_SORT_TYPE_NUMBER)
+				else if(a_type == SORT_TYPE_NUMBER)
 					result = -1;
-				else if(b_type == DEF_EXPL_SORT_TYPE_NUMBER)
+				else if(b_type == SORT_TYPE_NUMBER)
 					result = 1;
-				else if(a_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+				else if(a_type == SORT_TYPE_ALPHABET)
 					result = -1;
-				else if(b_type == DEF_EXPL_SORT_TYPE_ALPHABET)
+				else if(b_type == SORT_TYPE_ALPHABET)
 					result = 1;
 
 				break;

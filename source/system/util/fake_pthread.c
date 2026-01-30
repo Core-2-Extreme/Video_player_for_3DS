@@ -16,7 +16,7 @@
 #include "system/util/util.h"
 
 //Defines.
-#define DEF_FAKE_PTHREAD_STACK_SIZE_MIN		(uint32_t)(16384)
+#define STACK_SIZE_MIN		(uint32_t)(16384)
 
 //Typedefs.
 //N/A.
@@ -401,7 +401,7 @@ int __wrap_pthread_attr_setstacksize(pthread_attr_t* attr, size_t stacksize)
 	if(!util_fake_pthread_init)
 		return ENOSYS;
 
-	if(!attr || stacksize < DEF_FAKE_PTHREAD_STACK_SIZE_MIN)
+	if(!attr || stacksize < STACK_SIZE_MIN)
 		return EINVAL;
 
 	attr->stacksize = stacksize;

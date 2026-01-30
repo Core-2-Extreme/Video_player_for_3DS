@@ -20,8 +20,8 @@
 #include "system/util/thread_types.h"
 
 //Defines.
-#define DEF_UTIL_LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
-#define DEF_UTIL_IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
+#define LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
+#define IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
 											|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 
 //Typedefs.
@@ -247,7 +247,7 @@ void* __wrap_malloc(size_t size)
 	//Alloc memory on linear ram if requested size is greater than threshold
 	//or running low on heap to prevent slow down (linear alloc is slow).
 	//If allocation failed, try different memory before giving up.
-	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
+	if(size > LINEAR_THRESHOLD_SIZE || is_heap_low)
 	{
 		ptr = linearAlloc(size);
 		if(!ptr)
@@ -277,7 +277,7 @@ void* __wrap_calloc(size_t items, size_t size)
 	//Alloc memory on linear ram if requested size is greater than threshold
 	//or running low on heap to prevent slow down (linear alloc is slow).
 	//If allocation failed, try different memory before giving up.
-	if((size * items) > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
+	if((size * items) > LINEAR_THRESHOLD_SIZE || is_heap_low)
 	{
 		ptr = linearAlloc(size * items);
 		if(!ptr)
@@ -314,9 +314,9 @@ void* __wrap_realloc(void* ptr, size_t size)
 	//running low on heap or previous pointer is allocated on
 	//linear ram to prevent slow down (linear alloc is slow).
 	//If allocation failed, try different memory before giving up.
-	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low || DEF_UTIL_IS_LINEAR_RAM(ptr))
+	if(size > LINEAR_THRESHOLD_SIZE || is_heap_low || IS_LINEAR_RAM(ptr))
 	{
-		if(!ptr || DEF_UTIL_IS_LINEAR_RAM(ptr))
+		if(!ptr || IS_LINEAR_RAM(ptr))
 		{
 			//Previous pointer was on linear RAM, new pointer will be on linear RAM, just use linearRealloc().
 			new_ptr = linearRealloc(ptr, size);
@@ -350,7 +350,7 @@ void* __wrap_realloc(void* ptr, size_t size)
 
 void __wrap_free(void* ptr)
 {
-	if(DEF_UTIL_IS_LINEAR_RAM(ptr))
+	if(IS_LINEAR_RAM(ptr))
 		linearFree(ptr);
 	else
 	{
@@ -362,7 +362,7 @@ void __wrap_free(void* ptr)
 
 void __wrap__free_r(struct _reent* r, void* ptr)
 {
-	if(DEF_UTIL_IS_LINEAR_RAM(ptr))
+	if(IS_LINEAR_RAM(ptr))
 		linearFree(ptr);
 	else
 		__real__free_r(r, ptr);
@@ -376,7 +376,7 @@ void* __wrap_memalign(size_t alignment, size_t size)
 	//Alloc memory on linear ram if requested size is greater than threshold
 	//or running low on heap to prevent slow down (linear alloc is slow).
 	//If allocation failed, try different memory before giving up.
-	if(size > DEF_UTIL_LINEAR_THRESHOLD_SIZE || is_heap_low)
+	if(size > LINEAR_THRESHOLD_SIZE || is_heap_low)
 	{
 		ptr = linearMemAlign(size, alignment);
 		if(!ptr)

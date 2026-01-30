@@ -18,8 +18,8 @@
 #include "system/util/util.h"
 
 //Defines.
-#define DEF_HTTPC_USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) httpc/1.0.0")
-#define DEF_HTTPC_USER_AGENT_SIZE			(uint32_t)(128)
+#define USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) httpc/1.0.0")
+#define USER_AGENT_SIZE			(uint32_t)(128)
 
 //Typedefs.
 //N/A.
@@ -35,7 +35,7 @@ static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_
 
 //Variables.
 static bool util_httpc_init = false;
-static char util_httpc_default_user_agent[DEF_HTTPC_USER_AGENT_SIZE] = { 0, };
+static char util_httpc_default_user_agent[USER_AGENT_SIZE] = { 0, };
 static char util_httpc_empty_char[1] = { 0, };
 
 //Code.
@@ -59,8 +59,7 @@ uint32_t Util_httpc_init(uint32_t buffer_size)
 	}
 
 	osGetSystemVersionDataString(NULL, NULL, system_ver, sizeof(system_ver));
-	snprintf(util_httpc_default_user_agent, sizeof(util_httpc_default_user_agent),
-	DEF_HTTPC_USER_AGENT_FMT, system_ver);
+	snprintf(util_httpc_default_user_agent, sizeof(util_httpc_default_user_agent), USER_AGENT_FMT, system_ver);
 
 	util_httpc_init = true;
 	return DEF_SUCCESS;

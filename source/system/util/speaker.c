@@ -14,7 +14,7 @@
 #include "system/util/util.h"
 
 //Defines.
-#define DEF_SPEAKER_NUM_OF_CH		(uint8_t)(24)
+#define NUM_OF_CH		(uint8_t)(24)
 
 //Typedefs.
 //N/A.
@@ -24,8 +24,8 @@
 
 //Variables.
 static bool util_speaker_init = false;
-static uint32_t util_speaker_music_ch[DEF_SPEAKER_NUM_OF_CH] = { 0, };
-static ndspWaveBuf util_ndsp_buffer[DEF_SPEAKER_NUM_OF_CH][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
+static uint32_t util_speaker_music_ch[NUM_OF_CH] = { 0, };
+static ndspWaveBuf util_ndsp_buffer[NUM_OF_CH][DEF_SPEAKER_MAX_BUFFERS] = { 0, };
 
 //Code.
 uint32_t Util_speaker_init(void)
@@ -35,7 +35,7 @@ uint32_t Util_speaker_init(void)
 	if(util_speaker_init)
 		goto already_inited;
 
-	for(uint8_t i = 0; i < DEF_SPEAKER_NUM_OF_CH; i++)
+	for(uint8_t i = 0; i < NUM_OF_CH; i++)
 		util_speaker_music_ch[i] = UINT32_MAX;
 
 	result = ndspInit();//0xD880A7FA.
@@ -62,7 +62,7 @@ uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t
 	if(!util_speaker_init)
 		goto not_inited;
 
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH || music_ch == 0 || music_ch > 2 || sample_rate == 0)
+	if(play_ch >= NUM_OF_CH || music_ch == 0 || music_ch > 2 || sample_rate == 0)
 		goto invalid_arg;
 
 	ndspChnReset(play_ch);
@@ -106,7 +106,7 @@ uint32_t Util_speaker_add_buffer(uint8_t play_ch, const uint8_t* buffer, uint32_
 	if(!util_speaker_init)
 		goto not_inited;
 
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH || !buffer || size == 0)
+	if(play_ch >= NUM_OF_CH || !buffer || size == 0)
 		goto invalid_arg;
 
 	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
@@ -162,7 +162,7 @@ uint32_t Util_speaker_get_available_buffer_num(uint8_t play_ch)
 
 	if(!util_speaker_init)
 		return 0;
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	if(play_ch >= NUM_OF_CH)
 		return 0;
 	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
 		return 0;
@@ -182,7 +182,7 @@ uint32_t Util_speaker_get_available_buffer_size(uint8_t play_ch)
 
 	if(!util_speaker_init)
 		return 0;
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	if(play_ch >= NUM_OF_CH)
 		return 0;
 	if(util_speaker_music_ch[play_ch] != 1 && util_speaker_music_ch[play_ch] != 2)
 		return 0;
@@ -202,7 +202,7 @@ void Util_speaker_clear_buffer(uint8_t play_ch)
 {
 	if(!util_speaker_init)
 		return;
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	if(play_ch >= NUM_OF_CH)
 		return;
 
 	ndspChnWaveBufClear(play_ch);
@@ -217,7 +217,7 @@ void Util_speaker_pause(uint8_t play_ch)
 {
 	if(!util_speaker_init)
 		return;
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	if(play_ch >= NUM_OF_CH)
 		return;
 
 	ndspChnSetPaused(play_ch, true);
@@ -227,7 +227,7 @@ void Util_speaker_resume(uint8_t play_ch)
 {
 	if(!util_speaker_init)
 		return;
-	if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	if(play_ch >= NUM_OF_CH)
 		return;
 
 	ndspChnSetPaused(play_ch, false);
@@ -237,7 +237,7 @@ bool Util_speaker_is_paused(uint8_t play_ch)
 {
 	if(!util_speaker_init)
 		return false;
-	else if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	else if(play_ch >= NUM_OF_CH)
 		return false;
 	else
 		return ndspChnIsPaused(play_ch);
@@ -247,7 +247,7 @@ bool Util_speaker_is_playing(uint8_t play_ch)
 {
 	if(!util_speaker_init)
 		return false;
-	else if(play_ch >= DEF_SPEAKER_NUM_OF_CH)
+	else if(play_ch >= NUM_OF_CH)
 		return false;
 	else
 		return ndspChnIsPlaying(play_ch);
@@ -258,12 +258,12 @@ void Util_speaker_exit(void)
 	if(!util_speaker_init)
 		return;
 
-	for(uint8_t i = 0; i < DEF_SPEAKER_NUM_OF_CH; i++)
+	for(uint8_t i = 0; i < NUM_OF_CH; i++)
 		Util_speaker_clear_buffer(i);
 
 	util_speaker_init = false;
 	ndspExit();
-	for(uint8_t i = 0; i < DEF_SPEAKER_NUM_OF_CH; i++)
+	for(uint8_t i = 0; i < NUM_OF_CH; i++)
 		util_speaker_music_ch[i] = UINT32_MAX;
 }
 #endif //DEF_SPEAKER_API_ENABLE

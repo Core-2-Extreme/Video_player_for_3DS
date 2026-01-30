@@ -15,18 +15,18 @@
 #include "system/util/watch.h"
 
 //Defines.
-#define DEF_LOG_DISPLAYED_LINES			(uint8_t)(23)
+#define DISPLAYED_LINES					(uint8_t)(23)
 
 //Close.
-#define DEF_LOG_HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
+#define HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Next item.
-#define DEF_LOG_HID_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_HE((k).c_up))
+#define HID_NEXT_ITEM_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_HE((k).c_up))
 //Previous item.
-#define DEF_LOG_HID_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_HE((k).c_down))
+#define HID_PRE_ITEM_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_down) || DEF_HID_PHY_HE((k).c_down))
 //Pan left.
-#define DEF_LOG_HID_PAN_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).c_left))
+#define HID_PAN_LEFT_CFM(k)				(bool)(DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).c_left))
 //Pan Right.
-#define DEF_LOG_HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
+#define HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
 
 //Typedefs.
 //N/A.
@@ -318,7 +318,7 @@ void Util_log_main(const Hid_info* key)
 	if(!util_log_init)
 	{
 		//Execute functions if conditions are satisfied.
-		if (DEF_LOG_HID_NOT_INITED_CLOSE_CFM(*key))
+		if (HID_NOT_INITED_CLOSE_CFM(*key))
 		{
 			util_log_show_flag = false;
 			//Reset key state on scene change.
@@ -328,25 +328,25 @@ void Util_log_main(const Hid_info* key)
 	}
 
 	//Execute functions if conditions are satisfied.
-	if(DEF_LOG_HID_NEXT_ITEM_CFM(*key))
+	if(HID_NEXT_ITEM_CFM(*key))
 	{
 		if (util_log_y > 0)
 			util_log_y--;
 	}
-	else if(DEF_LOG_HID_PRE_ITEM_CFM(*key))
+	else if(HID_PRE_ITEM_CFM(*key))
 	{
-		if (util_log_y + 1 <= DEF_LOG_BUFFER_LINES - DEF_LOG_DISPLAYED_LINES)
+		if (util_log_y + 1 <= DEF_LOG_BUFFER_LINES - DISPLAYED_LINES)
 			util_log_y++;
 	}
 
-	if(DEF_LOG_HID_PAN_LEFT_CFM(*key))
+	if(HID_PAN_LEFT_CFM(*key))
 	{
 		if (util_log_x + 5.0 < 0.0)
 			util_log_x += 5.0;
 		else
 			util_log_x = 0.0;
 	}
-	else if (DEF_LOG_HID_PAN_RIGHT_CFM(*key))
+	else if (HID_PAN_RIGHT_CFM(*key))
 	{
 		if (util_log_x - 5.0 > -2000.0)
 			util_log_x -= 5.0;
@@ -363,7 +363,7 @@ void Util_log_draw(void)
 		return;
 	}
 
-	for (uint16_t i = 0; i < DEF_LOG_DISPLAYED_LINES; i++)
+	for (uint16_t i = 0; i < DISPLAYED_LINES; i++)
 		Draw(&util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
 }
 
@@ -425,7 +425,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 		util_log_spend_time[log_index] = util_log_uptime_ms;
 
 		//If user sees last log, auto scroll logs.
-		auto_scroll = (util_log_y == (util_log_current_index - DEF_LOG_DISPLAYED_LINES));
+		auto_scroll = (util_log_y == (util_log_current_index - DISPLAYED_LINES));
 
 		//Increment log index.
 		util_log_current_index++;
@@ -434,10 +434,10 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 
 		if(auto_scroll)
 		{
-			if (util_log_current_index < DEF_LOG_DISPLAYED_LINES)
+			if (util_log_current_index < DISPLAYED_LINES)
 				util_log_y = 0;
 			else
-				util_log_y = util_log_current_index - DEF_LOG_DISPLAYED_LINES;
+				util_log_y = util_log_current_index - DISPLAYED_LINES;
 		}
 	}
 

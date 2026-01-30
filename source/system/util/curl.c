@@ -19,8 +19,8 @@
 #include "system/util/util.h"
 
 //Defines.
-#define DEF_CURL_USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) %s")
-#define DEF_CURL_USER_AGENT_SIZE		(uint32_t)(128)
+#define USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) %s")
+#define USER_AGENT_SIZE			(uint32_t)(128)
 
 //Typedefs.
 typedef struct
@@ -65,7 +65,7 @@ static uint32_t Util_curl_post_and_save_data_internal(Net_post_save_parameters* 
 //Variables.
 static bool util_curl_init = false;
 static uint32_t* util_curl_buffer = NULL;
-static char util_curl_default_user_agent[DEF_CURL_USER_AGENT_SIZE] = { 0, };
+static char util_curl_default_user_agent[USER_AGENT_SIZE] = { 0, };
 static char util_curl_empty_char[1] = { 0, };
 
 //Code.
@@ -93,8 +93,7 @@ uint32_t Util_curl_init(uint32_t buffer_size)
 	}
 
 	osGetSystemVersionDataString(NULL, NULL, system_ver, sizeof(system_ver));
-	snprintf(util_curl_default_user_agent, sizeof(util_curl_default_user_agent),
-	DEF_CURL_USER_AGENT_FMT, system_ver, curl_version());
+	snprintf(util_curl_default_user_agent, sizeof(util_curl_default_user_agent), USER_AGENT_FMT, system_ver, curl_version());
 
 	util_curl_init = true;
 	return DEF_SUCCESS;

@@ -2807,6 +2807,10 @@ void Sem_hw_config_thread(void* arg)
 	uint64_t previous_system_info_ts = 0;
 	uint64_t previous_draw_ts = 0;
 
+	//Waiting for initialization to finish because some APIs (e.g. Sem_get_config()) can't be used if not initialized.
+	while(!sem_already_init)
+		Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
+
 	while (sem_thread_run)
 	{
 		uint32_t result = DEF_ERR_OTHER;

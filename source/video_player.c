@@ -662,6 +662,7 @@ static void Vid_update_decoding_statistics_every_100ms(void);
 static void Vid_update_video_delay(Vid_eye eye_index);
 static double Vid_get_media_duration(double video_track_0_duration, double video_track_1_duration, double audio_track_duration);
 static double Vid_get_current_media_pos(double video_track_0_pos, double video_track_1_pos, double audio_track_pos);
+static void Vid_log_media_info(void);
 static void Vid_init_variable(void);
 static void Vid_init_settings(void);
 static void Vid_init_hidden_settings(void);
@@ -3580,6 +3581,83 @@ static double Vid_get_current_media_pos(double video_track_0_pos, double video_t
 	return Util_max_d(Util_max_d(video_track_0_pos, video_track_1_pos), audio_track_pos);
 }
 
+static void Vid_log_media_info(void)
+{
+	//Video.
+	DEF_LOG_STRING(" ");//New line.
+	DEF_LOG_STRING("Video:");
+	DEF_LOG_UINT(vid_player.num_of_video_tracks);
+	DEF_LOG_DOUBLE(vid_player.video_frametime);
+	for(uint32_t i = 0; i < Util_min(vid_player.num_of_video_tracks, EYE_MAX); i++)
+	{
+		Str_data time = { 0, };
+
+		Util_convert_seconds_to_time(vid_player.video_info[i].duration, &time);
+
+		DEF_LOG_STRING(" ");//New line.
+		DEF_LOG_FORMAT("Video[%" PRIu32 "]:", i);
+		DEF_LOG_DOUBLE(vid_player.video_x_offset[i]);
+		DEF_LOG_DOUBLE(vid_player.video_y_offset[i]);
+		DEF_LOG_DOUBLE(vid_player.video_zoom[i]);
+		DEF_LOG_UINT(vid_player.video_info[i].width);
+		DEF_LOG_UINT(vid_player.video_info[i].height);
+		DEF_LOG_UINT(vid_player.video_info[i].codec_width);
+		DEF_LOG_UINT(vid_player.video_info[i].codec_height);
+		DEF_LOG_DOUBLE(vid_player.video_info[i].framerate);
+		DEF_LOG_STRING(vid_player.video_info[i].format_name);
+		DEF_LOG_STRING(vid_player.video_info[i].short_format_name);
+		DEF_LOG_STRING(DEF_STR_NEVER_NULL(&time));
+		DEF_LOG_STRING(Media_thread_type_get_name(vid_player.video_info[i].thread_type));
+		DEF_LOG_DOUBLE(vid_player.video_info[i].sar_width);
+		DEF_LOG_DOUBLE(vid_player.video_info[i].sar_height);
+		DEF_LOG_STRING(Raw_pixel_get_name(vid_player.video_info[i].pixel_format));
+
+		Util_str_free(&time);
+	}
+
+	//Audio.
+	DEF_LOG_STRING(" ");//New line.
+	DEF_LOG_STRING("Audio:");
+	DEF_LOG_UINT(vid_player.num_of_audio_tracks);
+	for(uint8_t i = 0; i < Util_min(vid_player.num_of_audio_tracks, DEF_DECODER_MAX_AUDIO_TRACKS); i++)
+	{
+		Str_data time = { 0, };
+
+		Util_convert_seconds_to_time(vid_player.audio_info[i].duration, &time);
+
+		DEF_LOG_STRING(" ");//New line.
+		DEF_LOG_FORMAT("Audio[%" PRIu32 "]:", i);
+		DEF_LOG_UINT(vid_player.audio_info[i].bitrate);
+		DEF_LOG_UINT(vid_player.audio_info[i].sample_rate);
+		DEF_LOG_UINT(vid_player.audio_info[i].ch);
+		DEF_LOG_STRING(DEF_STR_NEVER_NULL(&time));
+		DEF_LOG_STRING(vid_player.audio_info[i].format_name);
+		DEF_LOG_STRING(vid_player.audio_info[i].short_format_name);
+		DEF_LOG_STRING(vid_player.audio_info[i].track_lang);
+		DEF_LOG_STRING(Raw_sample_get_name(vid_player.audio_info[i].sample_format));
+
+		Util_str_free(&time);
+	}
+
+	//Subtitle.
+	DEF_LOG_STRING(" ");//New line.
+	DEF_LOG_STRING("Subtitle:");
+	DEF_LOG_UINT(vid_player.num_of_subtitle_tracks);
+	DEF_LOG_DOUBLE(vid_player.subtitle_x_offset);
+	DEF_LOG_DOUBLE(vid_player.subtitle_y_offset);
+	DEF_LOG_DOUBLE(vid_player.subtitle_zoom);
+	for(uint8_t i = 0; i < Util_min(vid_player.num_of_subtitle_tracks, DEF_DECODER_MAX_SUBTITLE_TRACKS); i++)
+	{
+		DEF_LOG_STRING(" ");//New line.
+		DEF_LOG_FORMAT("Subtitle[%" PRIu32 "]:", i);
+		DEF_LOG_STRING(vid_player.subtitle_info[i].format_name);
+		DEF_LOG_STRING(vid_player.subtitle_info[i].short_format_name);
+		DEF_LOG_STRING(vid_player.subtitle_info[i].track_lang);
+	}
+
+	DEF_LOG_STRING(" ");//New line.
+}
+
 static void Vid_init_variable(void)
 {
 	Vid_init_settings();
@@ -4840,12 +4918,18 @@ void Vid_decode_thread(void* arg)
 						if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
 							Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos, sizeof(audio_bar_pos));
 
+						//Log media info for better debugging.
+						Vid_log_media_info();
+
 						break;
 
 						error:
 						//An error occurred, reset everything.
 						Util_err_set_show_flag(true);
 						Draw_set_refresh_needed(true);
+
+						//Log media info for better debugging.
+						Vid_log_media_info();
 
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_ABORT_REQUEST,
 						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_SEND_TO_FRONT), (result == DEF_SUCCESS), result);

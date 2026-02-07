@@ -4588,8 +4588,10 @@ void Vid_decode_thread(void* arg)
 						if(num_of_video_tracks > 0)
 						{
 							uint8_t request_threads = (vid_player.use_multi_threaded_decoding ? vid_player.num_of_threads : 1);
-							uint8_t loop = (num_of_video_tracks > EYE_MAX ? EYE_MAX : num_of_video_tracks);
 							Media_thread_type request_thread_type = vid_player.use_multi_threaded_decoding ? vid_player.thread_mode : MEDIA_THREAD_TYPE_NONE;
+
+							//Video player only supports up to EYE_MAX tracks, decoder may support more so cap it here.
+							num_of_video_tracks = Util_min(num_of_video_tracks, EYE_MAX);
 
 							DEF_LOG_RESULT_SMART(result, Util_decoder_video_init(vid_player.lower_resolution, num_of_video_tracks,
 							request_threads, request_thread_type, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
@@ -4599,15 +4601,18 @@ void Vid_decode_thread(void* arg)
 
 								Sem_get_state(&state);
 
-								for(uint8_t i = 0; i < loop; i++)
+								for(uint8_t i = 0; i < num_of_video_tracks; i++)
 									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECORDER_SESSION_ID);
 
-								//todo consider EYE_RIGHT
 								//Use sar 1:2 if 800x240 and no sar value is set.
-								if(vid_player.video_info[EYE_LEFT].width == 800 && vid_player.video_info[EYE_LEFT].height == 240
-								&& vid_player.video_info[EYE_LEFT].sar_width == 1 && vid_player.video_info[EYE_LEFT].sar_height == 1)
-									vid_player.video_info[EYE_LEFT].sar_height = 2;
+								for(uint8_t i = 0; i < num_of_video_tracks; i++)
+								{
+									if(vid_player.video_info[i].width == 800 && vid_player.video_info[i].height == 240
+									&& vid_player.video_info[i].sar_width == 1 && vid_player.video_info[i].sar_height == 1)
+										vid_player.video_info[i].sar_height = 2;
+								}
 
+								//todo consider EYE_RIGHT
 								if(vid_player.video_info[EYE_LEFT].framerate == 0)
 									vid_player.video_frametime = 0;
 								else
@@ -4632,9 +4637,20 @@ void Vid_decode_thread(void* arg)
 
 								if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && vid_player.use_hw_color_conversion)
 								{
-									//todo consider EYE_RIGHT
-									if(vid_player.video_info[EYE_LEFT].codec_width <= DEF_DRAW_MAX_TEXTURE_SIZE && vid_player.video_info[EYE_LEFT].codec_height <= DEF_DRAW_MAX_TEXTURE_SIZE
-									&& (vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P || vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUVJ420P))
+									bool can_use_hw_color_converter = true;
+
+									//Check if we can use HW color converter (y2r).
+									for(uint8_t i = 0; i < num_of_video_tracks; i++)
+									{
+										if(vid_player.video_info[i].codec_width > DEF_DRAW_MAX_TEXTURE_SIZE || vid_player.video_info[i].codec_height > DEF_DRAW_MAX_TEXTURE_SIZE
+										|| (vid_player.video_info[i].pixel_format != RAW_PIXEL_YUV420P && vid_player.video_info[i].pixel_format != RAW_PIXEL_YUVJ420P))
+										{
+											can_use_hw_color_converter = false;
+											break;
+										}
+									}
+
+									if(can_use_hw_color_converter)
 									{
 										//We can use hw color converter for this video.
 										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_CONVERSION);
@@ -4651,7 +4667,7 @@ void Vid_decode_thread(void* arg)
 								//Allocate texture buffers.
 								for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 								{
-									for(uint8_t k = 0; k < loop; k++)
+									for(uint8_t k = 0; k < num_of_video_tracks; k++)
 									{
 										Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 										result = Vid_large_texture_init(&vid_player.large_image[i][k], vid_player.video_info[k].codec_width, vid_player.video_info[k].codec_height, RAW_PIXEL_RGB565LE, true);
@@ -4673,16 +4689,27 @@ void Vid_decode_thread(void* arg)
 										Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 								}
 
-								//todo consider EYE_RIGHT
-								if((DEF_SEM_MODEL_IS_NEW(state.console_model))
-								&& (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_NONE || (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)))
-									APT_SetAppCpuTimeLimit(20);
-								else
 								{
-									if(DEF_SEM_MODEL_IS_NEW(state.console_model))
-										APT_SetAppCpuTimeLimit(80);
+									bool is_multi_threaded_decoding_enabled = false;
+
+									for(uint8_t i = 0; i < num_of_video_tracks; i++)
+									{
+										if(vid_player.video_info[i].thread_type != MEDIA_THREAD_TYPE_NONE)
+										{
+											is_multi_threaded_decoding_enabled = true;
+											break;
+										}
+									}
+
+									if(DEF_SEM_MODEL_IS_NEW(state.console_model) && (!is_multi_threaded_decoding_enabled || (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)))
+										APT_SetAppCpuTimeLimit(20);
 									else
-										APT_SetAppCpuTimeLimit(70);
+									{
+										if(DEF_SEM_MODEL_IS_NEW(state.console_model))
+											APT_SetAppCpuTimeLimit(80);
+										else
+											APT_SetAppCpuTimeLimit(70);
+									}
 								}
 
 								vid_player.num_of_video_tracks = num_of_video_tracks;

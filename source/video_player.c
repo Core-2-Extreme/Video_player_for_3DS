@@ -4574,10 +4574,12 @@ void Vid_decode_thread(void* arg)
 								//3DS only supports up to 2ch.
 								playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
 								DEF_LOG_RESULT_SMART(result, Util_speaker_set_audio_info(DEF_VID_SPEAKER_SESSION_ID, playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate), (result == DEF_SUCCESS), result);
-							}
 
-							if(result != DEF_SUCCESS)//If audio format is not supported, disable audio so that video can be played without audio.
+								vid_player.num_of_audio_tracks = num_of_audio_tracks;
+							}
+							else
 							{
+								//If audio format is not supported, disable audio so that video can be played without audio.
 								Util_speaker_exit();
 								vid_player.num_of_audio_tracks = 0;
 								for(uint32_t i = 0; i < num_of_audio_tracks; i++)
@@ -4586,8 +4588,6 @@ void Vid_decode_thread(void* arg)
 								//Ignore the error.
 								result = 0;
 							}
-							else
-								vid_player.num_of_audio_tracks = num_of_audio_tracks;
 						}
 
 						if(num_of_video_tracks > 0)
@@ -4607,11 +4607,10 @@ void Vid_decode_thread(void* arg)
 								Sem_get_state(&state);
 
 								for(uint8_t i = 0; i < num_of_video_tracks; i++)
+								{
 									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECORDER_SESSION_ID);
 
-								//Use sar 1:2 if 800x240 and no sar value is set.
-								for(uint8_t i = 0; i < num_of_video_tracks; i++)
-								{
+									//Use sar 1:2 if 800x240 and no sar value is set.
 									if(vid_player.video_info[i].width == 800 && vid_player.video_info[i].height == 240
 									&& vid_player.video_info[i].sar_width == 1 && vid_player.video_info[i].sar_height == 1)
 										vid_player.video_info[i].sar_height = 2;

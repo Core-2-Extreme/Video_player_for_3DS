@@ -6105,7 +6105,12 @@ void Vid_convert_thread(void* arg)
 			else
 			{
 				if(vid_player.state == PLAYER_STATE_SEEKING)
+				{
+					if(vid_player.num_of_video_tracks >= 2)
+						packet_index = (packet_index == 0 ? 1 : 0);
+
 					Util_sleep(3000);
+				}
 				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 				{
 					//Notify we've run out of buffer.

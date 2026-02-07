@@ -4757,7 +4757,7 @@ void Vid_decode_thread(void* arg)
 						vid_player.media_duration = DEF_UTIL_S_TO_MS_D(Vid_get_media_duration(vid_player.video_info[EYE_LEFT].duration, vid_player.video_info[EYE_RIGHT].duration, vid_player.audio_info[vid_player.selected_audio_track].duration));
 
 						//Can't play subtitle alone.
-						if(num_of_audio_tracks == 0 && num_of_video_tracks == 0)
+						if(vid_player.num_of_audio_tracks == 0 && vid_player.num_of_video_tracks == 0)
 						{
 							result = DEF_ERR_OTHER;
 							DEF_LOG_STRING("No playable media!!!!!");
@@ -4766,7 +4766,7 @@ void Vid_decode_thread(void* arg)
 						}
 
 						//Enter full-screen mode if file has video tracks.
-						if(num_of_video_tracks > 0 && !Util_err_query_show_flag() && !Util_expl_query_show_flag())
+						if(vid_player.num_of_video_tracks > 0 && !Util_err_query_show_flag() && !Util_expl_query_show_flag())
 						{
 							for(uint32_t i = 0; i < EYE_MAX; i++)
 								Vid_fit_to_screen(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, i);
@@ -4814,7 +4814,7 @@ void Vid_decode_thread(void* arg)
 						//If there is seek event in queue, don't do it because it will automatically
 						//enter buffering state after seeking.
 						if(!Util_queue_check_event_exist(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST)
-						&& num_of_video_tracks > 0 && vid_player.video_frametime != 0)
+						&& vid_player.num_of_video_tracks > 0 && vid_player.video_frametime != 0)
 						{
 							//Pause the playback.
 							Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
@@ -4837,7 +4837,7 @@ void Vid_decode_thread(void* arg)
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue, CONVERT_THREAD_CONVERT_REQUEST,
 						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
-						if(num_of_video_tracks == 0 || vid_player.video_frametime == 0)
+						if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
 							Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos, sizeof(audio_bar_pos));
 
 						break;

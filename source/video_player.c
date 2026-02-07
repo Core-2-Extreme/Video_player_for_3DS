@@ -546,7 +546,7 @@ typedef struct
 	//Media.
 	double media_duration;							//Media duration in ms, if the file contains both video and audio, then the longest one's duration.
 	double media_current_pos;						//Current media position in ms, if the file contains both video and audio,
-													//then the longest one's position.
+													//then the currently most advanced one's position.
 	double seek_pos_cache;							//Seek destination position cache, this is used when user is holding the seek bar.
 	double seek_pos;								//Seek destination position in ms.
 
@@ -659,6 +659,8 @@ static void Vid_update_sleep_policy(void);
 static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame, double* total_delay);
 static void Vid_update_decoding_statistics_every_100ms(void);
 static void Vid_update_video_delay(Vid_eye eye_index);
+static double Vid_get_media_duration(double video_track_0_duration, double video_track_1_duration, double audio_track_duration);
+static double Vid_get_current_media_pos(double video_track_0_pos, double video_track_1_pos, double audio_track_pos);
 static void Vid_init_variable(void);
 static void Vid_init_settings(void);
 static void Vid_init_hidden_settings(void);
@@ -3565,6 +3567,18 @@ static void Vid_update_video_delay(Vid_eye eye_index)
 	vid_player.video_delay_avg_ms[eye_index] = (total_delay / array_size);
 }
 
+static double Vid_get_media_duration(double video_track_0_duration, double video_track_1_duration, double audio_track_duration)
+{
+	//Use the longest duration as duration for this file.
+	return Util_max_d(Util_max_d(video_track_0_duration, video_track_1_duration), audio_track_duration);
+}
+
+static double Vid_get_current_media_pos(double video_track_0_pos, double video_track_1_pos, double audio_track_pos)
+{
+	//Use the most advanced position as current position.
+	return Util_max_d(Util_max_d(video_track_0_pos, video_track_1_pos), audio_track_pos);
+}
+
 static void Vid_init_variable(void)
 {
 	Vid_init_settings();
@@ -4704,12 +4718,8 @@ void Vid_decode_thread(void* arg)
 							}
 						}
 
-						//Use the longest duration as duration for this file.
-						//todo consider EYE_RIGHT
-						if(num_of_video_tracks > 0)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[EYE_LEFT].duration);
-						if(num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
+						//Set media duration.
+						vid_player.media_duration = DEF_UTIL_S_TO_MS_D(Vid_get_media_duration(vid_player.video_info[EYE_LEFT].duration, vid_player.video_info[EYE_RIGHT].duration, vid_player.audio_info[vid_player.selected_audio_track].duration));
 
 						//Can't play subtitle alone.
 						if(num_of_audio_tracks == 0 && num_of_video_tracks == 0)
@@ -4928,12 +4938,8 @@ void Vid_decode_thread(void* arg)
 						Util_speaker_clear_buffer(DEF_VID_SPEAKER_SESSION_ID);
 						Util_speaker_set_audio_info(DEF_VID_SPEAKER_SESSION_ID, new_playing_ch, vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
 
-						//Use the longest duration as duration for this file.
-						//todo consider EYE_RIGHT
-						if(vid_player.num_of_video_tracks > 0)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.video_info[EYE_LEFT].duration);
-						if(vid_player.num_of_audio_tracks > 0 && DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration) > vid_player.media_duration)
-							vid_player.media_duration = DEF_UTIL_S_TO_MS_D(vid_player.audio_info[vid_player.selected_audio_track].duration);
+						//Update media duration.
+						vid_player.media_duration = DEF_UTIL_S_TO_MS_D(Vid_get_media_duration(vid_player.video_info[EYE_LEFT].duration, vid_player.video_info[EYE_RIGHT].duration, vid_player.audio_info[vid_player.selected_audio_track].duration));
 					}
 
 					break;
@@ -5314,14 +5320,10 @@ void Vid_decode_thread(void* arg)
 
 			//Update audio position.
 			if(vid_player.num_of_audio_tracks > 0)
-				vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
+				vid_player.audio_current_pos = (vid_player.last_decoded_audio_pos - audio_buffer_health_ms);
 
-			//Get position from audio track if file does not have video tracks,
-			//frametime is unknown or audio duration is longer than video track.
-			//todo consider EYE_RIGHT
-			if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0
-			|| vid_player.audio_info[vid_player.selected_audio_track].duration > vid_player.video_info[EYE_LEFT].duration)
-				vid_player.media_current_pos = vid_player.audio_current_pos;
+			//Update current media position.
+			vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
 
 			//If file does not have video tracks, update bar pos to see if the position has changed
 			//so that we can update the screen when it gets changed.
@@ -6115,11 +6117,8 @@ void Vid_convert_thread(void* arg)
 
 			osTickCounterUpdate(&conversion_time_counter);
 
-			//Get position from video track if duration is longer than or equal to audio track.
-			//todo consider EYE_RIGHT
-			if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-			|| vid_player.video_info[EYE_LEFT].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-				vid_player.media_current_pos = vid_player.video_current_pos[EYE_LEFT];
+			//Update current media position.
+			vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
@@ -6162,17 +6161,6 @@ void Vid_convert_thread(void* arg)
 					//Buffer is full.
 					Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
 
-					if(vid_player.num_of_audio_tracks >= 1 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) >= 1)
-					{
-						//3DS only supports up to 2ch.
-						uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-
-						//Audio exist, sync with audio time.
-						//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-						double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
-						vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
-					}
-
 					continue;
 				}
 
@@ -6183,32 +6171,16 @@ void Vid_convert_thread(void* arg)
 				else
 					result = Util_decoder_video_get_image(&yuv_video, &pos, width, height, packet_index, DEF_VID_DECORDER_SESSION_ID);
 
-				//Update audio position.
-				if(vid_player.num_of_audio_tracks > 0)
-				{
-					//3DS only supports up to 2ch.
-					uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
-
-					//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
-					double audio_buffer_health_ms = DEF_UTIL_S_TO_MS_D(Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
-					vid_player.audio_current_pos = vid_player.last_decoded_audio_pos - audio_buffer_health_ms;
-				}
-
 				if(result == DEF_SUCCESS)
 				{
-					//Get position from video track if duration is longer than or equal to audio track.
-					//todo consider EYE_RIGHT
-					if(vid_player.video_frametime != 0 && (vid_player.num_of_audio_tracks == 0
-					|| vid_player.video_info[EYE_LEFT].duration >= vid_player.audio_info[vid_player.selected_audio_track].duration))
-					{
-						if(vid_player.num_of_video_tracks >= 2)
-							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
-						else
-							vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
+					//Update video position.
+					if(vid_player.num_of_video_tracks >= 2)
+						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
+					else
+						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
 
-						//We use track 0 as a time reference.
-						vid_player.media_current_pos = vid_player.video_current_pos[EYE_LEFT];
-					}
+					//Update current media position.
+					vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
 
 					//Hardware decoder returns BGR565, so we don't have to convert it.
 					if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING))

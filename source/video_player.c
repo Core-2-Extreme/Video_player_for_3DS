@@ -5526,58 +5526,62 @@ void Vid_decode_thread(void* arg)
 						for(uint16_t i = 1; i < DEBUG_GRAPH_ELEMENTS; i++)
 							vid_player.audio_decoding_time_list[i - 1] = vid_player.audio_decoding_time_list[i];
 
-						if(result == DEF_SUCCESS && vid_player.state != PLAYER_STATE_SEEKING)
+						if(result == DEF_SUCCESS)
 						{
-							parameters.source = audio;
-							parameters.in_ch = vid_player.audio_info[packet_index].ch;
-							parameters.in_sample_rate = vid_player.audio_info[packet_index].sample_rate;
-							parameters.in_sample_format = vid_player.audio_info[packet_index].sample_format;
-							parameters.in_samples = audio_samples;
-							parameters.converted = NULL;
-							//3DS only supports up to 2ch.
-							parameters.out_ch = (vid_player.audio_info[packet_index].ch > 2 ? 2 : vid_player.audio_info[packet_index].ch);
-							parameters.out_sample_rate = vid_player.audio_info[packet_index].sample_rate;
-							parameters.out_sample_format = RAW_SAMPLE_S16;
-
-							result = Util_converter_convert_audio(&parameters);
-							if(result == DEF_SUCCESS)
+							//We don't decode audio if we are seeking to speed up seeking.
+							if(vid_player.state != PLAYER_STATE_SEEKING)
 							{
-								bool too_big = false;
+								parameters.source = audio;
+								parameters.in_ch = vid_player.audio_info[packet_index].ch;
+								parameters.in_sample_rate = vid_player.audio_info[packet_index].sample_rate;
+								parameters.in_sample_format = vid_player.audio_info[packet_index].sample_format;
+								parameters.in_samples = audio_samples;
+								parameters.converted = NULL;
+								//3DS only supports up to 2ch.
+								parameters.out_ch = (vid_player.audio_info[packet_index].ch > 2 ? 2 : vid_player.audio_info[packet_index].ch);
+								parameters.out_sample_rate = vid_player.audio_info[packet_index].sample_rate;
+								parameters.out_sample_format = RAW_SAMPLE_S16;
 
-								//Change volume.
-								if(vid_player.volume != 100)
+								result = Util_converter_convert_audio(&parameters);
+								if(result == DEF_SUCCESS)
 								{
-									for(uint32_t i = 0; i < (parameters.out_samples * parameters.out_ch * 2); i += 2)
+									bool too_big = false;
+
+									//Change volume.
+									if(vid_player.volume != 100)
 									{
-										if(*(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100) > INT16_MAX)
+										for(uint32_t i = 0; i < (parameters.out_samples * parameters.out_ch * 2); i += 2)
 										{
-											*(int16_t*)(parameters.converted + i) = INT16_MAX;
-											too_big = true;
+											if(*(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100) > INT16_MAX)
+											{
+												*(int16_t*)(parameters.converted + i) = INT16_MAX;
+												too_big = true;
+											}
+											else
+												*(int16_t*)(parameters.converted + i) = *(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100);
 										}
+
+										if(too_big)
+											vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_TOO_BIG);
 										else
-											*(int16_t*)(parameters.converted + i) = *(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100);
+											vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_TOO_BIG);
 									}
 
-									if(too_big)
-										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_TOO_BIG);
-									else
-										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_TOO_BIG);
-								}
+									//Add audio to speaker buffer, wait up to 250ms.
+									for(uint8_t i = 0; i < 125; i++)
+									{
+										result = Util_speaker_add_buffer(DEF_VID_SPEAKER_SESSION_ID, parameters.converted, (parameters.out_samples * parameters.out_ch * 2));
+										if(result != DEF_ERR_TRY_AGAIN)
+											break;
 
-								//Add audio to speaker buffer, wait up to 250ms.
-								for(uint8_t i = 0; i < 125; i++)
-								{
-									result = Util_speaker_add_buffer(DEF_VID_SPEAKER_SESSION_ID, parameters.converted, (parameters.out_samples * parameters.out_ch * 2));
-									if(result != DEF_ERR_TRY_AGAIN)
-										break;
-
-									Util_sleep(2000);
+										Util_sleep(2000);
+									}
 								}
+								else
+									DEF_LOG_RESULT(Util_converter_convert_audio, false, result);
 							}
-							else
-								DEF_LOG_RESULT(Util_converter_convert_audio, false, result);
 
-							//Update audio position.
+							//We must update audio position no matter we've skipped decoding (otherwise seeking process may stall).
 							vid_player.last_decoded_audio_pos = pos;
 						}
 						else if(result != DEF_SUCCESS)

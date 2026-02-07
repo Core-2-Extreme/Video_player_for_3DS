@@ -43,6 +43,7 @@
 #define DELAY_SAMPLES								(uint8_t)(60)
 
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
+//todo consider EYE_RIGHT 
 #define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)		//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
 
@@ -4533,18 +4534,20 @@ void Vid_decode_thread(void* arg)
 						if(vid_player.disable_audio)
 						{
 							num_of_audio_tracks = 0;
-							strcpy(vid_player.audio_info[0].format_name, "disabled");
+							for(uint8_t i = 0; i < DEF_DECODER_MAX_AUDIO_TRACKS; i++)
+								strcpy(vid_player.audio_info[i].format_name, "disabled");
 						}
 						if(vid_player.disable_video)
 						{
 							num_of_video_tracks = 0;
-							//todo consider EYE_RIGHT
-							strcpy(vid_player.video_info[EYE_LEFT].format_name, "disabled");
+							for(uint32_t i = 0; i < EYE_MAX; i++)
+								strcpy(vid_player.video_info[i].format_name, "disabled");
 						}
 						if(vid_player.disable_subtitle)
 						{
 							num_of_subtitle_tracks = 0;
-							strcpy(vid_player.subtitle_info[0].format_name, "disabled");
+							for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
+								strcpy(vid_player.subtitle_info[i].format_name, "disabled");
 						}
 
 						if(num_of_audio_tracks > 0)
@@ -4577,7 +4580,9 @@ void Vid_decode_thread(void* arg)
 							{
 								Util_speaker_exit();
 								vid_player.num_of_audio_tracks = 0;
-								strcpy(vid_player.audio_info[0].format_name, "Unsupported format");
+								for(uint32_t i = 0; i < num_of_audio_tracks; i++)
+									strcpy(vid_player.audio_info[i].format_name, "Unsupported format");
+
 								//Ignore the error.
 								result = 0;
 							}
@@ -4714,11 +4719,13 @@ void Vid_decode_thread(void* arg)
 
 								vid_player.num_of_video_tracks = num_of_video_tracks;
 							}
-							else//If video format is not supported, disable video so that audio can be played without video.
+							else
 							{
+								//If video format is not supported, disable video so that audio can be played without video.
 								vid_player.num_of_video_tracks = 0;
-								//todo consider EYE_RIGHT
-								strcpy(vid_player.video_info[EYE_LEFT].format_name, "Unsupported format");
+								for(uint8_t i = 0; i < num_of_video_tracks; i++)
+									strcpy(vid_player.video_info[i].format_name, "Unsupported format");
+
 								//Ignore the error.
 								result = 0;
 							}
@@ -4735,10 +4742,13 @@ void Vid_decode_thread(void* arg)
 								vid_player.selected_subtitle_track = 0;
 								vid_player.num_of_subtitle_tracks = num_of_subtitle_tracks;
 							}
-							else//If subtitle format is not supported, disable subtitle so that audio or video can be played without subtitle.
+							else
 							{
+								//If subtitle format is not supported, disable subtitle so that audio or video can be played without subtitle.
 								vid_player.num_of_subtitle_tracks = 0;
-								strcpy(vid_player.subtitle_info[0].format_name, "Unsupported format");
+								for(uint32_t i = 0; i < num_of_subtitle_tracks; i++)
+									strcpy(vid_player.subtitle_info[i].format_name, "Unsupported format");
+
 								//Ignore the error.
 								result = 0;
 							}

@@ -4700,7 +4700,6 @@ void Vid_decode_thread(void* arg)
 						if(num_of_subtitle_tracks > 0)
 						{
 							DEF_LOG_RESULT_SMART(result, Util_decoder_subtitle_init(num_of_subtitle_tracks, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
-
 							if(result == DEF_SUCCESS)
 							{
 								for(uint8_t i = 0; i < num_of_subtitle_tracks; i++)
@@ -5507,7 +5506,7 @@ void Vid_decode_thread(void* arg)
 			}
 			else if(type == MEDIA_PACKET_TYPE_AUDIO)
 			{
-				if(vid_player.num_of_audio_tracks != 0 && packet_index == vid_player.selected_audio_track)
+				if(vid_player.num_of_audio_tracks > packet_index && packet_index == vid_player.selected_audio_track)
 				{
 					result = Util_decoder_ready_audio_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 					if(result == DEF_SUCCESS)
@@ -5602,7 +5601,7 @@ void Vid_decode_thread(void* arg)
 			}
 			else if(type == MEDIA_PACKET_TYPE_SUBTITLE)
 			{
-				if(vid_player.num_of_subtitle_tracks != 0 && packet_index == vid_player.selected_subtitle_track)
+				if(vid_player.num_of_subtitle_tracks > packet_index && packet_index == vid_player.selected_subtitle_track)
 				{
 					result = Util_decoder_ready_subtitle_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 					if(result == DEF_SUCCESS)
@@ -5651,7 +5650,7 @@ void Vid_decode_thread(void* arg)
 			}
 			else if(type == MEDIA_PACKET_TYPE_VIDEO)
 			{
-				if(vid_player.num_of_video_tracks != 0 && (!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+				if(vid_player.num_of_video_tracks > packet_index && (!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 				|| ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && packet_index == 0)))
 				{
 					Vid_video_packet_data* packet_info = (Vid_video_packet_data*)malloc(sizeof(Vid_video_packet_data));
@@ -5675,7 +5674,7 @@ void Vid_decode_thread(void* arg)
 					else
 						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 				}
-				else if(type == MEDIA_PACKET_TYPE_VIDEO)//This packet is not what we are looking for now, just skip it.
+				else//This packet is not what we are looking for now, just skip it.
 					Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 			}
 		}

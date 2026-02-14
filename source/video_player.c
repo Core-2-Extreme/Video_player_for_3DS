@@ -42,6 +42,9 @@
 #define FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DELAY_SAMPLES								(uint8_t)(60)
 
+#define SEEK_IGNORE_PACKETS							(uint8_t)(5)							//Number of packets to be ignored just after seeking to make sure no leftover remaining in cache.
+#define SEEK_BACKWARD_TIMEOUT						(uint8_t)(20)							//Number of packets to wait to make sure we went back (for backward seeking).
+
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
 //todo consider EYE_RIGHT 
 #define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)		//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
@@ -4504,8 +4507,8 @@ void Vid_decode_thread(void* arg)
 	bool is_eof = false;
 	bool is_read_packet_thread_active = false;
 	bool is_waiting_video_decoder = false;
-	uint8_t backward_timeout = 20;
-	uint8_t wait_count = 0;
+	uint8_t backward_timeout = SEEK_BACKWARD_TIMEOUT;
+	uint8_t wait_count = SEEK_IGNORE_PACKETS;
 	uint8_t dummy = 0;
 	uint32_t result = 0;
 	uint32_t audio_bar_pos = 0;
@@ -4577,9 +4580,9 @@ void Vid_decode_thread(void* arg)
 							new_file = NULL;
 						}
 
-						seek_start_pos = 0;
-						wait_count = 0;
+						wait_count = SEEK_IGNORE_PACKETS;
 						audio_bar_pos = 0;
+						seek_start_pos = 0;
 						Util_str_clear(&cache_file_name);
 						Util_str_set(&path, vid_player.file.directory);
 						Util_str_add(&path, vid_player.file.name);
@@ -5296,11 +5299,11 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.num_of_video_tracks <= 0)
 					{
 						//If there are no video tracks, start seeking.
-						//Sometimes library caches previous frames even after clearing packet,
-						//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
 						//todo consider EYE_RIGHT
-						wait_count = 5 + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
-						backward_timeout = 20;
+						//Sometimes library caches previous packets even after clearing it, so ignore
+						//first SEEK_IGNORE_PACKETS (+ num_of_threads if frame threading is used) packets.
+						wait_count = (SEEK_IGNORE_PACKETS + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0));
+						backward_timeout = SEEK_BACKWARD_TIMEOUT;
 						vid_player.state = PLAYER_STATE_SEEKING;
 					}
 					else
@@ -5376,11 +5379,11 @@ void Vid_decode_thread(void* arg)
 						break;
 
 					//After clearing cache start seeking.
-					//Sometimes library caches previous frames even after clearing packet,
-					//so ignore first 5 (+ num_of_threads if frame threading is used) frames.
 					//todo consider EYE_RIGHT
-					wait_count = 5 + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0);
-					backward_timeout = 20;
+					//Sometimes library caches previous packets even after clearing it, so ignore
+					//first SEEK_IGNORE_PACKETS (+ num_of_threads if frame threading is used) packets.
+					wait_count = (SEEK_IGNORE_PACKETS + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0));
+					backward_timeout = SEEK_BACKWARD_TIMEOUT;
 					vid_player.state = PLAYER_STATE_SEEKING;
 
 					break;

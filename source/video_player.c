@@ -4706,8 +4706,9 @@ void Vid_decode_thread(void* arg)
 								if(num_of_video_tracks >= 2 && vid_player.video_frametime != 0)
 									vid_player.video_frametime /= 2;
 
-								if(vid_player.use_hw_decoding && strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0
-								&& vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P)
+								//Hardware decoder only supports 1 track at a time.
+								if(num_of_video_tracks == 1 && vid_player.use_hw_decoding && vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P
+								&& strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0)
 								{
 									//We can use hw decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);

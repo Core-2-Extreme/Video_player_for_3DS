@@ -5299,11 +5299,15 @@ void Vid_decode_thread(void* arg)
 
 					if(vid_player.num_of_video_tracks <= 0)
 					{
+						uint8_t num_of_threads = 0;
+
+						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+							num_of_threads = Util_max(num_of_threads, ((vid_player.video_info[i].thread_type == MEDIA_THREAD_TYPE_FRAME) ? vid_player.num_of_threads : 0));
+
 						//If there are no video tracks, start seeking.
-						//todo consider EYE_RIGHT
 						//Sometimes library caches previous packets even after clearing it, so ignore
 						//first SEEK_IGNORE_PACKETS (+ num_of_threads if frame threading is used) packets.
-						wait_count = (SEEK_IGNORE_PACKETS + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0));
+						wait_count = (SEEK_IGNORE_PACKETS + num_of_threads);
 						backward_timeout = SEEK_BACKWARD_TIMEOUT;
 						vid_player.state = PLAYER_STATE_SEEKING;
 					}
@@ -5375,15 +5379,19 @@ void Vid_decode_thread(void* arg)
 
 				case CONVERT_THREAD_FINISHED_CLEARING_CACHE:
 				{
+					uint8_t num_of_threads = 0;
+
 					//Do nothing if player state is not prepare seeking.
 					if(vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
 						break;
 
+					for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+						num_of_threads = Util_max(num_of_threads, ((vid_player.video_info[i].thread_type == MEDIA_THREAD_TYPE_FRAME) ? vid_player.num_of_threads : 0));
+
 					//After clearing cache start seeking.
-					//todo consider EYE_RIGHT
 					//Sometimes library caches previous packets even after clearing it, so ignore
 					//first SEEK_IGNORE_PACKETS (+ num_of_threads if frame threading is used) packets.
-					wait_count = (SEEK_IGNORE_PACKETS + (vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME ? vid_player.num_of_threads : 0));
+					wait_count = (SEEK_IGNORE_PACKETS + num_of_threads);
 					backward_timeout = SEEK_BACKWARD_TIMEOUT;
 					vid_player.state = PLAYER_STATE_SEEKING;
 
@@ -5582,11 +5590,20 @@ void Vid_decode_thread(void* arg)
 			if(vid_player.state == PLAYER_STATE_SEEKING && (vid_player.num_of_video_tracks == 0
 			|| vid_player.video_frametime == 0 || type == MEDIA_PACKET_TYPE_VIDEO))
 			{
+				bool is_behind = false;
+
+				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+				{
+					if(vid_player.video_current_pos[i] == 0 || vid_player.video_current_pos[i] < seek_start_pos)
+					{
+						is_behind = true;
+						break;
+					}
+				}
+
 				//Make sure we went back.
-				//todo consider EYE_RIGHT
-				if((wait_count == 0 && vid_player.video_current_pos[EYE_LEFT] < seek_start_pos)
-				|| vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)//Remove seek backward wait bit.
-					vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);
+				if(wait_count == 0 && (is_behind || vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0))
+					vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
 
 				if(!(vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT) && vid_player.media_current_pos >= vid_player.seek_pos)
 				{

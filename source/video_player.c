@@ -561,7 +561,6 @@ typedef struct
 	uint16_t vfps_cache;							//Actual video playback framerate cache.
 	double next_frame_update_time;					//Next timestamp to update a video frame.
 	double next_vfps_update;						//Next timestamp to update vps value.
-	double _3d_slider_pos;							//3D slider position (0.0~1.0).
 	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
 	double buffer_progress;							//Buffering progress in % (for PLAYER_STATE_BUFFERING).
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
@@ -1911,17 +1910,6 @@ void Vid_main(void)
 	{
 		video_x_offset[i] = vid_player.video_x_offset[screen_pos_to_eye[i]];
 		video_y_offset[i] = vid_player.video_y_offset[screen_pos_to_eye[i]];
-	}
-
-	vid_player._3d_slider_pos = osGet3DSliderState();
-
-	//todo replace with rendering depth
-	if(Draw_is_3d_mode() && vid_player._3d_slider_pos > 0)
-	{
-		//Change video offset based on 3D slider bar position for 3D videos
-		//so that user can manually adjust it with 3D slider bar.
-		video_x_offset[SCREEN_POS_TOP_LEFT] -= ((vid_player._3d_slider_pos - 0.5) * image_width[EYE_LEFT]) * 0.1;
-		video_x_offset[SCREEN_POS_TOP_RIGHT] += ((vid_player._3d_slider_pos - 0.5) * image_width[EYE_LEFT]) * 0.1;
 	}
 
 	//Find subtitle index.
@@ -3854,7 +3842,6 @@ static void Vid_init_video_data(void)
 	vid_player.next_vfps_update = osGetTime() + 1000;
 	vid_player.vps = 0;
 	vid_player.video_frametime = 0;
-	vid_player._3d_slider_pos = osGet3DSliderState();
 	vid_player.buffer_progress = 0;
 
 	for(uint32_t i = 0; i < EYE_MAX; i++)
@@ -4316,7 +4303,6 @@ void Vid_init_thread(void* arg)
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset, sizeof(vid_player.subtitle_x_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset, sizeof(vid_player.subtitle_y_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom, sizeof(vid_player.subtitle_zoom));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos, sizeof(vid_player._3d_slider_pos));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.buffer_progress, sizeof(vid_player.buffer_progress));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache, sizeof(vid_player.selected_audio_track_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache, sizeof(vid_player.selected_subtitle_track_cache));
@@ -4482,7 +4468,6 @@ void Vid_exit_thread(void* arg)
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.buffer_progress);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache);

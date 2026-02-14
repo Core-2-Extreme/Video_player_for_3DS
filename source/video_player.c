@@ -46,9 +46,8 @@
 #define SEEK_BACKWARD_TIMEOUT						(uint8_t)(20)							//Number of packets to wait to make sure we went back (for backward seeking).
 
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
-//todo consider EYE_RIGHT 
-#define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)		//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
-#define SW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 1.5)	//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
+#define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
+#define SW_DECODER_RAW_IMAGE_SIZE(index)			(uint32_t)(vid_player.video_info[index].width * vid_player.video_info[index].height * 1.5)		//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
 
 #define NUM_OF_THREADS_MIN							(uint8_t)(2)							//Minimum number of threads for multi-threaded decoding.
 #define NUM_OF_THREADS_MAX							(uint8_t)(8)							//Maximum number of threads for multi-threaded decoding.
@@ -1913,6 +1912,7 @@ void Vid_main(void)
 
 	vid_player._3d_slider_pos = osGet3DSliderState();
 
+	//todo replace with rendering depth
 	if(Draw_is_3d_mode() && vid_player._3d_slider_pos > 0)
 	{
 		//Change video offset based on 3D slider bar position for 3D videos
@@ -5257,10 +5257,13 @@ void Vid_decode_thread(void* arg)
 					uint32_t previous_size = vid_player.ram_to_keep_base;
 					uint32_t raw_image_size = 0;
 
-					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
 						raw_image_size = HW_DECODER_RAW_IMAGE_SIZE;
 					else
-						raw_image_size = SW_DECODER_RAW_IMAGE_SIZE;
+					{
+						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+							raw_image_size = Util_max(raw_image_size, SW_DECODER_RAW_IMAGE_SIZE(i));
+					}
 
 					//Increase RAM amount to keep to reduce the chance of out of memory loop.
 					vid_player.ram_to_keep_base = (previous_size + raw_image_size);
@@ -5421,7 +5424,7 @@ void Vid_decode_thread(void* arg)
 			//To prevent out of memory on other tasks, make sure we have at least :
 			//ram_to_keep_base + (raw image size * 2) for hardware decoding.
 			//ram_to_keep_base + (raw image size * (1 + num_of_threads)) for software decoding.
-			if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
+			if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
 			{
 				required_free_ram = (vid_player.ram_to_keep_base + (HW_DECODER_RAW_IMAGE_SIZE * 2));
 				num_of_video_buffers = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
@@ -5430,11 +5433,12 @@ void Vid_decode_thread(void* arg)
 			{
 				uint8_t num_of_active_threads = 1;
 
-				//todo consider EYE_RIGHT
-				if(vid_player.video_info[EYE_LEFT].thread_type == MEDIA_THREAD_TYPE_FRAME)
-					num_of_active_threads = vid_player.num_of_threads;
+				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+					num_of_active_threads = Util_max(num_of_active_threads, ((vid_player.video_info[i].thread_type == MEDIA_THREAD_TYPE_FRAME) ? vid_player.num_of_threads : 1));
 
-				required_free_ram = (vid_player.ram_to_keep_base + (SW_DECODER_RAW_IMAGE_SIZE * (num_of_active_threads + 1)));
+				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+					required_free_ram = Util_max(required_free_ram, (vid_player.ram_to_keep_base + (SW_DECODER_RAW_IMAGE_SIZE(i) * (num_of_active_threads + 1))));
+
 				num_of_video_buffers = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
 
 				if(vid_player.num_of_video_tracks > 1 && Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID) > num_of_video_buffers)
@@ -5551,8 +5555,10 @@ void Vid_decode_thread(void* arg)
 					//We don't have enough free RAM but have cached raw pictures,
 					//so wait frametime ms for them to get playbacked and freed.
 					//If framerate is unknown, sleep 10ms.
-					//todo consider EYE_RIGHT
-					uint64_t sleep = (vid_player.video_info[EYE_LEFT].framerate > 0 ? (1000000 / vid_player.video_info[EYE_LEFT].framerate) : 10000);
+					uint64_t sleep = 10000;
+
+					for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+						sleep = Util_max(sleep, ((vid_player.video_info[i].framerate > 0) ? (1000000 / vid_player.video_info[i].framerate) : 10000));
 
 					if(vid_player.state == PLAYER_STATE_BUFFERING)
 					{

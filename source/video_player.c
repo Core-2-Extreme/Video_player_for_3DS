@@ -558,13 +558,13 @@ typedef struct
 	//Video.
 	uint8_t num_of_video_tracks;					//Number of video tracks for current file.
 	double next_vfps_update;						//Next timestamp to update vps value.
-	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
 	double buffer_progress;							//Buffering progress in % (for PLAYER_STATE_BUFFERING).
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
 	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
 	uint16_t vps[EYE_MAX];							//Actual video playback framerate.
 	uint16_t vps_cache[EYE_MAX];					//Actual video playback framerate cache.
 	double next_frame_update_time[EYE_MAX];			//Next timestamp to update a video frame.
+	double video_frametime[EYE_MAX];				//Video frametime in ms.
 	double video_x_offset[EYE_MAX];					//X (horizontal) offset for video.
 	double video_y_offset[EYE_MAX];					//Y (vertical) offset for video.
 	double video_zoom[EYE_MAX];						//Zoom level for video.
@@ -661,11 +661,13 @@ static void Vid_increase_screen_brightness(void);
 static void Vid_decrease_screen_brightness(void);
 static void Vid_control_full_screen(void);
 static void Vid_update_sleep_policy(void);
-static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame, double* total_delay);
+static void Vid_update_decoding_delay(double decoding_time, double* total_delay, Vid_eye eye_index);
+static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame);
 static void Vid_update_decoding_statistics_every_100ms(void);
 static void Vid_update_video_delay(Vid_eye eye_index);
 static double Vid_get_media_duration(double video_track_0_duration, double video_track_1_duration, double audio_track_duration);
 static double Vid_get_current_media_pos(double video_track_0_pos, double video_track_1_pos, double audio_track_pos);
+static bool Vid_has_video(uint8_t num_of_video_tracks, double video_frametimes[EYE_MAX]);
 static void Vid_log_media_info(void);
 static void Vid_init_variable(void);
 static void Vid_init_settings(void);
@@ -1619,7 +1621,7 @@ void Vid_resume(void)
 	Menu_suspend();
 
 	for(uint32_t i = 0; i < EYE_MAX; i++)
-		vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
+		vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime[i]);
 }
 
 void Vid_suspend(void)
@@ -1748,97 +1750,107 @@ void Vid_main(void)
 	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
 		if(vid_player.next_draw_index[i] > 0)
-			image_index[i] = vid_player.next_draw_index[i] - 1;
+			image_index[i] = (vid_player.next_draw_index[i] - 1);
 		else
-			image_index[i] = VIDEO_BUFFERS - 1;
+			image_index[i] = (VIDEO_BUFFERS - 1);
 	}
 
 	if(vid_player.state == PLAYER_STATE_PLAYING && vid_player.num_of_video_tracks > 0)
 	{
+		bool is_at_least_1_buffer_full = false;
+		bool is_at_least_1_buffer_empty = false;
 		uint8_t buffer_health[EYE_MAX] = { 0, };
 
 		//Check for buffer health.
 		for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
 		{
 			if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
-				buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
+				buffer_health[i] = (vid_player.next_store_index[i] - vid_player.next_draw_index[i]);
 			else
-				buffer_health[i] = VIDEO_BUFFERS - vid_player.next_draw_index[i] + vid_player.next_store_index[i];
+				buffer_health[i] = ((VIDEO_BUFFERS - vid_player.next_draw_index[i]) + vid_player.next_store_index[i]);
+
+			if(!is_at_least_1_buffer_full)
+				is_at_least_1_buffer_full = (buffer_health[i] >= (VIDEO_BUFFERS - 1));
+			if(!is_at_least_1_buffer_empty)
+				is_at_least_1_buffer_empty = (buffer_health[i] == 0);
 		}
 
 		for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
 		{
 			if(vid_player.next_frame_update_time[i] <= current_ts)
 			{
-				if(buffer_health[i] > 0)
+				if(buffer_health[i] > 0)//We have buffer on current track.
 				{
-					bool wait = false;
-					double next_ts = 0;
-					double video_delay = 0;
-					double wait_threshold = 0;
-					double force_wait_threshold = 0;
-
-					if(vid_player.num_of_audio_tracks > 0)
+					if(!is_at_least_1_buffer_empty//We have all buffers, we can continue.
+					|| is_at_least_1_buffer_full)//At least 1 buffer is full, we must continue or we'll stall.
 					{
-						Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
-						Vid_update_video_delay(i);
-						video_delay = vid_player.video_delay_ms[i][DELAY_SAMPLES - 1];
-						Util_sync_unlock(&vid_player.delay_update_lock);
-					}
-					else
-						video_delay = 0;
+						bool wait = false;
+						double next_ts = 0;
+						double video_delay = 0;
+						double wait_threshold = 0;
+						double force_wait_threshold = 0;
 
-					//Calc video frame drop threshold.
-					wait_threshold = WAIT_THRESHOLD(vid_player.video_frametime);
-					if(vid_player.num_of_video_tracks >= 2)
-						wait_threshold *= 2;
-
-					force_wait_threshold = FORCE_WAIT_THRESHOLD(vid_player.video_frametime);
-					if(vid_player.num_of_video_tracks >= 2)
-						force_wait_threshold *= 2;
-
-					if(video_delay < wait_threshold)
-					{
-						if(vid_player.wait_threshold_exceeded_ts[i] == 0)
-							vid_player.wait_threshold_exceeded_ts[i] = current_ts;
-
-						if((current_ts - vid_player.wait_threshold_exceeded_ts[i]) > WAIT_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
-							wait = true;
-					}
-					else
-						vid_player.wait_threshold_exceeded_ts[i] = 0;
-
-					if(video_delay < force_wait_threshold)
-						wait = true;
-
-					if(wait && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) > 0)
-					{
-						//Video is too fast, don't update a video frame to wait for audio.
-					}
-					else
-					{
-						//Update buffer index.
-						image_index[i] = vid_player.next_draw_index[i];
-
-						if((vid_player.next_draw_index[i] + 1) < VIDEO_BUFFERS)
-							vid_player.next_draw_index[i]++;
+						if(vid_player.num_of_audio_tracks > 0)
+						{
+							Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
+							Vid_update_video_delay(i);
+							video_delay = vid_player.video_delay_ms[i][DELAY_SAMPLES - 1];
+							Util_sync_unlock(&vid_player.delay_update_lock);
+						}
 						else
-							vid_player.next_draw_index[i] = 0;
+							video_delay = 0;
 
-						Draw_set_refresh_needed(true);
-						vid_player.vps_cache[i]++;
-						vid_player.last_video_frame_updated_ts[i] = current_ts;
+						//Calc video frame drop threshold.
+						wait_threshold = WAIT_THRESHOLD(vid_player.video_frametime[i]);
+						force_wait_threshold = FORCE_WAIT_THRESHOLD(vid_player.video_frametime[i]);
+
+						if(video_delay < wait_threshold)
+						{
+							if(vid_player.wait_threshold_exceeded_ts[i] == 0)
+								vid_player.wait_threshold_exceeded_ts[i] = current_ts;
+
+							if((current_ts - vid_player.wait_threshold_exceeded_ts[i]) > WAIT_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime[i]))
+								wait = true;
+						}
+						else
+							vid_player.wait_threshold_exceeded_ts[i] = 0;
+
+						if(video_delay < force_wait_threshold)
+							wait = true;
+
+						if(wait && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) > 0)
+						{
+							//Video is too fast, don't update a video frame to wait for audio.
+						}
+						else
+						{
+							//Update buffer index.
+							image_index[i] = vid_player.next_draw_index[i];
+
+							if((vid_player.next_draw_index[i] + 1) < VIDEO_BUFFERS)
+								vid_player.next_draw_index[i]++;
+							else
+								vid_player.next_draw_index[i] = 0;
+
+							Draw_set_refresh_needed(true);
+							vid_player.vps_cache[i]++;
+							vid_player.last_video_frame_updated_ts[i] = current_ts;
+						}
+
+						//Update next frame update timestamp.
+						next_ts = (vid_player.next_frame_update_time[i] + vid_player.video_frametime[i]);
+
+						if(current_ts >= (next_ts + (vid_player.video_frametime[i] * 10)))
+							vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime[i]);
+						else
+							vid_player.next_frame_update_time[i] = next_ts;
 					}
-
-					//Update next frame update timestamp.
-					next_ts = (vid_player.next_frame_update_time[i] + vid_player.video_frametime);
-					if(vid_player.num_of_video_tracks >= 2)
-						next_ts += vid_player.video_frametime;
-
-					if(current_ts >= (next_ts + (vid_player.video_frametime * 10)))
-						vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime);
 					else
-						vid_player.next_frame_update_time[i] = next_ts;
+					{
+						//We don't have all buffers, and we can still wait.
+						for(uint32_t k = 0; k < EYE_MAX; k++)
+							vid_player.next_frame_update_time[k] = (current_ts + vid_player.video_frametime[k]);
+					}
 				}
 				else
 				{
@@ -1850,7 +1862,7 @@ void Vid_main(void)
 	else
 	{
 		for(uint32_t i = 0; i < EYE_MAX; i++)
-			vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime);
+			vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime[i]);
 	}
 
 	//Update vps (video playback framerate).
@@ -2599,7 +2611,8 @@ void Vid_main(void)
 					//Bottom line.
 					Draw_line(0, (y_offset + vid_player.ui_y_offset), color, DEBUG_GRAPH_WIDTH, (y_offset + vid_player.ui_y_offset), color, 1);
 					//Deadline.
-					Draw_line(0, ((y_offset + vid_player.ui_y_offset) - (vid_player.video_frametime / 2)), 0xFF606060, DEBUG_GRAPH_WIDTH, ((y_offset - (vid_player.video_frametime / 2)) + vid_player.ui_y_offset), 0xFF606060, 1);
+					//todo consider EYE_RIGHT
+					Draw_line(0, ((y_offset + vid_player.ui_y_offset) - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, DEBUG_GRAPH_WIDTH, ((y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)) + vid_player.ui_y_offset), 0xFF606060, 1);
 
 					//Keyframe.
 					if(vid_player.show_decoding_graph)
@@ -2636,7 +2649,8 @@ void Vid_main(void)
 						else
 							buffer_health = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
 
-						buffer_health_ms = (buffer_health * vid_player.video_frametime);
+						//todo consider EYE_RIGHT
+						buffer_health_ms = (buffer_health * vid_player.video_frametime[EYE_LEFT]);
 
 						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 200, 10);
 
@@ -2681,7 +2695,8 @@ void Vid_main(void)
 					//Deadline text.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
-						Util_str_format(&format_str, "Deadline : %.2fms", vid_player.video_frametime);
+						//todo consider EYE_RIGHT
+						Util_str_format(&format_str, "Deadline : %.2fms", vid_player.video_frametime[EYE_LEFT]);
 						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, 0xFF606060);
 					}
 
@@ -3420,12 +3435,15 @@ static void Vid_update_sleep_policy(void)
 	}
 }
 
-static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame, double* total_delay)
+static void Vid_update_decoding_delay(double decoding_time, double* total_delay, Vid_eye eye_index)
+{
+	if((vid_player.video_frametime[eye_index] - decoding_time) < 0 && vid_player.allow_skip_frames && vid_player.video_frametime[eye_index] != 0)
+		*total_delay -= (vid_player.video_frametime[eye_index] - decoding_time);
+}
+
+static void Vid_update_decoding_statistics(double decoding_time, bool is_key_frame)
 {
 	uint16_t last_index = (DEBUG_GRAPH_ELEMENTS - 1);
-
-	if((vid_player.video_frametime - decoding_time) < 0 && vid_player.allow_skip_frames && vid_player.video_frametime != 0)
-		*total_delay -= vid_player.video_frametime - decoding_time;
 
 	if(vid_player.decoding_min_time > decoding_time)
 		vid_player.decoding_min_time = decoding_time;
@@ -3563,19 +3581,19 @@ static void Vid_update_video_delay(Vid_eye eye_index)
 	double total_delay = 0;
 
 	if(next_draw_index <= next_store_index)
-		buffer_health = next_store_index - next_draw_index;
+		buffer_health = (next_store_index - next_draw_index);
 	else
-		buffer_health = VIDEO_BUFFERS - next_draw_index + next_store_index;
+		buffer_health = ((VIDEO_BUFFERS - next_draw_index) + next_store_index);
 
-	buffered_video_ms = buffer_health * vid_player.video_frametime;
+	buffered_video_ms = (buffer_health * vid_player.video_frametime[eye_index]);
 
-	if((vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime) > current_ts)
-		buffered_video_ms += (vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime) - current_ts;
+	if((vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime[eye_index]) > current_ts)
+		buffered_video_ms += ((vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime[eye_index]) - current_ts);
 
 	for(uint8_t i = 0; i < array_size - 1; i++)
 		vid_player.video_delay_ms[eye_index][i] = vid_player.video_delay_ms[eye_index][i + 1];
 
-	vid_player.video_delay_ms[eye_index][array_size - 1] = vid_player.audio_current_pos - (vid_player.video_current_pos[eye_index] - buffered_video_ms);
+	vid_player.video_delay_ms[eye_index][array_size - 1] = (vid_player.audio_current_pos - (vid_player.video_current_pos[eye_index] - buffered_video_ms));
 
 	for(uint8_t i = 0; i < array_size; i++)
 		total_delay += vid_player.video_delay_ms[eye_index][i];
@@ -3595,13 +3613,29 @@ static double Vid_get_current_media_pos(double video_track_0_pos, double video_t
 	return Util_max_d(Util_max_d(video_track_0_pos, video_track_1_pos), audio_track_pos);
 }
 
+static bool Vid_has_video(uint8_t num_of_video_tracks, double video_frametimes[EYE_MAX])
+{
+	if(num_of_video_tracks == 0)
+		return false;//We don't have any videos.
+	else
+	{
+		for(uint8_t i = 0; i < num_of_video_tracks; i++)
+		{
+			//We don't treat it "video" if its frametime is unknown (that's usually tagged mp3 with only 1 image).
+			if(video_frametimes[i] != 0)
+				return true;
+		}
+
+		return false;
+	}
+}
+
 static void Vid_log_media_info(void)
 {
 	//Video.
 	DEF_LOG_STRING(" ");//New line.
 	DEF_LOG_STRING("Video:");
 	DEF_LOG_UINT(vid_player.num_of_video_tracks);
-	DEF_LOG_DOUBLE(vid_player.video_frametime);
 	for(uint32_t i = 0; i < Util_min(vid_player.num_of_video_tracks, EYE_MAX); i++)
 	{
 		Str_data time = { 0, };
@@ -3610,6 +3644,7 @@ static void Vid_log_media_info(void)
 
 		DEF_LOG_STRING(" ");//New line.
 		DEF_LOG_FORMAT("Video[%" PRIu32 "]:", i);
+		DEF_LOG_DOUBLE(vid_player.video_frametime[i]);
 		DEF_LOG_DOUBLE(vid_player.video_x_offset[i]);
 		DEF_LOG_DOUBLE(vid_player.video_y_offset[i]);
 		DEF_LOG_DOUBLE(vid_player.video_zoom[i]);
@@ -3820,7 +3855,6 @@ static void Vid_init_video_data(void)
 
 	vid_player.num_of_video_tracks = 0;
 	vid_player.next_vfps_update = (current_ts + 1000);
-	vid_player.video_frametime = 0;
 	vid_player.buffer_progress = 0;
 
 	for(uint32_t i = 0; i < EYE_MAX; i++)
@@ -3830,6 +3864,7 @@ static void Vid_init_video_data(void)
 		vid_player.vps[i] = 0;
 		vid_player.vps_cache[i] = 0;
 		vid_player.next_frame_update_time[i] = current_ts;
+		vid_player.video_frametime[i] = 0;
 		vid_player.video_x_offset[i] = 0;
 		vid_player.video_y_offset[i] = 15;
 		vid_player.video_zoom[i] = 1;
@@ -4150,7 +4185,6 @@ void frame_worker_thread_end(const void* frame_handle)
 {
 	uint8_t index = UINT8_MAX;
 	double time = 0;
-	double dummy = 0;
 
 	if(!frame_handle)
 		return;
@@ -4176,7 +4210,7 @@ void frame_worker_thread_end(const void* frame_handle)
 	osTickCounterUpdate(&vid_player.decoding_time_tick[index]);
 	time = osTickCounterRead(&vid_player.decoding_time_tick[index]);
 	Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
-	Vid_update_decoding_statistics(time, false, &dummy);//There's no way to know if this is a keyframe.
+	Vid_update_decoding_statistics(time, false);//There's no way to know if this is a keyframe.
 	Util_sync_unlock(&vid_player.delay_update_lock);
 }
 
@@ -4713,16 +4747,12 @@ void Vid_decode_thread(void* arg)
 									if(vid_player.video_info[i].width == 800 && vid_player.video_info[i].height == 240
 									&& vid_player.video_info[i].sar_width == 1 && vid_player.video_info[i].sar_height == 1)
 										vid_player.video_info[i].sar_height = 2;
+
+									if(vid_player.video_info[i].framerate == 0)
+										vid_player.video_frametime[i] = 0;
+									else
+										vid_player.video_frametime[i] = (1000.0 / vid_player.video_info[i].framerate);
 								}
-
-								//todo consider EYE_RIGHT
-								if(vid_player.video_info[EYE_LEFT].framerate == 0)
-									vid_player.video_frametime = 0;
-								else
-									vid_player.video_frametime = (1000.0 / vid_player.video_info[EYE_LEFT].framerate);
-
-								if(num_of_video_tracks >= 2 && vid_player.video_frametime != 0)
-									vid_player.video_frametime /= 2;
 
 								//Hardware decoder only supports 1 track at a time.
 								if(num_of_video_tracks == 1 && vid_player.use_hw_decoding && vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P
@@ -4910,11 +4940,11 @@ void Vid_decode_thread(void* arg)
 							saved_data = NULL;
 						}
 
-						//If we have video tracks, buffer some data before starting/resuming playback.
+						//If we have normal videos, buffer some data before starting/resuming playback.
 						//If there is seek event in queue, don't do it because it will automatically
 						//enter buffering state after seeking.
 						if(!Util_queue_check_event_exist(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST)
-						&& vid_player.num_of_video_tracks > 0 && vid_player.video_frametime != 0)
+						&& Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 						{
 							//Pause the playback.
 							Util_speaker_pause(DEF_VID_SPEAKER_SESSION_ID);
@@ -4937,7 +4967,7 @@ void Vid_decode_thread(void* arg)
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.convert_thread_command_queue, CONVERT_THREAD_CONVERT_REQUEST,
 						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 
-						if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
+						if(!Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 							Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos, sizeof(audio_bar_pos));
 
 						//Log media info for better debugging.
@@ -5196,7 +5226,7 @@ void Vid_decode_thread(void* arg)
 					}
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
 
-					if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
+					if(!Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 						Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &audio_bar_pos);
 
 					vid_player.show_full_screen_msg = false;
@@ -5319,7 +5349,7 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
 						break;
 
-					if(vid_player.num_of_video_tracks <= 0)
+					if(vid_player.num_of_video_tracks == 0)
 					{
 						uint8_t num_of_threads = 0;
 
@@ -5456,12 +5486,10 @@ void Vid_decode_thread(void* arg)
 					num_of_active_threads = Util_max(num_of_active_threads, ((vid_player.video_info[i].thread_type == MEDIA_THREAD_TYPE_FRAME) ? vid_player.num_of_threads : 1));
 
 				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+				{
 					required_free_ram = Util_max(required_free_ram, (vid_player.ram_to_keep_base + (SW_DECODER_RAW_IMAGE_SIZE(i) * (num_of_active_threads + 1))));
-
-				num_of_video_buffers = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
-
-				if(vid_player.num_of_video_tracks > 1 && Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID) > num_of_video_buffers)
-					num_of_video_buffers = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
+					num_of_video_buffers = Util_max(num_of_video_buffers, Util_decoder_video_get_available_raw_image_num(i, DEF_VID_DECORDER_SESSION_ID));
+				}
 			}
 			num_of_cached_packets = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
 			num_of_audio_buffers = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
@@ -5479,9 +5507,9 @@ void Vid_decode_thread(void* arg)
 			//Update current media position.
 			vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
 
-			//If file does not have video tracks, update bar pos to see if the position has changed
+			//If file does NOT have normal videos, update bar pos to see if the position has changed
 			//so that we can update the screen when it gets changed.
-			if(vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0)
+			if(!Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 			{
 				//We want to update screen every 100ms hence divide by 100.
 				//(audio_bar_pos has been registerd in watch list.)
@@ -5505,15 +5533,15 @@ void Vid_decode_thread(void* arg)
 				bool is_audio_done = true;
 				bool is_video_done = true;
 
-				//Wait for finish playback audio.
+				//Wait for audio playback.
 				if(vid_player.num_of_audio_tracks > 0)
 				{
 					if(audio_buffers_size > 0)
 						is_audio_done = false;
 				}
 
-				//Wait for finish playback video.
-				if(vid_player.num_of_video_tracks > 0 && vid_player.video_frametime != 0)
+				//Wait for video playback.
+				if(Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 				{
 					if(num_of_video_buffers > 0)
 						is_video_done = false;
@@ -5612,8 +5640,8 @@ void Vid_decode_thread(void* arg)
 			}
 
 			//Handle seek request.
-			if(vid_player.state == PLAYER_STATE_SEEKING && (vid_player.num_of_video_tracks == 0
-			|| vid_player.video_frametime == 0 || type == MEDIA_PACKET_TYPE_VIDEO))
+			if(vid_player.state == PLAYER_STATE_SEEKING && (type == MEDIA_PACKET_TYPE_VIDEO
+			|| !Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime)))
 			{
 				if((vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT))
 				{
@@ -5623,7 +5651,7 @@ void Vid_decode_thread(void* arg)
 						is_behind = true;
 
 					//Make sure we went back.
-					if(wait_count == 0 && (is_behind || vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0))
+					if(wait_count == 0 && (is_behind || !Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime)))
 					{
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
 
@@ -5639,7 +5667,8 @@ void Vid_decode_thread(void* arg)
 					//Seek has finished.
 					vid_player.show_current_pos_until = (osGetTime() + TIP_MEDIA_POS_DURATION_MS);
 
-					if(vid_player.num_of_video_tracks > 0 && vid_player.video_frametime != 0)//Buffer some data before resuming playback if file contains video tracks.
+					//Buffer some data before resuming playback if file contains normal videos.
+					if(Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 						vid_player.state = PLAYER_STATE_BUFFERING;
 					else
 					{
@@ -5900,9 +5929,9 @@ void Vid_decode_video_thread(void* arg)
 					free(packet_info);
 					packet_info = NULL;
 
-					if(vid_player.allow_skip_frames && skip > vid_player.video_frametime && (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime != 0)
+					if(vid_player.allow_skip_frames && skip > vid_player.video_frametime[packet_index] && (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime[packet_index] != 0)
 					{
-						skip -= vid_player.video_frametime;
+						skip -= vid_player.video_frametime[packet_index];
 						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 
 						//Notify we've done copying packet to video decoder buffer (we skipped the frame here)
@@ -5949,16 +5978,21 @@ void Vid_decode_video_thread(void* arg)
 									{
 										if(vid_player.video_info[packet_index].thread_type != MEDIA_THREAD_TYPE_FRAME
 										|| (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING))
-											Vid_update_decoding_statistics(osTickCounterRead(&counter), key_frame, &skip);
+										{
+											double time = osTickCounterRead(&counter);
+
+											Vid_update_decoding_statistics(time, key_frame);
+											Vid_update_decoding_delay(time, &skip, packet_index);
+										}
 
 										key_frame = false;
 									}
 									else if(result == DEF_ERR_TRY_AGAIN)//Buffer is full.
 									{
-										if(vid_player.video_frametime <= 0)
+										if(vid_player.video_frametime[packet_index] == 0)
 											Util_sleep(10000);
 										else
-											Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
+											Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime[packet_index]));
 
 										//If we get clear cache or abort request while waiting, break the loop.
 										if(Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST)
@@ -5976,7 +6010,12 @@ void Vid_decode_video_thread(void* arg)
 							{
 								if(vid_player.video_info[packet_index].thread_type != MEDIA_THREAD_TYPE_FRAME
 								|| (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING))
-									Vid_update_decoding_statistics(osTickCounterRead(&counter), key_frame, &skip);
+								{
+									double time = osTickCounterRead(&counter);
+
+									Vid_update_decoding_statistics(time, key_frame);
+									Vid_update_decoding_delay(time, &skip, packet_index);
+								}
 							}
 							else if(result != DEF_ERR_NEED_MORE_INPUT)
 							{
@@ -6016,9 +6055,8 @@ void Vid_decode_video_thread(void* arg)
 							result = Util_decoder_mvd_decode(DEF_VID_DECORDER_SESSION_ID);
 						else
 						{
-							result = Util_decoder_video_decode(0, DEF_VID_DECORDER_SESSION_ID);
-							if(vid_player.num_of_video_tracks > 1)
-								result = Util_decoder_video_decode(1, DEF_VID_DECORDER_SESSION_ID);
+							for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+								result = Util_decoder_video_decode(i, DEF_VID_DECORDER_SESSION_ID);
 						}
 
 						if(result != DEF_SUCCESS && result != DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT && result != DEF_ERR_DECODER_TRY_AGAIN)
@@ -6181,7 +6219,7 @@ void Vid_convert_thread(void* arg)
 		else
 			num_of_cached_raw_images = Util_decoder_video_get_available_raw_image_num(packet_index, DEF_VID_DECORDER_SESSION_ID);
 
-		if(vid_player.video_frametime != 0)
+		if(vid_player.video_frametime[packet_index] != 0)
 		{
 			uint64_t current_ts = osGetTime();
 
@@ -6190,13 +6228,8 @@ void Vid_convert_thread(void* arg)
 				double video_delay = 0;
 
 				//Calc video frame drop threshold.
-				drop_threshold = DROP_THRESHOLD(vid_player.video_frametime);
-				if(vid_player.num_of_video_tracks >= 2)
-					drop_threshold *= 2;
-
-				force_drop_threshold = FORCE_DROP_THRESHOLD(vid_player.video_frametime);
-				if(vid_player.num_of_video_tracks >= 2)
-					force_drop_threshold *= 2;
+				drop_threshold = DROP_THRESHOLD(vid_player.video_frametime[packet_index]);
+				force_drop_threshold = FORCE_DROP_THRESHOLD(vid_player.video_frametime[packet_index]);
 
 				Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
 				Vid_update_video_delay(packet_index);
@@ -6208,7 +6241,7 @@ void Vid_convert_thread(void* arg)
 					if(vid_player.drop_threshold_exceeded_ts[packet_index] == 0)
 						vid_player.drop_threshold_exceeded_ts[packet_index] = current_ts;
 
-					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime[packet_index]))
 						drop = true;
 				}
 				else
@@ -6225,13 +6258,10 @@ void Vid_convert_thread(void* arg)
 					if(vid_player.drop_threshold_exceeded_ts[packet_index] == 0)
 						vid_player.drop_threshold_exceeded_ts[packet_index] = current_ts;
 
-					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime[packet_index]))
 					{
 						drop = true;
-						if(vid_player.num_of_video_tracks >= 2)
-							total_delay -= (vid_player.video_frametime * 2);
-						else
-							total_delay -= vid_player.video_frametime;
+						total_delay -= vid_player.video_frametime[packet_index];
 					}
 				}
 				else
@@ -6240,16 +6270,13 @@ void Vid_convert_thread(void* arg)
 				if(total_delay > force_drop_threshold)
 				{
 					drop = true;
-					if(vid_player.num_of_video_tracks >= 2)
-						total_delay -= (vid_player.video_frametime * 2);
-					else
-						total_delay -= vid_player.video_frametime;
+					total_delay -= vid_player.video_frametime[packet_index];
 				}
 			}
 		}
 
 		//Skip video frame if we can't keep up or we are seeking.
-		if((drop || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime != 0)
+		if((drop || vid_player.state == PLAYER_STATE_SEEKING) && vid_player.video_frametime[packet_index] != 0)
 		{
 			if(num_of_cached_raw_images > 0)
 			{
@@ -6274,13 +6301,9 @@ void Vid_convert_thread(void* arg)
 			else
 			{
 				if(vid_player.state == PLAYER_STATE_SEEKING)
-				{
-					if(vid_player.num_of_video_tracks >= 2)
-						packet_index = (packet_index == 0 ? 1 : 0);
-
 					Util_sleep(3000);
-				}
-				else if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+
+				if(num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 				{
 					//Notify we've run out of buffer.
 					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
@@ -6293,13 +6316,15 @@ void Vid_convert_thread(void* arg)
 
 			//Update current media position.
 			vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
+
+			if((packet_index + 1) < vid_player.num_of_video_tracks)
+				packet_index++;
+			else
+				packet_index = 0;
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
-			if(vid_player.num_of_video_tracks >= 2)
-				num_of_cached_raw_images = Util_max(Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID), Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID));
-
-			if(num_of_cached_raw_images == 0 && vid_player.video_frametime != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+			if(num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 			{
 				//Notify we've run out of buffer.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
@@ -6326,14 +6351,17 @@ void Vid_convert_thread(void* arg)
 				double pos = 0;
 
 				if(next_draw_index <= next_store_index)
-					buffer_health = next_store_index - next_draw_index;
+					buffer_health = (next_store_index - next_draw_index);
 				else
-					buffer_health = VIDEO_BUFFERS - next_draw_index + next_store_index;
+					buffer_health = ((VIDEO_BUFFERS - next_draw_index) + next_store_index);
 
-				if(buffer_health + 1 >= VIDEO_BUFFERS)
+				if((buffer_health + 1) >= VIDEO_BUFFERS)
 				{
 					//Buffer is full.
-					Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime));
+					if(vid_player.video_frametime[packet_index] == 0)
+						Util_sleep(10000);
+					else
+						Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime[packet_index]));
 
 					continue;
 				}
@@ -6348,10 +6376,7 @@ void Vid_convert_thread(void* arg)
 				if(result == DEF_SUCCESS)
 				{
 					//Update video position.
-					if(vid_player.num_of_video_tracks >= 2)
-						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health * 2);
-					else
-						vid_player.video_current_pos[packet_index] = pos - (vid_player.video_frametime * buffer_health);
+					vid_player.video_current_pos[packet_index] = (pos - (vid_player.video_frametime[packet_index] * buffer_health));
 
 					//Update current media position.
 					vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
@@ -6419,7 +6444,7 @@ void Vid_convert_thread(void* arg)
 				if(result == DEF_SUCCESS)
 				{
 					//Update buffer index.
-					if(next_store_index + 1 < VIDEO_BUFFERS)
+					if((next_store_index + 1) < VIDEO_BUFFERS)
 						next_store_index++;
 					else
 						next_store_index = 0;
@@ -6453,10 +6478,12 @@ void Vid_convert_thread(void* arg)
 				vid_player.conversion_time_list[(DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&conversion_time_counter);
 
 				if(vid_player.num_of_audio_tracks == 0)//No audio time reference available, use local delay.
-					total_delay += (vid_player.conversion_time_list[(DEBUG_GRAPH_ELEMENTS - 1)]) - vid_player.video_frametime;
+					total_delay += ((vid_player.conversion_time_list[(DEBUG_GRAPH_ELEMENTS - 1)]) - vid_player.video_frametime[packet_index]);
 
-				if(vid_player.num_of_video_tracks >= 2)
-					packet_index = (packet_index == 0 ? 1 : 0);
+				if((packet_index + 1) < vid_player.num_of_video_tracks)
+					packet_index++;
+				else
+					packet_index = 0;
 			}
 		}
 		else if(vid_player.state == PLAYER_STATE_BUFFERING)
@@ -6466,7 +6493,7 @@ void Vid_convert_thread(void* arg)
 			Util_sync_unlock(&vid_player.delay_update_lock);
 
 			if(num_of_cached_raw_images >= vid_player.restart_playback_threshold
-			|| Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) + 1 >= DEF_SPEAKER_MAX_BUFFERS)
+			|| (Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) + 1) >= DEF_SPEAKER_MAX_BUFFERS)
 			{
 				//Notify we've finished buffering.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_FINISHED_BUFFERING_NOTIFICATION,

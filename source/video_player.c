@@ -552,6 +552,8 @@ typedef struct
 													//then the currently most advanced one's position.
 	double seek_pos_cache;							//Seek destination position cache, this is used when user is holding the seek bar.
 	double seek_pos;								//Seek destination position in ms.
+	double seek_start_pos_after_jump;				//Seek start position after jumping to the nearest keyframe.
+	double seek_progress;							//Seeking progress in % (for PLAYER_STATE_SEEKING and PLAYER_STATE_PREPARE_SEEKING).
 
 	//Video.
 	uint8_t num_of_video_tracks;					//Number of video tracks for current file.
@@ -561,6 +563,7 @@ typedef struct
 	double next_vfps_update;						//Next timestamp to update vps value.
 	double _3d_slider_pos;							//3D slider position (0.0~1.0).
 	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
+	double buffer_progress;							//Buffering progress in % (for PLAYER_STATE_BUFFERING).
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
 	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
 	double video_x_offset[EYE_MAX];					//X (horizontal) offset for video.
@@ -2088,7 +2091,7 @@ void Vid_main(void)
 			if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
 			{
 				//Display seeking message.
-				Util_str_add(&bottom_center_msg, vid_msg[MSG_SEEKING].buffer);
+				Util_str_format_append(&bottom_center_msg, "%s(%.2f%%)", vid_msg[MSG_SEEKING].buffer, vid_player.seek_progress);
 			}
 			if(vid_player.state == PLAYER_STATE_BUFFERING)
 			{
@@ -2096,7 +2099,7 @@ void Vid_main(void)
 					Util_str_add(&bottom_center_msg, "\n");
 
 				//Display decoding message.
-				Util_str_add(&bottom_center_msg, vid_msg[MSG_PROCESSING_VIDEO].buffer);
+				Util_str_format_append(&bottom_center_msg, "%s(%.2f%%)", vid_msg[MSG_PROCESSING_VIDEO].buffer, vid_player.buffer_progress);
 			}
 
 			if(Util_str_has_data(&top_center_msg))
@@ -3491,10 +3494,6 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 		double conversion_recent_total_time = 0;
 
 		vid_player.previous_ts = osGetTime();
-		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
-		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
-		vid_player.raw_video_buffer_list[EYE_LEFT][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
-		vid_player.raw_video_buffer_list[EYE_RIGHT][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
 
 		for(uint16_t i = 1; i < DEBUG_GRAPH_ELEMENTS; i++)
 		{
@@ -3503,6 +3502,11 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 			for(uint32_t k = 0; k < EYE_MAX; k++)
 				vid_player.raw_video_buffer_list[k][i - 1] = vid_player.raw_video_buffer_list[k][i];
 		}
+
+		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
+		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_LEFT][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_RIGHT][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
 
 		vid_player.audio_decoding_avg_time = 0;
 		vid_player.video_decoding_avg_time = 0;
@@ -3538,6 +3542,47 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 			vid_player.video_decoding_avg_time = (video_recent_total_time / video_divisor);
 		if(conversion_divisor != 0)
 			vid_player.conversion_avg_time = (conversion_recent_total_time / conversion_divisor);
+
+		//Calc buffering progress.
+		if(vid_player.state == PLAYER_STATE_BUFFERING)
+		{
+			uint16_t available_buffer = 0;
+
+			for(uint32_t i = 0; i < EYE_MAX; i++)
+				available_buffer = Util_max(available_buffer, vid_player.raw_video_buffer_list[i][last_index]);
+
+			if(available_buffer >= vid_player.restart_playback_threshold)
+				vid_player.buffer_progress = 100;//Done.
+			else if(available_buffer == 0)
+				vid_player.buffer_progress = 0;
+			else
+				vid_player.buffer_progress = (((double)available_buffer / vid_player.restart_playback_threshold) * 100);
+		}
+		else
+			vid_player.buffer_progress = 0;//Not applicable.
+
+		//Calc seeking progress.
+		if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
+		{
+			if(vid_player.state == PLAYER_STATE_PREPARE_SEEKING || (vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT)
+			|| vid_player.seek_start_pos_after_jump < 0)
+				vid_player.seek_progress = 0;//We can't calculate progress now.
+			else if(vid_player.media_current_pos >= vid_player.seek_pos)
+				vid_player.seek_progress = 100;//Done.
+			else
+			{
+				double seek_amount = (vid_player.seek_pos - vid_player.seek_start_pos_after_jump);
+				double seeked_amount = (vid_player.media_current_pos - vid_player.seek_start_pos_after_jump);
+
+				if(seek_amount == 0)
+					vid_player.seek_progress = 100;//Seek isn't necessary (seek destination is just on keyframe).
+				else
+					vid_player.seek_progress = ((seeked_amount / seek_amount) * 100);
+
+			}
+		}
+		else
+			vid_player.seek_progress = 0;//Not applicable.
 	}
 }
 
@@ -3799,6 +3844,8 @@ static void Vid_init_media_data(void)
 	vid_player.media_current_pos = 0;
 	vid_player.seek_pos_cache = 0;
 	vid_player.seek_pos = 0;
+	vid_player.seek_start_pos_after_jump = 0;
+	vid_player.seek_progress = 0;
 }
 
 static void Vid_init_video_data(void)
@@ -3809,6 +3856,7 @@ static void Vid_init_video_data(void)
 	vid_player.vps = 0;
 	vid_player.video_frametime = 0;
 	vid_player._3d_slider_pos = osGet3DSliderState();
+	vid_player.buffer_progress = 0;
 
 	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
@@ -4263,12 +4311,14 @@ void Vid_init_thread(void* arg)
 
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos_cache, sizeof(vid_player.seek_pos_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos, sizeof(vid_player.seek_pos));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_progress, sizeof(vid_player.seek_progress));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset, sizeof(vid_player.ui_y_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_min, sizeof(vid_player.ui_y_offset_min));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset, sizeof(vid_player.subtitle_x_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset, sizeof(vid_player.subtitle_y_offset));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom, sizeof(vid_player.subtitle_zoom));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos, sizeof(vid_player._3d_slider_pos));
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.buffer_progress, sizeof(vid_player.buffer_progress));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache, sizeof(vid_player.selected_audio_track_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache, sizeof(vid_player.selected_subtitle_track_cache));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.restart_playback_threshold, sizeof(vid_player.restart_playback_threshold));
@@ -4427,12 +4477,14 @@ void Vid_exit_thread(void* arg)
 
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_pos);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.seek_progress);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.ui_y_offset_min);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_x_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_y_offset);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_zoom);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player._3d_slider_pos);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.buffer_progress);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_audio_track_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.selected_subtitle_track_cache);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.restart_playback_threshold);
@@ -5025,6 +5077,7 @@ void Vid_decode_thread(void* arg)
 					vid_player.state = PLAYER_STATE_PREPARE_SEEKING;
 					vid_player.show_current_pos_until = U64_MAX;
 					seek_start_pos = vid_player.media_current_pos;
+					vid_player.seek_start_pos_after_jump = INT32_MIN;
 
 					if(seek_start_pos > vid_player.seek_pos)//Add seek backward wait bit.
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);
@@ -5597,19 +5650,31 @@ void Vid_decode_thread(void* arg)
 			|| vid_player.video_frametime == 0 || type == MEDIA_PACKET_TYPE_VIDEO))
 			{
 				bool is_behind = false;
+				double current_pos = 0;
 
 				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
 				{
 					if(vid_player.video_current_pos[i] == 0 || vid_player.video_current_pos[i] < seek_start_pos)
 					{
 						is_behind = true;
+						current_pos = vid_player.video_current_pos[i];
 						break;
 					}
 				}
 
-				//Make sure we went back.
-				if(wait_count == 0 && (is_behind || vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0))
-					vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
+				if((vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT))
+				{
+					//Make sure we went back.
+					if(wait_count == 0 && (is_behind || vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0))
+					{
+						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
+
+						if(vid_player.seek_start_pos_after_jump < 0)
+							vid_player.seek_start_pos_after_jump = current_pos;//We've jumped behing destination.
+					}
+				}
+				else if(vid_player.seek_start_pos_after_jump < 0 && wait_count == 0)
+					vid_player.seek_start_pos_after_jump = current_pos;//We've jumped.
 
 				if(!(vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT) && vid_player.media_current_pos >= vid_player.seek_pos)
 				{

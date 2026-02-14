@@ -535,9 +535,9 @@ typedef struct
 	TickCounter decoding_time_tick[DEBUG_GRAPH_TEMP_ELEMENTS];		//Decoding time (for multi-threaded software decoding).
 
 	//A/V desync management.
-	uint64_t wait_threshold_exceeded_ts;			//Timestamp that "wait threshold" has been exceeded (video is fast).
-	uint64_t drop_threshold_exceeded_ts;			//Timestamp that "skip threshold" has been exceeded (video is slow).
-	uint64_t last_video_frame_updated_ts;			//Timestamp for last video frame update.
+	uint64_t wait_threshold_exceeded_ts[EYE_MAX];	//Timestamp that "wait threshold" has been exceeded (video is fast).
+	uint64_t drop_threshold_exceeded_ts[EYE_MAX];	//Timestamp that "skip threshold" has been exceeded (video is slow).
+	uint64_t last_video_frame_updated_ts[EYE_MAX];	//Timestamp for last video frame update.
 	double video_delay_ms[EYE_MAX][DELAY_SAMPLES];	//Raw video delay (A/V desync) data.
 	double video_delay_avg_ms[EYE_MAX];				//Average video delay (A/V desync) data.
 
@@ -557,14 +557,14 @@ typedef struct
 
 	//Video.
 	uint8_t num_of_video_tracks;					//Number of video tracks for current file.
-	uint16_t vps;									//Actual video playback framerate.
-	uint16_t vfps_cache;							//Actual video playback framerate cache.
-	double next_frame_update_time;					//Next timestamp to update a video frame.
 	double next_vfps_update;						//Next timestamp to update vps value.
 	double video_frametime;							//Video frametime in ms, if file contains 2 video tracks, then this will be (actual_frametime / 2).
 	double buffer_progress;							//Buffering progress in % (for PLAYER_STATE_BUFFERING).
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
 	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
+	uint16_t vps[EYE_MAX];							//Actual video playback framerate.
+	uint16_t vfps_cache[EYE_MAX];					//Actual video playback framerate cache.
+	double next_frame_update_time[EYE_MAX];			//Next timestamp to update a video frame.
 	double video_x_offset[EYE_MAX];					//X (horizontal) offset for video.
 	double video_y_offset[EYE_MAX];					//Y (vertical) offset for video.
 	double video_zoom[EYE_MAX];						//Zoom level for video.
@@ -1618,7 +1618,8 @@ void Vid_resume(void)
 	Draw_set_refresh_needed(true);
 	Menu_suspend();
 
-	vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
+	for(uint32_t i = 0; i < EYE_MAX; i++)
+		vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
 }
 
 void Vid_suspend(void)
@@ -1754,130 +1755,103 @@ void Vid_main(void)
 	if(vid_player.state == PLAYER_STATE_PLAYING && vid_player.num_of_video_tracks > 0)
 	{
 		uint64_t current_ts = osGetTime();
+		uint8_t buffer_health[EYE_MAX] = { 0, };
 
-		if(vid_player.next_frame_update_time <= current_ts)
+		//Check for buffer health.
+		for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
 		{
-			bool is_both_buffer_ready = false;
-			bool is_buffer_full = false;
-			uint8_t buffer_health[EYE_MAX] = { 0, };
-			double next_ts = 0;
-
-			//Check for buffer health.
-			for(uint32_t i = 0; i < EYE_MAX; i++)
-			{
-				if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
-					buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
-				else
-					buffer_health[i] = VIDEO_BUFFERS - vid_player.next_draw_index[i] + vid_player.next_store_index[i];
-			}
-
-			if(vid_player.num_of_video_tracks >= 2)
-			{
-				is_both_buffer_ready = ((buffer_health[EYE_LEFT] > 0) && (buffer_health[EYE_RIGHT] > 0));
-				is_buffer_full = ((buffer_health[EYE_LEFT] >= (VIDEO_BUFFERS - 1)) || (buffer_health[EYE_RIGHT] >= (VIDEO_BUFFERS - 1)));
-			}
+			if(vid_player.next_draw_index[i] <= vid_player.next_store_index[i])
+				buffer_health[i] = vid_player.next_store_index[i] - vid_player.next_draw_index[i];
 			else
+				buffer_health[i] = VIDEO_BUFFERS - vid_player.next_draw_index[i] + vid_player.next_store_index[i];
+		}
+
+		for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
+		{
+			if(vid_player.next_frame_update_time[i] <= current_ts)
 			{
-				is_both_buffer_ready = (buffer_health[EYE_LEFT] > 0);
-				is_buffer_full = (buffer_health[EYE_LEFT] >= (VIDEO_BUFFERS - 1));
-			}
-
-			//Update video frame if any of them is true :
-			//1. Both buffer has at least 1 ready frame.
-			//(If number of video tracks is 1, then if buffer for left eye has at least 1 ready frame.)
-			//2. Any of buffer is full.
-			if(is_both_buffer_ready || is_buffer_full)
-			{
-				bool wait = false;
-				double video_delay = 0;
-				double wait_threshold = 0;
-				double force_wait_threshold = 0;
-
-				if(vid_player.num_of_audio_tracks > 0 && vid_player.num_of_video_tracks > 0)
+				if(buffer_health[i] > 0)
 				{
-					//todo consider EYE_RIGHT
-					//We only use EYE_LEFT for delay checking.
-					Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
-					Vid_update_video_delay(EYE_LEFT);
-					if(vid_player.num_of_video_tracks > 1)
-						Vid_update_video_delay(EYE_RIGHT);
+					bool wait = false;
+					double next_ts = 0;
+					double video_delay = 0;
+					double wait_threshold = 0;
+					double force_wait_threshold = 0;
 
-					video_delay = vid_player.video_delay_ms[EYE_LEFT][DELAY_SAMPLES - 1];
-					Util_sync_unlock(&vid_player.delay_update_lock);
-				}
-				else
-					video_delay = 0;
-
-				//Calc video frame drop threshold.
-				wait_threshold = WAIT_THRESHOLD(vid_player.video_frametime);
-				if(vid_player.num_of_video_tracks >= 2)
-					wait_threshold *= 2;
-
-				force_wait_threshold = FORCE_WAIT_THRESHOLD(vid_player.video_frametime);
-				if(vid_player.num_of_video_tracks >= 2)
-					force_wait_threshold *= 2;
-
-				if(video_delay < wait_threshold)
-				{
-					if(vid_player.wait_threshold_exceeded_ts == 0)
-						vid_player.wait_threshold_exceeded_ts = current_ts;
-
-					if((current_ts - vid_player.wait_threshold_exceeded_ts) > WAIT_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
-						wait = true;
-				}
-				else
-					vid_player.wait_threshold_exceeded_ts = 0;
-
-				if(video_delay < force_wait_threshold)
-					wait = true;
-
-				if(wait && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) > 0)
-				{
-					//Video is too fast, don't update a video frame to wait for audio.
-				}
-				else
-				{
-					for(uint32_t i = 0; i < EYE_MAX; i++)
+					if(vid_player.num_of_audio_tracks > 0)
 					{
-						if(vid_player.num_of_video_tracks <= i)
-							break;
+						Util_sync_lock(&vid_player.delay_update_lock, UINT64_MAX);
+						Vid_update_video_delay(i);
+						video_delay = vid_player.video_delay_ms[i][DELAY_SAMPLES - 1];
+						Util_sync_unlock(&vid_player.delay_update_lock);
+					}
+					else
+						video_delay = 0;
 
-						//If no buffer is available, don't update it.
-						if(buffer_health[i] == 0)
-							continue;
+					//Calc video frame drop threshold.
+					wait_threshold = WAIT_THRESHOLD(vid_player.video_frametime);
+					if(vid_player.num_of_video_tracks >= 2)
+						wait_threshold *= 2;
 
+					force_wait_threshold = FORCE_WAIT_THRESHOLD(vid_player.video_frametime);
+					if(vid_player.num_of_video_tracks >= 2)
+						force_wait_threshold *= 2;
+
+					if(video_delay < wait_threshold)
+					{
+						if(vid_player.wait_threshold_exceeded_ts[i] == 0)
+							vid_player.wait_threshold_exceeded_ts[i] = current_ts;
+
+						if((current_ts - vid_player.wait_threshold_exceeded_ts[i]) > WAIT_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+							wait = true;
+					}
+					else
+						vid_player.wait_threshold_exceeded_ts[i] = 0;
+
+					if(video_delay < force_wait_threshold)
+						wait = true;
+
+					if(wait && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) > 0)
+					{
+						//Video is too fast, don't update a video frame to wait for audio.
+					}
+					else
+					{
 						//Update buffer index.
 						image_index[i] = vid_player.next_draw_index[i];
 
-						if(vid_player.next_draw_index[i] + 1 < VIDEO_BUFFERS)
+						if((vid_player.next_draw_index[i] + 1) < VIDEO_BUFFERS)
 							vid_player.next_draw_index[i]++;
 						else
 							vid_player.next_draw_index[i] = 0;
+
+						Draw_set_refresh_needed(true);
+						vid_player.vfps_cache[i]++;
+						vid_player.last_video_frame_updated_ts[i] = current_ts;
 					}
 
-					Draw_set_refresh_needed(true);
-					vid_player.vfps_cache++;
-					vid_player.last_video_frame_updated_ts = current_ts;
+					//Update next frame update timestamp.
+					next_ts = vid_player.next_frame_update_time[i] + vid_player.video_frametime;
+					if(vid_player.num_of_video_tracks >= 2)
+						next_ts += vid_player.video_frametime;
+
+					if(osGetTime() >= next_ts + (vid_player.video_frametime * 10))
+						vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
+					else
+						vid_player.next_frame_update_time[i] = next_ts;
 				}
-
-				//Update next frame update timestamp.
-				next_ts = vid_player.next_frame_update_time + vid_player.video_frametime;
-				if(vid_player.num_of_video_tracks >= 2)
-					next_ts += vid_player.video_frametime;
-
-				if(osGetTime() >= next_ts + (vid_player.video_frametime * 10))
-					vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
 				else
-					vid_player.next_frame_update_time = next_ts;
-			}
-			else
-			{
-				//Unfortunately, we dropped frame since no frames are ready.
+				{
+					//Unfortunately, we dropped frame since no frames are ready.
+				}
 			}
 		}
 	}
 	else
-		vid_player.next_frame_update_time = osGetTime() + vid_player.video_frametime;
+	{
+		for(uint32_t i = 0; i < EYE_MAX; i++)
+			vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
+	}
 
 	//Update vps (video playback framerate).
 	if(osGetTime() >= vid_player.next_vfps_update)
@@ -1887,8 +1861,11 @@ void Vid_main(void)
 		else
 			vid_player.next_vfps_update += 1000;
 
-		vid_player.vps = vid_player.vfps_cache;
-		vid_player.vfps_cache = 0;
+		for(uint32_t i = 0; i < EYE_MAX; i++)
+		{
+			vid_player.vps[i] = vid_player.vfps_cache[i];
+			vid_player.vfps_cache[i] = 0;
+		}
 	}
 
 	//Calculate image size and drawing position.
@@ -3590,8 +3567,8 @@ static void Vid_update_video_delay(Vid_eye eye_index)
 
 	buffered_video_ms = buffer_health * vid_player.video_frametime;
 
-	if((vid_player.last_video_frame_updated_ts + vid_player.video_frametime) > current_ts)
-		buffered_video_ms += (vid_player.last_video_frame_updated_ts + vid_player.video_frametime) - current_ts;
+	if((vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime) > current_ts)
+		buffered_video_ms += (vid_player.last_video_frame_updated_ts[eye_index] + vid_player.video_frametime) - current_ts;
 
 	for(uint8_t i = 0; i < array_size - 1; i++)
 		vid_player.video_delay_ms[eye_index][i] = vid_player.video_delay_ms[eye_index][i + 1];
@@ -3814,11 +3791,11 @@ static void Vid_init_player_data(void)
 
 static void Vid_init_desync_data(void)
 {
-	vid_player.wait_threshold_exceeded_ts = 0;
-	vid_player.drop_threshold_exceeded_ts = 0;
-	vid_player.last_video_frame_updated_ts = 0;
 	for(uint32_t i = 0; i < EYE_MAX; i++)
 	{
+		vid_player.wait_threshold_exceeded_ts[i] = 0;
+		vid_player.drop_threshold_exceeded_ts[i] = 0;
+		vid_player.last_video_frame_updated_ts[i] = 0;
 		vid_player.video_delay_avg_ms[i] = 0;
 		for(uint16_t k = 0; k < DELAY_SAMPLES; k++)
 			vid_player.video_delay_ms[i][k] = 0;
@@ -3838,9 +3815,7 @@ static void Vid_init_media_data(void)
 static void Vid_init_video_data(void)
 {
 	vid_player.num_of_video_tracks = 0;
-	vid_player.next_frame_update_time = osGetTime();
 	vid_player.next_vfps_update = osGetTime() + 1000;
-	vid_player.vps = 0;
 	vid_player.video_frametime = 0;
 	vid_player.buffer_progress = 0;
 
@@ -3848,6 +3823,9 @@ static void Vid_init_video_data(void)
 	{
 		vid_player.next_store_index[i] = 0;
 		vid_player.next_draw_index[i] = 0;
+		vid_player.vps[i] = 0;
+		vid_player.vfps_cache[i] = 0;
+		vid_player.next_frame_update_time[i] = osGetTime();
 		vid_player.video_x_offset[i] = 0;
 		vid_player.video_y_offset[i] = 15;
 		vid_player.video_zoom[i] = 1;
@@ -6223,14 +6201,14 @@ void Vid_convert_thread(void* arg)
 
 				if(video_delay > drop_threshold)
 				{
-					if(vid_player.drop_threshold_exceeded_ts == 0)
-						vid_player.drop_threshold_exceeded_ts = current_ts;
+					if(vid_player.drop_threshold_exceeded_ts[packet_index] == 0)
+						vid_player.drop_threshold_exceeded_ts[packet_index] = current_ts;
 
-					if((current_ts - vid_player.drop_threshold_exceeded_ts) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
 						drop = true;
 				}
 				else
-					vid_player.drop_threshold_exceeded_ts = 0;
+					vid_player.drop_threshold_exceeded_ts[packet_index] = 0;
 
 				if(video_delay > force_drop_threshold)
 					drop = true;
@@ -6240,10 +6218,10 @@ void Vid_convert_thread(void* arg)
 				//No audio time reference available, use local delay.
 				if(total_delay > drop_threshold)
 				{
-					if(vid_player.drop_threshold_exceeded_ts == 0)
-						vid_player.drop_threshold_exceeded_ts = current_ts;
+					if(vid_player.drop_threshold_exceeded_ts[packet_index] == 0)
+						vid_player.drop_threshold_exceeded_ts[packet_index] = current_ts;
 
-					if((current_ts - vid_player.drop_threshold_exceeded_ts) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
+					if((current_ts - vid_player.drop_threshold_exceeded_ts[packet_index]) > DROP_THRESHOLD_ALLOWED_DURATION(vid_player.video_frametime))
 					{
 						drop = true;
 						if(vid_player.num_of_video_tracks >= 2)
@@ -6253,7 +6231,7 @@ void Vid_convert_thread(void* arg)
 					}
 				}
 				else
-					vid_player.drop_threshold_exceeded_ts = 0;
+					vid_player.drop_threshold_exceeded_ts[packet_index] = 0;
 
 				if(total_delay > force_drop_threshold)
 				{

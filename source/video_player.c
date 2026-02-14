@@ -563,7 +563,7 @@ typedef struct
 	uint8_t next_store_index[EYE_MAX];				//Next texture buffer index to store converted image.
 	uint8_t next_draw_index[EYE_MAX];				//Next texture buffer index that is ready to draw.
 	uint16_t vps[EYE_MAX];							//Actual video playback framerate.
-	uint16_t vfps_cache[EYE_MAX];					//Actual video playback framerate cache.
+	uint16_t vps_cache[EYE_MAX];					//Actual video playback framerate cache.
 	double next_frame_update_time[EYE_MAX];			//Next timestamp to update a video frame.
 	double video_x_offset[EYE_MAX];					//X (horizontal) offset for video.
 	double video_y_offset[EYE_MAX];					//Y (vertical) offset for video.
@@ -1711,6 +1711,7 @@ void Vid_main(void)
 	uint32_t color = DEF_DRAW_BLACK;
 	uint32_t disabled_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
+	uint64_t current_ts = osGetTime();
 	double text_subtitle_width = 0;
 	double text_subtitle_height = 0;
 	double y_offset = 0;
@@ -1754,7 +1755,6 @@ void Vid_main(void)
 
 	if(vid_player.state == PLAYER_STATE_PLAYING && vid_player.num_of_video_tracks > 0)
 	{
-		uint64_t current_ts = osGetTime();
 		uint8_t buffer_health[EYE_MAX] = { 0, };
 
 		//Check for buffer health.
@@ -1826,17 +1826,17 @@ void Vid_main(void)
 							vid_player.next_draw_index[i] = 0;
 
 						Draw_set_refresh_needed(true);
-						vid_player.vfps_cache[i]++;
+						vid_player.vps_cache[i]++;
 						vid_player.last_video_frame_updated_ts[i] = current_ts;
 					}
 
 					//Update next frame update timestamp.
-					next_ts = vid_player.next_frame_update_time[i] + vid_player.video_frametime;
+					next_ts = (vid_player.next_frame_update_time[i] + vid_player.video_frametime);
 					if(vid_player.num_of_video_tracks >= 2)
 						next_ts += vid_player.video_frametime;
 
-					if(osGetTime() >= next_ts + (vid_player.video_frametime * 10))
-						vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
+					if(current_ts >= (next_ts + (vid_player.video_frametime * 10)))
+						vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime);
 					else
 						vid_player.next_frame_update_time[i] = next_ts;
 				}
@@ -1850,21 +1850,21 @@ void Vid_main(void)
 	else
 	{
 		for(uint32_t i = 0; i < EYE_MAX; i++)
-			vid_player.next_frame_update_time[i] = (osGetTime() + vid_player.video_frametime);
+			vid_player.next_frame_update_time[i] = (current_ts + vid_player.video_frametime);
 	}
 
 	//Update vps (video playback framerate).
-	if(osGetTime() >= vid_player.next_vfps_update)
+	if(current_ts >= vid_player.next_vfps_update)
 	{
-		if(osGetTime() >= vid_player.next_vfps_update + 1000)
-			vid_player.next_vfps_update = osGetTime() + 1000;
+		if(current_ts >= (vid_player.next_vfps_update + 1000))
+			vid_player.next_vfps_update = (current_ts + 1000);
 		else
 			vid_player.next_vfps_update += 1000;
 
 		for(uint32_t i = 0; i < EYE_MAX; i++)
 		{
-			vid_player.vps[i] = vid_player.vfps_cache[i];
-			vid_player.vfps_cache[i] = 0;
+			vid_player.vps[i] = vid_player.vps_cache[i];
+			vid_player.vps_cache[i] = 0;
 		}
 	}
 
@@ -2027,12 +2027,12 @@ void Vid_main(void)
 				Util_str_add(&top_center_msg, vid_msg[MSG_FULL_SCREEN].buffer);
 			}
 
-			if(vid_player.show_screen_brightness_until >= osGetTime())
+			if(vid_player.show_screen_brightness_until >= current_ts)
 			{
 				//Display current brightness.
 				Util_str_format_append(&bottom_left_msg, "%s%" PRIu8 "/180", DEF_STR_NEVER_NULL(&vid_msg[MSG_BRIGHTNESS]), config.top_lcd_brightness);
 			}
-			if(vid_player.show_current_pos_until >= osGetTime())
+			if(vid_player.show_current_pos_until >= current_ts)
 			{
 				double current_bar_pos = 0;
 
@@ -3447,8 +3447,10 @@ static void Vid_update_decoding_statistics(double decoding_time, bool is_key_fra
 
 static void Vid_update_decoding_statistics_every_100ms(void)
 {
+	u64 current_ts = osGetTime();
+
 	//Update performance data every 100ms.
-	if(osGetTime() >= vid_player.previous_ts + 100)
+	if(current_ts >= (vid_player.previous_ts + 100))
 	{
 		uint8_t audio_divisor = DEBUG_GRAPH_AVG_SAMPLES;
 		uint8_t video_divisor = DEBUG_GRAPH_AVG_SAMPLES;
@@ -3458,7 +3460,7 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 		double video_recent_total_time = 0;
 		double conversion_recent_total_time = 0;
 
-		vid_player.previous_ts = osGetTime();
+		vid_player.previous_ts = current_ts;
 
 		for(uint16_t i = 1; i < DEBUG_GRAPH_ELEMENTS; i++)
 		{
@@ -3814,8 +3816,10 @@ static void Vid_init_media_data(void)
 
 static void Vid_init_video_data(void)
 {
+	u64 current_ts = osGetTime();
+
 	vid_player.num_of_video_tracks = 0;
-	vid_player.next_vfps_update = osGetTime() + 1000;
+	vid_player.next_vfps_update = (current_ts + 1000);
 	vid_player.video_frametime = 0;
 	vid_player.buffer_progress = 0;
 
@@ -3824,8 +3828,8 @@ static void Vid_init_video_data(void)
 		vid_player.next_store_index[i] = 0;
 		vid_player.next_draw_index[i] = 0;
 		vid_player.vps[i] = 0;
-		vid_player.vfps_cache[i] = 0;
-		vid_player.next_frame_update_time[i] = osGetTime();
+		vid_player.vps_cache[i] = 0;
+		vid_player.next_frame_update_time[i] = current_ts;
 		vid_player.video_x_offset[i] = 0;
 		vid_player.video_y_offset[i] = 15;
 		vid_player.video_zoom[i] = 1;

@@ -3578,7 +3578,6 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 					vid_player.seek_progress = 100;//Seek isn't necessary (seek destination is just on keyframe).
 				else
 					vid_player.seek_progress = ((seeked_amount / seek_amount) * 100);
-
 			}
 		}
 		else
@@ -5649,32 +5648,24 @@ void Vid_decode_thread(void* arg)
 			if(vid_player.state == PLAYER_STATE_SEEKING && (vid_player.num_of_video_tracks == 0
 			|| vid_player.video_frametime == 0 || type == MEDIA_PACKET_TYPE_VIDEO))
 			{
-				bool is_behind = false;
-				double current_pos = 0;
-
-				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
-				{
-					if(vid_player.video_current_pos[i] == 0 || vid_player.video_current_pos[i] < seek_start_pos)
-					{
-						is_behind = true;
-						current_pos = vid_player.video_current_pos[i];
-						break;
-					}
-				}
-
 				if((vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT))
 				{
+					bool is_behind = false;
+
+					if(vid_player.media_current_pos == 0 || vid_player.media_current_pos < seek_start_pos)
+						is_behind = true;
+
 					//Make sure we went back.
 					if(wait_count == 0 && (is_behind || vid_player.num_of_video_tracks == 0 || vid_player.video_frametime == 0))
 					{
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
 
 						if(vid_player.seek_start_pos_after_jump < 0)
-							vid_player.seek_start_pos_after_jump = current_pos;//We've jumped behing destination.
+							vid_player.seek_start_pos_after_jump = vid_player.media_current_pos;//We've jumped behing destination.
 					}
 				}
 				else if(vid_player.seek_start_pos_after_jump < 0 && wait_count == 0)
-					vid_player.seek_start_pos_after_jump = current_pos;//We've jumped.
+					vid_player.seek_start_pos_after_jump = vid_player.media_current_pos;//We've jumped.
 
 				if(!(vid_player.sub_state & PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT) && vid_player.media_current_pos >= vid_player.seek_pos)
 				{

@@ -480,6 +480,13 @@ typedef struct
 
 typedef struct
 {
+	//Global.
+	bool inited;									//Whether this app is initialized.
+	bool main_run;									//Whether this app should run.
+	bool thread_run;								//Whether worker threads should run.
+	bool thread_suspend;							//Whether worker threads should be suspended.
+	Str_data status;								//Status message.
+
 	//Settings (can be changed while playing videos).
 	bool remember_video_pos;						//Whether save playback position so that we can resume from there later.
 	bool use_linear_texture_filter;					//Whether apply linear texture filter.
@@ -639,6 +646,9 @@ typedef struct
 	Thread read_packet_thread;						//Read packet thread handle.
 	Queue_data read_packet_thread_command_queue;	//Read packet thread command queue.
 
+	Thread init_thread;								//Init thread handle.
+	Thread exit_thread;								//Exit thread handle.
+
 	//Mutexs.
 	Sync_data texture_init_free_lock;				//Mutex for initializing and freeing texture buffers.
 	Sync_data delay_update_lock;					//Mutex for updating video delay information.
@@ -701,24 +711,18 @@ static void Vid_expl_callback(Str_data* file, Str_data* dir);
 static void Vid_expl_cancel_callback(void);
 
 //Variables.
-static bool vid_main_run = false;
-static bool vid_thread_run = false;
-static bool vid_already_init = false;
-static bool vid_thread_suspend = true;
-static Str_data vid_status = { 0, };
 static Str_data vid_msg[MSG_MAX] = { 0, };
-static Thread vid_init_thread = 0, vid_exit_thread = 0;
 static Vid_player vid_player = { 0, };
 
 //Code.
 bool Vid_query_init_flag(void)
 {
-	return vid_already_init;
+	return vid_player.inited;
 }
 
 bool Vid_query_running_flag(void)
 {
-	return vid_main_run;
+	return vid_player.main_run;
 }
 
 void Vid_hid(const Hid_info* key)
@@ -1613,8 +1617,8 @@ void Vid_hid(const Hid_info* key)
 
 void Vid_resume(void)
 {
-	vid_thread_suspend = false;
-	vid_main_run = true;
+	vid_player.thread_suspend = false;
+	vid_player.main_run = true;
 	//Reset key state on scene change.
 	Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 	Draw_set_refresh_needed(true);
@@ -1626,8 +1630,8 @@ void Vid_resume(void)
 
 void Vid_suspend(void)
 {
-	vid_thread_suspend = true;
-	vid_main_run = false;
+	vid_player.thread_suspend = true;
+	vid_player.main_run = false;
 	Menu_resume();
 }
 
@@ -1645,13 +1649,16 @@ void Vid_init(bool draw)
 	uint32_t result = DEF_ERR_OTHER;
 	Sem_state state = { 0, };
 
-	Sem_get_state(&state);
-	DEF_LOG_RESULT_SMART(result, Util_str_init(&vid_status), (result == DEF_SUCCESS), result);
+	//Reset everything first.
+	memset(&vid_player, 0x00, sizeof(Vid_player));
 
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequential_id, sizeof(vid_status.sequential_id));
+	Sem_get_state(&state);
+	DEF_LOG_RESULT_SMART(result, Util_str_init(&vid_player.status), (result == DEF_SUCCESS), result);
+
+	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.status.sequential_id, sizeof(vid_player.status.sequential_id));
 
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model) && Util_is_core_available(2))
-		vid_init_thread = threadCreate(Vid_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
+		vid_player.init_thread = threadCreate(Vid_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 2, false);
 	else
 	{
 		if(DEF_SEM_MODEL_IS_NEW(state.console_model))
@@ -1659,10 +1666,10 @@ void Vid_init(bool draw)
 		else
 			APT_SetAppCpuTimeLimit(70);
 
-		vid_init_thread = threadCreate(Vid_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+		vid_player.init_thread = threadCreate(Vid_init_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 	}
 
-	while(!vid_already_init)
+	while(!vid_player.inited)
 	{
 		if(draw)
 			Vid_draw_init_exit_message();
@@ -1673,10 +1680,10 @@ void Vid_init(bool draw)
 	if(!DEF_SEM_MODEL_IS_NEW(state.console_model) || !Util_is_core_available(2))
 		APT_SetAppCpuTimeLimit(10);
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(vid_init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
-	threadFree(vid_init_thread);
+	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.init_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	threadFree(vid_player.init_thread);
 
-	Util_str_clear(&vid_status);
+	Util_str_clear(&vid_player.status);
 	Vid_resume();
 
 	DEF_LOG_STRING("Initialized.");
@@ -1687,9 +1694,9 @@ void Vid_exit(bool draw)
 	DEF_LOG_STRING("Exiting...");
 	uint32_t result = DEF_ERR_OTHER;
 
-	vid_exit_thread = threadCreate(Vid_exit_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
+	vid_player.exit_thread = threadCreate(Vid_exit_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 
-	while(vid_already_init)
+	while(vid_player.inited)
 	{
 		if(draw)
 			Vid_draw_init_exit_message();
@@ -1697,12 +1704,15 @@ void Vid_exit(bool draw)
 			Util_sleep(20000);
 	}
 
-	DEF_LOG_RESULT_SMART(result, threadJoin(vid_exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
-	threadFree(vid_exit_thread);
+	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.exit_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
+	threadFree(vid_player.exit_thread);
 
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_status.sequential_id);
-	Util_str_free(&vid_status);
+	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.status.sequential_id);
+	Util_str_free(&vid_player.status);
 	Draw_set_refresh_needed(true);
+
+	//Reset everything.
+	memset(&vid_player, 0x00, sizeof(Vid_player));
 
 	DEF_LOG_STRING("Exited.");
 }
@@ -3015,7 +3025,7 @@ static void Vid_draw_init_exit_message(void)
 		if(Util_cpu_usage_query_show_flag())
 			Util_cpu_usage_draw();
 
-		Draw(&vid_status, 0, 20, 0.65, 0.65, color);
+		Draw(&vid_player.status, 0, 20, 0.65, 0.65, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
 		//So that user can easily see them.
@@ -3034,7 +3044,7 @@ static void Vid_draw_init_exit_message(void)
 			if(Util_cpu_usage_query_show_flag())
 				Util_cpu_usage_draw();
 
-			Draw(&vid_status, 0, 20, 0.65, 0.65, color);
+			Draw(&vid_player.status, 0, 20, 0.65, 0.65, color);
 		}
 
 		Draw_apply_draw();
@@ -4233,8 +4243,7 @@ void Vid_init_thread(void* arg)
 
 	Sem_get_state(&state);
 
-	Util_str_set(&vid_status, "Initializing variables...");
-	memset(&vid_player, 0x00, sizeof(Vid_player));
+	Util_str_set(&vid_player.status, "Initializing variables...");
 	Vid_init_variable();
 	Vid_exit_full_screen();
 
@@ -4372,15 +4381,29 @@ void Vid_init_thread(void* arg)
 		Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.video_zoom[i], sizeof(vid_player.video_zoom[i]));
 	}
 
-	Util_str_add(&vid_status, "\nInitializing queue...");
+	Util_str_add(&vid_player.status, "\nInitializing queue...");
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.decode_thread_command_queue, 200), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.decode_thread_notification_queue, 100), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.read_packet_thread_command_queue, 200), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.decode_video_thread_command_queue, 200), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_queue_create(&vid_player.convert_thread_command_queue, 200), (result == DEF_SUCCESS), result);
 
-	Util_str_add(&vid_status, "\nStarting threads...");
-	vid_thread_run = true;
+	Util_str_add(&vid_player.status, "\nLoading settings...");
+	DEF_LOG_RESULT_SMART(result, Vid_load_settings(), (result == DEF_SUCCESS), result);
+
+	Util_str_add(&vid_player.status, "\nLoading textures...");
+	vid_player.banner_texture_handle = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/banner.t3x",
+	vid_player.banner_texture_handle, vid_player.banner, 0, 2), (result == DEF_SUCCESS), result);
+
+	vid_player.control_texture_handle = Draw_get_free_sheet_num();
+
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x",
+	vid_player.control_texture_handle, vid_player.control, 0, 2), (result == DEF_SUCCESS), result);
+
+	Util_str_add(&vid_player.status, "\nStarting threads...");
+	vid_player.thread_run = true;
+	vid_player.thread_suspend = true;
 	if(DEF_SEM_MODEL_IS_NEW(state.console_model))
 	{
 		vid_player.decode_thread = threadCreate(Vid_decode_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
@@ -4396,20 +4419,7 @@ void Vid_init_thread(void* arg)
 		vid_player.read_packet_thread = threadCreate(Vid_read_packet_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 1, false);
 	}
 
-	Util_str_add(&vid_status, "\nLoading settings...");
-	DEF_LOG_RESULT_SMART(result, Vid_load_settings(), (result == DEF_SUCCESS), result);
-
-	Util_str_add(&vid_status, "\nLoading textures...");
-	vid_player.banner_texture_handle = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/banner.t3x",
-	vid_player.banner_texture_handle, vid_player.banner, 0, 2), (result == DEF_SUCCESS), result);
-
-	vid_player.control_texture_handle = Draw_get_free_sheet_num();
-
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x",
-	vid_player.control_texture_handle, vid_player.control, 0, 2), (result == DEF_SUCCESS), result);
-
-	vid_already_init = true;
+	vid_player.inited = true;
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
@@ -4421,8 +4431,8 @@ void Vid_exit_thread(void* arg)
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
-	vid_already_init = false;
-	vid_thread_suspend = false;
+	vid_player.inited = false;
+	vid_player.thread_suspend = false;
 	vid_player.is_selecting_audio_track = false;
 	vid_player.is_selecting_subtitle_track = false;
 
@@ -4432,16 +4442,16 @@ void Vid_exit_thread(void* arg)
 	//Exit full-screen to avoid bottom LCD blackout.
 	Vid_exit_full_screen();
 
-	Util_str_set(&vid_status, "Saving settings...");
+	Util_str_set(&vid_player.status, "Saving settings...");
 	DEF_LOG_RESULT_SMART(result, Vid_save_settings(), (result == DEF_SUCCESS), result);
 
-	Util_str_add(&vid_status, "\nExiting threads...");
+	Util_str_add(&vid_player.status, "\nExiting threads...");
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.decode_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.decode_video_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.convert_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, threadJoin(vid_player.read_packet_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 
-	Util_str_add(&vid_status, "\nCleaning up...");
+	Util_str_add(&vid_player.status, "\nCleaning up...");
 	threadFree(vid_player.decode_thread);
 	threadFree(vid_player.decode_video_thread);
 	threadFree(vid_player.convert_thread);
@@ -4546,7 +4556,7 @@ void Vid_exit_thread(void* arg)
 	Util_sync_destroy(&vid_player.texture_init_free_lock);
 	Util_sync_destroy(&vid_player.delay_update_lock);
 
-	vid_already_init = false;
+	vid_player.inited = false;
 
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
@@ -4570,7 +4580,7 @@ void Vid_decode_thread(void* arg)
 	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "saved_pos/", &dummy, 1, true);//Create directory.
 	Util_str_init(&cache_file_name);
 
-	while (vid_thread_run)
+	while (vid_player.thread_run)
 	{
 		uint64_t timeout_us = DEF_THREAD_ACTIVE_SLEEP_TIME;
 		void* message = NULL;
@@ -4579,7 +4589,7 @@ void Vid_decode_thread(void* arg)
 
 		if(vid_player.state == PLAYER_STATE_IDLE)
 		{
-			while (vid_thread_suspend)
+			while (vid_player.thread_suspend)
 				Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 		}
 
@@ -5157,7 +5167,7 @@ void Vid_decode_thread(void* arg)
 						if(event == DECODE_THREAD_SHUTDOWN_REQUEST)
 						{
 							//Exit the threads.
-							vid_thread_run = false;
+							vid_player.thread_run = false;
 							continue;
 						}
 
@@ -5294,7 +5304,7 @@ void Vid_decode_thread(void* arg)
 					if(event == DECODE_THREAD_SHUTDOWN_REQUEST)
 					{
 						//Exit the threads.
-						vid_thread_run = false;
+						vid_player.thread_run = false;
 						continue;
 					}
 
@@ -5897,14 +5907,14 @@ void Vid_decode_video_thread(void* arg)
 
 	osTickCounterStart(&counter);
 
-	while (vid_thread_run)
+	while (vid_player.thread_run)
 	{
 		void* message = NULL;
 		Vid_command event = NONE_REQUEST;
 
 		if(vid_player.state == PLAYER_STATE_IDLE)
 		{
-			while (vid_thread_suspend)
+			while (vid_player.thread_suspend)
 				Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 		}
 
@@ -6120,7 +6130,7 @@ void Vid_convert_thread(void* arg)
 
 	osTickCounterStart(&conversion_time_counter);
 
-	while (vid_thread_run)
+	while (vid_player.thread_run)
 	{
 		bool drop = false;
 		uint16_t num_of_cached_raw_images = 0;
@@ -6131,7 +6141,7 @@ void Vid_convert_thread(void* arg)
 
 		if(vid_player.state == PLAYER_STATE_IDLE)
 		{
-			while (vid_thread_suspend)
+			while (vid_player.thread_suspend)
 				Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 		}
 
@@ -6514,7 +6524,7 @@ void Vid_read_packet_thread(void* arg)
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
 
-	while (vid_thread_run)
+	while (vid_player.thread_run)
 	{
 		Vid_command event = NONE_REQUEST;
 
@@ -6625,7 +6635,7 @@ void Vid_read_packet_thread(void* arg)
 
 		if(vid_player.state == PLAYER_STATE_IDLE)
 		{
-			while (vid_thread_suspend)
+			while (vid_player.thread_suspend)
 				Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 		}
 	}

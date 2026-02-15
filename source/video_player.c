@@ -2195,14 +2195,14 @@ void Vid_main(void)
 				Util_str_format(&format_str, "A : %s", vid_player.audio_info[vid_player.selected_audio_track].format_name);
 				Draw(&format_str, 0, 10, 0.45, 0.45, color);
 
-				//todo consider EYE_RIGHT
+				//Only display EYE_LEFT info.
 				Util_str_format(&format_str, "V : %s", vid_player.video_info[EYE_LEFT].format_name);
 				Draw(&format_str, 0, 19, 0.45, 0.45, color);
 
 				Util_str_format(&format_str, "S : %s", vid_player.subtitle_info[vid_player.selected_subtitle_track].format_name);
 				Draw(&format_str, 0, 28, 0.45, 0.45, color);
 
-				//todo consider EYE_RIGHT
+				//Only display EYE_LEFT info.
 				Util_str_format(&format_str, "%" PRIu32 "x%" PRIu32 "(%" PRIu32 "x%" PRIu32 ")@%.2ffps",
 				vid_player.video_info[EYE_LEFT].width, vid_player.video_info[EYE_LEFT].height, vid_player.video_info[EYE_LEFT].codec_width,
 				vid_player.video_info[EYE_LEFT].codec_height, vid_player.video_info[EYE_LEFT].framerate);
@@ -2611,7 +2611,7 @@ void Vid_main(void)
 					//Bottom line.
 					Draw_line(0, (y_offset + vid_player.ui_y_offset), color, DEBUG_GRAPH_WIDTH, (y_offset + vid_player.ui_y_offset), color, 1);
 					//Deadline.
-					//todo consider EYE_RIGHT
+					//Only display EYE_LEFT info.
 					Draw_line(0, ((y_offset + vid_player.ui_y_offset) - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, DEBUG_GRAPH_WIDTH, ((y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)) + vid_player.ui_y_offset), 0xFF606060, 1);
 
 					//Keyframe.
@@ -2649,7 +2649,7 @@ void Vid_main(void)
 						else
 							buffer_health = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
 
-						//todo consider EYE_RIGHT
+						//Only display EYE_LEFT info.
 						buffer_health_ms = (buffer_health * vid_player.video_frametime[EYE_LEFT]);
 
 						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 200, 10);
@@ -2695,7 +2695,7 @@ void Vid_main(void)
 					//Deadline text.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
-						//todo consider EYE_RIGHT
+						//Only display EYE_LEFT info.
 						Util_str_format(&format_str, "Deadline : %.2fms", vid_player.video_frametime[EYE_LEFT]);
 						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, 0xFF606060);
 					}
@@ -2724,7 +2724,7 @@ void Vid_main(void)
 					//Audio decoding time and thread mode text.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
-						//todo consider EYE_RIGHT
+						//Only display EYE_LEFT info.
 						uint8_t thread_mode_index = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? 0 : vid_player.video_info[EYE_LEFT].thread_type);
 						uint8_t active_threads = (thread_mode_index ? vid_player.num_of_threads : 1);
 

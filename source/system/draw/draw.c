@@ -877,8 +877,6 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
 	if(!util_draw_init)
 		return;
 
-	C2D_DrawRectangle(0, 0, 0, 0, 0, 0x0, 0x0, 0x0, 0x0);
-	//magic C2D_DrawLine() won't work without calling C2D_DrawRectangle()
 	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
 }
 

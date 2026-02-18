@@ -40,9 +40,9 @@ GRAPHICS	:=	gfx
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
 #---------------------------------------------------------------------------------
-APP_VER				:= 1
+APP_VER				:= 1121
 APP_TITLE			:= Video player for 3DS
-APP_DESCRIPTION		:= Video player for 3DS v1.6.1 (nightly build)
+APP_DESCRIPTION		:= Video player for 3DS v1.6.1
 APP_AUTHOR			:= Core_2_Extreme
 PRODUCT_CODE		:= CTR-Vid
 UNIQUE_ID			:= 0xEC600

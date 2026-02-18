@@ -279,6 +279,7 @@ OLD3DS :
     * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
+* [v1.6.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v161)
 * [v1.6.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v160)
 * [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)
 * [v1.5.2](https://github.com/Core-2-Extreme/Video_player_for_3DS#v152)
@@ -296,6 +297,19 @@ OLD3DS :
 * [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
+
+### v1.6.1
+**Changes** \
+Number of decoding threads are selectable now. \
+Full-screen transition period has been changed from 5 seconds to 3 seconds. \
+Progress message (`xx.yy%`) has been added to `seeking` and `processing video` messages. \
+3D slider bar no longer moves video.
+
+**Fixed bugs** \
+Race condition that may cause model detection to fail and disable use of HW decoder has been fixed. \
+Seek issue on audio only file and 3D videos have been fixed. \
+Many issues on code that may cause problems on 3D videos have been fixed. \
+Unable to play 3D videos if HW decoder is enabled has been fixed (by disabling HW decoder on 3D videos).
 
 ### v1.6.0
 **Changes** \

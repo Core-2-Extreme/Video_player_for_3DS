@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define DEF_MENU_MAIN_DIR				/*(const char*)(*/"/3ds/Video_player/"/*)*/
-#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"1.6.1"/*)*/
-#define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1121)
+#define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"1.6.2 (nightly build)"/*)*/
+#define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1)
 
 bool Menu_query_must_exit_flag(void);
 

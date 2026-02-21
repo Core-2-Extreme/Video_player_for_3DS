@@ -5710,7 +5710,6 @@ void Vid_decode_thread(void* arg)
 			if(type == MEDIA_PACKET_TYPE_UNKNOWN)
 			{
 				DEF_LOG_STRING("Unknown packet type!!!!!");
-				Util_sleep(10000);
 				continue;
 			}
 			else if(type == MEDIA_PACKET_TYPE_AUDIO)

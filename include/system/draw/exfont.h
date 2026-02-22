@@ -100,34 +100,33 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 /**
  * @brief Draw external font.
  * Do nothing if external font API is not initialized.
- * @param in_string (in) Array for parsed text (returned by Exfont_text_parse_*()).
- * @param num_of_characters (in) Number of text elements (returned by Exfont_text_parse_*()).
+ * @param character (in) One character (returned by Exfont_text_parse_*()).
  * @param texture_x (in) X position (in px).
  * @param texture_y (in) Y position (in px).
- * @param texture_size_x (in) Font size for X direction.
- * @param texture_size_y (in) Font size for Y direction.
+ * @param base_size (in) Base font size (in px).
+ * @param x_scale (in) Scale for X direction.
+ * @param y_scale (in) Scale for Y direction.
  * @param abgr8888 (in) Font color.
  * @param out_width (out) Total font width (in px).
  * @param out_height (out) Total font height (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Exfont_draw_external_fonts(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y,
-float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height);
+void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
+float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height);
 
 /**
  * @brief Get text size.
  * Do nothing if external font API is not initialized.
- * @param in_string (in) Array for parsed text (returned by Exfont_text_parse_*()).
- * @param num_of_characters (in) Number of text elements (returned by Exfont_text_parse_*()).
- * @param texture_size_x (in) Font size for X direction.
- * @param texture_size_y (in) Font size for Y direction.
+ * @param character (in) One character (returned by Exfont_text_parse_*()).
+ * @param base_size (in) Base font size (in px).
+ * @param x_scale (in) Scale for X direction.
+ * @param y_scale (in) Scale for Y direction.
  * @param out_width (out) Text width (in px).
  * @param out_height (out) Text height (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x,
-float texture_size_y, float* out_width, float* out_height);
+void Exfont_draw_get_text_size(Exfont_one_char* character, float base_size, float x_scale, float y_scale, float* out_width, float* out_height);
 
 #endif //!defined(DEF_EXFONT_H)

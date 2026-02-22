@@ -287,6 +287,25 @@
 #define HID_INFO_RAW_A_BUFFER_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
 #define HID_INFO_RAW_A_BUFFER_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 
+#define BASE_FONT_SIZE_SUBTITLE						(float)(15.00)	//Base font size for subtitles.
+
+#define FONT_SIZE_STATUS							(float)(19.50)	//Font size for status.
+#define FONT_SIZE_OK_BUTTON							(float)(12.75)	//Font size for ok button.
+#define FONT_SIZE_VER								(float)(12.75)	//Font size for version.
+#define FONT_SIZE_OSD								(float)(13.50)	//Font size for OSD messages.
+#define FONT_SIZE_MEDIA_INFO						(float)(13.50)	//Font size for media info.
+#define FONT_SIZE_SETTING_0							(float)(15.00)	//Font size for settings 0 buttons.
+#define FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND		(float)(13.50)	//Font size for move content mode in German (temporal workaround).
+#define FONT_SIZE_SETTING_1							(float)(12.75)	//Font size for settings 1 buttons.
+#define FONT_SIZE_INFO								(float)(12.75)	//Font size for debug info.
+#define FONT_SIZE_NUM_OF_THREADS_CHANGE				(float)(18.00)	//Font size for number of threads increment/decrement buttons.
+#define FONT_SIZE_CONTROLS							(float)(12.75)	//Font size for controls button.
+#define FONT_SIZE_CONTROLS_CONTENT					(float)(13.50)	//Font size for controls messages.
+#define FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND	(float)(12.00)	//Font size for controls messages in Romanian and German (temporal workaround).
+#define FONT_SIZE_MEDIA_POS							(float)(15.00)	//Font size for media position.
+#define FONT_SIZE_TRACK_SELECTION_TITLE				(float)(18.00)	//Font size for track selection title.
+#define FONT_SIZE_TRACK_SELECTION					(float)(14.25)	//Font size for track selection.
+
 //Typedefs.
 typedef enum
 {
@@ -1724,8 +1743,7 @@ void Vid_main(void)
 	uint32_t disabled_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	uint64_t current_ts = osGetTime();
-	double text_subtitle_width = 0;
-	double text_subtitle_height = 0;
+	double text_subtitle_size = 0;
 	double y_offset = 0;
 	uint8_t image_index[EYE_MAX] = { 0, };
 	double image_width[EYE_MAX] = { 0, };
@@ -1924,8 +1942,7 @@ void Vid_main(void)
 	//Calculate subtitle size and drawing position.
 	if(subtitle_index < SUBTITLE_BUFFERS)
 	{
-		text_subtitle_width = 0.5 * vid_player.subtitle_zoom;
-		text_subtitle_height = 0.5 * vid_player.subtitle_zoom;
+		text_subtitle_size = ((double)BASE_FONT_SIZE_SUBTITLE * vid_player.subtitle_zoom);
 
 		for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 		{
@@ -2032,7 +2049,7 @@ void Vid_main(void)
 					if(vid_player.subtitle_data[subtitle_index].text)
 					{
 						Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_LEFT], text_subtitle_y_offset[SCREEN_POS_TOP_LEFT],
-						text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+						text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 					}
 				}
 			}
@@ -2091,20 +2108,20 @@ void Vid_main(void)
 
 			if(Util_str_has_data(&top_center_msg))
 			{
-				Draw_with_background(&top_center_msg, 0, 20, 0.45, 0.45, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				Draw_with_background(&top_center_msg, 0, 20, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+				DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
 			if(Util_str_has_data(&bottom_left_msg))
 			{
-				Draw_with_background(&bottom_left_msg, 0, 200, 0.45, 0.45, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_BOTTOM,
-				400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				Draw_with_background(&bottom_left_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT,
+				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
 			if(Util_str_has_data(&bottom_center_msg))
 			{
-				Draw_with_background(&bottom_center_msg, 0, 200, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_BOTTOM,
-				400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				Draw_with_background(&bottom_center_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
 			if(config.is_debug)
@@ -2146,7 +2163,7 @@ void Vid_main(void)
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
 							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], text_subtitle_y_offset[SCREEN_POS_TOP_RIGHT],
-							text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 						}
 					}
 				}
@@ -2159,20 +2176,20 @@ void Vid_main(void)
 
 				if(Util_str_has_data(&top_center_msg))
 				{
-					Draw_with_background(&top_center_msg, 0, 20, 0.45, 0.45, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-					400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					Draw_with_background(&top_center_msg, 0, 20, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+					DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 				}
 
 				if(Util_str_has_data(&bottom_left_msg))
 				{
-					Draw_with_background(&bottom_left_msg, 0, 200, 0.45, 0.45, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_BOTTOM,
-					400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					Draw_with_background(&bottom_left_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT,
+					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 				}
 
 				if(Util_str_has_data(&bottom_center_msg))
 				{
-					Draw_with_background(&bottom_center_msg, 0, 200, 0.5, 0.5, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_BOTTOM,
-					400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					Draw_with_background(&bottom_center_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
+					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 				}
 
 				if(config.is_debug)
@@ -2199,24 +2216,24 @@ void Vid_main(void)
 				double current_bar_pos = 0;
 
 				Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
-				Draw_c(DEF_VID_VER, 0, 0, 0.425, 0.425, DEF_DRAW_GREEN);
+				Draw_c(DEF_VID_VER, 0, 0, FONT_SIZE_VER, DEF_DRAW_GREEN);
 
 				//Draw audio, video and subtitle codec info.
 				Util_str_format(&format_str, "A : %s", vid_player.audio_info[vid_player.selected_audio_track].format_name);
-				Draw(&format_str, 0, 10, 0.45, 0.45, color);
+				Draw(&format_str, 0, 10, FONT_SIZE_MEDIA_INFO, color);
 
 				//Only display EYE_LEFT info.
 				Util_str_format(&format_str, "V : %s", vid_player.video_info[EYE_LEFT].format_name);
-				Draw(&format_str, 0, 19, 0.45, 0.45, color);
+				Draw(&format_str, 0, 19, FONT_SIZE_MEDIA_INFO, color);
 
 				Util_str_format(&format_str, "S : %s", vid_player.subtitle_info[vid_player.selected_subtitle_track].format_name);
-				Draw(&format_str, 0, 28, 0.45, 0.45, color);
+				Draw(&format_str, 0, 28, FONT_SIZE_MEDIA_INFO, color);
 
 				//Only display EYE_LEFT info.
 				Util_str_format(&format_str, "%" PRIu32 "x%" PRIu32 "(%" PRIu32 "x%" PRIu32 ")@%.2ffps",
 				vid_player.video_info[EYE_LEFT].width, vid_player.video_info[EYE_LEFT].height, vid_player.video_info[EYE_LEFT].codec_width,
 				vid_player.video_info[EYE_LEFT].codec_height, vid_player.video_info[EYE_LEFT].framerate);
-				Draw(&format_str, 0, 37, 0.45, 0.45, color);
+				Draw(&format_str, 0, 37, FONT_SIZE_MEDIA_INFO, color);
 
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
@@ -2241,7 +2258,7 @@ void Vid_main(void)
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
 							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_BOTTOM], text_subtitle_y_offset[SCREEN_POS_BOTTOM],
-							text_subtitle_width, text_subtitle_height, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 						}
 					}
 				}
@@ -2261,8 +2278,8 @@ void Vid_main(void)
 						Vid_playback current_playback_mode = (Vid_playback)(MSG_NO_REPEAT + vid_player.playback_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_PLAY_METHOD]), DEF_STR_NEVER_NULL(&vid_msg[current_playback_mode]));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.playback_mode_button, vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.playback_mode_button, (vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2277,8 +2294,8 @@ void Vid_main(void)
 						uint32_t temp_color = ((vid_player.sub_state & PLAYER_SUB_STATE_TOO_BIG) ? DEF_DRAW_RED : color);
 
 						Util_str_format(&format_str, "%s%" PRIu32 "%%", DEF_STR_NEVER_NULL(&vid_msg[MSG_VOLUME]), vid_player.volume);
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.volume_button, vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.volume_button, (vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2290,8 +2307,8 @@ void Vid_main(void)
 					//Select audio track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, (vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2303,8 +2320,8 @@ void Vid_main(void)
 					//Select subtitle track.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
-						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, (vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2317,8 +2334,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%" PRIu32 "s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SEEK]), vid_player.seek_duration);
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.seek_duration_button, vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.seek_duration_button, (vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2331,8 +2348,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_REMEMBER_POS]), (vid_player.remember_video_pos ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.remember_video_pos_button, vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.remember_video_pos_button, (vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2345,8 +2362,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_TEX_FILTER]), (vid_player.use_linear_texture_filter ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.texture_filter_button, vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.texture_filter_button, (vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2359,8 +2376,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_ASPECT_RATIO]), (vid_player.correct_aspect_ratio ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.correct_aspect_ratio_button, vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.correct_aspect_ratio_button, (vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2379,13 +2396,13 @@ void Vid_main(void)
 						//Temporal workaround for UI overflow.
 						if(strcmp(config.lang, "de") == 0)
 						{
-							Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.45, 0.45, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-							DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+							Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+							300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 						}
 						else
 						{
-							Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-							DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+							Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+							300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 						}
 					}
 					else
@@ -2399,8 +2416,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_FRAME]), (vid_player.allow_skip_frames ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_frames_button, vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_frames_button, (vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2415,8 +2432,8 @@ void Vid_main(void)
 						uint32_t temp_color = (vid_player.allow_skip_frames ? color : disabled_color);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_KEY_FRAME]), (vid_player.allow_skip_key_frames ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.5, 0.5, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 15,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_key_frames_button, vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_key_frames_button, (vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2429,9 +2446,9 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_RESTART_PLAYBACK_THRESHOLD]), vid_player.restart_playback_threshold);
-						Draw(&format_str, 12.5, y_offset + vid_player.ui_y_offset - 15, 0.5, 0.5, color);
-						Draw_texture(&background, DEF_DRAW_WEAK_BLACK, 12.5, y_offset + vid_player.ui_y_offset + 7.5, 300, 5);
-						Draw_texture(&vid_player.restart_playback_threshold_bar, vid_player.restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED,
+						Draw(&format_str, 12.5, (y_offset + vid_player.ui_y_offset - 15), FONT_SIZE_SETTING_0, color);
+						Draw_texture(&background, DEF_DRAW_WEAK_BLACK, 12.5, (y_offset + vid_player.ui_y_offset + 7.5), 300, 5);
+						Draw_texture(&vid_player.restart_playback_threshold_bar, (vid_player.restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED),
 						((double)vid_player.restart_playback_threshold / (DEF_DECODER_MAX_RAW_IMAGE - 1) * 290) + 12.5, y_offset + vid_player.ui_y_offset, 10, 20);
 					}
 					else
@@ -2454,8 +2471,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_AUDIO]), (vid_player.disable_audio ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_audio_button, vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_audio_button, (vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2468,8 +2485,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_VIDEO]), (vid_player.disable_video ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_video_button, vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_video_button, (vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2482,8 +2499,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_SUBTITLE]), (vid_player.disable_subtitle ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_subtitle_button, vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_subtitle_button, (vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2496,9 +2513,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_DECODER]), (vid_player.use_hw_decoding ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425,
-						(!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_decoding_button, vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color),
+						DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_decoding_button, (vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2511,8 +2527,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_CONVERTER]), (vid_player.use_hw_color_conversion ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_color_conversion_button, vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_color_conversion_button, (vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2525,8 +2541,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MULTI_THREAD]), (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_multi_threaded_decoding_button, vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_multi_threaded_decoding_button, (vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2539,8 +2555,8 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_LOWER_RESOLUTION]), lower_resolution_mode[vid_player.lower_resolution]);
-						Draw_with_background(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.lower_resolution_button, vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
+						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.lower_resolution_button, (vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 					}
 					else
 					{
@@ -2553,13 +2569,13 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 165)
 					{
 						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_NUM_OF_THREADS]), vid_player.num_of_threads);
-						Draw(&format_str, 12.5, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						Draw(&format_str, 12.5, (y_offset + vid_player.ui_y_offset), FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color));
 
-						Draw_with_background_c("-", 265, y_offset + vid_player.ui_y_offset, 0.6, 0.6, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 20, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.decrement_num_of_threads_button, vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background_c("-", 265, (y_offset + vid_player.ui_y_offset), FONT_SIZE_NUM_OF_THREADS_CHANGE, ((vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color), DRAW_X_ALIGN_CENTER,
+						DRAW_Y_ALIGN_CENTER, 20, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.decrement_num_of_threads_button, vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
-						Draw_with_background_c("+", 290, y_offset + vid_player.ui_y_offset, 0.6, 0.6, vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 20, 20,
-						DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.increment_num_of_threads_button, vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background_c("+", 290, (y_offset + vid_player.ui_y_offset), FONT_SIZE_NUM_OF_THREADS_CHANGE, ((vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color), DRAW_X_ALIGN_CENTER,
+						DRAW_Y_ALIGN_CENTER, 20, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.increment_num_of_threads_button, vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 					}
 					else
 					{
@@ -2639,7 +2655,7 @@ void Vid_main(void)
 					{
 						Util_str_format(&format_str, "Compressed buffer : %" PRIu16, Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID));
 						Draw_texture(&vid_player.show_packet_buffer_graph_button, vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 200, 10);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_packet_buffer_graph ? 0xFFFF00FF : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_packet_buffer_graph ? 0xFFFF00FF : color));
 					}
 					else
 					{
@@ -2662,13 +2678,13 @@ void Vid_main(void)
 						//Only display EYE_LEFT info.
 						buffer_health_ms = (buffer_health * vid_player.video_frametime[EYE_LEFT]);
 
-						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 200, 10);
+						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, (y_offset + vid_player.ui_y_offset), 200, 10);
 
 						Util_str_format(&format_str, "Raw video buffer : %" PRIu16 "(%" PRIu32 "ms)", buffer_health, buffer_health_ms);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_raw_video_buffer_graph ? 0xFF2060FF : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_raw_video_buffer_graph ? 0xFF2060FF : color));
 
 						Util_str_format(&format_str, "Frames : %" PRIu32, vid_player.total_frames);
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 					}
 					else
 					{
@@ -2693,7 +2709,7 @@ void Vid_main(void)
 						Draw_texture(&vid_player.show_raw_audio_buffer_graph_button, vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset + vid_player.ui_y_offset, 200, 10);
 
 						Util_str_format(&format_str, "Raw audio buffer : %" PRIu16 "(%" PRIu32 "ms)", buffer_health, buffer_health_ms);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_raw_audio_buffer_graph ? 0xFF00A000 : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_raw_audio_buffer_graph ? 0xFF00A000 : color));
 					}
 					else
 					{
@@ -2707,7 +2723,7 @@ void Vid_main(void)
 					{
 						//Only display EYE_LEFT info.
 						Util_str_format(&format_str, "Deadline : %.2fms", vid_player.video_frametime[EYE_LEFT]);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, 0xFF606060);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, 0xFF606060);
 					}
 
 					y_offset += 10;
@@ -2724,10 +2740,10 @@ void Vid_main(void)
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 170)
 					{
 						Util_str_format(&format_str, "Video decoding (avg) : %.3fms", vid_player.video_decoding_avg_time);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_decoding_graph ? DEF_DRAW_RED : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_decoding_graph ? DEF_DRAW_RED : color));
 
 						Util_str_format(&format_str, "Hw decoding : %s", ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? "yes" : "no"));
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 					}
 
 					y_offset += 10;
@@ -2739,10 +2755,10 @@ void Vid_main(void)
 						uint8_t active_threads = (thread_mode_index ? vid_player.num_of_threads : 1);
 
 						Util_str_format(&format_str, "Audio decoding (avg) : %.3fms", vid_player.audio_decoding_avg_time);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_decoding_graph ? 0xFF800080 : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_decoding_graph ? 0xFF800080 : color));
 
 						Util_str_format(&format_str, "Threads : %" PRIu8 " (%s)", active_threads, thread_mode[thread_mode_index]);
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 					}
 
 					y_offset += 10;
@@ -2761,18 +2777,18 @@ void Vid_main(void)
 						bool is_hw = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) || (vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION));
 
 						Util_str_format(&format_str, "Color conversion (avg) : %.3fms", vid_player.conversion_avg_time);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, vid_player.show_color_conversion_graph ? DEF_DRAW_BLUE : color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, (vid_player.show_color_conversion_graph ? DEF_DRAW_BLUE : color));
 
 						Util_str_format(&format_str, "Hw conversion : %s", (is_hw ? "yes" : "no"));
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 					}
 
 					y_offset += 10;
 					//Decoding speed note.
 					if(y_offset + vid_player.ui_y_offset >= 50 && y_offset + vid_player.ui_y_offset <= 160)
 					{
-						Draw_c("The values below are unsuitable for benchmarking", 0, (y_offset + vid_player.ui_y_offset), 0.425, 0.425, color);
-						Draw_c("if frame level multi-threaded decoding is enabled.", 0, (y_offset + vid_player.ui_y_offset + 10), 0.425, 0.425, color);
+						Draw_c("The values below are unsuitable for benchmarking", 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
+						Draw_c("if frame level multi-threaded decoding is enabled.", 0, (y_offset + vid_player.ui_y_offset + 10), FONT_SIZE_INFO, color);
 					}
 
 					y_offset += 20;
@@ -2794,17 +2810,17 @@ void Vid_main(void)
 						}
 
 						Util_str_format(&format_str, "Avg (%" PRIu16 " frames) %.2f fps/thread", DEBUG_GRAPH_AVG_SAMPLES, recent_avg_fps);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 
 						Util_str_format(&format_str, "Min %.2f fps/thread", min_fps);
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 
 						y_offset += 10;
 						Util_str_format(&format_str, "Avg (all frames) %.2f fps/thread", avg_fps);
-						Draw(&format_str, 0, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 0, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 
 						Util_str_format(&format_str, "Max %.2f fps/thread", max_fps);
-						Draw(&format_str, 200, y_offset + vid_player.ui_y_offset, 0.425, 0.425, color);
+						Draw(&format_str, 200, (y_offset + vid_player.ui_y_offset), FONT_SIZE_INFO, color);
 					}
 
 					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
@@ -2813,8 +2829,8 @@ void Vid_main(void)
 				}
 
 				//Controls.
-				Draw_with_background(&vid_msg[MSG_CONTROLS], 167.5, 195, 0.425, 0.425, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 145, 10,
-				DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.control_button, vid_player.control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+				Draw_with_background(&vid_msg[MSG_CONTROLS], 167.5, 195, FONT_SIZE_CONTROLS, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				145, 10, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.control_button, (vid_player.control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 
 				//Draw time bar.
 				if(vid_player.seek_bar.selected)
@@ -2828,7 +2844,7 @@ void Vid_main(void)
 				Util_convert_seconds_to_time(DEF_UTIL_MS_TO_S_D(vid_player.media_duration), &time_str[1]);
 
 				Util_str_format(&format_str, "%s/%s", DEF_STR_NEVER_NULL(&time_str[0]), DEF_STR_NEVER_NULL(&time_str[1]));
-				Draw(&format_str, 10, 192.5, 0.5, 0.5, color);
+				Draw(&format_str, 10, 192.5, FONT_SIZE_MEDIA_POS, color);
 
 				Draw_texture(&vid_player.seek_bar, DEF_DRAW_GREEN, 5, 210, 310, 10);
 				if(vid_player.media_duration != 0)
@@ -2843,56 +2859,56 @@ void Vid_main(void)
 					//Temporal workaround for UI overflow.
 					if(strcmp(config.lang, "ro") == 0 || strcmp(config.lang, "de") == 0)
 					{
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, 0.4, 0.4, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, 0.4, 0.4, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
 					}
 					else
 					{
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, 0.45, 0.45, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, 0.45, 0.45, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
+						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
 					}
 				}
 
 				if(vid_player.is_selecting_audio_track)
 				{
 					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
-					Draw(&vid_msg[MSG_AUDIO_TRACK_DESCRIPTION], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
+					Draw(&vid_msg[MSG_AUDIO_TRACK_DESCRIPTION], 42.5, 25, FONT_SIZE_TRACK_SELECTION_TITLE, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_audio_tracks; i++)
 					{
 						Util_str_format(&format_str, "Track %" PRIu8 "(Lang:%s)", i, vid_player.audio_info[i].track_lang);
 						Draw_texture(&vid_player.audio_track_button[i], vid_player.audio_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
-						Draw(&format_str, 42.5, 40 + (i * 12), 0.475, 0.475, i == vid_player.selected_audio_track_cache ? DEF_DRAW_RED : color);
+						Draw(&format_str, 42.5, (40 + (i * 12)), FONT_SIZE_TRACK_SELECTION, (i == vid_player.selected_audio_track_cache ? DEF_DRAW_RED : color));
 					}
 
 					Draw_texture(&vid_player.audio_track_ok_button, vid_player.audio_track_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
-					Draw_c("OK", 152.5, 140, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw_c("OK", 152.5, 140, FONT_SIZE_OK_BUTTON, DEF_DRAW_BLACK);
 				}
 
 				if(vid_player.is_selecting_subtitle_track)
 				{
 					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
-					Draw(&vid_msg[MSG_SUBTITLE_TRACK_DESCRIPTION], 42.5, 25, 0.6, 0.6, DEF_DRAW_BLACK);
+					Draw(&vid_msg[MSG_SUBTITLE_TRACK_DESCRIPTION], 42.5, 25, FONT_SIZE_TRACK_SELECTION_TITLE, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_subtitle_tracks; i++)
 					{
 						Util_str_format(&format_str, "Track %" PRIu8 "(Lang:%s)", i, vid_player.subtitle_info[i].track_lang);
 						Draw_texture(&vid_player.subtitle_track_button[i], vid_player.subtitle_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
-						Draw(&format_str, 42.5, 40 + (i * 12), 0.475, 0.475, i == vid_player.selected_subtitle_track_cache ? DEF_DRAW_RED : color);
+						Draw(&format_str, 42.5, (40 + (i * 12)), FONT_SIZE_TRACK_SELECTION, (i == vid_player.selected_subtitle_track_cache ? DEF_DRAW_RED : color));
 					}
 
 					Draw_texture(&vid_player.subtitle_track_ok_button, vid_player.subtitle_track_ok_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 150, 140, 20, 10);
-					Draw_c("OK", 152.5, 140, 0.425, 0.425, DEF_DRAW_BLACK);
+					Draw_c("OK", 152.5, 140, FONT_SIZE_OK_BUTTON, DEF_DRAW_BLACK);
 				}
 
 				if(Util_expl_query_show_flag())
@@ -3025,7 +3041,7 @@ static void Vid_draw_init_exit_message(void)
 		if(Util_cpu_usage_query_show_flag())
 			Util_cpu_usage_draw();
 
-		Draw(&vid_player.status, 0, 20, 0.65, 0.65, color);
+		Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
 		//So that user can easily see them.
@@ -3044,7 +3060,7 @@ static void Vid_draw_init_exit_message(void)
 			if(Util_cpu_usage_query_show_flag())
 				Util_cpu_usage_draw();
 
-			Draw(&vid_player.status, 0, 20, 0.65, 0.65, color);
+			Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 		}
 
 		Draw_apply_draw();

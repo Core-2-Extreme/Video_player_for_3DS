@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/draw/draw_types.h"
-#include "system/util/cpu_usage_types.h"
 #include "system/util/raw_types.h"
 #include "system/util/str_types.h"
 
@@ -147,14 +146,17 @@ Draw_image_data Draw_get_empty_image(void);
  * @brief Get text size.
  * Do nothing if draw API is not initialized.
  * @param text (in) Text.
- * @param text_size_x (in) Font size for X direction.
- * @param text_size_y (in) Font size for Y direction.
+ * @param base_size (in) Base font size (in px).
+ * @param x_scale (in) Scale for X direction.
+ * @param y_scale (in) Scale for Y direction.
+ * @param x_space_scale (in) Scale for space between characters for X direction.
+ * @param y_space_scale (in) Scale for space between characters for Y direction.
  * @param out_text_size_x (out) Text width (in px).
  * @param out_text_size_y (out) Text height (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, double* out_text_size_x, double* out_text_size_y);
+void Draw_get_text_size(const char* text, float base_size, float x_scale, float y_scale, float x_space_scale, float y_space_scale, double* out_text_size_x, double* out_text_size_y);
 
 /**
  * @brief Draw text.
@@ -162,14 +164,13 @@ void Draw_get_text_size(const char* text, float text_size_x, float text_size_y, 
  * @param text (in) Text.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
- * @param text_size_x (in) Font size for X direction.
- * @param text_size_y (in) Font size for Y direction.
+ * @param base_size (in) Base font size (in px).
  * @param abgr8888 (in) Font color.
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Draw_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
-void Draw(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888);
+void Draw_c(const char* text, float x, float y, float base_size, uint32_t abgr8888);
+void Draw(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888);
 
 /**
  * @brief Draw text with specified alignment.
@@ -177,20 +178,17 @@ void Draw(const Str_data* text, float x, float y, float text_size_x, float text_
  * @param text (in) Text.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
- * @param text_size_x (in) Font size for X direction.
- * @param text_size_y (in) Font size for Y direction.
+ * @param base_size (in) Base font size (in px).
  * @param abgr8888 (in) Font color.
  * @param x_align (in) Text align for x direction.
  * @param y_align (in) Text align for y direction.
- * @param x_size (in) If align is DRAW_X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
- * @param y_size (in) If align is DRAW_Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
+ * @param box_size_x (in) If align is DRAW_X_ALIGN_LEFT, this is ignored; otherwise virtual box width (in px).
+ * @param box_size_y (in) If align is DRAW_Y_ALIGN_TOP, this is ignored; otherwise virtual box height (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Draw_align_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
-Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
-void Draw_align(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888,
-Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
+void Draw_align_c(const char* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
+void Draw_align(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
  * @brief Draw text with background (and specified alignment).
@@ -198,23 +196,49 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
  * @param text (in) Text.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
- * @param text_size_x (in) Font size for X direction.
- * @param text_size_y (in) Font size for Y direction.
+ * @param base_size (in) Base font size (in px).
  * @param abgr8888 (in) Font color.
  * @param x_align (in) Text align for x direction.
  * @param y_align (in) Text align for y direction.
- * @param box_size_x (in) If align is DRAW_X_ALIGN_LEFT, this is ignored otherwise virtual box width (in px).
- * @param box_size_y (in) If align is DRAW_Y_ALIGN_TOP, this is ignored otherwise virtual box height (in px).
+ * @param box_size_x (in) Background box width (in px).
+ * @param box_size_y (in) Background box height (in px).
  * @param texture_position (in) Background texture position.
  * @param background_image (in/out) Image data.
  * @param texture_abgr8888 (in) Texture color.
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Draw_with_background_c(const char* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
-Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
-void Draw_with_background(const Str_data* text, float x, float y, float text_size_x, float text_size_y, uint32_t abgr8888, Draw_text_align_x x_align,
-Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
+void Draw_with_background_c(const char* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align,
+float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
+void Draw_with_background(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align,
+float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
+
+/**
+ * @brief Draw text with scale (and specified alignment + background).
+ * Do nothing if draw API is not initialized.
+ * @param text (in) Text.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param base_size (in) Base font size (in px).
+ * @param x_scale (in) Scale for X direction.
+ * @param y_scale (in) Scale for Y direction.
+ * @param x_space_scale (in) Scale for space between characters for X direction.
+ * @param y_space_scale (in) Scale for space between characters for Y direction.
+ * @param abgr8888 (in) Font color.
+ * @param x_align (in) Text align for x direction.
+ * @param y_align (in) Text align for y direction.
+ * @param box_size_x (in) Background box width (in px).
+ * @param box_size_y (in) Background box height (in px).
+ * @param texture_position (in) Background texture position.
+ * @param background_image (in/out) Image data.
+ * @param texture_abgr8888 (in) Texture color.
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_with_scale_c(const char* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale, float y_space_scale, uint32_t abgr8888,
+Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
+void Draw_with_scale(const Str_data* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale, float y_space_scale, uint32_t abgr8888,
+Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
 
 /**
  * @brief Get free sheet index that can be used for Draw_load_texture().

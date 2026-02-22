@@ -27,6 +27,11 @@
 #define HID_SAVE_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_err_save_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
 #define HID_SAVE_DESEL(k)			(bool)(DEF_HID_PHY_NP(((k)).touch) && DEF_HID_PHY_NP((k).x))
 
+#define FONT_SIZE_ERROR				(float)(13.50)	//Font size for API error.
+#define FONT_SIZE_ERROR_CONTENT		(float)(13.50)	//Font size for error content (except description).
+#define FONT_SIZE_ERROR_DESCRIPTION	(float)(12.00)	//Font size for error description.
+#define FONT_SIZE_BUTTON			(float)(11.25)	//Font size for buttons.
+
 //Typedefs.
 //N/A.
 
@@ -255,29 +260,32 @@ void Util_err_main(const Hid_info* key)
 
 void Util_err_draw(void)
 {
+	uint32_t button_text_color = DEF_DRAW_BLACK;
 	Draw_image_data background = Draw_get_empty_image();
 
 	if(!util_err_init)
 	{
 		Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
-		Draw_c("Error API is not initialized.\nPress A to close.", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
+		Draw_c("Error API is not initialized.\nPress A to close.", 22.5, 40.0, FONT_SIZE_ERROR, DEF_DRAW_RED);
 		return;
 	}
+
+	button_text_color = (util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
 
 	Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
 	Draw_texture(&util_err_ok_button, util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 150.0, 150.0, 30.0, 20.0);
 	Draw_texture(&util_err_save_button, util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 210.0, 150.0, 40.0, 20.0);
 
-	Draw_c("Summary : ", 22.5, 40.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(&util_err_summary, 22.5, 50.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw_c("Description : ", 22.5, 60.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(&util_err_description, 22.5, 70.0, 0.4, 0.4, DEF_DRAW_BLACK);
-	Draw_c("Location : ", 22.5, 90.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(&util_err_location, 22.5, 100.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw_c("Error code : ", 22.5, 110.0, 0.45, 0.45, DEF_DRAW_RED);
-	Draw(&util_err_code, 22.5, 120.0, 0.45, 0.45, DEF_DRAW_BLACK);
-	Draw_c("OK(A)", 152.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
-	Draw_c("SAVE(X)", 212.5, 152.5, 0.375, 0.375, util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
+	Draw_c("Summary : ", 22.5, 40.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+	Draw(&util_err_summary, 22.5, 50.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+	Draw_c("Description : ", 22.5, 60.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+	Draw(&util_err_description, 22.5, 70.0, FONT_SIZE_ERROR_DESCRIPTION, DEF_DRAW_BLACK);
+	Draw_c("Location : ", 22.5, 90.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+	Draw(&util_err_location, 22.5, 100.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+	Draw_c("Error code : ", 22.5, 110.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+	Draw(&util_err_code, 22.5, 120.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+	Draw_c("OK(A)", 152.5, 152.5, FONT_SIZE_BUTTON, button_text_color);
+	Draw_c("SAVE(X)", 212.5, 152.5, FONT_SIZE_BUTTON, button_text_color);
 }
 
 static void Util_err_save_callback(void)

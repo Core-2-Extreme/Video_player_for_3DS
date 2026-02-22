@@ -16,7 +16,7 @@
 #include "system/util/util.h"
 
 //Defines.
-//N/A.
+#define FONT_SIZE_CPU_USAGE		(float)(12.00)	//Font size for CPU usage info.
 
 //Typedefs.
 //N/A.
@@ -149,8 +149,8 @@ void Util_cpu_usage_draw(void)
 
 	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
-	Draw_with_background_c(msg_cache, 300, 25, 0.4, 0.4, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER,
-	100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_background_c(msg_cache, 300, 25, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
+	DRAW_Y_ALIGN_CENTER, 100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)

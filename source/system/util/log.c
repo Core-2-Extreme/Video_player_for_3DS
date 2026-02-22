@@ -28,6 +28,9 @@
 //Pan Right.
 #define HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
 
+#define FONT_SIZE_ERROR					(float)(13.50)	//Font size for API error.
+#define FONT_SIZE_LOG					(float)(12.75)	//Font size for logs.
+
 //Typedefs.
 //N/A.
 
@@ -359,12 +362,12 @@ void Util_log_draw(void)
 {
 	if(!util_log_init)
 	{
-		Draw_c("Log API is not initialized.\nPress A to close.", 0, 10, 0.5, 0.5, DEF_DRAW_RED);
+		Draw_c("Log API is not initialized.\nPress A to close.", 0, 10, FONT_SIZE_ERROR, DEF_DRAW_RED);
 		return;
 	}
 
 	for (uint16_t i = 0; i < DISPLAYED_LINES; i++)
-		Draw(&util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), 0.425, 0.425, DEF_LOG_COLOR);
+		Draw(&util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), FONT_SIZE_LOG, DEF_LOG_COLOR);
 }
 
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)

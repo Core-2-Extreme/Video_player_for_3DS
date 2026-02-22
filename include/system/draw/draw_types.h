@@ -26,6 +26,8 @@
 #define DEF_DRAW_WEAK_YELLOW				(uint32_t)(0x5000C5FF)
 #define DEF_DRAW_NO_COLOR					(uint32_t)(0x00000000)
 
+#define DEF_DRAW_NORMAL_SCALE_AND_SPACE		1.0, 1.0, 0.04, 0.01
+
 typedef enum
 {
 	DRAW_SCREEN_INVALID	= -1,

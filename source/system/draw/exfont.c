@@ -21,7 +21,8 @@
 //N/A.
 
 //Prototypes.
-static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y, float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);
+static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
+float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);
 static uint32_t Exfont_load_exfont(uint16_t exfont_id);
 static void Exfont_unload_exfont(uint16_t exfont_id);
 static void Exfont_load_font_callback(void);
@@ -407,21 +408,28 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 	*out_element = out_index;
 }
 
-void Exfont_draw_external_fonts(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y, float texture_size_x,
-float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height)
+void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
+float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height)
 {
-	Exfont_draw_external_fonts_internal(in_part_string, num_of_characters, texture_x, texture_y, texture_size_x, texture_size_y, abgr8888, out_width, out_height, false);
+	Exfont_draw_external_fonts_internal(character, texture_x, texture_y, base_size, x_scale, y_scale, abgr8888, out_width, out_height, false);
 }
 
-void Exfont_draw_get_text_size(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_size_x, float texture_size_y, float* out_width, float* out_height)
+void Exfont_draw_get_text_size(Exfont_one_char* character, float base_size, float x_scale, float y_scale, float* out_width, float* out_height)
 {
-	Exfont_draw_external_fonts_internal(in_part_string, num_of_characters, 0, 0, texture_size_x, texture_size_y, DEF_DRAW_NO_COLOR, out_width, out_height, true);
+	Exfont_draw_external_fonts_internal(character, 0, 0, base_size, x_scale, y_scale, DEF_DRAW_NO_COLOR, out_width, out_height, true);
 }
 
-static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string, uint32_t num_of_characters, float texture_x, float texture_y, float texture_size_x, float texture_size_y, uint32_t abgr8888, float* out_width, float* out_height, bool size_only)
+static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
+float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only)
 {
-	double interval_offset = 1;
-	double x_offset = 0.0;
+	bool unknown = true;
+	uint16_t block = UINT16_MAX;
+	uint32_t base_index = 0;
+	uint32_t offset = 0;
+	uint32_t length = 0;
+	float width_rate = 1;
+	float x_size = 0;
+	float y_size = 0;
 
 	if(!util_exfont_init)
 		return;
@@ -429,943 +437,934 @@ static void Exfont_draw_external_fonts_internal(Exfont_one_char* in_part_string,
 	if(!util_exfont_loaded_external_font[DEF_EXFONT_BLOCK_BASIC_LATIN])
 		return;
 
-	if(!in_part_string || num_of_characters == 0 || !out_width || !out_height)
+	if(!character || !out_width || !out_height)
 		return;
 
 	*out_width = 0;
 	*out_height = 0;
 
-	for (uint32_t s = 0; s < num_of_characters; s++)
+	length = strlen(character->buffer);
+	if(length == 0)
+		return;
+
+	if (length == 1)
 	{
-		bool unknown = true;
-		uint16_t block = UINT16_MAX;
-		uint32_t base_index = 0;
-		uint32_t offset = 0;
-		uint32_t length = strlen(in_part_string[s].buffer);
-		double x_size = 0;
-		double y_size = 0;
-
-		if(length == 0)
-			break;
-
-		if (length == 1)
+		if (strcmp(character->buffer, util_exfont_sample_one_byte[0].buffer) < 0)
+			block = 0;
+	}
+	else if (length == 2)
+	{
+		for (uint8_t i = 0; i < DEF_EXFONT_NUM_OF_TWO_BYTES_FONT; i++)
 		{
-			if (strcmp(in_part_string[s].buffer, util_exfont_sample_one_byte[0].buffer) < 0)
-				block = 0;
-		}
-		else if (length == 2)
-		{
-			for (uint8_t i = 0; i < DEF_EXFONT_NUM_OF_TWO_BYTES_FONT; i++)
+			if (strcmp(character->buffer, util_exfont_samples_two_bytes[i].buffer) < 0)
 			{
-				if (strcmp(in_part_string[s].buffer, util_exfont_samples_two_bytes[i].buffer) < 0)
-				{
-					block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT;
-					break;
-				}
+				block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT;
+				break;
 			}
 		}
-		else if (length == 3)
+	}
+	else if (length == 3)
+	{
+		uint8_t start_pos = UINT8_MAX;
+		uint8_t end_pos = 0;
+		uint8_t loop = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT / 10;
+
+		for (uint8_t i = 1; i <= loop; i++)
 		{
-			uint8_t start_pos = UINT8_MAX;
-			uint8_t end_pos = 0;
-			uint8_t loop = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT / 10;
-
-			for (uint8_t i = 1; i <= loop; i++)
+			uint8_t index = (i * 10) - 1;
+			if (strcmp(character->buffer, util_exfont_samples_three_bytes[index].buffer) < 0)
 			{
-				uint8_t index = (i * 10) - 1;
-				if (strcmp(in_part_string[s].buffer, util_exfont_samples_three_bytes[index].buffer) < 0)
-				{
-					start_pos = index - 9;
-					end_pos = start_pos + 10;
-					if(end_pos > DEF_EXFONT_NUM_OF_THREE_BYTES_FONT)
-						end_pos = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
+				start_pos = index - 9;
+				end_pos = start_pos + 10;
+				if(end_pos > DEF_EXFONT_NUM_OF_THREE_BYTES_FONT)
+					end_pos = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
 
-					break;
-				}
-			}
-
-			if(start_pos == UINT8_MAX)
-			{
-				start_pos = loop * 10;
-				end_pos = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
-			}
-
-			for (uint8_t i = start_pos; i < end_pos; i++)
-			{
-				if (strcmp(in_part_string[s].buffer, util_exfont_samples_three_bytes[i].buffer) < 0)
-				{
-					block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT;
-					break;
-				}
-			}
-		}
-		else if (length == 4)
-		{
-			for (uint8_t i = 0; i < DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT; i++)
-			{
-				if (strcmp(in_part_string[s].buffer, util_exfont_samples_four_bytes[i].buffer) < 0)
-				{
-					block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT + DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
-					break;
-				}
+				break;
 			}
 		}
 
-		if (block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
+		if(start_pos == UINT8_MAX)
 		{
-			for(uint32_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_ignore_chars); i++)
-			{
-				if(strcmp(util_exfont_ignore_chars[i].buffer, in_part_string[s].buffer) == 0)
-				{
-					unknown = false;
-					block = UINT16_MAX;
-					break;
-				}
-			}
+			start_pos = loop * 10;
+			end_pos = DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
 		}
 
-		if (block != UINT16_MAX && util_exfont_loaded_external_font[block])
+		for (uint8_t i = start_pos; i < end_pos; i++)
 		{
-			unknown = false;
-			base_index = util_exfont_font_start_num[block];
-
-			if(length == 1)
+			if (strcmp(character->buffer, util_exfont_samples_three_bytes[i].buffer) < 0)
 			{
-				if(in_part_string[s].buffer[0] > 0x7F)
-					unknown = true;
-				else
-				{
-					//basic latin : U+0000[0x00]~U+007F[0x7F], passed
-					if(block == DEF_EXFONT_BLOCK_BASIC_LATIN)
-						offset = in_part_string[s].buffer[0];
-					else
-						unknown = true;
-				}
+				block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT;
+				break;
 			}
-			else if(length == 2)
-			{
-				if(in_part_string[s].buffer[1] < 0x80 || in_part_string[s].buffer[1] > 0xBF)
-					unknown = true;
-				else
-				{
-					//latin 1 supplement : U+0080[0xC2, 0x80]~U+00FF[0xC3, 0xBF], passed
-					//U+0080[0xC2, 0x80]~U+009F[0xC2, 0x9F] are invalid character.
-					if(block == DEF_EXFONT_BLOCK_LATIN_1_SUPPLEMENT)
-					{
-						if(in_part_string[s].buffer[0] == 0xC2)
-							offset = in_part_string[s].buffer[1] - 0xA0;
-						else if(in_part_string[s].buffer[0] == 0xC3)
-							offset = in_part_string[s].buffer[1] - 0x80 + 32;
-						else
-							unknown = true;
-					}
-					//latin extended a : U+0100[0xC4, 0x80]~U+017F[0xC5, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_A)
-					{
-						if(in_part_string[s].buffer[0] == 0xC4)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else if(in_part_string[s].buffer[0] == 0xC5)
-							offset = in_part_string[s].buffer[1] - 0x80 + 64;
-						else
-							unknown = true;
-					}
-					//latin extended b : U+0180[0xC6, 0x80]~U+024F[0xC9, 0x8F], passed
-					else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_B)
-					{
-						if(in_part_string[s].buffer[0] == 0xC6)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else if(in_part_string[s].buffer[0] == 0xC7)
-							offset = in_part_string[s].buffer[1] - 0x80 + 64;
-						else if(in_part_string[s].buffer[0] == 0xC8)
-							offset = in_part_string[s].buffer[1] - 0x80 + 128;
-						else if(in_part_string[s].buffer[0] == 0xC9 && in_part_string[s].buffer[1] <= 0x8F)
-							offset = in_part_string[s].buffer[1] - 0x80 + 192;
-						else
-							unknown = true;
-					}
-					//ipa extensions : U+0250[0xC9, 0x90]~U+02AF[0xCA, 0xAF], passed
-					else if(block == DEF_EXFONT_BLOCK_IPA_EXTENSIONS)
-					{
-						if(in_part_string[s].buffer[0] == 0xC9 && in_part_string[s].buffer[1] >= 0x90)
-							offset = in_part_string[s].buffer[1] - 0x90;
-						else if(in_part_string[s].buffer[0] == 0xCA && in_part_string[s].buffer[1] <= 0xAF)
-							offset = in_part_string[s].buffer[1] - 0x80 + 48;
-						else
-							unknown = true;
-					}
-					//spacing_modifier_letters : U+02B0[0xCA, 0xB0]~U+02FF[0xCB, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_SPACING_MODIFIER_LETTERS)
-					{
-						if(in_part_string[s].buffer[0] == 0xCA && in_part_string[s].buffer[1] >= 0xB0)
-							offset = in_part_string[s].buffer[1] - 0xB0;
-						else if(in_part_string[s].buffer[0] == 0xCB)
-							offset = in_part_string[s].buffer[1] - 0x80 + 16;
-						else
-							unknown = true;
-					}
-					//combining_diacritical_marks : U+0300[0xCC, 0x80]~U+036F[0xCD, 0xAF], passed
-					else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS)
-					{
-						if(in_part_string[s].buffer[0] == 0xCC)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else if(in_part_string[s].buffer[0] == 0xCD && in_part_string[s].buffer[1] <= 0xAF)
-							offset = in_part_string[s].buffer[1] - 0x80 + 64;
-						else
-							unknown = true;
-					}
-					//greek and coptic : U+0370[0xCD, 0xB0]~U+03FF[0xCF, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_GREEK_AND_COPTIC)
-					{
-						if(in_part_string[s].buffer[0] == 0xCD && in_part_string[s].buffer[1] >= 0xB0)
-							offset = in_part_string[s].buffer[1] - 0xB0;
-						else if(in_part_string[s].buffer[0] == 0xCE)
-							offset = in_part_string[s].buffer[1] - 0x80 + 16;
-						else if(in_part_string[s].buffer[0] == 0xCF)
-							offset = in_part_string[s].buffer[1] - 0x80 + 80;
-						else
-							unknown = true;
-					}
-					//cyrillic : U+0400[0xD0, 0x80]~U+04FF[0xD3, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_CYRILLIC)
-					{
-						if(in_part_string[s].buffer[0] == 0xD0)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else if(in_part_string[s].buffer[0] == 0xD1)
-							offset = in_part_string[s].buffer[1] - 0x80 + 64;
-						else if(in_part_string[s].buffer[0] == 0xD2)
-							offset = in_part_string[s].buffer[1] - 0x80 + 128;
-						else if(in_part_string[s].buffer[0] == 0xD3)
-							offset = in_part_string[s].buffer[1] - 0x80 + 192;
-						else
-							unknown = true;
-					}
-					//cyrillic supplement : U+0500[0xD4, 0x80]~U+052F[0xD4, 0xAF], passed
-					else if(block == DEF_EXFONT_BLOCK_CYRILLIC_SUPPLEMENT)
-					{
-						if(in_part_string[s].buffer[0] == 0xD4 && in_part_string[s].buffer[1] <= 0xAF)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else
-							unknown = true;
-					}
-					//armenian : U+0530[0xD4, 0xB0]~U+058F[0xD6, 0x8F], passed
-					else if(block == DEF_EXFONT_BLOCK_ARMENIAN)
-					{
-						if(in_part_string[s].buffer[0] == 0xD4 && in_part_string[s].buffer[1] >= 0xB0)
-							offset = in_part_string[s].buffer[1] - 0xB0;
-						else if(in_part_string[s].buffer[0] == 0xD5)
-							offset = in_part_string[s].buffer[1] - 0x80 + 16;
-						else if(in_part_string[s].buffer[0] == 0xD6 && in_part_string[s].buffer[1] <= 0x8F)
-							offset = in_part_string[s].buffer[1] - 0x80 + 80;
-						else
-							unknown = true;
-					}
-					//hebrew : U+0590[0xD6, 0x90]~U+05FF[0xD7, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_HEBREW)
-					{
-						if(in_part_string[s].buffer[0] == 0xD6 && in_part_string[s].buffer[1] >= 0x90)
-							offset = in_part_string[s].buffer[1] - 0x90;
-						else if(in_part_string[s].buffer[0] == 0xD7)
-							offset = in_part_string[s].buffer[1] - 0x80 + 48;
-						else
-							unknown = true;
-					}
-					//arabic : U+0600[0xD8, 0x80]~U+06FF[0xDB, 0xBF], passed
-					else if(block == DEF_EXFONT_BLOCK_ARABIC)
-					{
-						if(in_part_string[s].buffer[0] == 0xD8)
-							offset = in_part_string[s].buffer[1] - 0x80;
-						else if(in_part_string[s].buffer[0] == 0xD9)
-							offset = in_part_string[s].buffer[1] - 0x80 + 64;
-						else if(in_part_string[s].buffer[0] == 0xDA)
-							offset = in_part_string[s].buffer[1] - 0x80 + 128;
-						else if(in_part_string[s].buffer[0] == 0xDB)
-							offset = in_part_string[s].buffer[1] - 0x80 + 192;
-						else
-							unknown = true;
-					}
-					else
-						unknown = true;
-				}
-			}
-			else if(length == 3)
-			{
-				if(in_part_string[s].buffer[0] < 0xE0 || in_part_string[s].buffer[0] > 0xEF
-				|| in_part_string[s].buffer[2] < 0x80 || in_part_string[s].buffer[2] > 0xBF)
-					unknown = true;
-				else
-				{
-					if(block <= DEF_EXFONT_BLOCK_GEORGIAN)
-					{
-						//devanagari : U+0900[0xE0, 0xA4, 0x80]~U+097F[0xE0, 0xA5, 0xBF], passed
-						if(block == DEF_EXFONT_BLOCK_DEVANAGARI)
-						{
-							if(in_part_string[s].buffer[1] == 0xA4)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xA5)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//gurmukhi : U+0A00[0xE0, 0xA8, 0x80]~U+0A7F[0xE0, 0xA9, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_GURMUKHI)
-						{
-							if(in_part_string[s].buffer[1] == 0xA8)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xA9)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//tamil : U+0B80[0xE0, 0xAE, 0x80]~U+0BFF[0xE0, 0xAF, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_TAMIL)
-						{
-							if(in_part_string[s].buffer[1] == 0xAE)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xAF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//telugu : U+0C00[0xE0, 0xB0, 0x80]~U+0C7F[0xE0, 0xB1, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_TELUGU)
-						{
-							if(in_part_string[s].buffer[1] == 0xB0)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xB1)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//kannada : U+0C80[0xE0, 0xB2, 0x80]~U+0CFF[0xE0, 0xB3, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_KANNADA)
-						{
-							if(in_part_string[s].buffer[1] == 0xB2)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xB3)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//sinhala : U+0D80[0xE0, 0xB6, 0x80]~U+0DFF[0xE0, 0xB7, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_SINHALA)
-						{
-							if(in_part_string[s].buffer[1] == 0xB6)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xB7)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//thai : U+0E00[0xE0, 0xB8, 0x80]~U+0E7F[0xE0, 0xB9, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_THAI)
-						{
-							if(in_part_string[s].buffer[1] == 0xB8)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xB9)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//lao : U+0E80[0xE0, 0xBA, 0x80]~U+0EFF[0xE0, 0xBB, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_LAO)
-						{
-							if(in_part_string[s].buffer[1] == 0xBA)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xBB)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//tibetan : U+0F00[0xE0, 0xBC, 0x80]~U+0FFF[0xE0, 0xBF, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_TIBETAN)
-						{
-							if(in_part_string[s].buffer[1] == 0xBC)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xBD)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0xBE)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0xBF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//georgian : U+10A0[0xE1, 0x82, 0xA0]~U+10FF[0xE1, 0x83, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_GEORGIAN)
-						{
-							if(in_part_string[s].buffer[1] == 0x82 && in_part_string[s].buffer[2] >= 0xA0)
-								offset = in_part_string[s].buffer[2] - 0xA0;
-							else if(in_part_string[s].buffer[1] == 0x83)
-								offset = in_part_string[s].buffer[2] - 0x80 + 32;
-							else
-								unknown = true;
-						}
-						else
-							unknown = true;
-					}
-					else if(block <= DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
-					{
-						//unified_canadian_aboriginal_syllabics : U+1400[0xE1, 0x90, 0x80]~U+167F[0xE1, 0x99, 0xBF], passed
-						if(block == DEF_EXFONT_BLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS)
-						{
-							if(in_part_string[s].buffer[1] == 0x90)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x91)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x92)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x93)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else if(in_part_string[s].buffer[1] == 0x94)
-								offset = in_part_string[s].buffer[2] - 0x80 + 256;
-							else if(in_part_string[s].buffer[1] == 0x95)
-								offset = in_part_string[s].buffer[2] - 0x80 + 320;
-							else if(in_part_string[s].buffer[1] == 0x96)
-								offset = in_part_string[s].buffer[2] - 0x80 + 384;
-							else if(in_part_string[s].buffer[1] == 0x97)
-								offset = in_part_string[s].buffer[2] - 0x80 + 448;
-							else if(in_part_string[s].buffer[1] == 0x98)
-								offset = in_part_string[s].buffer[2] - 0x80 + 512;
-							else if(in_part_string[s].buffer[1] == 0x99)
-								offset = in_part_string[s].buffer[2] - 0x80 + 576;
-							else
-								unknown = true;
-						}
-						//phonetic_extensions : U+1D00[0xE1, 0xB4, 0x80]~U+1D7F[0xE1, 0xB5, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_PHONETIC_EXTENSIONS)
-						{
-							if(in_part_string[s].buffer[1] == 0xB4)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xB5)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//combining_diacritical_marks_supplement : U+1DC0[0xE1, 0xB7, 0x80]~U+1DFF[0xE1, 0xB7, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT)
-						{
-							if(in_part_string[s].buffer[1] == 0xB7)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else
-								unknown = true;
-						}
-						//greek_extended : U+1F00[0xE1, 0xBC, 0x80]~U+1FFF[0xE1, 0xBF, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_GREEK_EXTENDED)
-						{
-							if(in_part_string[s].buffer[1] == 0xBC)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xBD)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0xBE)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0xBF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//general_punctuation : U+2000[0xE2, 0x80, 0x80]~U+206F[0xE2, 0x81, 0xAF], passed
-						else if(block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
-						{
-							if(in_part_string[s].buffer[1] == 0x80)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x81 && in_part_string[s].buffer[2] <= 0xAF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//superscripts_and_subscripts : U+2070[0xE2, 0x81, 0xB0]~U+209F[0xE2, 0x82, 0x9F], passed
-						else if(block == DEF_EXFONT_BLOCK_SUPERSCRIPTS_AND_SUBSCRIPTS)
-						{
-							if(in_part_string[s].buffer[1] == 0x81 && in_part_string[s].buffer[2] >= 0xB0)
-								offset = in_part_string[s].buffer[2] - 0xB0;
-							else if(in_part_string[s].buffer[1] == 0x82 && in_part_string[s].buffer[2] <= 0x9F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 16;
-							else
-								unknown = true;
-						}
-						//combining_diacritical_marks_for_symbols : U+20D0[0xE2, 0x83, 0x90]~U+20FF[0xE2, 0x83, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_FOR_SYMBOLS)
-						{
-							if(in_part_string[s].buffer[1] == 0x83 && in_part_string[s].buffer[2] >= 0x90)
-								offset = in_part_string[s].buffer[2] - 0x90;
-							else
-								unknown = true;
-						}
-						//arrows : U+2190[0xE2, 0x86, 0x90]~U+21FF[0xE2, 0x87, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_ARROWS)
-						{
-							if(in_part_string[s].buffer[1] == 0x86 && in_part_string[s].buffer[2] >= 0x90)
-								offset = in_part_string[s].buffer[2] - 0x90;
-							else if(in_part_string[s].buffer[1] == 0x87)
-								offset = in_part_string[s].buffer[2] - 0x80 + 48;
-							else
-								unknown = true;
-						}
-						//mathematical_operators : U+2200[0xE2, 0x88, 0x80]~U+22FF[0xE2, 0x8B, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_MATHEMATICAL_OPERATORS)
-						{
-							if(in_part_string[s].buffer[1] == 0x88)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x89)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x8A)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x8B)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//miscellaneous_technical : U+2300[0xE2, 0x8C, 0x80]~U+23FF[0xE2, 0x8F, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
-						{
-							if(in_part_string[s].buffer[1] == 0x8C)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x8D)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x8E)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x8F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						else
-							unknown = true;
-					}
-					else if(block <= DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
-					{
-						//optical_character_recognition : U+2440[0xE2, 0x91, 0x80]~U+245F[0xE2, 0x91, 0x9F], passed
-						if(block == DEF_EXFONT_BLOCK_OPTICAL_CHARACTER_RECOGNITION)
-						{
-							if(in_part_string[s].buffer[1] == 0x91 && in_part_string[s].buffer[2] <= 0x9F)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else
-								unknown = true;
-						}
-						//enclosed_alphanumerics : U+2460[0xE2, 0x91, 0xA0]~U+24FF[0xE2, 0x93, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_ENCLOSED_ALPHANUMERICS)
-						{
-							if(in_part_string[s].buffer[1] == 0x91 && in_part_string[s].buffer[2] >= 0xA0)
-								offset = in_part_string[s].buffer[2] - 0xA0;
-							else if(in_part_string[s].buffer[1] == 0x92)
-								offset = in_part_string[s].buffer[2] - 0x80 + 32;
-							else if(in_part_string[s].buffer[1] == 0x93)
-								offset = in_part_string[s].buffer[2] - 0x80 + 96;
-							else
-								unknown = true;
-						}
-						//box_drawing : U+2500[0xE2, 0x94, 0x80]~U+257F[0xE2, 0x95, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_BOX_DRAWING)
-						{
-							if(in_part_string[s].buffer[1] == 0x94)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x95)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//block_elements : U+2580[0xE2, 0x96, 0x80]~U+259F[0xE2, 0x96, 0x9F], passed
-						else if(block == DEF_EXFONT_BLOCK_BLOCK_ELEMENTS)
-						{
-							if(in_part_string[s].buffer[1] == 0x96 && in_part_string[s].buffer[2] <= 0x9F)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else
-								unknown = true;
-						}
-						//geometric_shapes : U+25A0[0xE2, 0x96, 0xA0]~U+25FF[0xE2, 0x97, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_GEOMETRIC_SHAPES)
-						{
-							if(in_part_string[s].buffer[1] == 0x96 && in_part_string[s].buffer[2] >= 0xA0)
-								offset = in_part_string[s].buffer[2] - 0xA0;
-							else if(in_part_string[s].buffer[1] == 0x97)
-								offset = in_part_string[s].buffer[2] - 0x80 + 32;
-							else
-								unknown = true;
-						}
-						//miscellaneous_symbols : U+2600[0xE2, 0x98, 0x80]~U+26FF[0xE2, 0x9B, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS)
-						{
-							if(in_part_string[s].buffer[1] == 0x98)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x99)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x9A)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x9B)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//dingbats : U+2700[0xE2, 0x9C, 0x80]~U+27BF[0xE2, 0x9E, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_DINGBATS)
-						{
-							if(in_part_string[s].buffer[1] == 0x9C)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x9D)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x9E)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else
-								unknown = true;
-						}
-						//supplemental_arrows_b : U+2900[0xE2, 0xA4, 0x80]~U+297F[0xE2, 0xA5, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_SUPPLEMENTAL_ARROWS_B)
-						{
-							if(in_part_string[s].buffer[1] == 0xA4)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xA5)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//miscellaneous_symbols_and_arrows : U+2B00[0xE2, 0xAC, 0x80]~U+2BFF[0xE2, 0xAF, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS)
-						{
-							if(in_part_string[s].buffer[1] == 0xAC)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xAD)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0xAE)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0xAF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//cjk_symbol_and_punctuation : U+3000[0xE3, 0x80, 0x80]~U+303F[0xE3, 0x80, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
-						{
-							if(in_part_string[s].buffer[1] == 0x80)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else
-								unknown = true;
-						}
-						else
-							unknown = true;
-					}
-					else
-					{
-						//hiragana : U+3040[0xE3, 0x81, 0x80 ]~U+309F[0xE3, 0x82, 0x9F], passed
-						if(block == DEF_EXFONT_BLOCK_HIRAGANA)
-						{
-							if(in_part_string[s].buffer[1] == 0x81)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x82 && in_part_string[s].buffer[2] <= 0x9F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else
-								unknown = true;
-						}
-						//katakana : U+30A0[0xE3, 0x82, 0xA0]~U+30FF[0xE3, 0x83, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_KATAKANA)
-						{
-							if(in_part_string[s].buffer[1] == 0x82 && in_part_string[s].buffer[2] >= 0xA0)
-								offset = in_part_string[s].buffer[2] - 0xA0;
-							else if(in_part_string[s].buffer[1] == 0x83)
-								offset = in_part_string[s].buffer[2] - 0x80 + 32;
-							else
-								unknown = true;
-						}
-						//cjk_compatibility : U+3300[0xE3, 0x8C, 0x80]~U+33FF[0xE3, 0x8F, 0xBF], passed
-						else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY)
-						{
-							if(in_part_string[s].buffer[1] == 0x8C)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x8D)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x8E)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x8F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						//cjk_unified_ideographs : U+4E00[0xE4, 0xB8, 0x80]~U+9FFF[0xE9, 0xBF, 0xBF]
-						else if(block == DEF_EXFONT_BLOCK_CJK_UNIFIED_IDEOGRAPHS)
-						{
-							if(in_part_string[s].buffer[0] >= 0xE4 && in_part_string[s].buffer[0] <= 0xE9)
-							{
-								uint32_t start_pos = 0;
-								uint32_t end_pos = 0;
-								uint32_t offset_cache = 0;
-
-								if(in_part_string[s].buffer[1] < 0x90)
-									start_pos = 0x80;
-								else if(in_part_string[s].buffer[1] < 0xA0)
-									start_pos = 0x90;
-								else if(in_part_string[s].buffer[1] < 0xB0)
-									start_pos = 0xA0;
-								else if(in_part_string[s].buffer[1] < 0xC0)
-									start_pos = 0xB0;
-
-								end_pos = start_pos + 0x10;
-
-								if(in_part_string[s].buffer[0] == 0xE4)
-									offset = 0;
-								else if(in_part_string[s].buffer[0] == 0xE5)
-									offset += 512;
-								else if(in_part_string[s].buffer[0] == 0xE6)
-									offset += 4608;
-								else if(in_part_string[s].buffer[0] == 0xE7)
-									offset += 8704;
-								else if(in_part_string[s].buffer[0] == 0xE8)
-									offset += 12800;
-								else if(in_part_string[s].buffer[0] == 0xE9)
-									offset += 16896;
-
-								unknown = true;
-								if(in_part_string[s].buffer[0] == 0xE4)
-								{
-									start_pos = 0xB8;
-									end_pos = 0xC0;
-									for(uint32_t i = start_pos; i < end_pos; i++)
-									{
-										if(in_part_string[s].buffer[1] == i)
-										{
-											offset_cache = in_part_string[s].buffer[2] - 0x80 + ((i - 0xB8) * 64);
-											unknown = false;
-											break;
-										}
-									}
-								}
-								else
-								{
-									for(uint32_t i = start_pos; i < end_pos; i++)
-									{
-										if(in_part_string[s].buffer[1] == i)
-										{
-											offset_cache = in_part_string[s].buffer[2] - 0x80 + ((i - 0x80) * 64);
-											unknown = false;
-											break;
-										}
-									}
-								}
-
-								offset += offset_cache;
-							}
-							else
-								unknown = true;
-						}
-						//yi_syllables : U+A000[0xEA, 0x80, 0x80]~U+A48F[0xEA, 0x92, 0x8F], passed
-						else if(block == DEF_EXFONT_BLOCK_YI_SYLLABLES)
-						{
-							if(in_part_string[s].buffer[1] == 0x80)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0x81)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0x82)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0x83)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else if(in_part_string[s].buffer[1] == 0x84)
-								offset = in_part_string[s].buffer[2] - 0x80 + 256;
-							else if(in_part_string[s].buffer[1] == 0x85)
-								offset = in_part_string[s].buffer[2] - 0x80 + 320;
-							else if(in_part_string[s].buffer[1] == 0x86)
-								offset = in_part_string[s].buffer[2] - 0x80 + 384;
-							else if(in_part_string[s].buffer[1] == 0x87)
-								offset = in_part_string[s].buffer[2] - 0x80 + 448;
-							else if(in_part_string[s].buffer[1] == 0x88)
-								offset = in_part_string[s].buffer[2] - 0x80 + 512;
-							else if(in_part_string[s].buffer[1] == 0x89)
-								offset = in_part_string[s].buffer[2] - 0x80 + 576;
-							else if(in_part_string[s].buffer[1] == 0x8A)
-								offset = in_part_string[s].buffer[2] - 0x80 + 640;
-							else if(in_part_string[s].buffer[1] == 0x8B)
-								offset = in_part_string[s].buffer[2] - 0x80 + 704;
-							else if(in_part_string[s].buffer[1] == 0x8C)
-								offset = in_part_string[s].buffer[2] - 0x80 + 768;
-							else if(in_part_string[s].buffer[1] == 0x8D)
-								offset = in_part_string[s].buffer[2] - 0x80 + 832;
-							else if(in_part_string[s].buffer[1] == 0x8E)
-								offset = in_part_string[s].buffer[2] - 0x80 + 896;
-							else if(in_part_string[s].buffer[1] == 0x8F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 960;
-							else if(in_part_string[s].buffer[1] == 0x90)
-								offset = in_part_string[s].buffer[2] - 0x80 + 1024;
-							else if(in_part_string[s].buffer[1] == 0x91)
-								offset = in_part_string[s].buffer[2] - 0x80 + 1088;
-							else if(in_part_string[s].buffer[1] == 0x92 && in_part_string[s].buffer[2] <= 0x8F)
-								offset = in_part_string[s].buffer[2] - 0x80 + 1152;
-							else
-								unknown = true;
-						}
-						//yi_radicals : U+A490[0xEA, 0x92, 0x90]~U+A4CF[0xEA, 0x93, 0x8F], passed
-						else if(block == DEF_EXFONT_BLOCK_YI_RADICALS)
-						{
-							if(in_part_string[s].buffer[1] == 0x92 && in_part_string[s].buffer[2] >= 0x90)
-								offset = in_part_string[s].buffer[2] - 0x90;
-							else if(in_part_string[s].buffer[1] == 0x93)
-								offset = in_part_string[s].buffer[2] - 0x80 + 48;
-							else
-								unknown = true;
-						}
-						//hangul_syllables : U+AC00[0xEA, 0xB0, 0x80]~U+D7AF[0xED, 0x9E, 0xAF]
-						else if(block == DEF_EXFONT_BLOCK_HANGUL_SYLLABLES)
-						{
-							if(in_part_string[s].buffer[0] >= 0xEA && in_part_string[s].buffer[0] <= 0xED)
-							{
-								uint32_t start_pos = 0;
-								uint32_t end_pos = 0;
-								uint32_t offset_cache = 0;
-
-								if(in_part_string[s].buffer[1] < 0x90)
-									start_pos = 0x80;
-								else if(in_part_string[s].buffer[1] < 0xA0)
-									start_pos = 0x90;
-								else if(in_part_string[s].buffer[1] < 0xB0)
-									start_pos = 0xA0;
-								else if(in_part_string[s].buffer[1] < 0xC0)
-									start_pos = 0xB0;
-
-								end_pos = start_pos + 0x10;
-
-								if(in_part_string[s].buffer[0] == 0xEA)
-									offset = 0;
-								else if(in_part_string[s].buffer[0] == 0xEB)
-									offset += 1024;
-								else if(in_part_string[s].buffer[0] == 0xEC)
-									offset += 5120;
-								else if(in_part_string[s].buffer[0] == 0xED)
-									offset += 9216;
-
-								unknown = true;
-								if(in_part_string[s].buffer[0] == 0xEA)
-								{
-									start_pos = 0xB0;
-									end_pos = 0xC0;
-									for(uint32_t i = start_pos; i < end_pos; i++)
-									{
-										if(in_part_string[s].buffer[1] == i)
-										{
-											offset_cache = in_part_string[s].buffer[2] - 0x80 + ((i - 0xB0) * 64);
-											unknown = false;
-											break;
-										}
-									}
-								}
-								else
-								{
-									if(!(in_part_string[s].buffer[0] == 0xED && in_part_string[s].buffer[1] >= 0x9E && in_part_string[s].buffer[0] > 0xAF))
-									{
-										for(uint32_t i = start_pos; i < end_pos; i++)
-										{
-											if(in_part_string[s].buffer[1] == i)
-											{
-												offset_cache = in_part_string[s].buffer[2] - 0x80 + ((i - 0x80) * 64);
-												unknown = false;
-												break;
-											}
-										}
-									}
-								}
-
-								offset += offset_cache;
-							}
-							else
-								unknown = true;
-						}
-						//cjk_compatibility_forms : U+FE30[0xEF, 0xB8, 0xB0]~U+FE4F[0xEF, 0xB9, 0x8F], passed
-						else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY_FORMS)
-						{
-							if(in_part_string[s].buffer[1] == 0xB8 && in_part_string[s].buffer[2] >= 0xB0)
-								offset = in_part_string[s].buffer[2] - 0xB0;
-							else if(in_part_string[s].buffer[1] == 0xB9)
-								offset = in_part_string[s].buffer[2] - 0x80 + 16;
-							else
-								unknown = true;
-						}
-						//halfwidth_and_fullwidth_forms : U+FF00[0xEF, 0xBC, 0x80]~U+FFEF[0xEF, 0xBF, 0xAF], passed
-						else if(block == DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS)
-						{
-							if(in_part_string[s].buffer[1] == 0xBC)
-								offset = in_part_string[s].buffer[2] - 0x80;
-							else if(in_part_string[s].buffer[1] == 0xBD)
-								offset = in_part_string[s].buffer[2] - 0x80 + 64;
-							else if(in_part_string[s].buffer[1] == 0xBE)
-								offset = in_part_string[s].buffer[2] - 0x80 + 128;
-							else if(in_part_string[s].buffer[1] == 0xBF)
-								offset = in_part_string[s].buffer[2] - 0x80 + 192;
-							else
-								unknown = true;
-						}
-						else
-							unknown = true;
-					}
-				}
-			}
-			else if(length == 4)
-			{
-				if(in_part_string[s].buffer[0] != 0xF0 || in_part_string[s].buffer[1] != 0x9F
-				|| in_part_string[s].buffer[3] < 0x80 || in_part_string[s].buffer[3] > 0xBf)
-					unknown = true;
-				else
-				{
-					//miscellaneous_symbols_and_pictographs : U+1F300[0xF0, 0x9F, 0x8C, 0x80]~U+1F5FF[0xF0, 0x9F, 0x97, 0xBF], passed
-					if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS)
-					{
-						if(in_part_string[s].buffer[2] == 0x8C)
-							offset = in_part_string[s].buffer[3] - 0x80;
-						else if(in_part_string[s].buffer[2] == 0x8D)
-							offset = in_part_string[s].buffer[3] - 0x80 + 64;
-						else if(in_part_string[s].buffer[2] == 0x8E)
-							offset = in_part_string[s].buffer[3] - 0x80 + 128;
-						else if(in_part_string[s].buffer[2] == 0x8F)
-							offset = in_part_string[s].buffer[3] - 0x80 + 192;
-						else if(in_part_string[s].buffer[2] == 0x90)
-							offset = in_part_string[s].buffer[3] - 0x80 + 256;
-						else if(in_part_string[s].buffer[2] == 0x91)
-							offset = in_part_string[s].buffer[3] - 0x80 + 320;
-						else if(in_part_string[s].buffer[2] == 0x92)
-							offset = in_part_string[s].buffer[3] - 0x80 + 384;
-						else if(in_part_string[s].buffer[2] == 0x93)
-							offset = in_part_string[s].buffer[3] - 0x80 + 448;
-						else if(in_part_string[s].buffer[2] == 0x94)
-							offset = in_part_string[s].buffer[3] - 0x80 + 512;
-						else if(in_part_string[s].buffer[2] == 0x95)
-							offset = in_part_string[s].buffer[3] - 0x80 + 576;
-						else if(in_part_string[s].buffer[2] == 0x96)
-							offset = in_part_string[s].buffer[3] - 0x80 + 640;
-						else if(in_part_string[s].buffer[2] == 0x97)
-							offset = in_part_string[s].buffer[3] - 0x80 + 704;
-						else
-							unknown = true;
-					}
-					//emoticons : U+1F600[0xF0, 0x9F, 0x98, 0x80]~U+1F64F[0xF0, 0x9F, 0x99, 0x8F], passed
-					else if(block == DEF_EXFONT_BLOCK_EMOTICONS)
-					{
-						if(in_part_string[s].buffer[2] == 0x98)
-							offset = in_part_string[s].buffer[3] - 0x80;
-						else if(in_part_string[s].buffer[2] == 0x99 && in_part_string[s].buffer[3] <= 0x8F)
-							offset = in_part_string[s].buffer[3] - 0x80 + 64;
-						else
-							unknown = true;
-					}
-				}
-			}
-			else
-				unknown = true;
 		}
-
-		if(unknown || (base_index + offset) >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_font_images))
+	}
+	else if (length == 4)
+	{
+		for (uint8_t i = 0; i < DEF_EXFONT_NUM_OF_FOUR_BYTES_FONT; i++)
 		{
-			base_index = 0;
-			offset = 0;
+			if (strcmp(character->buffer, util_exfont_samples_four_bytes[i].buffer) < 0)
+			{
+				block = i + DEF_EXFONT_NUM_OF_ONE_BYTE_FONT + DEF_EXFONT_NUM_OF_TWO_BYTES_FONT + DEF_EXFONT_NUM_OF_THREE_BYTES_FONT;
+				break;
+			}
 		}
-
-		x_size = util_exfont_font_images[base_index + offset].subtex->width * (double)texture_size_x;
-		y_size = util_exfont_font_images[base_index + offset].subtex->height * (double)texture_size_y;
-		if(!size_only)
-		{
-			Draw_image_data font = { 0, };
-			font.c2d = util_exfont_font_images[base_index + offset];
-			Draw_texture(&font, abgr8888, ((double)texture_x + x_offset), texture_y, x_size, y_size);
-		}
-
-		x_offset += x_size + (interval_offset * (double)texture_size_x);
 	}
 
-	*out_width = x_offset;
-	*out_height = util_exfont_font_images[0].subtex->height * texture_size_y;
+	if (block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
+	{
+		for(uint32_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_ignore_chars); i++)
+		{
+			if(strcmp(util_exfont_ignore_chars[i].buffer, character->buffer) == 0)
+			{
+				unknown = false;
+				block = UINT16_MAX;
+				break;
+			}
+		}
+	}
+
+	if (block != UINT16_MAX && util_exfont_loaded_external_font[block])
+	{
+		unknown = false;
+		base_index = util_exfont_font_start_num[block];
+
+		if(length == 1)
+		{
+			if(character->buffer[0] > 0x7F)
+				unknown = true;
+			else
+			{
+				//basic latin : U+0000[0x00]~U+007F[0x7F], passed
+				if(block == DEF_EXFONT_BLOCK_BASIC_LATIN)
+					offset = character->buffer[0];
+				else
+					unknown = true;
+			}
+		}
+		else if(length == 2)
+		{
+			if(character->buffer[1] < 0x80 || character->buffer[1] > 0xBF)
+				unknown = true;
+			else
+			{
+				//latin 1 supplement : U+0080[0xC2, 0x80]~U+00FF[0xC3, 0xBF], passed
+				//U+0080[0xC2, 0x80]~U+009F[0xC2, 0x9F] are invalid character.
+				if(block == DEF_EXFONT_BLOCK_LATIN_1_SUPPLEMENT)
+				{
+					if(character->buffer[0] == 0xC2)
+						offset = character->buffer[1] - 0xA0;
+					else if(character->buffer[0] == 0xC3)
+						offset = character->buffer[1] - 0x80 + 32;
+					else
+						unknown = true;
+				}
+				//latin extended a : U+0100[0xC4, 0x80]~U+017F[0xC5, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_A)
+				{
+					if(character->buffer[0] == 0xC4)
+						offset = character->buffer[1] - 0x80;
+					else if(character->buffer[0] == 0xC5)
+						offset = character->buffer[1] - 0x80 + 64;
+					else
+						unknown = true;
+				}
+				//latin extended b : U+0180[0xC6, 0x80]~U+024F[0xC9, 0x8F], passed
+				else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_B)
+				{
+					if(character->buffer[0] == 0xC6)
+						offset = character->buffer[1] - 0x80;
+					else if(character->buffer[0] == 0xC7)
+						offset = character->buffer[1] - 0x80 + 64;
+					else if(character->buffer[0] == 0xC8)
+						offset = character->buffer[1] - 0x80 + 128;
+					else if(character->buffer[0] == 0xC9 && character->buffer[1] <= 0x8F)
+						offset = character->buffer[1] - 0x80 + 192;
+					else
+						unknown = true;
+				}
+				//ipa extensions : U+0250[0xC9, 0x90]~U+02AF[0xCA, 0xAF], passed
+				else if(block == DEF_EXFONT_BLOCK_IPA_EXTENSIONS)
+				{
+					if(character->buffer[0] == 0xC9 && character->buffer[1] >= 0x90)
+						offset = character->buffer[1] - 0x90;
+					else if(character->buffer[0] == 0xCA && character->buffer[1] <= 0xAF)
+						offset = character->buffer[1] - 0x80 + 48;
+					else
+						unknown = true;
+				}
+				//spacing_modifier_letters : U+02B0[0xCA, 0xB0]~U+02FF[0xCB, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_SPACING_MODIFIER_LETTERS)
+				{
+					if(character->buffer[0] == 0xCA && character->buffer[1] >= 0xB0)
+						offset = character->buffer[1] - 0xB0;
+					else if(character->buffer[0] == 0xCB)
+						offset = character->buffer[1] - 0x80 + 16;
+					else
+						unknown = true;
+				}
+				//combining_diacritical_marks : U+0300[0xCC, 0x80]~U+036F[0xCD, 0xAF], passed
+				else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS)
+				{
+					if(character->buffer[0] == 0xCC)
+						offset = character->buffer[1] - 0x80;
+					else if(character->buffer[0] == 0xCD && character->buffer[1] <= 0xAF)
+						offset = character->buffer[1] - 0x80 + 64;
+					else
+						unknown = true;
+				}
+				//greek and coptic : U+0370[0xCD, 0xB0]~U+03FF[0xCF, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_GREEK_AND_COPTIC)
+				{
+					if(character->buffer[0] == 0xCD && character->buffer[1] >= 0xB0)
+						offset = character->buffer[1] - 0xB0;
+					else if(character->buffer[0] == 0xCE)
+						offset = character->buffer[1] - 0x80 + 16;
+					else if(character->buffer[0] == 0xCF)
+						offset = character->buffer[1] - 0x80 + 80;
+					else
+						unknown = true;
+				}
+				//cyrillic : U+0400[0xD0, 0x80]~U+04FF[0xD3, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_CYRILLIC)
+				{
+					if(character->buffer[0] == 0xD0)
+						offset = character->buffer[1] - 0x80;
+					else if(character->buffer[0] == 0xD1)
+						offset = character->buffer[1] - 0x80 + 64;
+					else if(character->buffer[0] == 0xD2)
+						offset = character->buffer[1] - 0x80 + 128;
+					else if(character->buffer[0] == 0xD3)
+						offset = character->buffer[1] - 0x80 + 192;
+					else
+						unknown = true;
+				}
+				//cyrillic supplement : U+0500[0xD4, 0x80]~U+052F[0xD4, 0xAF], passed
+				else if(block == DEF_EXFONT_BLOCK_CYRILLIC_SUPPLEMENT)
+				{
+					if(character->buffer[0] == 0xD4 && character->buffer[1] <= 0xAF)
+						offset = character->buffer[1] - 0x80;
+					else
+						unknown = true;
+				}
+				//armenian : U+0530[0xD4, 0xB0]~U+058F[0xD6, 0x8F], passed
+				else if(block == DEF_EXFONT_BLOCK_ARMENIAN)
+				{
+					if(character->buffer[0] == 0xD4 && character->buffer[1] >= 0xB0)
+						offset = character->buffer[1] - 0xB0;
+					else if(character->buffer[0] == 0xD5)
+						offset = character->buffer[1] - 0x80 + 16;
+					else if(character->buffer[0] == 0xD6 && character->buffer[1] <= 0x8F)
+						offset = character->buffer[1] - 0x80 + 80;
+					else
+						unknown = true;
+				}
+				//hebrew : U+0590[0xD6, 0x90]~U+05FF[0xD7, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_HEBREW)
+				{
+					if(character->buffer[0] == 0xD6 && character->buffer[1] >= 0x90)
+						offset = character->buffer[1] - 0x90;
+					else if(character->buffer[0] == 0xD7)
+						offset = character->buffer[1] - 0x80 + 48;
+					else
+						unknown = true;
+				}
+				//arabic : U+0600[0xD8, 0x80]~U+06FF[0xDB, 0xBF], passed
+				else if(block == DEF_EXFONT_BLOCK_ARABIC)
+				{
+					if(character->buffer[0] == 0xD8)
+						offset = character->buffer[1] - 0x80;
+					else if(character->buffer[0] == 0xD9)
+						offset = character->buffer[1] - 0x80 + 64;
+					else if(character->buffer[0] == 0xDA)
+						offset = character->buffer[1] - 0x80 + 128;
+					else if(character->buffer[0] == 0xDB)
+						offset = character->buffer[1] - 0x80 + 192;
+					else
+						unknown = true;
+				}
+				else
+					unknown = true;
+			}
+		}
+		else if(length == 3)
+		{
+			if(character->buffer[0] < 0xE0 || character->buffer[0] > 0xEF
+			|| character->buffer[2] < 0x80 || character->buffer[2] > 0xBF)
+				unknown = true;
+			else
+			{
+				if(block <= DEF_EXFONT_BLOCK_GEORGIAN)
+				{
+					//devanagari : U+0900[0xE0, 0xA4, 0x80]~U+097F[0xE0, 0xA5, 0xBF], passed
+					if(block == DEF_EXFONT_BLOCK_DEVANAGARI)
+					{
+						if(character->buffer[1] == 0xA4)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xA5)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//gurmukhi : U+0A00[0xE0, 0xA8, 0x80]~U+0A7F[0xE0, 0xA9, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_GURMUKHI)
+					{
+						if(character->buffer[1] == 0xA8)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xA9)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//tamil : U+0B80[0xE0, 0xAE, 0x80]~U+0BFF[0xE0, 0xAF, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_TAMIL)
+					{
+						if(character->buffer[1] == 0xAE)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xAF)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//telugu : U+0C00[0xE0, 0xB0, 0x80]~U+0C7F[0xE0, 0xB1, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_TELUGU)
+					{
+						if(character->buffer[1] == 0xB0)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xB1)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//kannada : U+0C80[0xE0, 0xB2, 0x80]~U+0CFF[0xE0, 0xB3, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_KANNADA)
+					{
+						if(character->buffer[1] == 0xB2)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xB3)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//sinhala : U+0D80[0xE0, 0xB6, 0x80]~U+0DFF[0xE0, 0xB7, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_SINHALA)
+					{
+						if(character->buffer[1] == 0xB6)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xB7)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//thai : U+0E00[0xE0, 0xB8, 0x80]~U+0E7F[0xE0, 0xB9, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_THAI)
+					{
+						if(character->buffer[1] == 0xB8)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xB9)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//lao : U+0E80[0xE0, 0xBA, 0x80]~U+0EFF[0xE0, 0xBB, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_LAO)
+					{
+						if(character->buffer[1] == 0xBA)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xBB)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//tibetan : U+0F00[0xE0, 0xBC, 0x80]~U+0FFF[0xE0, 0xBF, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_TIBETAN)
+					{
+						if(character->buffer[1] == 0xBC)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xBD)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0xBE)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0xBF)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//georgian : U+10A0[0xE1, 0x82, 0xA0]~U+10FF[0xE1, 0x83, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_GEORGIAN)
+					{
+						if(character->buffer[1] == 0x82 && character->buffer[2] >= 0xA0)
+							offset = character->buffer[2] - 0xA0;
+						else if(character->buffer[1] == 0x83)
+							offset = character->buffer[2] - 0x80 + 32;
+						else
+							unknown = true;
+					}
+					else
+						unknown = true;
+				}
+				else if(block <= DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
+				{
+					//unified_canadian_aboriginal_syllabics : U+1400[0xE1, 0x90, 0x80]~U+167F[0xE1, 0x99, 0xBF], passed
+					if(block == DEF_EXFONT_BLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS)
+					{
+						if(character->buffer[1] == 0x90)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x91)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x92)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x93)
+							offset = character->buffer[2] - 0x80 + 192;
+						else if(character->buffer[1] == 0x94)
+							offset = character->buffer[2] - 0x80 + 256;
+						else if(character->buffer[1] == 0x95)
+							offset = character->buffer[2] - 0x80 + 320;
+						else if(character->buffer[1] == 0x96)
+							offset = character->buffer[2] - 0x80 + 384;
+						else if(character->buffer[1] == 0x97)
+							offset = character->buffer[2] - 0x80 + 448;
+						else if(character->buffer[1] == 0x98)
+							offset = character->buffer[2] - 0x80 + 512;
+						else if(character->buffer[1] == 0x99)
+							offset = character->buffer[2] - 0x80 + 576;
+						else
+							unknown = true;
+					}
+					//phonetic_extensions : U+1D00[0xE1, 0xB4, 0x80]~U+1D7F[0xE1, 0xB5, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_PHONETIC_EXTENSIONS)
+					{
+						if(character->buffer[1] == 0xB4)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xB5)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//combining_diacritical_marks_supplement : U+1DC0[0xE1, 0xB7, 0x80]~U+1DFF[0xE1, 0xB7, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT)
+					{
+						if(character->buffer[1] == 0xB7)
+							offset = character->buffer[2] - 0x80;
+						else
+							unknown = true;
+					}
+					//greek_extended : U+1F00[0xE1, 0xBC, 0x80]~U+1FFF[0xE1, 0xBF, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_GREEK_EXTENDED)
+					{
+						if(character->buffer[1] == 0xBC)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xBD)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0xBE)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0xBF)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//general_punctuation : U+2000[0xE2, 0x80, 0x80]~U+206F[0xE2, 0x81, 0xAF], passed
+					else if(block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
+					{
+						if(character->buffer[1] == 0x80)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x81 && character->buffer[2] <= 0xAF)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//superscripts_and_subscripts : U+2070[0xE2, 0x81, 0xB0]~U+209F[0xE2, 0x82, 0x9F], passed
+					else if(block == DEF_EXFONT_BLOCK_SUPERSCRIPTS_AND_SUBSCRIPTS)
+					{
+						if(character->buffer[1] == 0x81 && character->buffer[2] >= 0xB0)
+							offset = character->buffer[2] - 0xB0;
+						else if(character->buffer[1] == 0x82 && character->buffer[2] <= 0x9F)
+							offset = character->buffer[2] - 0x80 + 16;
+						else
+							unknown = true;
+					}
+					//combining_diacritical_marks_for_symbols : U+20D0[0xE2, 0x83, 0x90]~U+20FF[0xE2, 0x83, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_FOR_SYMBOLS)
+					{
+						if(character->buffer[1] == 0x83 && character->buffer[2] >= 0x90)
+							offset = character->buffer[2] - 0x90;
+						else
+							unknown = true;
+					}
+					//arrows : U+2190[0xE2, 0x86, 0x90]~U+21FF[0xE2, 0x87, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_ARROWS)
+					{
+						if(character->buffer[1] == 0x86 && character->buffer[2] >= 0x90)
+							offset = character->buffer[2] - 0x90;
+						else if(character->buffer[1] == 0x87)
+							offset = character->buffer[2] - 0x80 + 48;
+						else
+							unknown = true;
+					}
+					//mathematical_operators : U+2200[0xE2, 0x88, 0x80]~U+22FF[0xE2, 0x8B, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_MATHEMATICAL_OPERATORS)
+					{
+						if(character->buffer[1] == 0x88)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x89)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x8A)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x8B)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//miscellaneous_technical : U+2300[0xE2, 0x8C, 0x80]~U+23FF[0xE2, 0x8F, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
+					{
+						if(character->buffer[1] == 0x8C)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x8D)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x8E)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x8F)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					else
+						unknown = true;
+				}
+				else if(block <= DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
+				{
+					//optical_character_recognition : U+2440[0xE2, 0x91, 0x80]~U+245F[0xE2, 0x91, 0x9F], passed
+					if(block == DEF_EXFONT_BLOCK_OPTICAL_CHARACTER_RECOGNITION)
+					{
+						if(character->buffer[1] == 0x91 && character->buffer[2] <= 0x9F)
+							offset = character->buffer[2] - 0x80;
+						else
+							unknown = true;
+					}
+					//enclosed_alphanumerics : U+2460[0xE2, 0x91, 0xA0]~U+24FF[0xE2, 0x93, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_ENCLOSED_ALPHANUMERICS)
+					{
+						if(character->buffer[1] == 0x91 && character->buffer[2] >= 0xA0)
+							offset = character->buffer[2] - 0xA0;
+						else if(character->buffer[1] == 0x92)
+							offset = character->buffer[2] - 0x80 + 32;
+						else if(character->buffer[1] == 0x93)
+							offset = character->buffer[2] - 0x80 + 96;
+						else
+							unknown = true;
+					}
+					//box_drawing : U+2500[0xE2, 0x94, 0x80]~U+257F[0xE2, 0x95, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_BOX_DRAWING)
+					{
+						if(character->buffer[1] == 0x94)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x95)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//block_elements : U+2580[0xE2, 0x96, 0x80]~U+259F[0xE2, 0x96, 0x9F], passed
+					else if(block == DEF_EXFONT_BLOCK_BLOCK_ELEMENTS)
+					{
+						if(character->buffer[1] == 0x96 && character->buffer[2] <= 0x9F)
+							offset = character->buffer[2] - 0x80;
+						else
+							unknown = true;
+					}
+					//geometric_shapes : U+25A0[0xE2, 0x96, 0xA0]~U+25FF[0xE2, 0x97, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_GEOMETRIC_SHAPES)
+					{
+						if(character->buffer[1] == 0x96 && character->buffer[2] >= 0xA0)
+							offset = character->buffer[2] - 0xA0;
+						else if(character->buffer[1] == 0x97)
+							offset = character->buffer[2] - 0x80 + 32;
+						else
+							unknown = true;
+					}
+					//miscellaneous_symbols : U+2600[0xE2, 0x98, 0x80]~U+26FF[0xE2, 0x9B, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS)
+					{
+						if(character->buffer[1] == 0x98)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x99)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x9A)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x9B)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//dingbats : U+2700[0xE2, 0x9C, 0x80]~U+27BF[0xE2, 0x9E, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_DINGBATS)
+					{
+						if(character->buffer[1] == 0x9C)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x9D)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x9E)
+							offset = character->buffer[2] - 0x80 + 128;
+						else
+							unknown = true;
+					}
+					//supplemental_arrows_b : U+2900[0xE2, 0xA4, 0x80]~U+297F[0xE2, 0xA5, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_SUPPLEMENTAL_ARROWS_B)
+					{
+						if(character->buffer[1] == 0xA4)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xA5)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//miscellaneous_symbols_and_arrows : U+2B00[0xE2, 0xAC, 0x80]~U+2BFF[0xE2, 0xAF, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS)
+					{
+						if(character->buffer[1] == 0xAC)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xAD)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0xAE)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0xAF)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//cjk_symbol_and_punctuation : U+3000[0xE3, 0x80, 0x80]~U+303F[0xE3, 0x80, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
+					{
+						if(character->buffer[1] == 0x80)
+							offset = character->buffer[2] - 0x80;
+						else
+							unknown = true;
+					}
+					else
+						unknown = true;
+				}
+				else
+				{
+					//hiragana : U+3040[0xE3, 0x81, 0x80 ]~U+309F[0xE3, 0x82, 0x9F], passed
+					if(block == DEF_EXFONT_BLOCK_HIRAGANA)
+					{
+						if(character->buffer[1] == 0x81)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x82 && character->buffer[2] <= 0x9F)
+							offset = character->buffer[2] - 0x80 + 64;
+						else
+							unknown = true;
+					}
+					//katakana : U+30A0[0xE3, 0x82, 0xA0]~U+30FF[0xE3, 0x83, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_KATAKANA)
+					{
+						if(character->buffer[1] == 0x82 && character->buffer[2] >= 0xA0)
+							offset = character->buffer[2] - 0xA0;
+						else if(character->buffer[1] == 0x83)
+							offset = character->buffer[2] - 0x80 + 32;
+						else
+							unknown = true;
+					}
+					//cjk_compatibility : U+3300[0xE3, 0x8C, 0x80]~U+33FF[0xE3, 0x8F, 0xBF], passed
+					else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY)
+					{
+						if(character->buffer[1] == 0x8C)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x8D)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x8E)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x8F)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					//cjk_unified_ideographs : U+4E00[0xE4, 0xB8, 0x80]~U+9FFF[0xE9, 0xBF, 0xBF]
+					else if(block == DEF_EXFONT_BLOCK_CJK_UNIFIED_IDEOGRAPHS)
+					{
+						if(character->buffer[0] >= 0xE4 && character->buffer[0] <= 0xE9)
+						{
+							uint32_t start_pos = 0;
+							uint32_t end_pos = 0;
+							uint32_t offset_cache = 0;
+
+							if(character->buffer[1] < 0x90)
+								start_pos = 0x80;
+							else if(character->buffer[1] < 0xA0)
+								start_pos = 0x90;
+							else if(character->buffer[1] < 0xB0)
+								start_pos = 0xA0;
+							else if(character->buffer[1] < 0xC0)
+								start_pos = 0xB0;
+
+							end_pos = start_pos + 0x10;
+
+							if(character->buffer[0] == 0xE4)
+								offset = 0;
+							else if(character->buffer[0] == 0xE5)
+								offset += 512;
+							else if(character->buffer[0] == 0xE6)
+								offset += 4608;
+							else if(character->buffer[0] == 0xE7)
+								offset += 8704;
+							else if(character->buffer[0] == 0xE8)
+								offset += 12800;
+							else if(character->buffer[0] == 0xE9)
+								offset += 16896;
+
+							unknown = true;
+							if(character->buffer[0] == 0xE4)
+							{
+								start_pos = 0xB8;
+								end_pos = 0xC0;
+								for(uint32_t i = start_pos; i < end_pos; i++)
+								{
+									if(character->buffer[1] == i)
+									{
+										offset_cache = character->buffer[2] - 0x80 + ((i - 0xB8) * 64);
+										unknown = false;
+										break;
+									}
+								}
+							}
+							else
+							{
+								for(uint32_t i = start_pos; i < end_pos; i++)
+								{
+									if(character->buffer[1] == i)
+									{
+										offset_cache = character->buffer[2] - 0x80 + ((i - 0x80) * 64);
+										unknown = false;
+										break;
+									}
+								}
+							}
+
+							offset += offset_cache;
+						}
+						else
+							unknown = true;
+					}
+					//yi_syllables : U+A000[0xEA, 0x80, 0x80]~U+A48F[0xEA, 0x92, 0x8F], passed
+					else if(block == DEF_EXFONT_BLOCK_YI_SYLLABLES)
+					{
+						if(character->buffer[1] == 0x80)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0x81)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0x82)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0x83)
+							offset = character->buffer[2] - 0x80 + 192;
+						else if(character->buffer[1] == 0x84)
+							offset = character->buffer[2] - 0x80 + 256;
+						else if(character->buffer[1] == 0x85)
+							offset = character->buffer[2] - 0x80 + 320;
+						else if(character->buffer[1] == 0x86)
+							offset = character->buffer[2] - 0x80 + 384;
+						else if(character->buffer[1] == 0x87)
+							offset = character->buffer[2] - 0x80 + 448;
+						else if(character->buffer[1] == 0x88)
+							offset = character->buffer[2] - 0x80 + 512;
+						else if(character->buffer[1] == 0x89)
+							offset = character->buffer[2] - 0x80 + 576;
+						else if(character->buffer[1] == 0x8A)
+							offset = character->buffer[2] - 0x80 + 640;
+						else if(character->buffer[1] == 0x8B)
+							offset = character->buffer[2] - 0x80 + 704;
+						else if(character->buffer[1] == 0x8C)
+							offset = character->buffer[2] - 0x80 + 768;
+						else if(character->buffer[1] == 0x8D)
+							offset = character->buffer[2] - 0x80 + 832;
+						else if(character->buffer[1] == 0x8E)
+							offset = character->buffer[2] - 0x80 + 896;
+						else if(character->buffer[1] == 0x8F)
+							offset = character->buffer[2] - 0x80 + 960;
+						else if(character->buffer[1] == 0x90)
+							offset = character->buffer[2] - 0x80 + 1024;
+						else if(character->buffer[1] == 0x91)
+							offset = character->buffer[2] - 0x80 + 1088;
+						else if(character->buffer[1] == 0x92 && character->buffer[2] <= 0x8F)
+							offset = character->buffer[2] - 0x80 + 1152;
+						else
+							unknown = true;
+					}
+					//yi_radicals : U+A490[0xEA, 0x92, 0x90]~U+A4CF[0xEA, 0x93, 0x8F], passed
+					else if(block == DEF_EXFONT_BLOCK_YI_RADICALS)
+					{
+						if(character->buffer[1] == 0x92 && character->buffer[2] >= 0x90)
+							offset = character->buffer[2] - 0x90;
+						else if(character->buffer[1] == 0x93)
+							offset = character->buffer[2] - 0x80 + 48;
+						else
+							unknown = true;
+					}
+					//hangul_syllables : U+AC00[0xEA, 0xB0, 0x80]~U+D7AF[0xED, 0x9E, 0xAF]
+					else if(block == DEF_EXFONT_BLOCK_HANGUL_SYLLABLES)
+					{
+						if(character->buffer[0] >= 0xEA && character->buffer[0] <= 0xED)
+						{
+							uint32_t start_pos = 0;
+							uint32_t end_pos = 0;
+							uint32_t offset_cache = 0;
+
+							if(character->buffer[1] < 0x90)
+								start_pos = 0x80;
+							else if(character->buffer[1] < 0xA0)
+								start_pos = 0x90;
+							else if(character->buffer[1] < 0xB0)
+								start_pos = 0xA0;
+							else if(character->buffer[1] < 0xC0)
+								start_pos = 0xB0;
+
+							end_pos = start_pos + 0x10;
+
+							if(character->buffer[0] == 0xEA)
+								offset = 0;
+							else if(character->buffer[0] == 0xEB)
+								offset += 1024;
+							else if(character->buffer[0] == 0xEC)
+								offset += 5120;
+							else if(character->buffer[0] == 0xED)
+								offset += 9216;
+
+							unknown = true;
+							if(character->buffer[0] == 0xEA)
+							{
+								start_pos = 0xB0;
+								end_pos = 0xC0;
+								for(uint32_t i = start_pos; i < end_pos; i++)
+								{
+									if(character->buffer[1] == i)
+									{
+										offset_cache = character->buffer[2] - 0x80 + ((i - 0xB0) * 64);
+										unknown = false;
+										break;
+									}
+								}
+							}
+							else
+							{
+								if(!(character->buffer[0] == 0xED && character->buffer[1] >= 0x9E && character->buffer[0] > 0xAF))
+								{
+									for(uint32_t i = start_pos; i < end_pos; i++)
+									{
+										if(character->buffer[1] == i)
+										{
+											offset_cache = character->buffer[2] - 0x80 + ((i - 0x80) * 64);
+											unknown = false;
+											break;
+										}
+									}
+								}
+							}
+
+							offset += offset_cache;
+						}
+						else
+							unknown = true;
+					}
+					//cjk_compatibility_forms : U+FE30[0xEF, 0xB8, 0xB0]~U+FE4F[0xEF, 0xB9, 0x8F], passed
+					else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY_FORMS)
+					{
+						if(character->buffer[1] == 0xB8 && character->buffer[2] >= 0xB0)
+							offset = character->buffer[2] - 0xB0;
+						else if(character->buffer[1] == 0xB9)
+							offset = character->buffer[2] - 0x80 + 16;
+						else
+							unknown = true;
+					}
+					//halfwidth_and_fullwidth_forms : U+FF00[0xEF, 0xBC, 0x80]~U+FFEF[0xEF, 0xBF, 0xAF], passed
+					else if(block == DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS)
+					{
+						if(character->buffer[1] == 0xBC)
+							offset = character->buffer[2] - 0x80;
+						else if(character->buffer[1] == 0xBD)
+							offset = character->buffer[2] - 0x80 + 64;
+						else if(character->buffer[1] == 0xBE)
+							offset = character->buffer[2] - 0x80 + 128;
+						else if(character->buffer[1] == 0xBF)
+							offset = character->buffer[2] - 0x80 + 192;
+						else
+							unknown = true;
+					}
+					else
+						unknown = true;
+				}
+			}
+		}
+		else if(length == 4)
+		{
+			if(character->buffer[0] != 0xF0 || character->buffer[1] != 0x9F
+			|| character->buffer[3] < 0x80 || character->buffer[3] > 0xBf)
+				unknown = true;
+			else
+			{
+				//miscellaneous_symbols_and_pictographs : U+1F300[0xF0, 0x9F, 0x8C, 0x80]~U+1F5FF[0xF0, 0x9F, 0x97, 0xBF], passed
+				if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS)
+				{
+					if(character->buffer[2] == 0x8C)
+						offset = character->buffer[3] - 0x80;
+					else if(character->buffer[2] == 0x8D)
+						offset = character->buffer[3] - 0x80 + 64;
+					else if(character->buffer[2] == 0x8E)
+						offset = character->buffer[3] - 0x80 + 128;
+					else if(character->buffer[2] == 0x8F)
+						offset = character->buffer[3] - 0x80 + 192;
+					else if(character->buffer[2] == 0x90)
+						offset = character->buffer[3] - 0x80 + 256;
+					else if(character->buffer[2] == 0x91)
+						offset = character->buffer[3] - 0x80 + 320;
+					else if(character->buffer[2] == 0x92)
+						offset = character->buffer[3] - 0x80 + 384;
+					else if(character->buffer[2] == 0x93)
+						offset = character->buffer[3] - 0x80 + 448;
+					else if(character->buffer[2] == 0x94)
+						offset = character->buffer[3] - 0x80 + 512;
+					else if(character->buffer[2] == 0x95)
+						offset = character->buffer[3] - 0x80 + 576;
+					else if(character->buffer[2] == 0x96)
+						offset = character->buffer[3] - 0x80 + 640;
+					else if(character->buffer[2] == 0x97)
+						offset = character->buffer[3] - 0x80 + 704;
+					else
+						unknown = true;
+				}
+				//emoticons : U+1F600[0xF0, 0x9F, 0x98, 0x80]~U+1F64F[0xF0, 0x9F, 0x99, 0x8F], passed
+				else if(block == DEF_EXFONT_BLOCK_EMOTICONS)
+				{
+					if(character->buffer[2] == 0x98)
+						offset = character->buffer[3] - 0x80;
+					else if(character->buffer[2] == 0x99 && character->buffer[3] <= 0x8F)
+						offset = character->buffer[3] - 0x80 + 64;
+					else
+						unknown = true;
+				}
+			}
+		}
+		else
+			unknown = true;
+	}
+
+	if(unknown || (base_index + offset) >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_exfont_font_images))
+	{
+		base_index = 0;
+		offset = 0;
+	}
+
+	if(util_exfont_font_images[base_index + offset].subtex->height != 0)
+		width_rate = ((double)util_exfont_font_images[base_index + offset].subtex->width / util_exfont_font_images[base_index + offset].subtex->height);
+
+	x_size = ((base_size * width_rate) * x_scale);
+	y_size = (base_size * y_scale);
+	if(!size_only)
+	{
+		Draw_image_data font = { 0, };
+		font.c2d = util_exfont_font_images[base_index + offset];
+		Draw_texture(&font, abgr8888, texture_x, texture_y, x_size, y_size);
+	}
+
+	*out_width = x_size;
+	*out_height = y_size;
 }
 
 static uint32_t Exfont_load_exfont(uint16_t exfont_id)

@@ -62,6 +62,16 @@
 #define HID_SAPP_OPEN_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_button[id], k) && !menu_sapp_close_button[id].selected)
 #define HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
 
+#define FONT_SIZE_EXIT_CHECK		(float)(15.00)	//Font size for exit check messages.
+#define FONT_SIZE_NEW_VERSION		(float)(21.00)	//Font size for new version available messages.
+#define FONT_SIZE_HOW_TO_UPDATE		(float)(15.00)	//Font size for update instruction messages.
+#if (defined(DEF_VID_ENABLE) || defined(DEF_SAPP1_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
+#define FONT_SIZE_CLOSE_BUTTON		(float)(15.00)	//Font size for close buttons.
+#endif //(defined(DEF_VID_ENABLE) || defined(DEF_SAPP1_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
+#if (defined(DEF_VID_ENABLE_NAME) || defined(DEF_SAPP1_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
+#define FONT_SIZE_SUB_APP_NAME		(float)(12.00)	//Font size for sub application names.
+#endif //(defined(DEF_VID_ENABLE_NAME) || defined(DEF_SAPP1_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
+
 //Typedefs.
 typedef enum
 {
@@ -592,14 +602,14 @@ void Menu_main(void)
 
 			if(menu_check_exit_request)
 			{
-				Draw_align(&menu_msg[MSG_EXIST], 0, 105, 0.5, 0.5, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align(&menu_msg[MSG_CONFIRM], 10, 140, 0.5, 0.5, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
-				Draw_align(&menu_msg[MSG_CANCEL], 210, 140, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[MSG_EXIST], 0, 105, FONT_SIZE_EXIT_CHECK, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
+				Draw_align(&menu_msg[MSG_CONFIRM], 10, 140, FONT_SIZE_EXIT_CHECK, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[MSG_CANCEL], 210, 140, FONT_SIZE_EXIT_CHECK, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
 			{
-				Draw(&menu_msg[MSG_NEW_VERSION], 10, 30, 0.7, 0.7, DEF_DRAW_RED);
-				Draw(&menu_msg[MSG_HOW_TO_UPDATE], 10, 60, 0.5, 0.5, color);
+				Draw(&menu_msg[MSG_NEW_VERSION], 10, 30, FONT_SIZE_NEW_VERSION, DEF_DRAW_RED);
+				Draw(&menu_msg[MSG_HOW_TO_UPDATE], 10, 60, FONT_SIZE_HOW_TO_UPDATE, color);
 			}
 
 			if(Util_log_query_show_flag())
@@ -622,13 +632,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_VID], DEF_DRAW_NO_COLOR, 110, 60, 100, 100);
 #endif //DEF_VID_ENABLE_ICON
 #ifdef DEF_VID_ENABLE_NAME
-			Draw_align_c(DEF_VID_NAME, 110, 60, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 100, 100);
+			Draw_align_c(DEF_VID_NAME, 110, 60, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 100, 100);
 #endif //DEF_VID_ENABLE_NAME
 
 			if(Vid_query_init_flag())
 			{
-				Draw_with_background_c("X", 195, 60, 0.5, 0.5, DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 15, 15,
-				DRAW_BACKGROUND_ENTIRE_BOX, &menu_sapp_close_button[APP_VID], menu_sapp_close_button[APP_VID].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
+				Draw_with_background_c("X", 195, 60, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				15, 15, DRAW_BACKGROUND_ENTIRE_BOX, &menu_sapp_close_button[APP_VID], menu_sapp_close_button[APP_VID].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
 			}
 #endif //DEF_VID_ENABLE
 
@@ -639,13 +649,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_1], DEF_DRAW_NO_COLOR, 80, 0, 60, 60);
 #endif //DEF_SAPP1_ENABLE_ICON
 #ifdef DEF_SAPP1_ENABLE_NAME
-			Draw_align_c(DEF_SAPP1_NAME, 80, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP1_NAME, 80, 0, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP1_ENABLE_NAME
 
 			if(Sapp1_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_1], menu_sapp_close_button[APP_1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 0, 15, 15.0);
-				Draw_c("X", 127.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 127.5, 0, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP1_ENABLE
 
@@ -656,13 +666,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_2], DEF_DRAW_NO_COLOR, 160, 0, 60, 60);
 #endif //DEF_SAPP2_ENABLE_ICON
 #ifdef DEF_SAPP2_ENABLE_NAME
-			Draw_align_c(DEF_SAPP2_NAME, 160, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP2_NAME, 160, 0, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP2_ENABLE_NAME
 
 			if(Sapp2_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_2], menu_sapp_close_button[APP_2].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 0, 15, 15.0);
-				Draw_c("X", 207.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 207.5, 0, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP2_ENABLE
 
@@ -673,13 +683,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_3], DEF_DRAW_NO_COLOR, 240, 0, 60, 60);
 #endif //DEF_SAPP3_ENABLE_ICON
 #ifdef DEF_SAPP3_ENABLE_NAME
-			Draw_align_c(DEF_SAPP3_NAME, 240, 0, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP3_NAME, 240, 0, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP3_ENABLE_NAME
 
 			if(Sapp3_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_3], menu_sapp_close_button[APP_3].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 0, 15, 15.0);
-				Draw_c("X", 287.5, 0, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 287.5, 0, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP3_ENABLE
 
@@ -690,13 +700,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_4], DEF_DRAW_NO_COLOR, 0, 80, 60, 60);
 #endif //DEF_SAPP4_ENABLE_ICON
 #ifdef DEF_SAPP4_ENABLE_NAME
-			Draw_align_c(DEF_SAPP4_NAME, 0, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP4_NAME, 0, 80, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP4_ENABLE_NAME
 
 			if(Sapp4_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_4], menu_sapp_close_button[APP_4].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 80, 15, 15.0);
-				Draw_c("X", 47.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 47.5, 80, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP4_ENABLE
 
@@ -707,13 +717,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_5], DEF_DRAW_NO_COLOR, 80, 80, 60, 60);
 #endif //DEF_SAPP5_ENABLE_ICON
 #ifdef DEF_SAPP5_ENABLE_NAME
-			Draw_align_c(DEF_SAPP5_NAME, 80, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP5_NAME, 80, 80, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP5_ENABLE_NAME
 
 			if(Sapp5_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_5], menu_sapp_close_button[APP_5].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 80, 15, 15.0);
-				Draw_c("X", 127.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 127.5, 80, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP5_ENABLE
 
@@ -724,13 +734,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_6], DEF_DRAW_NO_COLOR, 160, 80, 60, 60);
 #endif //DEF_SAPP6_ENABLE_ICON
 #ifdef DEF_SAPP6_ENABLE_NAME
-			Draw_align_c(DEF_SAPP6_NAME, 160, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP6_NAME, 160, 80, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP6_ENABLE_NAME
 
 			if(Sapp6_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_6], menu_sapp_close_button[APP_6].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 205, 80, 15, 15.0);
-				Draw_c("X", 207.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 207.5, 80, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP6_ENABLE
 
@@ -741,13 +751,13 @@ void Menu_main(void)
 			Draw_texture(&menu_icon_image[APP_7], DEF_DRAW_NO_COLOR, 240, 80, 60, 60);
 #endif //DEF_SAPP7_ENABLE_ICON
 #ifdef DEF_SAPP7_ENABLE_NAME
-			Draw_align_c(DEF_SAPP7_NAME, 240, 80, 0.4, 0.4, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+			Draw_align_c(DEF_SAPP7_NAME, 240, 80, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
 #endif //DEF_SAPP7_ENABLE_NAME
 
 			if(Sapp7_query_init_flag())
 			{
 				Draw_texture(&menu_sapp_close_button[APP_7], menu_sapp_close_button[APP_7].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 285, 80, 15, 15.0);
-				Draw_c("X", 287.5, 80, 0.5, 0.5, DEF_DRAW_RED);
+				Draw_c("X", 287.5, 80, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
 #endif //DEF_SAPP7_ENABLE_ICON
 
@@ -757,7 +767,7 @@ void Menu_main(void)
 			Draw_texture(&menu_sem_icon_image[config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);
 #endif //DEF_SEM_ENABLE_ICON
 #ifdef DEF_SEM_ENABLE_NAME
-			Draw_c(DEF_SEM_NAME, 270, 205, 0.4, 0.4, color);
+			Draw_c(DEF_SEM_NAME, 270, 205, FONT_SIZE_SUB_APP_NAME, color);
 #endif //DEF_SEM_ENABLE_NAME
 
 			if(Util_err_query_show_flag())

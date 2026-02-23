@@ -62,7 +62,6 @@
 #define SETTINGS_ELEMENTS_NEWEST					(uint8_t)(SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
 
 #define DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
-#define DEBUG_GRAPH_WIDTH							(uint16_t)(320)							//Debug graph width in px.
 #define DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
 #define DEBUG_GRAPH_TEMP_ELEMENTS					(uint16_t)(32)							//Number of temp elements for multi-threaded decoding.
 
@@ -75,6 +74,34 @@
 #define NON_FULL_SCREEN_WIDTH						(uint16_t)(400)							//Video width in non-full-screen in px.
 #define NON_FULL_SCREEN_HEIGHT						(uint16_t)(225)							//Video height in non-full-screen in px.
 #define ENTER_FULL_SCREEN_TRANSITION_PERIOD			(uint16_t)(180)							//Transition period from non-full-screen to full-screen in frames.
+
+#define IS_X_IN_BOX(x, width, x_valid_start, x_valid_end)		(bool)((x >= x_valid_start) && (x <= (x_valid_end - width)))	//Whether element fits in box (for X direction).
+#define IS_Y_IN_BOX(y, height, y_valid_start, y_valid_end)		(bool)((y >= y_valid_start) && (y <= (y_valid_end - height)))	//Whether element fits in box (for Y direction).
+
+#define MENU_BOX_X									(double)(0)								//Box X offset for menu in px.
+#define MENU_BOX_Y									(double)(50)							//Box Y offset for menu in px.
+#define MENU_BOX_WIDTH								(double)(320)							//Box width for menu in px.
+#define MENU_BOX_HEIGHT								(double)(130)							//Box height for menu in px.
+#define MENU_BOX_X_END								(double)(MENU_BOX_X + MENU_BOX_WIDTH)	//Box X end offset for menu in px.
+#define MENU_BOX_Y_END								(double)(MENU_BOX_Y + MENU_BOX_HEIGHT)//Box Y end offset for menu in px.
+
+#define MENU_SETTING_0_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 0 (for X direction).
+#define MENU_SETTING_0_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 0 (for Y direction).
+#define MENU_SETTING_0_ITEM_WIDTH					(double)(300)							//Element width for setting 0.
+#define MENU_SETTING_0_ITEM_HEIGHT					(double)(15)							//Element height for setting 0.
+
+#define MENU_SETTING_1_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 1 (for X direction).
+#define MENU_SETTING_1_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 1 (for Y direction).
+#define MENU_SETTING_1_ITEM_WIDTH					(double)(300)							//Element width for setting 1.
+#define MENU_SETTING_1_ITEM_HEIGHT					(double)(20)							//Element height for setting 1.
+
+#define MENU_INFO_ITEM_SPACE_X						(double)(0)								//Element spacing for info (for X direction).
+#define MENU_INFO_ITEM_SPACE_Y						(double)(0)								//Element spacing for info (for Y direction).
+#define MENU_INFO_ITEM_WIDTH						(double)(320)							//Element width for info.
+#define MENU_INFO_LEFT_ITEM_WIDTH					(double)(200)							//Left element width for info.
+#define MENU_INFO_RIGHT_ITEM_WIDTH					(double)(120)							//Right element width for info.
+#define MENU_INFO_ITEM_HEIGHT						(double)(10)							//Element height for info.
+#define MENU_INFO_GRAPH_HEIGHT						(double)(110)							//Graph height for info.
 
 #define MENU_NONE_Y_OFFSET_MIN						(double)(-230)							//Minimum y offset in none.
 #define MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu.
@@ -1744,6 +1771,7 @@ void Vid_main(void)
 	uint32_t back_color = DEF_DRAW_WHITE;
 	uint64_t current_ts = osGetTime();
 	double text_subtitle_size = 0;
+	double x_offset = 0;
 	double y_offset = 0;
 	uint8_t image_index[EYE_MAX] = { 0, };
 	double image_width[EYE_MAX] = { 0, };
@@ -2264,22 +2292,24 @@ void Vid_main(void)
 				}
 
 				if(vid_player.menu_mode != MENU_NONE)
-					Draw_texture(&background, DEF_DRAW_WEAK_GREEN, 0, 50, 320, 130);
+					Draw_texture(&background, DEF_DRAW_WEAK_GREEN, MENU_BOX_X, MENU_BOX_Y, MENU_BOX_WIDTH, MENU_BOX_HEIGHT);
 
 				if(vid_player.menu_mode == MENU_SETTINGS_0)
 				{
 					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
-					y_offset = (vid_player.ui_y_offset + 60);
+					x_offset = (MENU_BOX_X + MENU_SETTING_0_ITEM_SPACE_X);
+					y_offset = (vid_player.ui_y_offset + MENU_BOX_Y + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Playback mode.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 						Vid_playback current_playback_mode = (Vid_playback)(MSG_NO_REPEAT + vid_player.playback_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_PLAY_METHOD]), DEF_STR_NEVER_NULL(&vid_msg[current_playback_mode]));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.playback_mode_button, (vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.playback_mode_button, temp_back_color);
 					}
 					else
 					{
@@ -2287,15 +2317,16 @@ void Vid_main(void)
 						vid_player.playback_mode_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Volume.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = ((vid_player.sub_state & PLAYER_SUB_STATE_TOO_BIG) ? DEF_DRAW_RED : color);
+						uint32_t temp_back_color = (vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 						Util_str_format(&format_str, "%s%" PRIu32 "%%", DEF_STR_NEVER_NULL(&vid_msg[MSG_VOLUME]), vid_player.volume);
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.volume_button, (vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.volume_button, temp_back_color);
 					}
 					else
 					{
@@ -2303,12 +2334,14 @@ void Vid_main(void)
 						vid_player.volume_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Select audio track.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, (vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						uint32_t temp_back_color = (vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, temp_back_color);
 					}
 					else
 					{
@@ -2316,12 +2349,14 @@ void Vid_main(void)
 						vid_player.select_audio_track_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Select subtitle track.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, (vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						uint32_t temp_back_color = (vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
+						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, temp_back_color);
 					}
 					else
 					{
@@ -2329,13 +2364,15 @@ void Vid_main(void)
 						vid_player.select_subtitle_track_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Seek duration.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%" PRIu32 "s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SEEK]), vid_player.seek_duration);
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.seek_duration_button, (vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.seek_duration_button, temp_back_color);
 					}
 					else
 					{
@@ -2343,13 +2380,15 @@ void Vid_main(void)
 						vid_player.seek_duration_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Remember video pos.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_REMEMBER_POS]), (vid_player.remember_video_pos ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.remember_video_pos_button, (vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.remember_video_pos_button, temp_back_color);
 					}
 					else
 					{
@@ -2357,13 +2396,15 @@ void Vid_main(void)
 						vid_player.remember_video_pos_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Texture filter.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_TEX_FILTER]), (vid_player.use_linear_texture_filter ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.texture_filter_button, (vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.texture_filter_button, temp_back_color);
 					}
 					else
 					{
@@ -2371,13 +2412,15 @@ void Vid_main(void)
 						vid_player.texture_filter_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Correct aspect ratio.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_ASPECT_RATIO]), (vid_player.correct_aspect_ratio ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.correct_aspect_ratio_button, (vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.correct_aspect_ratio_button, temp_back_color);
 					}
 					else
 					{
@@ -2385,10 +2428,11 @@ void Vid_main(void)
 						vid_player.correct_aspect_ratio_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Move content mode.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 						Vid_move current_move_content_mode = (Vid_move)(MSG_MOVE_MODE_DIABLE + vid_player.move_content_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MOVE_MODE]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
@@ -2396,13 +2440,13 @@ void Vid_main(void)
 						//Temporal workaround for UI overflow.
 						if(strcmp(config.lang, "de") == 0)
 						{
-							Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-							300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+							Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+							MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, temp_back_color);
 						}
 						else
 						{
-							Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-							300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+							Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+							MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.move_content_button, temp_back_color);
 						}
 					}
 					else
@@ -2411,13 +2455,15 @@ void Vid_main(void)
 						vid_player.move_content_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Allow skip frames.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_back_color = (vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_FRAME]), (vid_player.allow_skip_frames ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_frames_button, (vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_frames_button, temp_back_color);
 					}
 					else
 					{
@@ -2425,15 +2471,16 @@ void Vid_main(void)
 						vid_player.allow_skip_frames_button.y_size = -1;
 					}
 
-					y_offset += 25;
+					y_offset += (MENU_SETTING_0_ITEM_HEIGHT + MENU_SETTING_0_ITEM_SPACE_Y);
 					//Allow skip keyframes.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.allow_skip_frames ? color : disabled_color);
+						uint32_t temp_back_color = (vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_KEY_FRAME]), (vid_player.allow_skip_key_frames ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-						300, 15, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_key_frames_button, (vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.allow_skip_key_frames_button, temp_back_color);
 					}
 					else
 					{
@@ -2441,15 +2488,18 @@ void Vid_main(void)
 						vid_player.allow_skip_key_frames_button.y_size = -1;
 					}
 
-					y_offset += 35;
+					y_offset += 35;//todo
 					//Restart playback threshold.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, 15, MENU_BOX_Y, MENU_BOX_Y_END))//todo
 					{
+						uint32_t temp_back_color = (vid_player.restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
+
+						//todo
 						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_RESTART_PLAYBACK_THRESHOLD]), vid_player.restart_playback_threshold);
-						Draw(&format_str, 12.5, (y_offset - 15), FONT_SIZE_SETTING_0, color);
-						Draw_texture(&background, DEF_DRAW_WEAK_BLACK, 12.5, (y_offset + 7.5), 300, 5);
-						Draw_texture(&vid_player.restart_playback_threshold_bar, (vid_player.restart_playback_threshold_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED),
-						((double)vid_player.restart_playback_threshold / (DEF_DECODER_MAX_RAW_IMAGE - 1) * 290) + 12.5, y_offset, 10, 20);
+						Draw(&format_str, x_offset, (y_offset - 15), FONT_SIZE_SETTING_0, color);
+						Draw_texture(&background, DEF_DRAW_WEAK_BLACK, x_offset, (y_offset + 7.5), MENU_SETTING_0_ITEM_WIDTH, 5);
+						Draw_texture(&vid_player.restart_playback_threshold_bar, temp_back_color,
+						((double)vid_player.restart_playback_threshold / (DEF_DECODER_MAX_RAW_IMAGE - 1) * 290) + x_offset, y_offset, 10, 20);
 					}
 					else
 					{
@@ -2466,13 +2516,17 @@ void Vid_main(void)
 					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
-					y_offset = (vid_player.ui_y_offset + 60);
+					x_offset = (MENU_BOX_X + MENU_SETTING_1_ITEM_SPACE_X);
+					y_offset = (vid_player.ui_y_offset + MENU_BOX_Y + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Disable audio.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_AUDIO]), (vid_player.disable_audio ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_audio_button, (vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_audio_button, temp_back_color);
 					}
 					else
 					{
@@ -2480,13 +2534,16 @@ void Vid_main(void)
 						vid_player.disable_audio_button.y_size = -1;
 					}
 
-					y_offset += 30;
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Disable video.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_VIDEO]), (vid_player.disable_video ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_video_button, (vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_video_button, temp_back_color);
 					}
 					else
 					{
@@ -2494,13 +2551,16 @@ void Vid_main(void)
 						vid_player.disable_video_button.y_size = -1;
 					}
 
-					y_offset += 30;
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Disable subtitle.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_SUBTITLE]), (vid_player.disable_subtitle ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_subtitle_button, (vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.disable_subtitle_button, temp_back_color);
 					}
 					else
 					{
@@ -2508,13 +2568,16 @@ void Vid_main(void)
 						vid_player.disable_subtitle_button.y_size = -1;
 					}
 
-					y_offset += 30;
-					//Use hw decoding.
-					if(y_offset >= 50 && y_offset <= 165)
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
+					//Use HW decoding.
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_DECODER]), (vid_player.use_hw_decoding ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color),
-						DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_decoding_button, (vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_decoding_button, temp_back_color);
 					}
 					else
 					{
@@ -2522,13 +2585,16 @@ void Vid_main(void)
 						vid_player.use_hw_decoding_button.y_size = -1;
 					}
 
-					y_offset += 30;
-					//Use hw color conversion.
-					if(y_offset >= 50 && y_offset <= 165)
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
+					//Use HW color conversion.
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_CONVERTER]), (vid_player.use_hw_color_conversion ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_color_conversion_button, (vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_hw_color_conversion_button, temp_back_color);
 					}
 					else
 					{
@@ -2536,13 +2602,16 @@ void Vid_main(void)
 						vid_player.use_hw_color_conversion_button.y_size = -1;
 					}
 
-					y_offset += 30;
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Use multi-threaded decoding (in software decoding).
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MULTI_THREAD]), (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"));
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_multi_threaded_decoding_button, (vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.use_multi_threaded_decoding_button, temp_back_color);
 					}
 					else
 					{
@@ -2550,13 +2619,16 @@ void Vid_main(void)
 						vid_player.use_multi_threaded_decoding_button.y_size = -1;
 					}
 
-					y_offset += 30;
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Lower resolution.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color = (vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_LOWER_RESOLUTION]), lower_resolution_mode[vid_player.lower_resolution]);
-						Draw_with_background(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color), DRAW_X_ALIGN_LEFT,
-						DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.lower_resolution_button, (vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+						MENU_SETTING_1_ITEM_WIDTH, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.lower_resolution_button, temp_back_color);
 					}
 					else
 					{
@@ -2564,18 +2636,23 @@ void Vid_main(void)
 						vid_player.lower_resolution_button.y_size = -1;
 					}
 
-					y_offset += 30;
+					y_offset += (MENU_SETTING_1_ITEM_HEIGHT + MENU_SETTING_1_ITEM_SPACE_Y);
 					//Increment/decrement number of decoding threads.
-					if(y_offset >= 50 && y_offset <= 165)
+					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
+						uint32_t temp_back_color_decrement = (vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color_increment = (vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+
 						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_NUM_OF_THREADS]), vid_player.num_of_threads);
-						Draw(&format_str, 12.5, y_offset, FONT_SIZE_SETTING_1, (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color));
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color);
 
-						Draw_with_background_c("-", 265, y_offset, FONT_SIZE_NUM_OF_THREADS_CHANGE, ((vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color), DRAW_X_ALIGN_CENTER,
-						DRAW_Y_ALIGN_CENTER, 20, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.decrement_num_of_threads_button, vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						//todo
+						Draw_with_background_c("-", 265, y_offset, FONT_SIZE_NUM_OF_THREADS_CHANGE, temp_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+						20, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.decrement_num_of_threads_button, temp_back_color_decrement);
 
-						Draw_with_background_c("+", 290, y_offset, FONT_SIZE_NUM_OF_THREADS_CHANGE, ((vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color), DRAW_X_ALIGN_CENTER,
-						DRAW_Y_ALIGN_CENTER, 20, 20, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.increment_num_of_threads_button, vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						Draw_with_background_c("+", 290, y_offset, FONT_SIZE_NUM_OF_THREADS_CHANGE, temp_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+						20, MENU_SETTING_1_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.increment_num_of_threads_button, temp_back_color_increment);
 					}
 					else
 					{
@@ -2594,7 +2671,8 @@ void Vid_main(void)
 					//Scroll bar.
 					Draw_texture(&vid_player.scroll_bar, vid_player.scroll_bar.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 313, (vid_player.ui_y_offset / vid_player.ui_y_offset_min * 120) + 50, 7, 10);
 
-					y_offset = (vid_player.ui_y_offset + 160);
+					x_offset = (MENU_BOX_X + MENU_INFO_ITEM_SPACE_X);
+					y_offset = (vid_player.ui_y_offset + MENU_BOX_Y + MENU_INFO_GRAPH_HEIGHT);
 					//Color conversion time.
 					if(vid_player.show_color_conversion_graph)
 					{
@@ -2604,13 +2682,13 @@ void Vid_main(void)
 					//Decoding time.
 					if(vid_player.show_decoding_graph)
 					{
-						uint16_t displaying_frame_pos = (DEBUG_GRAPH_WIDTH - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID)));
+						uint16_t displaying_frame_pos = (MENU_INFO_ITEM_WIDTH - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID)));
 
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, (y_offset - (vid_player.video_decoding_time_list[i] / 2)), DEF_DRAW_RED, (i + 1), (y_offset - (vid_player.video_decoding_time_list[i + 1] / 2)), DEF_DRAW_RED, 1);
 
 						//Decoding time for frame that is currently displaying.
-						Draw_line(displaying_frame_pos, (y_offset - 110), DEF_DRAW_WEAK_RED, displaying_frame_pos, (y_offset + 8), DEF_DRAW_WEAK_RED, 2);
+						Draw_line(displaying_frame_pos, (y_offset - MENU_INFO_GRAPH_HEIGHT), DEF_DRAW_WEAK_RED, displaying_frame_pos, (y_offset + 8), DEF_DRAW_WEAK_RED, 2);
 					}
 					//Compressed buffer.
 					if(vid_player.show_packet_buffer_graph)
@@ -2635,10 +2713,10 @@ void Vid_main(void)
 					}
 
 					//Bottom line.
-					Draw_line(0, y_offset, color, DEBUG_GRAPH_WIDTH, y_offset, color, 1);
+					Draw_line(0, y_offset, color, MENU_INFO_ITEM_WIDTH, y_offset, color, 1);
 					//Deadline.
 					//Only display EYE_LEFT info.
-					Draw_line(0, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, DEBUG_GRAPH_WIDTH, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, 1);
+					Draw_line(0, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, MENU_INFO_ITEM_WIDTH, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, 1);
 
 					//Keyframe.
 					if(vid_player.show_decoding_graph)
@@ -2646,16 +2724,19 @@ void Vid_main(void)
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
 						{
 							if(vid_player.keyframe_list[i])
-								Draw_line(i, y_offset, disabled_color, i, (y_offset - 110), disabled_color, 2);
+								Draw_line(i, y_offset, disabled_color, i, (y_offset - MENU_INFO_GRAPH_HEIGHT), disabled_color, 2);
 						}
 					}
 
 					//Compressed buffer button.
-					if(y_offset >= 50 && y_offset <= 170)
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
+						uint32_t temp_color = (vid_player.show_packet_buffer_graph ? 0xFFFF00FF : color);
+						uint32_t temp_back_color = (vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+
 						Util_str_format(&format_str, "Compressed buffer : %" PRIu16, Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID));
-						Draw_texture(&vid_player.show_packet_buffer_graph_button, vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset, 200, 10);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_packet_buffer_graph ? 0xFFFF00FF : color));
+						Draw_texture(&vid_player.show_packet_buffer_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
 					}
 					else
 					{
@@ -2663,12 +2744,14 @@ void Vid_main(void)
 						vid_player.show_packet_buffer_graph_button.y_size = -1;
 					}
 
-					y_offset += 10;
-					//Raw video and audio buffer button.
-					if(y_offset >= 50 && y_offset <= 170)
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Raw video buffer button.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint16_t buffer_health = 0;
 						uint32_t buffer_health_ms = 0;
+						uint32_t temp_color = (vid_player.show_raw_video_buffer_graph ? 0xFF2060FF : color);
+						uint32_t temp_back_color = (vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
 
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 							buffer_health = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
@@ -2678,13 +2761,10 @@ void Vid_main(void)
 						//Only display EYE_LEFT info.
 						buffer_health_ms = (buffer_health * vid_player.video_frametime[EYE_LEFT]);
 
-						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset, 200, 10);
+						Draw_texture(&vid_player.show_raw_video_buffer_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
 
 						Util_str_format(&format_str, "Raw video buffer : %" PRIu16 "(%" PRIu32 "ms)", buffer_health, buffer_health_ms);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_raw_video_buffer_graph ? 0xFF2060FF : color));
-
-						Util_str_format(&format_str, "Frames : %" PRIu32, vid_player.total_frames);
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
 					}
 					else
 					{
@@ -2692,24 +2772,27 @@ void Vid_main(void)
 						vid_player.show_raw_video_buffer_graph_button.y_size = -1;
 					}
 
-					y_offset += 10;
-					if(y_offset >= 50 && y_offset <= 170)
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Raw audio buffer button.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						//3DS only supports up to 2ch.
-						uint8_t playing_audio_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
+						uint8_t playing_audio_ch = ((vid_player.audio_info[vid_player.selected_audio_track].ch > 2) ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
 						uint16_t buffer_health = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
 						uint32_t buffer_health_ms = (Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2);
 						uint32_t samplerate = vid_player.audio_info[vid_player.selected_audio_track].sample_rate;
+						uint32_t temp_color = (vid_player.show_raw_audio_buffer_graph ? 0xFF00A000 : color);
+						uint32_t temp_back_color = (vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
 
 						if(playing_audio_ch != 0 && samplerate != 0)
 							buffer_health_ms = DEF_UTIL_S_TO_MS((double)buffer_health_ms / playing_audio_ch / samplerate);
 						else
 							buffer_health_ms = 0;
 
-						Draw_texture(&vid_player.show_raw_audio_buffer_graph_button, vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset, 200, 10);
+						Draw_texture(&vid_player.show_raw_audio_buffer_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
 
 						Util_str_format(&format_str, "Raw audio buffer : %" PRIu16 "(%" PRIu32 "ms)", buffer_health, buffer_health_ms);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_raw_audio_buffer_graph ? 0xFF00A000 : color));
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
 					}
 					else
 					{
@@ -2717,110 +2800,176 @@ void Vid_main(void)
 						vid_player.show_raw_audio_buffer_graph_button.y_size = -1;
 					}
 
-					y_offset += 10;
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
 					//Deadline text.
-					if(y_offset >= 50 && y_offset <= 170)
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						//Only display EYE_LEFT info.
 						Util_str_format(&format_str, "Deadline : %.2fms", vid_player.video_frametime[EYE_LEFT]);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, 0xFF606060);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, 0xFF606060);
 					}
 
-					y_offset += 10;
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
 					//Decoding time button.
-					if(y_offset >= 50 && y_offset <= 170)
-						Draw_texture(&vid_player.show_decode_graph_button, vid_player.show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset, 200, 10);
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						uint32_t temp_color = (vid_player.show_decoding_graph ? DEF_DRAW_RED : color);
+						uint32_t temp_back_color = (vid_player.show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+
+						Draw_texture(&vid_player.show_decode_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
+
+						Util_str_format(&format_str, "Video decoding (avg) : %.3fms", vid_player.video_decoding_avg_time);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
+					}
 					else
 					{
 						vid_player.show_decode_graph_button.x_size = -1;
 						vid_player.show_decode_graph_button.y_size = -1;
 					}
 
-					//Video decoding time and decoding mode text.
-					if(y_offset >= 50 && y_offset <= 170)
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Audio decoding time.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						Util_str_format(&format_str, "Video decoding (avg) : %.3fms", vid_player.video_decoding_avg_time);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_decoding_graph ? DEF_DRAW_RED : color));
-
-						Util_str_format(&format_str, "Hw decoding : %s", ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? "yes" : "no"));
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
-					}
-
-					y_offset += 10;
-					//Audio decoding time and thread mode text.
-					if(y_offset >= 50 && y_offset <= 170)
-					{
-						//Only display EYE_LEFT info.
-						uint8_t thread_mode_index = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? 0 : vid_player.video_info[EYE_LEFT].thread_type);
-						uint8_t active_threads = (thread_mode_index ? vid_player.num_of_threads : 1);
+						uint32_t temp_color = (vid_player.show_decoding_graph ? 0xFF800080 : color);
 
 						Util_str_format(&format_str, "Audio decoding (avg) : %.3fms", vid_player.audio_decoding_avg_time);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_decoding_graph ? 0xFF800080 : color));
-
-						Util_str_format(&format_str, "Threads : %" PRIu8 " (%s)", active_threads, thread_mode[thread_mode_index]);
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
 					}
 
-					y_offset += 10;
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
 					//Color conversion button.
-					if(y_offset >= 50 && y_offset <= 170)
-						Draw_texture(&vid_player.show_color_conversion_graph_button, vid_player.show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 0, y_offset, 200, 10);
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						uint32_t temp_color = (vid_player.show_color_conversion_graph ? DEF_DRAW_BLUE : color);
+						uint32_t temp_back_color = (vid_player.show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+
+						Draw_texture(&vid_player.show_color_conversion_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
+
+						Util_str_format(&format_str, "Color conversion (avg) : %.3fms", vid_player.conversion_avg_time);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
+					}
 					else
 					{
 						vid_player.show_color_conversion_graph_button.x_size = -1;
 						vid_player.show_color_conversion_graph_button.y_size = -1;
 					}
 
-					//Color conversion time and conversion mode text.
-					if(y_offset >= 50 && y_offset <= 170)
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Decoding speed note.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+						Draw_c("The values below are unsuitable for benchmarking", x_offset, y_offset, FONT_SIZE_INFO, color);
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Decoding speed note.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+						Draw_c("if frame level multi-threaded decoding is enabled.", x_offset, y_offset, FONT_SIZE_INFO, color);
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Average decoding speed (recent).
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						double recent_avg_fps = 0;
+
+						if(vid_player.video_decoding_avg_time != 0)
+							recent_avg_fps = (1000 / vid_player.video_decoding_avg_time);
+
+						Util_str_format(&format_str, "Avg (%" PRIu16 " frames) %.2f fps/thread", DEBUG_GRAPH_AVG_SAMPLES, recent_avg_fps);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
+
+					//Average decoding speed.
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						double avg_fps = 0;
+
+						if(vid_player.decoding_total_time != 0 && vid_player.total_frames != 0)
+							avg_fps = (1000 / (vid_player.decoding_total_time / vid_player.total_frames));
+
+						Util_str_format(&format_str, "Avg (all frames) %.2f fps/thread", avg_fps);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
+
+					//Right column.
+					x_offset += (MENU_INFO_LEFT_ITEM_WIDTH + MENU_INFO_ITEM_SPACE_X);
+					y_offset = (vid_player.ui_y_offset + MENU_BOX_Y + MENU_INFO_GRAPH_HEIGHT);
+					//(Empty).
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Total frames text.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						Util_str_format(&format_str, "Frames : %" PRIu32, vid_player.total_frames);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//(Empty).
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//(Empty).
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Decoding mode text.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						Util_str_format(&format_str, "HW decoding : %s", ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? "yes" : "no"));
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Thread mode text.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						//Only display EYE_LEFT info.
+						uint8_t thread_mode_index = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? 0 : vid_player.video_info[EYE_LEFT].thread_type);
+						uint8_t active_threads = (thread_mode_index ? vid_player.num_of_threads : 1);
+
+						Util_str_format(&format_str, "Threads : %" PRIu8 " (%s)", active_threads, thread_mode[thread_mode_index]);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Conversion mode text.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						bool is_hw = ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) || (vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION));
 
-						Util_str_format(&format_str, "Color conversion (avg) : %.3fms", vid_player.conversion_avg_time);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, (vid_player.show_color_conversion_graph ? DEF_DRAW_BLUE : color));
-
-						Util_str_format(&format_str, "Hw conversion : %s", (is_hw ? "yes" : "no"));
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
+						Util_str_format(&format_str, "HW conversion : %s", (is_hw ? "yes" : "no"));
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
 					}
 
-					y_offset += 10;
-					//Decoding speed note.
-					if(y_offset >= 50 && y_offset <= 160)
-					{
-						Draw_c("The values below are unsuitable for benchmarking", 0, y_offset, FONT_SIZE_INFO, color);
-						Draw_c("if frame level multi-threaded decoding is enabled.", 0, (y_offset + 10), FONT_SIZE_INFO, color);
-					}
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//(Occupied by decoding speed note).
 
-					y_offset += 20;
-					//Decoding speed.
-					if(y_offset >= 50 && y_offset <= 160)
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//(Occupied by decoding speed note).
+
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Minimum decoding speed.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						double avg_fps = 0;
 						double min_fps = 0;
-						double max_fps = 0;
-						double recent_avg_fps = 0;
 
-						if(vid_player.decoding_total_time != 0 && vid_player.total_frames != 0 && vid_player.decoding_max_time != 0
-						&& vid_player.decoding_min_time != 0 && vid_player.video_decoding_avg_time != 0)
-						{
-							avg_fps = (1000 / (vid_player.decoding_total_time / vid_player.total_frames));
+						if(vid_player.decoding_max_time != 0)
 							min_fps = (1000 / vid_player.decoding_max_time);
-							max_fps = (1000 / vid_player.decoding_min_time);
-							recent_avg_fps = (1000 / vid_player.video_decoding_avg_time);
-						}
-
-						Util_str_format(&format_str, "Avg (%" PRIu16 " frames) %.2f fps/thread", DEBUG_GRAPH_AVG_SAMPLES, recent_avg_fps);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, color);
 
 						Util_str_format(&format_str, "Min %.2f fps/thread", min_fps);
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
+					}
 
-						y_offset += 10;
-						Util_str_format(&format_str, "Avg (all frames) %.2f fps/thread", avg_fps);
-						Draw(&format_str, 0, y_offset, FONT_SIZE_INFO, color);
+					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
+					//Maximum decoding speed.
+					if(IS_Y_IN_BOX(x_offset, MENU_INFO_RIGHT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
+					{
+						double max_fps = 0;
+
+						if(vid_player.decoding_min_time != 0)
+							max_fps = (1000 / vid_player.decoding_min_time);
 
 						Util_str_format(&format_str, "Max %.2f fps/thread", max_fps);
-						Draw(&format_str, 200, y_offset, FONT_SIZE_INFO, color);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
 					}
 
 					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
@@ -4784,7 +4933,7 @@ void Vid_decode_thread(void* arg)
 								if(num_of_video_tracks == 1 && vid_player.use_hw_decoding && vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P
 								&& strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0)
 								{
-									//We can use hw decoding for this video.
+									//We can use HW decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);
 
 									DEF_LOG_RESULT_SMART(result, Util_decoder_mvd_init(DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
@@ -4812,7 +4961,7 @@ void Vid_decode_thread(void* arg)
 
 									if(can_use_hw_color_converter)
 									{
-										//We can use hw color converter for this video.
+										//We can use HW color converter for this video.
 										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_CONVERSION);
 
 										DEF_LOG_RESULT_SMART(result, Util_converter_y2r_init(), (result == DEF_SUCCESS), result);

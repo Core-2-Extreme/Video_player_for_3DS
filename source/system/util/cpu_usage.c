@@ -16,7 +16,14 @@
 #include "system/util/util.h"
 
 //Defines.
-#define FONT_SIZE_CPU_USAGE		(float)(12.00)	//Font size for CPU usage info.
+#define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
+
+#define CPU_USAGE_X				(float)(300)		//X offset for cpu usage info in px.
+#define CPU_USAGE_Y				(float)(25)			//Y offset for cpu usage info in px.
+#define CPU_USAGE_WIDTH			(float)(100)		//Element width for cpu usage info in px.
+#define CPU_USAGE_HEIGHT		(float)(60)			//Element height for cpu usage info in px.
+
+#define FONT_SIZE_CPU_USAGE		(float)(12.00)		//Font size for CPU usage info in px.
 
 //Typedefs.
 //N/A.
@@ -32,13 +39,13 @@ void Util_cpu_usage_calculate_thread(void* arg);
 //Variables.
 static bool util_cpu_usage_init = false;
 static bool util_cpu_usage_show_flag = false;
-static bool util_cpu_usage_reset_counter_request[4] = { 0, };
+static bool util_cpu_usage_reset_counter_request[DEF_CPU_USAGE_MAX_CORES] = { 0, };
 static uint8_t util_cpu_usage_core_1_limit = 0;
-static uint8_t util_cpu_usage_core_id[4] = { 0, };
-static uint16_t util_cpu_usage_counter_cache[4] = { 0, };
-static float util_cpu_usage_per_core[4] = { 0, };
+static uint8_t util_cpu_usage_core_id[DEF_CPU_USAGE_MAX_CORES] = { 0, };
+static uint16_t util_cpu_usage_counter_cache[DEF_CPU_USAGE_MAX_CORES] = { 0, };
+static float util_cpu_usage_per_core[DEF_CPU_USAGE_MAX_CORES] = { 0, };
 static float util_cpu_usage = NAN;
-static Thread util_cpu_usage_thread_handle[5] = { 0, };
+static Thread util_cpu_usage_thread_handle[(DEF_CPU_USAGE_MAX_CORES + 1)] = { 0, };
 static Handle util_cpu_usage_timer_handle = 0;
 
 //Code.
@@ -49,20 +56,20 @@ uint32_t Util_cpu_usage_init(void)
 
 	util_cpu_usage_show_flag = false;
 	util_cpu_usage_init = true;
-	for(uint8_t i = 0; i < 4; i++)
+	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)
 	{
 		util_cpu_usage_core_id[i] = i;
 		util_cpu_usage_per_core[i] = NAN;
 	}
 
-	for(uint8_t i = 0; i < 4; i++)
+	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)
 	{
 		//This may fail depending on core availability.
-		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], 2048, DEF_THREAD_SYSTEM_PRIORITY_IDLE, i, false);
+		util_cpu_usage_thread_handle[i] = threadCreate(Util_cpu_usage_counter_thread, &util_cpu_usage_core_id[i], STACK_SIZE, DEF_THREAD_SYSTEM_PRIORITY_IDLE, i, false);
 	}
 
-	util_cpu_usage_thread_handle[4] = threadCreate(Util_cpu_usage_calculate_thread, NULL, 2048, DEF_THREAD_SYSTEM_PRIORITY_REALTIME, 0, false);
-	if(!util_cpu_usage_thread_handle[4])
+	util_cpu_usage_thread_handle[DEF_CPU_USAGE_MAX_CORES] = threadCreate(Util_cpu_usage_calculate_thread, NULL, STACK_SIZE, DEF_THREAD_SYSTEM_PRIORITY_REALTIME, 0, false);
+	if(!util_cpu_usage_thread_handle[DEF_CPU_USAGE_MAX_CORES])
 	{
 		DEF_LOG_RESULT(threadCreate, false, DEF_ERR_OTHER);
 		goto nintendo_api_failed;
@@ -85,7 +92,7 @@ void Util_cpu_usage_exit(void)
 
 	util_cpu_usage_init = false;
 	svcSignalEvent(util_cpu_usage_timer_handle);
-	for(uint8_t i = 0; i < 5; i++)
+	for(uint8_t i = 0; i < (DEF_CPU_USAGE_MAX_CORES + 1); i++)
 	{
 		if(util_cpu_usage_thread_handle[i])
 		{
@@ -98,15 +105,15 @@ void Util_cpu_usage_exit(void)
 	}
 }
 
-float Util_cpu_usage_get_cpu_usage(int8_t core_id)
+float Util_cpu_usage_get_cpu_usage(uint8_t core_id)
 {
 	if(!util_cpu_usage_init)
 		return NAN;
 
-	if(core_id < -1 || core_id > 3)
+	if(core_id >= DEF_CPU_USAGE_MAX_CORES && core_id != DEF_CPU_USAGE_ALL_CORES)
 		return NAN;
 
-	if(core_id == -1)
+	if(core_id == DEF_CPU_USAGE_ALL_CORES)
 		return util_cpu_usage;
 	else
 		return util_cpu_usage_per_core[core_id];
@@ -143,14 +150,14 @@ void Util_cpu_usage_draw(void)
 	Draw_image_data background = Draw_get_empty_image();
 
 	//%f expects double.
-	char_length = snprintf(msg_cache, 128, "CPU : %.1f%%", (double)Util_cpu_usage_get_cpu_usage(-1));
-	for(uint8_t i = 0; i < 4; i++)//%f expects double.
-		char_length += snprintf((msg_cache + char_length), 128 - char_length, "\nCore #%" PRIu8 " : %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
+	char_length = snprintf(msg_cache, sizeof(msg_cache), "CPU : %.1f%%", (double)Util_cpu_usage_get_cpu_usage(DEF_CPU_USAGE_ALL_CORES));
+	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)//%f expects double.
+		char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nCore #%" PRIu8 " : %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
 
-	snprintf((msg_cache + char_length), 128 - char_length, "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
+	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
-	Draw_with_background_c(msg_cache, 300, 25, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_CENTER, 100, 60, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_background_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
+	DRAW_Y_ALIGN_CENTER, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
@@ -175,7 +182,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 {
 	uint8_t core_id = 0;
 
-	if(!arg || *(uint8_t*)arg > 3)
+	if(!arg || *(uint8_t*)arg >= DEF_CPU_USAGE_MAX_CORES)
 	{
 		DEF_LOG_STRING("Invalid arg!!!!!");
 		DEF_LOG_STRING("Thread exit.");
@@ -189,7 +196,7 @@ void Util_cpu_usage_counter_thread(void* arg)
 	while(util_cpu_usage_init)
 	{
 		//1ms
-		Util_sleep(1000);
+		Util_sleep(DEF_UTIL_MS_TO_US(1));
 		//In ideal condition (CPU usage is 0%), it should be 1000 in 1000ms.
 		util_cpu_usage_counter_cache[core_id]++;
 
@@ -210,7 +217,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	DEF_LOG_STRING("Thread started.");
 
 	svcCreateTimer(&util_cpu_usage_timer_handle, RESET_PULSE);
-	svcSetTimer(util_cpu_usage_timer_handle, 0, 1000000000);//1000ms
+	svcSetTimer(util_cpu_usage_timer_handle, 0, DEF_UTIL_MS_TO_NS(1000));
 
 	while(util_cpu_usage_init)
 	{
@@ -220,7 +227,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 		//Update CPU usage every 1000ms.
 		svcWaitSynchronization(util_cpu_usage_timer_handle, U64_MAX);
 
-		for(uint8_t i = 0; i < 4; i++)
+		for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)
 		{
 			//Core is not available
 			if(!util_cpu_usage_thread_handle[i])
@@ -233,7 +240,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 				if(util_cpu_usage_reset_counter_request[i])
 					cpu_usage_cache = 100;
 				else//Estimated CPU usage (%) = (1000 - util_cpu_usage_counter_cache) / 10.0
-					cpu_usage_cache = util_cpu_usage_per_core[i] = (1000 - (util_cpu_usage_counter_cache[i] > 1000 ? 1000 : util_cpu_usage_counter_cache[i])) / 10.0;
+					cpu_usage_cache = util_cpu_usage_per_core[i] = ((1000 - (util_cpu_usage_counter_cache[i] > 1000 ? 1000 : util_cpu_usage_counter_cache[i])) / 10.0);
 
 				if(i == 1)
 				{
@@ -254,7 +261,7 @@ void Util_cpu_usage_calculate_thread(void* arg)
 		}
 
 		if(div != 0)
-			util_cpu_usage = total_cpu_usage / div;
+			util_cpu_usage = (total_cpu_usage / div);
 	}
 
 	svcCancelTimer(util_cpu_usage_timer_handle);

@@ -24,11 +24,11 @@ void Util_cpu_usage_exit(void);
 /**
  * @brief Get CPU usage.
  * Always return NAN if CPU usage API is not initialized.
- * @param core_id (in) CPU core, -1 means all CPUs.
+ * @param core_id (in) CPU core ID, or DEF_CPU_USAGE_ALL_CORES for all cores.
  * @return CPU usage in %.
  * @warning Thread dangerous (untested).
 */
-float Util_cpu_usage_get_cpu_usage(int8_t core_id);
+float Util_cpu_usage_get_cpu_usage(uint8_t core_id);
 
 /**
  * @brief Check max allowed core #1 usage.

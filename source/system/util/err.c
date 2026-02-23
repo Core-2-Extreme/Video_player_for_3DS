@@ -16,6 +16,21 @@
 #include "system/util/watch.h"
 
 //Defines.
+#define BOX_X						(double)(20)							//Box X offset for error screen in px.
+#define BOX_Y						(double)(20)							//Box Y offset for error screen in px.
+#define BOX_WIDTH					(double)(280)							//Box width for error screen in px.
+#define BOX_HEIGHT					(double)(180)							//Box height for error screen in px.
+
+#define BUTTON_X					(double)(100)							//Button X offset for error screen in px.
+#define BUTTON_Y					(double)(175)							//Button Y offset for error screen in px.
+#define BUTTON_SPACE_X				(double)(20)							//Button spacing for error screen (for X direction) in px.
+#define BUTTON_WIDTH				(double)(50)							//Button width for error screen in px.
+#define BUTTON_HEIGHT				(double)(20)							//Button height for error screen in px.
+
+#define ITEM_SPACE_X				(double)(2.5)							//Element spacing for error screen (for X direction) in px.
+#define ITEM_SPACE_Y				(double)(0)								//Element spacing for error screen (for Y direction) in px.
+#define ITEM_HEIGHT					(double)(10)							//Element height for error screen in px.
+
 //Close.
 #define HID_NOT_INITED_CLOSE_CFM(k)	(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //OK (close).
@@ -27,10 +42,10 @@
 #define HID_SAVE_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(util_err_save_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
 #define HID_SAVE_DESEL(k)			(bool)(DEF_HID_PHY_NP(((k)).touch) && DEF_HID_PHY_NP((k).x))
 
-#define FONT_SIZE_ERROR				(float)(13.50)	//Font size for API error.
-#define FONT_SIZE_ERROR_CONTENT		(float)(13.50)	//Font size for error content (except description).
-#define FONT_SIZE_ERROR_DESCRIPTION	(float)(12.00)	//Font size for error description.
-#define FONT_SIZE_BUTTON			(float)(11.25)	//Font size for buttons.
+#define FONT_SIZE_ERROR				(float)(24.00)	//Font size for API error in px.
+#define FONT_SIZE_ERROR_CONTENT		(float)(13.50)	//Font size for error content (except description) in px.
+#define FONT_SIZE_ERROR_DESCRIPTION	(float)(12.50)	//Font size for error description in px.
+#define FONT_SIZE_BUTTON			(float)(11.25)	//Font size for buttons in px.
 
 //Typedefs.
 //N/A.
@@ -261,31 +276,58 @@ void Util_err_main(const Hid_info* key)
 void Util_err_draw(void)
 {
 	uint32_t button_text_color = DEF_DRAW_BLACK;
+	uint32_t ok_button_color = DEF_DRAW_BLACK;
+	uint32_t save_button_color = DEF_DRAW_BLACK;
+	double draw_x = 0;
+	double draw_y = 0;
 	Draw_image_data background = Draw_get_empty_image();
 
 	if(!util_err_init)
 	{
-		Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
-		Draw_c("Error API is not initialized.\nPress A to close.", 22.5, 40.0, FONT_SIZE_ERROR, DEF_DRAW_RED);
+		Draw_with_background_c("Error API is not initialized.\nPress A to close.", BOX_X, BOX_Y, FONT_SIZE_ERROR, DEF_DRAW_RED,
+		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_AQUA);
 		return;
 	}
 
 	button_text_color = (util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
+	ok_button_color = (util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
+	save_button_color = (util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
 
-	Draw_texture(&background, DEF_DRAW_AQUA, 20.0, 30.0, 280.0, 150.0);
-	Draw_texture(&util_err_ok_button, util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 150.0, 150.0, 30.0, 20.0);
-	Draw_texture(&util_err_save_button, util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 210.0, 150.0, 40.0, 20.0);
+	Draw_texture(&background, DEF_DRAW_AQUA, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
 
-	Draw_c("Summary : ", 22.5, 40.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
-	Draw(&util_err_summary, 22.5, 50.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
-	Draw_c("Description : ", 22.5, 60.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
-	Draw(&util_err_description, 22.5, 70.0, FONT_SIZE_ERROR_DESCRIPTION, DEF_DRAW_BLACK);
-	Draw_c("Location : ", 22.5, 90.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
-	Draw(&util_err_location, 22.5, 100.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
-	Draw_c("Error code : ", 22.5, 110.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
-	Draw(&util_err_code, 22.5, 120.0, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
-	Draw_c("OK(A)", 152.5, 152.5, FONT_SIZE_BUTTON, button_text_color);
-	Draw_c("SAVE(X)", 212.5, 152.5, FONT_SIZE_BUTTON, button_text_color);
+	draw_x = (BOX_X + ITEM_SPACE_X);
+	draw_y = (BOX_Y + ITEM_SPACE_Y);
+	Draw_c("Summary: ", draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw(&util_err_summary, draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw_c("Location: ", draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw(&util_err_location, draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw_c("Error code: ", draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw(&util_err_code, draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_BLACK);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw_c("Description: ", draw_x, draw_y, FONT_SIZE_ERROR_CONTENT, DEF_DRAW_RED);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw(&util_err_description, draw_x, draw_y, FONT_SIZE_ERROR_DESCRIPTION, DEF_DRAW_BLACK);
+
+	draw_x = BUTTON_X;
+	draw_y = BUTTON_Y;
+	Draw_with_background_c("OK(A)", draw_x, draw_y, FONT_SIZE_BUTTON, button_text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+	BUTTON_WIDTH, BUTTON_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_err_ok_button, ok_button_color);
+
+	draw_x += (BUTTON_WIDTH + BUTTON_SPACE_X);
+	Draw_with_background_c("SAVE(X)", draw_x, draw_y, FONT_SIZE_BUTTON, button_text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+	BUTTON_WIDTH, BUTTON_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_err_save_button, save_button_color);
 }
 
 static void Util_err_save_callback(void)

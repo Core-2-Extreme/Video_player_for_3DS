@@ -1,5 +1,5 @@
 <0>Filtro de textura: </0>
-<1>Controles</1>
+<1></1>
 <2>Permitir salto de fotograma: </2>
 <3>Configuración</3>
 <4>Seleccionar archivo</4>

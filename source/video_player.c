@@ -83,7 +83,17 @@
 #define MENU_BOX_WIDTH								(double)(320)							//Box width for menu in px.
 #define MENU_BOX_HEIGHT								(double)(130)							//Box height for menu in px.
 #define MENU_BOX_X_END								(double)(MENU_BOX_X + MENU_BOX_WIDTH)	//Box X end offset for menu in px.
-#define MENU_BOX_Y_END								(double)(MENU_BOX_Y + MENU_BOX_HEIGHT)//Box Y end offset for menu in px.
+#define MENU_BOX_Y_END								(double)(MENU_BOX_Y + MENU_BOX_HEIGHT)	//Box Y end offset for menu in px.
+
+#define MENU_CONTROLS_BOX_X							(double)(67.5)							//Box X offset for controls in px.
+#define MENU_CONTROLS_BOX_Y							(double)(50)							//Box Y offset for controls in px.
+#define MENU_CONTROLS_BOX_WIDTH						(double)(185)							//Box width for controls.
+#define MENU_CONTROLS_BOX_HEIGHT					(double)(140)							//Box height for controls.
+
+#define MENU_CONTROLS_ITEM_INITIAL_SPACE_X			(double)(45)							//Initial element spacing for controls (for X direction).
+#define MENU_CONTROLS_ITEM_INITIAL_SPACE_Y			(double)(17.5)							//Initial element spacing for controls (for Y direction).
+#define MENU_CONTROLS_ITEM_SPACE_Y					(double)(1.7)							//Element spacing for controls (for Y direction).
+#define MENU_CONTROLS_ITEM_HEIGHT					(double)(13.5)							//Element height for controls.
 
 #define MENU_SETTING_0_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 0 (for X direction).
 #define MENU_SETTING_0_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 0 (for Y direction).
@@ -103,7 +113,7 @@
 #define MENU_INFO_ITEM_HEIGHT						(double)(10)							//Element height for info.
 #define MENU_INFO_GRAPH_HEIGHT						(double)(110)							//Graph height for info.
 
-#define MENU_NONE_Y_OFFSET_MIN						(double)(-230)							//Minimum y offset in none.
+#define MENU_CONTROLS_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in controls.
 #define MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu.
 #define MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu.
 #define MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu.
@@ -137,10 +147,6 @@
 #define HID_OPEN_INFO_SEL(k)						(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.menu_button[MENU_INFO], (k)))
 #define HID_OPEN_INFO_CFM(k)						(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.menu_button[MENU_INFO], (k)))
 #define HID_OPEN_INFO_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
-//Open control.
-#define HID_CONTROL_SEL(k)							(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
-#define HID_CONTROL_CFM(k)							(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
-#define HID_CONTROL_DESEL(k)						(bool)(DEF_HID_PHY_NP((k).touch))
 //Seek bar.
 #define HID_SEEK_BAR_SEL(k)							(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.seek_bar, (k)))
 #define HID_SEEK_BAR_PRE_CFM(k)						(bool)(HID_SEEK_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && vid_player.seek_bar.selected))
@@ -205,10 +211,6 @@
 #define HID_S_TRACK_NEXT_ITEM_CFM(k)				(bool)(DEF_HID_PR_EM((k).c_down, 1) || DEF_HID_HD((k).c_down))
 //Select subtitle track : Previous track.
 #define HID_S_TRACK_PRE_ITEM_CFM(k)					(bool)(DEF_HID_PR_EM((k).c_up, 1) || DEF_HID_HD((k).c_up))
-//Control : Close.
-#define HID_CONTROL_CLOSE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.control_button, (k)))
-#define HID_CONTROL_CLOSE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.control_button, (k)))
-#define HID_CONTROL_CLOSE_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
 //Settings 0 : Open audio track selection.
 #define HID_SE0_A_TRACK_SELECTION_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.select_audio_track_button, (k)))
 #define HID_SE0_A_TRACK_SELECTION_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.select_audio_track_button, (k)))
@@ -326,9 +328,7 @@
 #define FONT_SIZE_SETTING_1							(float)(12.75)	//Font size for settings 1 buttons.
 #define FONT_SIZE_INFO								(float)(12.75)	//Font size for debug info.
 #define FONT_SIZE_NUM_OF_THREADS_CHANGE				(float)(18.00)	//Font size for number of threads increment/decrement buttons.
-#define FONT_SIZE_CONTROLS							(float)(12.75)	//Font size for controls button.
-#define FONT_SIZE_CONTROLS_CONTENT					(float)(13.50)	//Font size for controls messages.
-#define FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND	(float)(12.00)	//Font size for controls messages in Romanian and German (temporal workaround).
+#define FONT_SIZE_CONTROLS							(float)(13.50)	//Font size for controls messages.
 #define FONT_SIZE_MEDIA_POS							(float)(15.00)	//Font size for media position.
 #define FONT_SIZE_TRACK_SELECTION_TITLE				(float)(18.00)	//Font size for track selection title.
 #define FONT_SIZE_TRACK_SELECTION					(float)(14.25)	//Font size for track selection.
@@ -410,7 +410,7 @@ typedef enum
 typedef enum
 {
 	MSG_TEX_FILTER,
-	MSG_CONTROLS,
+	MSG_1,										//No longer used, it was MSG_CONTROLS.
 	MSG_SKIP_FRAME,
 	MSG_CONTROL_DESCRIPTION,
 	MSG_CONTROL_DESCRIPTION_1,
@@ -457,8 +457,7 @@ typedef enum
 
 typedef enum
 {
-	MENU_NONE = -1,		//No menu is displayed.
-
+	MENU_CONTROLS,		//Controls is displayed.
 	MENU_SETTINGS_0,	//Setting 0 menu is displayed.
 	MENU_SETTINGS_1,	//Setting 1 menu is displayed.
 	MENU_INFO,			//Debug info menu is displayed.
@@ -652,7 +651,6 @@ typedef struct
 	bool is_selecting_subtitle_track;				//Whether user is selecting a subtitle track.
 	bool is_setting_volume;							//Whether user is setting volume level.
 	bool is_setting_seek_duration;					//Whether user is setting seek duration.
-	bool is_displaying_controls;					//Whether user is checking how to control.
 	bool is_scroll_mode;							//Whether scroll mode is active.
 	bool must_resume_after_home_menu;				//Whether player must resume playback after nintendo home menu resuming the app.
 	uint32_t turn_off_bottom_screen_count;			//Turn bottom screen off after this count in full-screen mode.
@@ -671,7 +669,7 @@ typedef struct
 	//Buttons.
 	Draw_image_data select_audio_track_button, texture_filter_button, allow_skip_frames_button, allow_skip_key_frames_button,
 	volume_button, seek_duration_button, use_hw_decoding_button, use_hw_color_conversion_button, use_multi_threaded_decoding_button,
-	lower_resolution_button, decrement_num_of_threads_button, increment_num_of_threads_button, menu_button[MENU_MAX], control_button,
+	lower_resolution_button, decrement_num_of_threads_button, increment_num_of_threads_button, menu_button[MENU_MAX],
 	audio_track_ok_button, audio_track_button[DEF_DECODER_MAX_AUDIO_TRACKS], correct_aspect_ratio_button, move_content_button,
 	remember_video_pos_button, show_decode_graph_button, show_color_conversion_graph_button, show_packet_buffer_graph_button,
 	show_raw_video_buffer_graph_button, show_raw_audio_buffer_graph_button, scroll_bar, playback_mode_button, subtitle_track_ok_button,
@@ -863,17 +861,10 @@ void Vid_hid(const Hid_info* key)
 					vid_player.subtitle_track_button[i].selected = true;
 			}
 		}
-		else if(vid_player.is_displaying_controls)
-		{
-			if(HID_CONTROL_CLOSE_SEL(*key))
-				vid_player.control_button.selected = true;
-		}
 		else
 		{
 			if(HID_SYSTEM_UI_SEL(*key))
 				Draw_get_bot_ui_button()->selected = true;
-			if(HID_CONTROL_SEL(*key))
-				vid_player.control_button.selected = true;
 			else if(vid_player.menu_mode == MENU_SETTINGS_0)
 			{
 				if(HID_OPEN_SETTING_1_SEL(*key))
@@ -1100,15 +1091,6 @@ void Vid_hid(const Hid_info* key)
 				}
 			}
 		}
-		else if(vid_player.is_displaying_controls)
-		{
-			if(HID_CONTROL_CLOSE_CFM(*key))
-			{
-				vid_player.is_displaying_controls = false;
-				//Reset key state on scene change.
-				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
-			}
-		}
 		else
 		{
 			if (HID_SYSTEM_UI_CFM(*key))
@@ -1171,7 +1153,7 @@ void Vid_hid(const Hid_info* key)
 				}
 				else if(HID_OPEN_MENU_CFM(*key))
 				{
-					if(vid_player.menu_mode == MENU_NONE)
+					if(vid_player.menu_mode == MENU_CONTROLS)
 					{
 						vid_player.ui_y_offset_min = MENU_SETTING_0_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
@@ -1179,16 +1161,10 @@ void Vid_hid(const Hid_info* key)
 					}
 					else
 					{
-						vid_player.ui_y_offset_min = MENU_NONE_Y_OFFSET_MIN;
+						vid_player.ui_y_offset_min = MENU_CONTROLS_Y_OFFSET_MIN;
 						vid_player.ui_y_offset = 0;
-						vid_player.menu_mode = MENU_NONE;
+						vid_player.menu_mode = MENU_CONTROLS;
 					}
-					//Reset key state on scene change.
-					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
-				}
-				else if(HID_CONTROL_CFM(*key))
-				{
-					vid_player.is_displaying_controls = true;
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 				}
@@ -1571,15 +1547,12 @@ void Vid_hid(const Hid_info* key)
 	}
 
 	//Notify user that button is NOT being pressed anymore.
-	if(HID_SCROLL_MODE_DESEL(*key) || vid_player.is_selecting_audio_track
-	|| vid_player.is_selecting_subtitle_track || vid_player.is_displaying_controls)
+	if(HID_SCROLL_MODE_DESEL(*key) || vid_player.is_selecting_audio_track || vid_player.is_selecting_subtitle_track)
 		vid_player.is_scroll_mode = false;
 	if(HID_SCROLL_BAR_DESEL(*key))
 		vid_player.scroll_bar.selected = false;
 	if(HID_SYSTEM_UI_DESEL(*key) || vid_player.is_scroll_mode)
 		Draw_get_bot_ui_button()->selected = false;
-	if(HID_CONTROL_DESEL(*key) || vid_player.is_scroll_mode)
-		vid_player.control_button.selected = false;
 	if(HID_SEEK_BAR_DESEL(*key))//We prioritize this over scroll mode.
 		vid_player.seek_bar.selected = false;
 	if(HID_OPEN_SETTING_0_DESEL(*key) || vid_player.is_scroll_mode)
@@ -1602,8 +1575,6 @@ void Vid_hid(const Hid_info* key)
 		for(uint8_t i = 0; i < vid_player.num_of_subtitle_tracks; i++)
 			vid_player.subtitle_track_button[i].selected = false;
 	}
-	if(HID_CONTROL_CLOSE_DESEL(*key))//No scroll exists in the sub window.
-		vid_player.control_button.selected = false;
 	if(HID_SE0_A_TRACK_SELECTION_DESEL(*key) || vid_player.is_scroll_mode)
 		vid_player.select_audio_track_button.selected = false;
 	if(HID_SE0_S_TRACK_SELECTION_DESEL(*key) || vid_player.is_scroll_mode)
@@ -1784,7 +1755,7 @@ void Vid_main(void)
 	double bitmap_subtitle_y_offset[SCREEN_POS_MAX] = { 0, };
 	double text_subtitle_x_offset[SCREEN_POS_MAX] = { 0, };
 	double text_subtitle_y_offset[SCREEN_POS_MAX] = { 0, };
-	static const char thread_mode[3][6] = { "none", "frame", "slice" };
+	static const char thread_mode[3][6] = { "None", "Frame", "Slice" };
 	static const char lower_resolution_mode[3][11] = { "OFF (x1.0)", "ON (x0.5)", "ON (x0.25)" };
 	Draw_image_data background = Draw_get_empty_image();
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_VIDEO_PLAYER);
@@ -2084,8 +2055,12 @@ void Vid_main(void)
 			else
 			{
 				Draw_image_data banner = { .c2d = vid_player.banner[config.is_night], };
+				//Put it in center.
+				double temp_x = (((double)NON_FULL_SCREEN_WIDTH - banner.c2d.subtex->width) / 2);
+				double temp_y = (((double)NON_FULL_SCREEN_HEIGHT - banner.c2d.subtex->height) / 2);
 
-				Draw_texture(&banner, DEF_DRAW_NO_COLOR, 0, 15, 400, 225);
+				temp_y += (TOP_SCREEN_HEIGHT - NON_FULL_SCREEN_HEIGHT);
+				Draw_texture(&banner, DEF_DRAW_NO_COLOR, temp_x, temp_y, banner.c2d.subtex->width, banner.c2d.subtex->height);
 			}
 
 			if(vid_player.is_full_screen && vid_player.turn_off_bottom_screen_count > 0 && vid_player.show_full_screen_msg)
@@ -2198,8 +2173,12 @@ void Vid_main(void)
 				else
 				{
 					Draw_image_data banner = { .c2d = vid_player.banner[config.is_night], };
+					//Put it in center.
+					double temp_x = (((double)NON_FULL_SCREEN_WIDTH - banner.c2d.subtex->width) / 2);
+					double temp_y = (((double)NON_FULL_SCREEN_HEIGHT - banner.c2d.subtex->height) / 2);
 
-					Draw_texture(&banner, DEF_DRAW_NO_COLOR, 0, 15, 400, 225);
+					temp_y += (TOP_SCREEN_HEIGHT - NON_FULL_SCREEN_HEIGHT);
+					Draw_texture(&banner, DEF_DRAW_NO_COLOR, temp_x, temp_y, banner.c2d.subtex->width, banner.c2d.subtex->height);
 				}
 
 				if(Util_str_has_data(&top_center_msg))
@@ -2263,6 +2242,36 @@ void Vid_main(void)
 				vid_player.video_info[EYE_LEFT].codec_height, vid_player.video_info[EYE_LEFT].framerate);
 				Draw(&format_str, 0, 37, FONT_SIZE_MEDIA_INFO, color);
 
+				//Draw controls before drawing video so video can overlay on top of this.
+				if(vid_player.menu_mode == MENU_CONTROLS)
+				{
+					Draw_image_data control = { .c2d = vid_player.control[config.is_night], };
+
+					Draw_texture(&control, DEF_DRAW_NO_COLOR, MENU_CONTROLS_BOX_X, MENU_CONTROLS_BOX_Y, MENU_CONTROLS_BOX_WIDTH, MENU_CONTROLS_BOX_HEIGHT);
+
+					x_offset = (MENU_CONTROLS_BOX_X + MENU_CONTROLS_ITEM_INITIAL_SPACE_X);
+					y_offset = (vid_player.ui_y_offset + MENU_CONTROLS_BOX_Y + MENU_CONTROLS_ITEM_INITIAL_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+
+					y_offset += (MENU_CONTROLS_ITEM_HEIGHT + MENU_CONTROLS_ITEM_SPACE_Y);
+					Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], x_offset, y_offset, FONT_SIZE_CONTROLS, DEF_DRAW_BLACK);
+				}
+
 				if(vid_player.state != PLAYER_STATE_IDLE)
 				{
 					//Draw videos.
@@ -2291,7 +2300,7 @@ void Vid_main(void)
 					}
 				}
 
-				if(vid_player.menu_mode != MENU_NONE)
+				if(vid_player.menu_mode != MENU_CONTROLS)
 					Draw_texture(&background, DEF_DRAW_WEAK_GREEN, MENU_BOX_X, MENU_BOX_Y, MENU_BOX_WIDTH, MENU_BOX_HEIGHT);
 
 				if(vid_player.menu_mode == MENU_SETTINGS_0)
@@ -2977,10 +2986,6 @@ void Vid_main(void)
 					Draw_texture(&background, DEF_DRAW_YELLOW, 220, 180, 100, 8);
 				}
 
-				//Controls.
-				Draw_with_background(&vid_msg[MSG_CONTROLS], 167.5, 195, FONT_SIZE_CONTROLS, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				145, 10, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.control_button, (vid_player.control_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
 				//Draw time bar.
 				if(vid_player.seek_bar.selected)
 					current_bar_pos = DEF_UTIL_MS_TO_S_D(vid_player.seek_pos_cache);
@@ -2998,35 +3003,6 @@ void Vid_main(void)
 				Draw_texture(&vid_player.seek_bar, DEF_DRAW_GREEN, 5, 210, 310, 10);
 				if(vid_player.media_duration != 0)
 					Draw_texture(&background, 0xFF800080, 5, 210, (310 * (current_bar_pos / DEF_UTIL_MS_TO_S_D(vid_player.media_duration))), 10);
-
-				if(vid_player.is_displaying_controls)
-				{
-					Draw_image_data control = { .c2d = vid_player.control[config.is_night], };
-
-					Draw_texture(&control, DEF_DRAW_NO_COLOR, 80, 20, 160, 160);
-
-					//Temporal workaround for UI overflow.
-					if(strcmp(config.lang, "ro") == 0 || strcmp(config.lang, "de") == 0)
-					{
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, FONT_SIZE_CONTROLS_CONTENT_RO_DE_WORKAROUND, DEF_DRAW_BLACK);
-					}
-					else
-					{
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION], 122.5, 47.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_1], 122.5, 62.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_2], 122.5, 77.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_3], 122.5, 92.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_4], 135, 107.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_5], 122.5, 122.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-						Draw(&vid_msg[MSG_CONTROL_DESCRIPTION_6], 132.5, 137.5, FONT_SIZE_CONTROLS_CONTENT, DEF_DRAW_BLACK);
-					}
-				}
 
 				if(vid_player.is_selecting_audio_track)
 				{
@@ -4134,11 +4110,10 @@ static void Vid_init_ui_data(void)
 	vid_player.is_selecting_subtitle_track = false;
 	vid_player.is_setting_volume = false;
 	vid_player.is_setting_seek_duration = false;
-	vid_player.is_displaying_controls = false;
 	vid_player.is_scroll_mode = false;
 	vid_player.must_resume_after_home_menu = false;
 	vid_player.turn_off_bottom_screen_count = 0;
-	vid_player.menu_mode = MENU_NONE;
+	vid_player.menu_mode = MENU_CONTROLS;
 	vid_player.show_screen_brightness_until = 0;
 	vid_player.show_current_pos_until = 0;
 	vid_player.ui_y_offset_min = 0;
@@ -4430,7 +4405,6 @@ void Vid_init_thread(void* arg)
 	vid_player.lower_resolution_button = Draw_get_empty_image();
 	vid_player.decrement_num_of_threads_button = Draw_get_empty_image();
 	vid_player.increment_num_of_threads_button = Draw_get_empty_image();
-	vid_player.control_button = Draw_get_empty_image();
 	vid_player.audio_track_ok_button = Draw_get_empty_image();
 	vid_player.subtitle_track_ok_button = Draw_get_empty_image();
 	vid_player.correct_aspect_ratio_button = Draw_get_empty_image();
@@ -4462,7 +4436,6 @@ void Vid_init_thread(void* arg)
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state, sizeof(vid_player.state));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_audio_track, sizeof(vid_player.is_selecting_audio_track));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_subtitle_track, sizeof(vid_player.is_selecting_subtitle_track));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_displaying_controls, sizeof(vid_player.is_displaying_controls));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_setting_seek_duration, sizeof(vid_player.is_setting_seek_duration));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_setting_volume, sizeof(vid_player.is_setting_volume));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_hw_decoding, sizeof(vid_player.use_hw_decoding));
@@ -4500,7 +4473,6 @@ void Vid_init_thread(void* arg)
 
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.audio_track_ok_button.selected, sizeof(vid_player.audio_track_ok_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_ok_button.selected, sizeof(vid_player.subtitle_track_ok_button.selected));
-	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.control_button.selected, sizeof(vid_player.control_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.scroll_bar.selected, sizeof(vid_player.scroll_bar.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.select_audio_track_button.selected, sizeof(vid_player.select_audio_track_button.selected));
 	Util_watch_add(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.select_subtitle_track_button.selected, sizeof(vid_player.select_subtitle_track_button.selected));
@@ -4563,7 +4535,7 @@ void Vid_init_thread(void* arg)
 
 	vid_player.control_texture_handle = Draw_get_free_sheet_num();
 
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/control.t3x",
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture("romfs:/gfx/draw/video_player/controls.t3x",
 	vid_player.control_texture_handle, vid_player.control, 0, 2), (result == DEF_SUCCESS), result);
 
 	Util_str_add(&vid_player.status, "\nStarting threads...");
@@ -4628,7 +4600,6 @@ void Vid_exit_thread(void* arg)
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.state);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_audio_track);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_selecting_subtitle_track);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_displaying_controls);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_setting_seek_duration);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.is_setting_volume);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.use_hw_decoding);
@@ -4666,7 +4637,6 @@ void Vid_exit_thread(void* arg)
 
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.audio_track_ok_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.subtitle_track_ok_button.selected);
-	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.control_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.scroll_bar.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.select_audio_track_button.selected);
 	Util_watch_remove(WATCH_HANDLE_VIDEO_PLAYER, &vid_player.select_subtitle_track_button.selected);

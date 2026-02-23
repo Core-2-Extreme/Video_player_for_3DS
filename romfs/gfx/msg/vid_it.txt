@@ -1,5 +1,5 @@
 <0>Filtro texture: </0>
-<1>Comandi</1>
+<1></1>
 <2>Permetti salto fotogrammi: </2>
 <3>Impostazioni</3>
 <4>Seleziona un file</4>

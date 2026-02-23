@@ -1,5 +1,5 @@
 <0>Filtr Tekstury: </0>
-<1>Sterowanie</1>
+<1></1>
 <2>Pomijanie klatek: </2>
 <3>Opcje</3>
 <4>Wybierz plik</4>

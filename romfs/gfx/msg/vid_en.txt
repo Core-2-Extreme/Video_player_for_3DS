@@ -1,5 +1,5 @@
 <0>Texture filter: </0>
-<1>Controls</1>
+<1></1>
 <2>Allow skip frames: </2>
 <3>Settings</3>
 <4>Select a file</4>

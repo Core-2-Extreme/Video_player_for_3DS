@@ -1,5 +1,5 @@
 <0>Textúra szürö: </0>
-<1>Irányítás</1>
+<1></1>
 <2>Képkocka ugrás: </2>
 <3>Beállítások</3>
 <4>Fájl választás</4>

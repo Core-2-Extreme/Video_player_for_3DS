@@ -1,5 +1,5 @@
 <0>Texturfilter: </0>
-<1>Steuerelemente</1>
+<1></1>
 <2>Frames überspringen zulassen: </2>
 <3>Einstellungen</3>
 <4>Datei auswählen</4>

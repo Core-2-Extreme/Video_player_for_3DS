@@ -17,6 +17,15 @@
 //Defines.
 #define DISPLAYED_LINES					(uint8_t)(23)
 
+#define BOX_X							(double)(0)		//Box X offset for log screen in px.
+#define BOX_Y							(double)(12.5)	//Box Y offset for log screen in px.
+// #define BOX_WIDTH						(double)(400)	//Box width for log screen in px.
+#define BOX_HEIGHT						(double)(227.5)	//Box height for log screen in px.
+
+#define ITEM_SPACE_X					(double)(0)		//Element spacing for log screen (for X direction) in px.
+#define ITEM_SPACE_Y					(double)(0)		//Element spacing for log screen (for Y direction) in px.
+#define ITEM_HEIGHT						(double)(BOX_HEIGHT / DISPLAYED_LINES)	//Element height for log screen in px.
+
 //Close.
 #define HID_NOT_INITED_CLOSE_CFM(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Next item.
@@ -28,8 +37,8 @@
 //Pan Right.
 #define HID_PAN_RIGHT_CFM(k)			(bool)(DEF_HID_PHY_PR((k).c_right) || DEF_HID_PHY_HE((k).c_right))
 
-#define FONT_SIZE_ERROR					(float)(13.50)	//Font size for API error.
-#define FONT_SIZE_LOG					(float)(12.75)	//Font size for logs.
+#define FONT_SIZE_ERROR					(float)(13.50)	//Font size for API error in px.
+#define FONT_SIZE_LOG					(float)(ITEM_HEIGHT * 1.25)	//Font size for logs in px.
 
 //Typedefs.
 //N/A.
@@ -360,14 +369,23 @@ void Util_log_main(const Hid_info* key)
 
 void Util_log_draw(void)
 {
+	double draw_x = 0;
+	double draw_y = 0;
+
 	if(!util_log_init)
 	{
-		Draw_c("Log API is not initialized.\nPress A to close.", 0, 10, FONT_SIZE_ERROR, DEF_DRAW_RED);
+		Draw_c("Log API is not initialized.\nPress A to close.", BOX_X, BOX_Y, FONT_SIZE_ERROR, DEF_DRAW_RED);
 		return;
 	}
 
+	draw_x = (util_log_x + BOX_X + ITEM_SPACE_X);
+	draw_y = (BOX_Y + ITEM_SPACE_Y);
+
 	for (uint16_t i = 0; i < DISPLAYED_LINES; i++)
-		Draw(&util_log_logs[util_log_y + i], util_log_x, 10.0 + (i * 10), FONT_SIZE_LOG, DEF_LOG_COLOR);
+	{
+		Draw(&util_log_logs[util_log_y + i], draw_x, draw_y, FONT_SIZE_LOG, DEF_LOG_COLOR);
+		draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	}
 }
 
 static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, const char* caller, const char* format_string, va_list args)

@@ -16,20 +16,20 @@
 #include "system/util/watch.h"
 
 //Defines.
-#define BOX_X						(double)(20)							//Box X offset for error screen in px.
-#define BOX_Y						(double)(20)							//Box Y offset for error screen in px.
-#define BOX_WIDTH					(double)(280)							//Box width for error screen in px.
-#define BOX_HEIGHT					(double)(180)							//Box height for error screen in px.
+#define BOX_X						(double)(20)	//Box X offset for error screen in px.
+#define BOX_Y						(double)(20)	//Box Y offset for error screen in px.
+#define BOX_WIDTH					(double)(280)	//Box width for error screen in px.
+#define BOX_HEIGHT					(double)(180)	//Box height for error screen in px.
 
-#define BUTTON_X					(double)(100)							//Button X offset for error screen in px.
-#define BUTTON_Y					(double)(175)							//Button Y offset for error screen in px.
-#define BUTTON_SPACE_X				(double)(20)							//Button spacing for error screen (for X direction) in px.
-#define BUTTON_WIDTH				(double)(50)							//Button width for error screen in px.
-#define BUTTON_HEIGHT				(double)(20)							//Button height for error screen in px.
+#define BUTTON_X					(double)(100)	//Button X offset for error screen in px.
+#define BUTTON_Y					(double)(175)	//Button Y offset for error screen in px.
+#define BUTTON_SPACE_X				(double)(20)	//Button spacing for error screen (for X direction) in px.
+#define BUTTON_WIDTH				(double)(50)	//Button width for error screen in px.
+#define BUTTON_HEIGHT				(double)(20)	//Button height for error screen in px.
 
-#define ITEM_SPACE_X				(double)(2.5)							//Element spacing for error screen (for X direction) in px.
-#define ITEM_SPACE_Y				(double)(0)								//Element spacing for error screen (for Y direction) in px.
-#define ITEM_HEIGHT					(double)(10)							//Element height for error screen in px.
+#define ITEM_SPACE_X				(double)(2.5)	//Element spacing for error screen (for X direction) in px.
+#define ITEM_SPACE_Y				(double)(0)		//Element spacing for error screen (for Y direction) in px.
+#define ITEM_HEIGHT					(double)(10)	//Element height for error screen in px.
 
 //Close.
 #define HID_NOT_INITED_CLOSE_CFM(k)	(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))

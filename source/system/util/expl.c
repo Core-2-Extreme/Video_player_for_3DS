@@ -26,6 +26,18 @@
 
 #define NUM_OF_DISPLAYED_ITEMS				(uint8_t)(16)	//Number of displayed files on the screen.
 
+#define BOX_X								(double)(10)	//Box X offset for explorer screen in px.
+#define BOX_Y								(double)(20)	//Box Y offset for explorer screen in px.
+#define BOX_WIDTH							(double)(300)	//Box width for explorer screen in px.
+#define BOX_HEIGHT							(double)(190)	//Box height for explorer screen in px.
+
+#define ITEM_SPACE_X						(double)(2.5)	//Element spacing for explorer screen (for X direction) in px.
+#define ITEM_SPACE_Y						(double)(0)		//Element spacing for explorer screen (for Y direction) in px.
+#define ITEM_WIDTH							(double)(295)	//Element width for explorer screen in px.
+#define ITEM_HEIGHT							(double)(160.0 / NUM_OF_DISPLAYED_ITEMS)	//Element height for explorer screen in px.
+
+#define CONTROL_SPACE_Y						(double)(5)		//Control element spacing for explorer screen (for Y direction) in px.
+
 //Close.
 #define HID_NOT_INITED_CLOSE_CFM(k)			(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Cancel (close).
@@ -56,9 +68,10 @@
 #define HID_PRE_FILE_CFM(k)					(bool)(DEF_HID_PHY_PR((k).d_up) || DEF_HID_PHY_PR((k).c_up) || DEF_HID_PHY_PR((k).d_left) \
 || DEF_HID_PHY_PR((k).c_left) || DEF_HID_PHY_HE((k).d_left) || DEF_HID_PHY_HE((k).c_left) || is_new_range[0] || is_new_range[1])
 
-#define FONT_SIZE_ERROR						(float)(13.50)	//Font size for API error.
-#define FONT_SIZE_CONTROL					(float)(12.75)	//Font size for UI controls.
-#define FONT_SIZE_CURRENT_DIR				(float)(13.50)	//Font size for current directory.
+#define FONT_SIZE_ERROR						(float)(13.50)	//Font size for API error in px.
+#define FONT_SIZE_CONTENT					(float)(ITEM_HEIGHT * 1.25)	//Font size for content in px.
+#define FONT_SIZE_CONTROL					(float)(12.75)	//Font size for UI controls in px.
+#define FONT_SIZE_CURRENT_DIR				(float)(13.50)	//Font size for current directory in px.
 
 //Typedefs.
 typedef struct
@@ -348,20 +361,20 @@ void Util_expl_draw(void)
 {
 	Draw_image_data background = Draw_get_empty_image();
 	uint32_t color = DEF_DRAW_BLACK;
-	float offset = 0;
-	float item_size = (160.0f / NUM_OF_DISPLAYED_ITEMS);
-	float text_size = (item_size * 1.25f);
+	double draw_x = 0;
+	double draw_y = 0;
 
 	if(!util_expl_init)
 	{
-		Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-		Draw_c("Explorer API is not initialized.\nPress A to close.", 12.5, 30.0, FONT_SIZE_ERROR, DEF_DRAW_RED);
+		Draw_with_background_c("Explorer API is not initialized.\nPress A to close.", BOX_X, BOX_Y, FONT_SIZE_ERROR, DEF_DRAW_RED,
+		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_AQUA);
 		return;
 	}
 
-	Draw_texture(&background, DEF_DRAW_AQUA, 10.0, 20.0, 300.0, 190.0);
-	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", 12.5, 185.0, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
-	Draw(&util_expl_current_dir, 12.5, 195.0, FONT_SIZE_CURRENT_DIR, DEF_DRAW_BLACK);
+	Draw_texture(&background, DEF_DRAW_AQUA, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
+
+	draw_x = (BOX_X + ITEM_SPACE_X);
+	draw_y = (BOX_Y + ITEM_SPACE_Y);
 
 	for (uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 	{
@@ -412,12 +425,18 @@ void Util_expl_draw(void)
 		text_color = (i == util_expl_active_index ? DEF_DRAW_RED : color);
 		texture_color = (util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA);
 
-		Draw_with_background(&message, 12.5, (20 + offset), text_size, text_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-		290, item_size, DRAW_BACKGROUND_ENTIRE_BOX, &util_expl_file_button[i], texture_color);
+		Draw_with_background(&message, draw_x, draw_y, FONT_SIZE_CONTENT, text_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		ITEM_WIDTH, ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_expl_file_button[i], texture_color);
 
-		offset += item_size;
+		draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
 		Util_str_free(&message);
 	}
+
+	draw_y += CONTROL_SPACE_Y;
+	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", draw_x, draw_y, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
+
+	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
+	Draw(&util_expl_current_dir, draw_x, draw_y, FONT_SIZE_CURRENT_DIR, DEF_DRAW_BLACK);
 }
 
 void Util_expl_main(const Hid_info* key, double scroll_speed)

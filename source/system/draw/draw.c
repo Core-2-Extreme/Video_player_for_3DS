@@ -18,10 +18,41 @@
 #include "system/util/watch.h"
 
 //Defines.
-#define FONT_SIZE_STATUS			(float)(13.50)	//Font size for status messages.
-#define FONT_SIZE_BATTERY_LEVEL		(float)(12.75)	//Font size for battery level.
-#define FONT_SIZE_BACK				(float)(22.50)	//Font size for back button icon.
-#define FONT_SIZE_DEBUG_INFO		(float)(10.50)	//Font size for debug info.
+#define TOP_BOX_X					(double)(0)		//Box X offset for top UI in px.
+#define TOP_BOX_Y					(double)(0)		//Box Y offset for top UI in px.
+#define TOP_BOX_WIDTH				(double)(400)	//Box width for top UI in px.
+#define TOP_BOX_HEIGHT				(double)(15)	//Box height for top UI in px.
+
+#define TOP_ITEM_SPACE_X			(double)(0)		//Element spacing for top UI (for X direction) in px.
+#define TOP_ITEM_SPACE_Y			(double)(0)		//Element spacing for top UI (for Y direction) in px.
+#define TOP_ITEM_HEIGHT				(double)(15)	//Element height for top UI in px.
+#define TOP_STATUS_WIDTH			(double)(295)	//Element width for top UI status (for X direction) in px.
+#define TOP_BATTERY_CHARGE_WIDTH	(double)(20)	//Element width for top UI battery charging icon in px.
+#define TOP_BATTERY_WIDTH			(double)(30)	//Element width for top UI battery icon in px.
+#define TOP_ICON_WIDTH				(double)(15)	//Element width for other top UI icons in px.
+
+#define BOT_BOX_X					(double)(0)		//Box X offset for bottom UI in px.
+#define BOT_BOX_Y					(double)(225)	//Box Y offset for bottom UI in px.
+#define BOT_BOX_WIDTH				(double)(320)	//Box width for bottom UI in px.
+#define BOT_BOX_HEIGHT				(double)(15)	//Box height for bottom UI in px.
+
+#define DEBUG_BOX_X					(double)(0)		//Box X offset for debug info in px.
+#define DEBUG_BOX_Y					(double)(40)	//Box Y offset for debug info in px.
+// #define DEBUG_BOX_WIDTH				(double)(300)	//Box width for debug info in px.
+// #define DEBUG_BOX_HEIGHT			(double)(170)	//Box height for debug info in px.
+
+#define DEBUG_ITEM_SPACE_X			(double)(0)		//Element spacing for debug info (for X direction) in px.
+#define DEBUG_ITEM_SPACE_Y			(double)(0)		//Element spacing for debug info (for Y direction) in px.
+#define DEBUG_ITEM_WIDTH			(double)(300)	//Element width for debug info in px.
+#define DEBUG_ITEM_HEIGHT			(double)(10)	//Element height for debug info in px.
+
+#define FONT_SIZE_STATUS			(float)(13.50)	//Font size for status messages in px.
+#define FONT_SIZE_BATTERY_LEVEL		(float)(12.75)	//Font size for battery level in px.
+#define FONT_SIZE_BACK				(float)(22.50)	//Font size for back button icon in px.
+#define FONT_SIZE_DEBUG_INFO		(float)(10.50)	//Font size for debug info in px.
+
+#define BATTERY_LEVEL_MAX			(uint8_t)(100)	//Maximum battery level in %.
+#define BATTERY_LEVEL_STEP			(uint8_t)(5)	//Each texture represents this much battery level in %.
 
 //Typedefs.
 //Define shorter state name for hid state.
@@ -266,7 +297,7 @@ void Draw_exit(void)
 		return;
 
 	util_draw_init = false;
-	for (uint32_t i = 0; i < 128; i++)
+	for (uint32_t i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
 		Draw_free_texture(i);
 
 	//Without calling gspWaitForVBlank() twice before calling C3D_Fini(), it may hang in C3D_Fini().
@@ -804,6 +835,10 @@ void Draw_free_texture(uint32_t sheet_map_num)
 void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message)
 {
 	uint8_t max_wifi_signal = 0;
+	uint8_t max_battery_texture = 0;
+	uint8_t battery_texture = 0;
+	double draw_x = 0;
+	double draw_y = 0;
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
 
@@ -814,23 +849,37 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 	if(wifi_signal >= max_wifi_signal)
 		wifi_signal = max_wifi_signal;
 
-	if(battery_level > 100)
-		battery_level = 100;
+	if(battery_level > BATTERY_LEVEL_MAX)
+		battery_level = BATTERY_LEVEL_MAX;
+
+	battery_texture = (battery_level / BATTERY_LEVEL_STEP);
+	max_battery_texture = (DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_battery_level_icon_image) - 1);
+	if(battery_texture >= max_battery_texture)
+		battery_texture = max_battery_texture;
 
 	Util_str_init(&temp);
 
-	Draw_texture(&background, DEF_DRAW_BLACK, 0.0, 0.0, 400.0, 15.0);
-	Draw_texture(&util_draw_wifi_icon_image[wifi_signal], DEF_DRAW_NO_COLOR, 360.0, 0.0, 15.0, 15.0);
-	Draw_texture(&util_draw_battery_level_icon_image[battery_level / 5], DEF_DRAW_NO_COLOR, 315.0, 0.0, 30.0, 15.0);
-	Draw_texture(&util_draw_eco_image[is_eco], DEF_DRAW_NO_COLOR, 345.0, 0.0, 15.0, 15.0);
-	if (is_charging)
-		Draw_texture(&util_draw_battery_charge_icon_image[0], DEF_DRAW_NO_COLOR, 295.0, 0.0, 20.0, 15.0);
+	Draw_texture(&background, DEF_DRAW_BLACK, TOP_BOX_X, TOP_BOX_Y, TOP_BOX_WIDTH, TOP_BOX_HEIGHT);
 
+	draw_x = (TOP_BOX_X + TOP_ITEM_SPACE_X);
+	draw_y = (TOP_BOX_Y + TOP_ITEM_SPACE_Y);
 	if(message)
-		Draw_c(message, 0.0, 0.0, FONT_SIZE_STATUS, DEF_DRAW_GREEN);
+		Draw_c(message, draw_x, draw_y, FONT_SIZE_STATUS, DEF_DRAW_GREEN);
 
+	draw_x += (TOP_STATUS_WIDTH + TOP_ITEM_SPACE_X);
+	if (is_charging)
+		Draw_texture(&util_draw_battery_charge_icon_image[0], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_BATTERY_CHARGE_WIDTH, TOP_ITEM_HEIGHT);
+
+	draw_x += (TOP_BATTERY_CHARGE_WIDTH + TOP_ITEM_SPACE_X);
 	Util_str_format(&temp, "%" PRIi8, battery_level);
-	Draw(&temp, 322.5, 1.25, FONT_SIZE_BATTERY_LEVEL, DEF_DRAW_BLACK);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_BATTERY_LEVEL, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+	TOP_BATTERY_WIDTH, TOP_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_draw_battery_level_icon_image[battery_texture], DEF_DRAW_NO_COLOR);
+
+	draw_x += (TOP_BATTERY_WIDTH + TOP_ITEM_SPACE_X);
+	Draw_texture(&util_draw_eco_image[is_eco], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_ICON_WIDTH, TOP_ITEM_HEIGHT);
+
+	draw_x += (TOP_ICON_WIDTH + TOP_ITEM_SPACE_X);
+	Draw_texture(&util_draw_wifi_icon_image[wifi_signal], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_ICON_WIDTH, TOP_ITEM_HEIGHT);
 
 	Util_str_free(&temp);
 }
@@ -840,8 +889,8 @@ void Draw_bot_ui(void)
 	if(!util_draw_init)
 		return;
 
-	Draw_texture(&util_draw_bot_ui, DEF_DRAW_BLACK, 0.0, 225.0, 320.0, 15.0);
-	Draw_c("▽", 155.0, 220.0, FONT_SIZE_BACK, DEF_DRAW_WHITE);
+	Draw_with_background_c("▽", BOT_BOX_X, BOT_BOX_Y, FONT_SIZE_BACK, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+	BOT_BOX_WIDTH, BOT_BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_draw_bot_ui, DEF_DRAW_BLACK);
 }
 
 Draw_image_data* Draw_get_bot_ui_button(void)
@@ -880,6 +929,8 @@ void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, 
 void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 {
 	uint32_t color = DEF_DRAW_BLACK;
+	double draw_x = 0;
+	double draw_y = 0;
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
 	//Reduce stack usage.
@@ -894,69 +945,105 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	if (is_night)
 		color = DEF_DRAW_WHITE;
 
+	draw_x = (DEBUG_BOX_X + DEBUG_ITEM_SPACE_X);
+	draw_y = (DEBUG_BOX_Y + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "A:%s (%" PRIu16 ", %" PRIu32 "ms) B:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.a.state),
 	key.a.click_count, key.a.held_ms, Short_hid_state_get_name((Short_hid_state)key.b.state), key.b.click_count, key.b.held_ms);
-	Draw_with_background(&temp, 0, 40, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "X:%s (%" PRIu16 ", %" PRIu32 "ms) Y:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.x.state),
 	key.x.click_count, key.x.held_ms, Short_hid_state_get_name((Short_hid_state)key.y.state), key.y.click_count, key.y.held_ms);
-	Draw_with_background(&temp, 0, 50, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "L:%s (%" PRIu16 ", %" PRIu32 "ms) R:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.l.state),
 	key.l.click_count, key.l.held_ms, Short_hid_state_get_name((Short_hid_state)key.r.state), key.r.click_count, key.r.held_ms);
-	Draw_with_background(&temp, 0, 60, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "ZL:%s (%" PRIu16 ", %" PRIu32 "ms) ZR:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.zl.state),
 	key.zl.click_count, key.zl.held_ms, Short_hid_state_get_name((Short_hid_state)key.zr.state), key.zr.click_count, key.zr.held_ms);
-	Draw_with_background(&temp, 0, 70, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "C↓:%s (%" PRIu16 ", %" PRIu32 "ms) C→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_down.state),
 	key.c_down.click_count, key.c_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_right.state), key.c_right.click_count, key.c_right.held_ms);
-	Draw_with_background(&temp, 0, 80, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "C↑:%s (%" PRIu16 ", %" PRIu32 "ms) C←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_up.state),
 	key.c_up.click_count, key.c_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_left.state), key.c_left.click_count, key.c_left.held_ms);
-	Draw_with_background(&temp, 0, 90, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "D↓:%s (%" PRIu16 ", %" PRIu32 "ms) D→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_down.state),
 	key.d_down.click_count, key.d_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_right.state), key.d_right.click_count, key.d_right.held_ms);
-	Draw_with_background(&temp, 0, 100, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "D↑:%s (%" PRIu16 ", %" PRIu32 "ms) D←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_up.state),
 	key.d_up.click_count, key.d_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_left.state), key.d_left.click_count, key.d_left.held_ms);
-	Draw_with_background(&temp, 0, 110, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "CS↓:%s (%" PRIu16 ", %" PRIu32 "ms) CS→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_down.state),
 	key.cs_down.click_count, key.cs_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_right.state), key.cs_right.click_count, key.cs_right.held_ms);
-	Draw_with_background(&temp, 0, 120, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "CS↑:%s (%" PRIu16 ", %" PRIu32 "ms) CS←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_up.state),
 	key.cs_up.click_count, key.cs_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_left.state), key.cs_left.click_count, key.cs_left.held_ms);
-	Draw_with_background(&temp, 0, 130, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "START:%s (%" PRIu16 ", %" PRIu32 "ms) SELECT:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.start.state),
 	key.start.click_count, key.start.held_ms, Short_hid_state_get_name((Short_hid_state)key.select.state), key.select.click_count, key.select.held_ms);
-	Draw_with_background(&temp, 0, 140, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "TOUCH:%s (%" PRIu16 ", %" PRIu32 "ms) XY:%" PRIi16 ", %" PRIi16, Short_hid_state_get_name((Short_hid_state)key.touch.state),
 	key.touch.click_count, key.touch.held_ms, key.touch_x, key.touch_y);
-	Draw_with_background(&temp, 0, 150, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	//%f expects double.
 	Util_str_format(&temp, "CPU:%.3fms GPU:%.3fms", (double)C3D_GetProcessingTime(), (double)C3D_GetDrawingTime());
-	Draw_with_background(&temp, 0, 160, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "Frametime:%.4fms", util_draw_frametime);
-	Draw_with_background(&temp, 0, 170, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "RAM:%.3fMB", (free_ram / 1000.0 / 1000.0));
-	Draw_with_background(&temp, 0, 180, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "Linear RAM:%.3fMB", (free_linear_ram / 1000.0 / 1000.0));
-	Draw_with_background(&temp, 0, 190, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
-	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_watch_get_total_usage(), DEF_WATCH_MAX_VARIABLES, ((double)Util_watch_get_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
-	Draw_with_background(&temp, 0, 200, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 300, 10, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_BLUE);
+	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
+	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_watch_get_total_usage(),
+	DEF_WATCH_MAX_VARIABLES, ((double)Util_watch_get_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
+	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
 
 	Util_str_free(&temp);
 }
@@ -1182,7 +1269,7 @@ static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, f
 		C2D_DrawImage(image, &c2d_parameter, NULL);
 	else
 	{
-		C2D_PlainImageTint(&tint, abgr8888, true);
+		C2D_PlainImageTint(&tint, abgr8888, 1);
 		C2D_DrawImage(image, &c2d_parameter, &tint);
 	}
 }

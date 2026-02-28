@@ -87,36 +87,36 @@
 
 #define MENU_CONTROLS_BOX_X							(double)(67.5)							//Box X offset for controls in px.
 #define MENU_CONTROLS_BOX_Y							(double)(50)							//Box Y offset for controls in px.
-#define MENU_CONTROLS_BOX_WIDTH						(double)(185)							//Box width for controls.
-#define MENU_CONTROLS_BOX_HEIGHT					(double)(140)							//Box height for controls.
+#define MENU_CONTROLS_BOX_WIDTH						(double)(185)							//Box width for controls in px.
+#define MENU_CONTROLS_BOX_HEIGHT					(double)(140)							//Box height for controls in px.
 
-#define MENU_CONTROLS_ITEM_INITIAL_SPACE_X			(double)(45)							//Initial element spacing for controls (for X direction).
-#define MENU_CONTROLS_ITEM_INITIAL_SPACE_Y			(double)(17.5)							//Initial element spacing for controls (for Y direction).
-#define MENU_CONTROLS_ITEM_SPACE_Y					(double)(1.7)							//Element spacing for controls (for Y direction).
-#define MENU_CONTROLS_ITEM_HEIGHT					(double)(13.5)							//Element height for controls.
+#define MENU_CONTROLS_ITEM_INITIAL_SPACE_X			(double)(45)							//Initial element spacing for controls (for X direction) in px.
+#define MENU_CONTROLS_ITEM_INITIAL_SPACE_Y			(double)(17.5)							//Initial element spacing for controls (for Y direction) in px.
+#define MENU_CONTROLS_ITEM_SPACE_Y					(double)(1.7)							//Element spacing for controls (for Y direction) in px.
+#define MENU_CONTROLS_ITEM_HEIGHT					(double)(13.5)							//Element height for controls in px.
 
-#define MENU_SETTING_0_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 0 (for X direction).
-#define MENU_SETTING_0_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 0 (for Y direction).
-#define MENU_SETTING_0_ITEM_WIDTH					(double)(300)							//Element width for setting 0.
-#define MENU_SETTING_0_ITEM_HEIGHT					(double)(15)							//Element height for setting 0.
+#define MENU_SETTING_0_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 0 (for X direction) in px.
+#define MENU_SETTING_0_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 0 (for Y direction) in px.
+#define MENU_SETTING_0_ITEM_WIDTH					(double)(300)							//Element width for setting 0 in px.
+#define MENU_SETTING_0_ITEM_HEIGHT					(double)(15)							//Element height for setting 0 in px.
 
-#define MENU_SETTING_1_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 1 (for X direction).
-#define MENU_SETTING_1_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 1 (for Y direction).
-#define MENU_SETTING_1_ITEM_WIDTH					(double)(300)							//Element width for setting 1.
-#define MENU_SETTING_1_ITEM_HEIGHT					(double)(20)							//Element height for setting 1.
+#define MENU_SETTING_1_ITEM_SPACE_X					(double)(12.5)							//Element spacing for setting 1 (for X direction) in px.
+#define MENU_SETTING_1_ITEM_SPACE_Y					(double)(10)							//Element spacing for setting 1 (for Y direction) in px.
+#define MENU_SETTING_1_ITEM_WIDTH					(double)(300)							//Element width for setting 1 in px.
+#define MENU_SETTING_1_ITEM_HEIGHT					(double)(20)							//Element height for setting 1 in px.
 
-#define MENU_INFO_ITEM_SPACE_X						(double)(0)								//Element spacing for info (for X direction).
-#define MENU_INFO_ITEM_SPACE_Y						(double)(0)								//Element spacing for info (for Y direction).
-#define MENU_INFO_ITEM_WIDTH						(double)(320)							//Element width for info.
-#define MENU_INFO_LEFT_ITEM_WIDTH					(double)(200)							//Left element width for info.
-#define MENU_INFO_RIGHT_ITEM_WIDTH					(double)(120)							//Right element width for info.
-#define MENU_INFO_ITEM_HEIGHT						(double)(10)							//Element height for info.
-#define MENU_INFO_GRAPH_HEIGHT						(double)(110)							//Graph height for info.
+#define MENU_INFO_ITEM_SPACE_X						(double)(0)								//Element spacing for info (for X direction) in px.
+#define MENU_INFO_ITEM_SPACE_Y						(double)(0)								//Element spacing for info (for Y direction) in px.
+#define MENU_INFO_ITEM_WIDTH						(double)(320)							//Element width for info in px.
+#define MENU_INFO_LEFT_ITEM_WIDTH					(double)(200)							//Left element width for info in px.
+#define MENU_INFO_RIGHT_ITEM_WIDTH					(double)(120)							//Right element width for info in px.
+#define MENU_INFO_ITEM_HEIGHT						(double)(10)							//Element height for info in px.
+#define MENU_INFO_GRAPH_HEIGHT						(double)(110)							//Graph height for info in px.
 
-#define MENU_CONTROLS_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in controls.
-#define MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu.
-#define MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu.
-#define MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu.
+#define MENU_CONTROLS_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in controls in px.
+#define MENU_SETTING_0_Y_OFFSET_MIN					(double)(-230)							//Minimum y offset in setting 0 menu in px.
+#define MENU_SETTING_1_Y_OFFSET_MIN					(double)(-130)							//Minimum y offset in setting 1 menu in px.
+#define MENU_INFO_Y_OFFSET_MIN						(double)(-95)							//Minimum y offset in info menu in px.
 
 #define TIP_SCREEN_BRIGHTNESS_DURATION_MS			(uint64_t)(2500)						//Duration to show screen brightness on top screen when it's changed.
 #define TIP_MEDIA_POS_DURATION_MS					(uint64_t)(4000)						//Duration to show current media position on top screen when it's changed.
@@ -316,22 +316,22 @@
 #define HID_INFO_RAW_A_BUFFER_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_raw_audio_buffer_graph_button, (k)))
 #define HID_INFO_RAW_A_BUFFER_GRAPH_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 
-#define BASE_FONT_SIZE_SUBTITLE						(float)(15.00)	//Base font size for subtitles.
+#define BASE_FONT_SIZE_SUBTITLE						(float)(15.00)	//Base font size for subtitles in px.
 
-#define FONT_SIZE_STATUS							(float)(19.50)	//Font size for status.
-#define FONT_SIZE_OK_BUTTON							(float)(12.75)	//Font size for ok button.
-#define FONT_SIZE_VER								(float)(12.75)	//Font size for version.
-#define FONT_SIZE_OSD								(float)(13.50)	//Font size for OSD messages.
-#define FONT_SIZE_MEDIA_INFO						(float)(13.50)	//Font size for media info.
-#define FONT_SIZE_SETTING_0							(float)(15.00)	//Font size for settings 0 buttons.
-#define FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND		(float)(13.50)	//Font size for move content mode in German (temporal workaround).
-#define FONT_SIZE_SETTING_1							(float)(12.75)	//Font size for settings 1 buttons.
-#define FONT_SIZE_INFO								(float)(12.75)	//Font size for debug info.
-#define FONT_SIZE_NUM_OF_THREADS_CHANGE				(float)(18.00)	//Font size for number of threads increment/decrement buttons.
-#define FONT_SIZE_CONTROLS							(float)(13.50)	//Font size for controls messages.
-#define FONT_SIZE_MEDIA_POS							(float)(15.00)	//Font size for media position.
-#define FONT_SIZE_TRACK_SELECTION_TITLE				(float)(18.00)	//Font size for track selection title.
-#define FONT_SIZE_TRACK_SELECTION					(float)(14.25)	//Font size for track selection.
+#define FONT_SIZE_STATUS							(float)(19.50)	//Font size for status in px.
+#define FONT_SIZE_OK_BUTTON							(float)(12.75)	//Font size for ok button in px.
+#define FONT_SIZE_VER								(float)(12.75)	//Font size for version in px.
+#define FONT_SIZE_OSD								(float)(13.50)	//Font size for OSD messages in px.
+#define FONT_SIZE_MEDIA_INFO						(float)(13.50)	//Font size for media info in px.
+#define FONT_SIZE_SETTING_0							(float)(15.00)	//Font size for settings 0 buttons in px.
+#define FONT_SIZE_SETTING_0_MOVE_DE_WORKAROUND		(float)(13.50)	//Font size for move content mode in German (temporal workaround) in px.
+#define FONT_SIZE_SETTING_1							(float)(12.75)	//Font size for settings 1 buttons in px.
+#define FONT_SIZE_INFO								(float)(12.75)	//Font size for debug info in px.
+#define FONT_SIZE_NUM_OF_THREADS_CHANGE				(float)(18.00)	//Font size for number of threads increment/decrement buttons in px.
+#define FONT_SIZE_CONTROLS							(float)(13.50)	//Font size for controls messages in px.
+#define FONT_SIZE_MEDIA_POS							(float)(15.00)	//Font size for media position in px.
+#define FONT_SIZE_TRACK_SELECTION_TITLE				(float)(18.00)	//Font size for track selection title in px.
+#define FONT_SIZE_TRACK_SELECTION					(float)(14.25)	//Font size for track selection in px.
 
 //Typedefs.
 typedef enum

@@ -79,8 +79,7 @@ DEF_LOG_ENUM_DEBUG
 
 //Prototypes.
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
-extern void memcpy_asm_4b(uint8_t*, uint8_t*);
-static uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size);
+static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size);
 static void Draw_internal(const char* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale,
 float y_space_scale, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x,
 float box_size_y, Draw_background texture_position, void* background_image, uint32_t texture_abgr8888);
@@ -518,9 +517,10 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
 {
 	uint8_t pixel_size = 0;
-	uint16_t increase_list_x[DEF_DRAW_MAX_TEXTURE_SIZE + 8]; //= { 4, 12, 4, 44, }
-	uint16_t increase_list_y[DEF_DRAW_MAX_TEXTURE_SIZE + 8]; //= { 2, 6, 2, 22, 2, 6, 2, tex_size_x * 8 - 42, };
-	uint16_t count[2] = { 0, 0, };
+	uint16_t increase_list_x[4]; //= { 4, 12, 4, 44, }
+	uint16_t increase_list_y[8]; //= { 2, 6, 2, 22, 2, 6, 2, ((tex_size_x * 8) - 42), };
+	uint8_t increase_list_x_offset = 0;
+	uint8_t increase_list_y_offset = 0;
 	uint32_t x_max = 0;
 	uint32_t y_max = 0;
 	uint32_t c3d_pos = 0;
@@ -541,24 +541,19 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 	else if(image->c2d.tex->fmt == GPU_RGB565)
 		pixel_size = 2;
 
-	for(uint16_t i = 0; i <= image->c2d.tex->width; i+=4)
-	{
-		increase_list_x[i] = 4 * pixel_size;
-		increase_list_x[i + 1] = 12 * pixel_size;
-		increase_list_x[i + 2] = 4 * pixel_size;
-		increase_list_x[i + 3] = 44 * pixel_size;
-	}
-	for(uint16_t i = 0; i <= image->c2d.tex->height; i+=8)
-	{
-		increase_list_y[i] = 2 * pixel_size;
-		increase_list_y[i + 1] = 6 * pixel_size;
-		increase_list_y[i + 2] = 2 * pixel_size;
-		increase_list_y[i + 3] = 22 * pixel_size;
-		increase_list_y[i + 4] = 2 * pixel_size;
-		increase_list_y[i + 5] = 6 * pixel_size;
-		increase_list_y[i + 6] = 2 * pixel_size;
-		increase_list_y[i + 7] = (image->c2d.tex->width * 8 - 42) * pixel_size;
-	}
+	increase_list_x[0] = (4 * pixel_size);
+	increase_list_x[1] = (12 * pixel_size);
+	increase_list_x[2] = (4 * pixel_size);
+	increase_list_x[3] = (44 * pixel_size);
+
+	increase_list_y[0] = (2 * pixel_size);
+	increase_list_y[1] = (6 * pixel_size);
+	increase_list_y[2] = (2 * pixel_size);
+	increase_list_y[3] = (22 * pixel_size);
+	increase_list_y[4] = (2 * pixel_size);
+	increase_list_y[5] = (6 * pixel_size);
+	increase_list_y[6] = (2 * pixel_size);
+	increase_list_y[7] = (((image->c2d.tex->width * 8) - 42) * pixel_size);
 
 	y_max = pic_height - height_offset;
 	x_max = pic_width - width_offset;
@@ -581,14 +576,23 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				c3d_pos += increase_list_x[count[0]];
-				count[0]++;
+				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
+				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+
+				*dst = *src;
+
+				c3d_pos += increase_list_x[increase_list_x_offset];
+				increase_list_x_offset++;
+				if(increase_list_x_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_x))
+					increase_list_x_offset = 0;
 			}
-			count[0] = 0;
+			increase_list_x_offset = 0;
 			c3d_pos = 0;
-			c3d_offset += increase_list_y[count[1]];
-			count[1]++;
+
+			c3d_offset += increase_list_y[increase_list_y_offset];
+			increase_list_y_offset++;
+			if(increase_list_y_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_y))
+				increase_list_y_offset = 0;
 		}
 	}
 	else if(pixel_size == 3)
@@ -597,15 +601,27 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]), 2);
-				c3d_pos += increase_list_x[count[0]];
-				count[0]++;
+				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
+				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+
+				*dst = *src;
+
+				dst++;
+				src++;
+				*((uint16_t*)dst) = *((uint16_t*)src);
+
+				c3d_pos += increase_list_x[increase_list_x_offset];
+				increase_list_x_offset++;
+				if(increase_list_x_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_x))
+					increase_list_x_offset = 0;
 			}
-			count[0] = 0;
+			increase_list_x_offset = 0;
 			c3d_pos = 0;
-			c3d_offset += increase_list_y[count[1]];
-			count[1]++;
+
+			c3d_offset += increase_list_y[increase_list_y_offset];
+			increase_list_y_offset++;
+			if(increase_list_y_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_y))
+				increase_list_y_offset = 0;
 		}
 	}
 	else if(pixel_size == 4)
@@ -614,15 +630,27 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size)]));
-				memcpy_asm_4b(&(((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset + 4]), &(buf[Draw_convert_to_pos(k + height_offset, i + width_offset, pic_height, pic_width, pixel_size) + 4]));
-				c3d_pos += increase_list_x[count[0]];
-				count[0]++;
+				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
+				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+
+				*dst = *src;
+
+				dst++;
+				src++;
+				*dst = *src;
+
+				c3d_pos += increase_list_x[increase_list_x_offset];
+				increase_list_x_offset++;
+				if(increase_list_x_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_x))
+					increase_list_x_offset = 0;
 			}
-			count[0] = 0;
+			increase_list_x_offset = 0;
 			c3d_pos = 0;
-			c3d_offset += increase_list_y[count[1]];
-			count[1]++;
+
+			c3d_offset += increase_list_y[increase_list_y_offset];
+			increase_list_y_offset++;
+			if(increase_list_y_offset >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(increase_list_y))
+				increase_list_y_offset = 0;
 		}
 	}
 
@@ -1086,7 +1114,7 @@ void Draw_apply_draw(void)
 	}
 }
 
-static uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size)
+static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size)
 {
 	(void)img_height;
 	uint32_t pos = img_width * height;

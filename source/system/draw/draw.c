@@ -85,6 +85,7 @@ DEF_LOG_ENUM_DEBUG
 //Prototypes.
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size);
+static uint32_t Draw_get_min_texture_size(uint32_t width_or_height);
 static bool Draw_apply_crop(Tex3DS_SubTexture* sub_texture, float texture_width, float texture_height, float x_start, float x_end, float y_start, float y_end);
 static void Draw_internal(const char* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale,
 float y_space_scale, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x,
@@ -373,36 +374,51 @@ double Draw_query_fps(void)
 		return util_draw_rendered_frames;
 }
 
-uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Raw_pixel color_format)
+uint32_t Draw_texture_init(Draw_image_data* image, uint16_t width, uint16_t height, Raw_pixel color_format)
 {
+	uint8_t pixel_size = 0;
+	uint16_t tex_width = 0;
+	uint16_t tex_height = 0;
 	GPU_TEXCOLOR color = GPU_RGBA8;
 
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || tex_size_x == 0 || tex_size_y == 0 || (color_format != RAW_PIXEL_ABGR8888
-	&& color_format != RAW_PIXEL_BGR888 && color_format != RAW_PIXEL_RGB565LE))
+	if(!image || width == 0 || width > DEF_DRAW_MAX_TEXTURE_SIZE || height == 0 || height > DEF_DRAW_MAX_TEXTURE_SIZE
+	|| (color_format != RAW_PIXEL_ABGR8888 && color_format != RAW_PIXEL_BGR888 && color_format != RAW_PIXEL_RGB565LE))
 		goto invalid_arg;
 
+	tex_width = Draw_get_min_texture_size(width);
+	tex_height = Draw_get_min_texture_size(height);
 	if(color_format == RAW_PIXEL_ABGR8888)
+	{
+		pixel_size = 4;
 		color = GPU_RGBA8;
+	}
 	else if(color_format == RAW_PIXEL_BGR888)
+	{
+		pixel_size = 3;
 		color = GPU_RGB8;
+	}
 	else if(color_format == RAW_PIXEL_RGB565LE)
+	{
+		pixel_size = 2;
 		color = GPU_RGB565;
+	}
 
 	image->subtex = (Tex3DS_SubTexture*)linearAlloc(sizeof(Tex3DS_SubTexture));
 	image->c2d.tex = (C3D_Tex*)linearAlloc(sizeof(C3D_Tex));
 	if(!image->subtex || !image->c2d.tex)
 		goto out_of_linear_memory;
 
-	if (!C3D_TexInit(image->c2d.tex, tex_size_x, tex_size_y, color))
+	if (!C3D_TexInit(image->c2d.tex, tex_width, tex_height, color))
 	{
 		DEF_LOG_RESULT(C3D_TexInit, false, DEF_ERR_OUT_OF_LINEAR_MEMORY);
 		goto out_of_linear_memory;
 	}
 
 	image->c2d.subtex = image->subtex;
+	memset(image->c2d.tex->data, 0x00, (tex_width * tex_height * pixel_size));
 	C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
 	image->c2d.tex->border = 0x00FFFFFF;
 	C3D_TexSetWrap(image->c2d.tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
@@ -444,7 +460,7 @@ void Draw_texture_free(Draw_image_data* image)
 	image->subtex = NULL;
 }
 
-uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint16_t pic_width, uint16_t pic_height)
+uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height)
 {
 	uint8_t pixel_size = 0;
 	int16_t copy_size = 0;
@@ -460,7 +476,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width > DEF_DRAW_MAX_TEXTURE_SIZE || pic_width == 0
+	if(!image || !image->subtex || !image->c2d.tex || !raw_image || pic_width > DEF_DRAW_MAX_TEXTURE_SIZE || pic_width == 0
 	|| pic_height > DEF_DRAW_MAX_TEXTURE_SIZE || pic_height == 0 || pic_width > image->c2d.tex->width || pic_height > image->c2d.tex->height
 	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
@@ -496,7 +512,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 	dma_config.srcCfg.transferStride = dma_config.srcCfg.burstStride;
 
 	dma_result = svcStartInterProcessDma(&dma_handle, CUR_PROCESS_HANDLE, (uint32_t)image->c2d.tex->data,
-	CUR_PROCESS_HANDLE, (uint32_t)buf, pic_width * pic_height * pixel_size, &dma_config);
+	CUR_PROCESS_HANDLE, (uint32_t)raw_image, pic_width * pic_height * pixel_size, &dma_config);
 
 	if(dma_result == DEF_SUCCESS)
 		svcWaitSynchronization(dma_handle, INT64_MAX);
@@ -505,7 +521,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 #else
 	for(uint32_t i = 0; i < pic_height / 8; i ++)
 	{
-		memcpy_asm(((uint8_t*)image->c2d.tex->data + tex_offset), buf + buffer_offset, copy_size);
+		memcpy_asm(((uint8_t*)image->c2d.tex->data + tex_offset), (raw_image + buffer_offset), copy_size);
 		tex_offset += image->c2d.tex->width * pixel_size * 8;
 		buffer_offset += copy_size;
 	}
@@ -522,7 +538,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
+uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
 {
 	uint8_t pixel_size = 0;
 	uint16_t increase_list_x[4]; //= { 4, 12, 4, 44, }
@@ -537,7 +553,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 	if(!util_draw_init)
 		goto not_inited;
 
-	if(!image || !image->subtex || !image->c2d.tex || !buf || pic_width == 0 || pic_height == 0
+	if(!image || !image->subtex || !image->c2d.tex || !raw_image || pic_width == 0 || pic_height == 0
 	|| width_offset > pic_width || height_offset > pic_height || image->c2d.tex->width == 0 || image->c2d.tex->height == 0
 	|| (image->c2d.tex->fmt != GPU_RGBA8 && image->c2d.tex->fmt != GPU_RGB8 && image->c2d.tex->fmt != GPU_RGB565))
 		goto invalid_arg;
@@ -585,7 +601,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
 				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
 
 				*dst = *src;
 
@@ -610,7 +626,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
 				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
 
 				*dst = *src;
 
@@ -639,7 +655,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pi
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
 				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(buf + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
 
 				*dst = *src;
 
@@ -685,6 +701,180 @@ void Draw_set_texture_filter(Draw_image_data* image, bool filter)
 		C3D_TexSetFilter(image->c2d.tex, GPU_LINEAR, GPU_LINEAR);
 	else
 		C3D_TexSetFilter(image->c2d.tex, GPU_NEAREST, GPU_NEAREST);
+}
+
+uint32_t Draw_large_texture_init(Draw_large_image_data* large_image, uint32_t width, uint32_t height, Raw_pixel color_format)
+{
+	uint16_t loop = 0;
+	uint32_t width_offset = 0;
+	uint32_t height_offset = 0;
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(!util_draw_init)
+		goto not_inited;
+
+	if(!large_image || width == 0 || height == 0)
+		goto invalid_arg;
+
+	//Calculate how many textures we need.
+	if((width % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
+		loop = ((width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
+	else
+		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
+
+	if((height % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
+		loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
+	else
+		loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
+
+	//Init parameters.
+	large_image->image_width = 0;
+	large_image->image_height = 0;
+	large_image->num_of_images = 0;
+	large_image->images = (Draw_image_data*)malloc(sizeof(Draw_image_data) * loop);
+	if(!large_image->images)
+		goto out_of_memory;
+
+	for(uint32_t i = 0; i < loop; i++)
+	{
+		uint32_t texture_width = Draw_get_min_texture_size(width - width_offset);
+		uint32_t texture_height = Draw_get_min_texture_size(height - height_offset);
+
+		result = Draw_texture_init(&large_image->images[i], texture_width, texture_height, color_format);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Draw_texture_init, false, result);
+			goto error_other;
+		}
+
+		large_image->num_of_images++;
+
+		//Update offset.
+		width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+		if(width_offset >= width)
+		{
+			width_offset = 0;
+			height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+		}
+	}
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	out_of_memory:
+	Draw_large_texture_free(large_image);
+	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
+
+	error_other:
+	Draw_large_texture_free(large_image);
+	return result;
+}
+
+void Draw_large_texture_free(Draw_large_image_data* large_image)
+{
+	if(!util_draw_init)
+		return;
+
+	if(!large_image || !large_image->images)
+		return;
+
+	for(uint16_t i = 0; i < large_image->num_of_images; i++)
+		Draw_texture_free(&large_image->images[i]);
+
+	large_image->image_width = 0;
+	large_image->image_height = 0;
+	large_image->num_of_images = 0;
+	free(large_image->images);
+	large_image->images = NULL;
+}
+
+uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, bool use_direct)
+{
+	uint16_t loop = 0;
+	uint32_t width_offset = 0;
+	uint32_t height_offset = 0;
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(!util_draw_init)
+		goto not_inited;
+
+	if(!large_image || !large_image->images || large_image->num_of_images == 0 || !raw_image || pic_width == 0 || pic_height == 0)
+		goto invalid_arg;
+
+	large_image->image_width = pic_width;
+	large_image->image_height = pic_height;
+
+	if(use_direct)
+	{
+		result = Draw_set_texture_data_direct(&large_image->images[0], raw_image, pic_width, pic_height);
+		if(result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(Draw_set_texture_data_direct, false, result);
+			goto error_other;
+		}
+	}
+	else
+	{
+		//Calculate how many textures we need.
+		if((pic_width % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
+			loop = ((pic_width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
+		else
+			loop = (pic_width / DEF_DRAW_MAX_TEXTURE_SIZE);
+
+		if((pic_height % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
+			loop *= ((pic_height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
+		else
+			loop *= (pic_height / DEF_DRAW_MAX_TEXTURE_SIZE);
+
+		if(loop > large_image->num_of_images)
+			loop = large_image->num_of_images;
+
+		for(uint16_t i = 0; i < loop; i++)
+		{
+			result = Draw_set_texture_data(&large_image->images[i], raw_image, pic_width, pic_height, width_offset, height_offset);
+			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Draw_set_texture_data, false, result);
+				goto error_other;
+			}
+
+			//Update offset.
+			width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+			if(width_offset >= pic_width)
+			{
+				width_offset = 0;
+				height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+			}
+		}
+	}
+
+	return DEF_SUCCESS;
+
+	not_inited:
+	return DEF_ERR_NOT_INITIALIZED;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	return result;
+}
+
+void Draw_large_texture_set_filter(Draw_large_image_data* large_image, bool filter)
+{
+	if(!util_draw_init)
+		return;
+
+	if(!large_image || !large_image->images)
+		return;
+
+	for(uint16_t i = 0; i < large_image->num_of_images; i++)
+		Draw_set_texture_filter(&large_image->images[i], filter);
 }
 
 Draw_image_data Draw_get_empty_image(void)
@@ -1105,6 +1295,99 @@ float center_x, float center_y, float crop_x_start, float crop_x_end, float crop
 		Draw_texture_with_rotation(image, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
 }
 
+void Draw_large_texture(Draw_large_image_data* large_image, uint32_t abgr8888, float x, float y, float x_size, float y_size)
+{
+	Draw_large_texture_with_crop(large_image, abgr8888, x, y, x_size, y_size, 0, UINT32_MAX, 0, UINT32_MAX);
+}
+
+void Draw_large_texture_with_crop(Draw_large_image_data* large_image, uint32_t abgr8888, float x, float y,
+float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_start, float crop_y_end)
+{
+	uint32_t width_offset = 0;
+	uint32_t height_offset = 0;
+	float x_offset = x;
+	float y_offset = y;
+	float cropped_width = 0;
+	float cropped_height = 0;
+
+	if(!util_draw_init)
+		return;
+
+	if(!large_image || !large_image->images || large_image->num_of_images == 0
+	|| large_image->image_width == 0 || large_image->image_height == 0)
+		return;
+
+	//Calculate width and height after cropping.
+	for(uint16_t i = 0; i < large_image->num_of_images; i++)
+	{
+		if(large_image->images[i].subtex)
+		{
+			float x_start = Util_max_d(0, (crop_x_start - width_offset));
+			float x_end = Util_min_d(large_image->images[i].c2d.tex->width, (crop_x_end - width_offset));
+			float y_start = Util_max_d(0, (crop_y_start - height_offset));
+			float y_end = Util_min_d(large_image->images[i].c2d.tex->height, (crop_y_end - height_offset));
+
+			//Update offset.
+			width_offset += large_image->images[i].c2d.tex->width;
+			if(height_offset == 0)
+				cropped_width += (x_end - x_start);
+
+			if(width_offset >= large_image->image_width)
+			{
+				cropped_height += (y_end - y_start);
+				height_offset += large_image->images[i].c2d.tex->height;
+			}
+		}
+	}
+
+	width_offset = 0;
+	height_offset = 0;
+
+	//Check for invalid cropping.
+	if(cropped_width <= 0)
+	{
+		cropped_width = large_image->image_width;
+		crop_x_start = 0;
+		crop_x_end = large_image->image_width;
+	}
+	if(cropped_height <= 0)
+	{
+		cropped_height = large_image->image_height;
+		crop_y_start = 0;
+		crop_y_end = large_image->image_height;
+	}
+
+	//Draw it.
+	for(uint16_t i = 0; i < large_image->num_of_images; i++)
+	{
+		if(large_image->images[i].subtex)
+		{
+			float x_start = Util_max_d(0, (crop_x_start - width_offset));
+			float x_end = Util_min_d(large_image->images[i].c2d.tex->width, (crop_x_end - width_offset));
+			float y_start = Util_max_d(0, (crop_y_start - height_offset));
+			float y_end = Util_min_d(large_image->images[i].c2d.tex->height, (crop_y_end - height_offset));
+			float width_factor = ((x_end - x_start) / cropped_width);
+			float height_factor = ((y_end - y_start) / cropped_height);
+			float draw_width = (x_size * width_factor);
+			float draw_height = (y_size * height_factor);
+
+			Draw_texture_with_crop(&large_image->images[i], abgr8888, x_offset, y_offset,
+			draw_width, draw_height, 0, 0, 0, x_start, x_end, y_start, y_end);
+
+			//Update offset.
+			width_offset += large_image->images[i].c2d.tex->width;
+			x_offset += draw_width;
+			if(width_offset >= large_image->image_width)
+			{
+				width_offset = 0;
+				x_offset = 0;
+				height_offset += large_image->images[i].c2d.tex->height;
+				y_offset += draw_height;
+			}
+		}
+	}
+}
+
 void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width)
 {
 	if(!util_draw_init)
@@ -1161,6 +1444,21 @@ static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint
 
 	pos -= (img_width - width) - img_width;
 	return pos * pixel_size;
+}
+
+static uint32_t Draw_get_min_texture_size(uint32_t width_or_height)
+{
+	uint32_t texture_size = DEF_DRAW_MIN_TEXTURE_SIZE;
+
+	while(texture_size < DEF_DRAW_MAX_TEXTURE_SIZE)
+	{
+		if(width_or_height <= texture_size)
+			return texture_size;
+
+		texture_size *= 2;
+	}
+
+	return DEF_DRAW_MAX_TEXTURE_SIZE;
 }
 
 static bool Draw_apply_crop(Tex3DS_SubTexture* sub_texture, float texture_width, float texture_height, float x_start, float x_end, float y_start, float y_end)

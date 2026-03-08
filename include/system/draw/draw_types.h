@@ -8,6 +8,7 @@
 
 #define DEF_DRAW_DMA_ENABLE					/*(bool)(*/true/*)*/	//Enable DMA in draw module for faster processing.
 #define DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS	(uint32_t)(128)
+#define DEF_DRAW_MIN_TEXTURE_SIZE			(uint16_t)(16)
 #define DEF_DRAW_MAX_TEXTURE_SIZE			(uint16_t)(1024)
 
 #define DEF_DRAW_RED						(uint32_t)(0xFF0000FF)
@@ -122,5 +123,13 @@ typedef struct
 	double x_size;				//Texture drawn width.
 	double y_size;				//Texture drawn height.
 } Draw_image_data;
+
+typedef struct
+{
+	uint32_t image_width;		//Image width.
+	uint32_t image_height;		//Image height.
+	uint16_t num_of_images;		//Number of textures.
+	Draw_image_data* images;	//Textures.
+} Draw_large_image_data;
 
 #endif //!defined(DEF_DRAW_TYPES_H)

@@ -87,13 +87,13 @@ double Draw_query_fps(void);
 /**
  * @brief Initialize a texture.
  * @param image (out) Pointer for texture.
- * @param tex_size_x (in) Texture width (must be power of 2).
- * @param tex_size_y (in) Texture height (must be power of 2).
+ * @param tex_size_x (in) Texture width (up to DEF_DRAW_MAX_TEXTURE_SIZE).
+ * @param tex_size_y (in) Texture height (up to DEF_DRAW_MAX_TEXTURE_SIZE).
  * @param color_format (in) Color format (RAW_PIXEL_ABGR8888, RAW_PIXEL_BGR888 or RAW_PIXEL_RGB565LE).
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t tex_size_y, Raw_pixel color_format);
+uint32_t Draw_texture_init(Draw_image_data* image, uint16_t width, uint16_t height, Raw_pixel color_format);
 
 /**
  * @brief Uninitialize a texture.
@@ -104,20 +104,20 @@ uint32_t Draw_texture_init(Draw_image_data* image, uint16_t tex_size_x, uint16_t
 void Draw_texture_free(Draw_image_data* image);
 
 /**
- * @brief Set raw image data to texture data.
- * @param image (in/out) Pointer for texture data.
- * @param buf (in) Pointer for raw image data (must be texture format).
+ * @brief Set raw image data to texture.
+ * @param image (in/out) Pointer for texture.
+ * @param raw_image (in) Pointer for raw image data (must be texture format).
  * @param pic_width (in) Raw image width (up to DEF_DRAW_MAX_TEXTURE_SIZE).
  * @param pic_height (in) Raw image height (up to DEF_DRAW_MAX_TEXTURE_SIZE).
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint16_t pic_width, uint16_t pic_height);
+uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
- * @param image (in/out) Pointer for texture data.
- * @param buf (in) Pointer for raw image data.
+ * @param image (in/out) Pointer for texture.
+ * @param raw_image (in) Pointer for raw image data.
  * @param pic_width (in) Raw image width.
  * @param pic_height (in) Raw image height.
  * @param width_offset (in) Width offset.
@@ -125,16 +125,56 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* buf, uint
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* buf, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset);
+uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset);
 
 /**
  * @brief Set texture filter.
  * Do nothing if draw API is not initialized.
- * @param image (in/out) Texture data.
+ * @param image (in/out) Pointer for texture.
  * @param filter (in) When true, LINEAR filter will be applied, otherwise NEAREST filter will be applied.
  * @note Thread safe.
 */
 void Draw_set_texture_filter(Draw_image_data* image, bool filter);
+
+/**
+ * @brief Initialize a large texture.
+ * @param large_image (out) Pointer for large texture.
+ * @param width (in) Picture width.
+ * @param height (in) Picture height.
+ * @param color_format (in) Color format (RAW_PIXEL_ABGR8888, RAW_PIXEL_BGR888 or RAW_PIXEL_RGB565LE).
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe.
+*/
+uint32_t Draw_large_texture_init(Draw_large_image_data* large_image, uint32_t width, uint32_t height, Raw_pixel color_format);
+
+/**
+ * @brief Uninitialize a large texture.
+ * Do nothing if draw API is not initialized.
+ * @param large_image (in/out) Pointer for large texture.
+ * @note Thread safe.
+*/
+void Draw_large_texture_free(Draw_large_image_data* large_image);
+
+/**
+ * @brief Convert raw image data to large texture format and set it.
+ * @param large_image (in/out) Pointer for large texture.
+ * @param raw_image (in) Pointer for raw image data.
+ * @param pic_width (in) Raw image width.
+ * @param pic_height (in) Raw image height.
+ * @param use_direct (in) Whether use Draw_set_texture_data_direct(), when true raw_image, pic_width and pic_height must meet Draw_set_texture_data_direct()'s requirements.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe.
+*/
+uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, bool use_direct);
+
+/**
+ * @brief Set large texture filter.
+ * Do nothing if draw API is not initialized.
+ * @param large_image (in/out) Pointer for large texture.
+ * @param filter (in) When true, LINEAR filter will be applied, otherwise NEAREST filter will be applied.
+ * @note Thread safe.
+*/
+void Draw_large_texture_set_filter(Draw_large_image_data* large_image, bool filter);
 
 /**
  * @brief Get empty (1x1 image that can be used to draw square) image.
@@ -310,7 +350,7 @@ Draw_image_data* Draw_get_bot_ui_button(void);
 /**
  * @brief Draw texture.
  * Do nothing if draw API is not initialized.
- * @param image (in/out) Texture data.
+ * @param image (in/out) Pointer for texture.
  * @param abgr8888 (in) Texture color.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
@@ -324,7 +364,7 @@ void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, f
 /**
  * @brief Draw texture.
  * Do nothing if draw API is not initialized.
- * @param image (in/out) Texture data.
+ * @param image (in/out) Pointer for texture.
  * @param abgr8888 (in) Texture color.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
@@ -341,7 +381,7 @@ void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float
 /**
  * @brief Draw texture.
  * Do nothing if draw API is not initialized.
- * @param image (in/out) Texture data.
+ * @param image (in/out) Pointer for texture.
  * @param abgr8888 (in) Texture color.
  * @param x (in) X position (in px).
  * @param y (in) Y position (in px).
@@ -359,6 +399,39 @@ void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float
 */
 void Draw_texture_with_crop(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle,
 float center_x, float center_y, float crop_x_start, float crop_x_end, float crop_y_start, float crop_y_end);
+
+/**
+ * @brief Draw large texture.
+ * Do nothing if draw API is not initialized.
+ * @param large_image (in/out) Pointer for large texture.
+ * @param abgr8888 (in) Texture color.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param x_size (in) Texture drawing size for X direction (in px).
+ * @param y_size (in) Texture drawing size for Y direction (in px).
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_large_texture(Draw_large_image_data* large_image, uint32_t abgr8888, float x, float y, float x_size, float y_size);
+
+/**
+ * @brief Draw large texture.
+ * Do nothing if draw API is not initialized.
+ * @param image (in/out) Pointer for large texture.
+ * @param abgr8888 (in) Texture color.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param x_size (in) Texture drawing size for X direction (in px).
+ * @param y_size (in) Texture drawing size for Y direction (in px).
+ * @param crop_x_start (in) Crop start position for X direction (in px).
+ * @param crop_x_end (in) Crop end position for X direction (in px).
+ * @param crop_y_start (in) Crop start position for Y direction (in px).
+ * @param crop_y_end (in) Crop end position for Y direction (in px).
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_large_texture_with_crop(Draw_large_image_data* large_image, uint32_t abgr8888, float x, float y,
+float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_start, float crop_y_end);
 
 /**
  * @brief Draw line.

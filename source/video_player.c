@@ -504,14 +504,6 @@ typedef enum
 
 typedef struct
 {
-	uint32_t image_width;
-	uint32_t image_height;
-	uint16_t num_of_images;
-	Draw_image_data* images;
-} Large_image;
-
-typedef struct
-{
 	char name[MAX_FILE_NAME_LENGTH];	//File name.
 	char directory[MAX_PATH_LENGTH];	//Directory path for this file.
 	uint32_t index;						//File index of this file.
@@ -622,7 +614,7 @@ typedef struct
 	double video_zoom[EYE_MAX];						//Zoom level for video.
 	double video_current_pos[EYE_MAX];				//Current video position in ms.
 	Media_v_info video_info[EYE_MAX];				//Video info.
-	Large_image large_image[VIDEO_BUFFERS][EYE_MAX];	//Texture for video images.
+	Draw_large_image_data large_image[VIDEO_BUFFERS][EYE_MAX];	//Texture for video images.
 
 	//Audio.
 	uint8_t num_of_audio_tracks;					//Number of audio tracks for current file.
@@ -700,13 +692,6 @@ typedef struct
 
 //Prototypes.
 static void Vid_draw_init_exit_message(void);
-static uint32_t Vid_get_min_texture_size(uint32_t width_or_height);
-static void Vid_large_texture_free(Large_image* large_image_data);
-static void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter);
-static void Vid_large_texture_crop(Large_image* large_image_data, uint32_t width, uint32_t height);
-static uint32_t Vid_large_texture_init(Large_image* large_image_data, uint32_t width, uint32_t height, Raw_pixel color_format, bool zero_initialize);
-static uint32_t Vid_large_texture_set_data(Large_image* large_image_data, uint8_t* raw_image, uint32_t width, uint32_t height, bool use_direct);
-static void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height);
 static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height, Vid_eye eye_index);
 static void Vid_change_video_size(double change_px, Vid_eye eye_index);
 static void Vid_enter_full_screen(uint32_t bottom_screen_timeout);
@@ -1199,7 +1184,7 @@ void Vid_hid(const Hid_info* key)
 						for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 						{
 							for(uint32_t k = 0; k < EYE_MAX; k++)
-								Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
+								Draw_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 						}
 					}
 					else if(HID_SE0_ALLOW_SKIP_FRAMES_CFM(*key))//Allow skip frames button.
@@ -1747,6 +1732,10 @@ void Vid_main(void)
 	uint8_t image_index[EYE_MAX] = { 0, };
 	double image_width[EYE_MAX] = { 0, };
 	double image_height[EYE_MAX] = { 0, };
+	double image_crop_x_start[EYE_MAX] = { 0, };
+	double image_crop_x_end[EYE_MAX] = { 0, };
+	double image_crop_y_start[EYE_MAX] = { 0, };
+	double image_crop_y_end[EYE_MAX] = { 0, };
 	double bitmap_subtitle_width[SCREEN_POS_MAX] = { 0, };
 	double bitmap_subtitle_height[SCREEN_POS_MAX] = { 0, };
 	double video_x_offset[SCREEN_POS_MAX] = { 0, };
@@ -1918,8 +1907,13 @@ void Vid_main(void)
 
 		sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
 		sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
-		image_width[i] = vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom[i];
-		image_height[i] = vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom[i];
+		image_width[i] = (vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom[i]);
+		image_height[i] = (vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom[i]);
+		//Crop the image so that user won't see glitches on videos.
+		image_crop_x_start[i] = 0;
+		image_crop_x_end[i] = vid_player.video_info[i].width;
+		image_crop_y_start[i] = 0;
+		image_crop_y_end[i] = vid_player.video_info[i].height;
 	}
 
 	for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
@@ -2030,7 +2024,8 @@ void Vid_main(void)
 				//Draw videos.
 				if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 				{
-					Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], video_x_offset[SCREEN_POS_TOP_LEFT], video_y_offset[SCREEN_POS_TOP_LEFT], image_width[EYE_LEFT], image_height[EYE_LEFT]);
+					Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_TOP_LEFT], video_y_offset[SCREEN_POS_TOP_LEFT],
+					image_width[EYE_LEFT], image_height[EYE_LEFT], image_crop_x_start[EYE_LEFT], image_crop_x_end[EYE_LEFT], image_crop_y_start[EYE_LEFT], image_crop_y_end[EYE_LEFT]);
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
 				}
 
@@ -2148,7 +2143,8 @@ void Vid_main(void)
 					//Draw 3D videos (right eye).
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_RIGHT]][EYE_RIGHT], video_x_offset[SCREEN_POS_TOP_RIGHT], video_y_offset[SCREEN_POS_TOP_RIGHT], image_width[EYE_RIGHT], image_height[EYE_RIGHT]);
+						Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_RIGHT]][EYE_RIGHT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_TOP_RIGHT], video_y_offset[SCREEN_POS_TOP_RIGHT],
+						image_width[EYE_RIGHT], image_height[EYE_RIGHT], image_crop_x_start[EYE_RIGHT], image_crop_x_end[EYE_RIGHT], image_crop_y_start[EYE_RIGHT], image_crop_y_end[EYE_RIGHT]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -2277,7 +2273,8 @@ void Vid_main(void)
 					//Draw videos.
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Vid_large_texture_draw(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], video_x_offset[SCREEN_POS_BOTTOM], video_y_offset[SCREEN_POS_BOTTOM], image_width[EYE_LEFT], image_height[EYE_LEFT]);
+						Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_BOTTOM], video_y_offset[SCREEN_POS_BOTTOM],
+						image_width[EYE_LEFT], image_height[EYE_LEFT], image_crop_x_start[EYE_LEFT], image_crop_x_end[EYE_LEFT], image_crop_y_start[EYE_LEFT], image_crop_y_end[EYE_LEFT]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -3194,276 +3191,6 @@ static void Vid_draw_init_exit_message(void)
 		gspWaitForVBlank();
 }
 
-static uint32_t Vid_get_min_texture_size(uint32_t width_or_height)
-{
-	if(width_or_height <= 16)
-		return 16;
-	else if(width_or_height <= 32)
-		return 32;
-	else if(width_or_height <= 64)
-		return 64;
-	else if(width_or_height <= 128)
-		return 128;
-	else if(width_or_height <= 256)
-		return 256;
-	else if(width_or_height <= 512)
-		return 512;
-	else
-		return 1024;
-}
-
-static void Vid_large_texture_free(Large_image* large_image_data)
-{
-	if(!large_image_data || !large_image_data->images)
-		return;
-
-	for(uint16_t i = 0; i < large_image_data->num_of_images; i++)
-		Draw_texture_free(&large_image_data->images[i]);
-
-	large_image_data->image_width = 0;
-	large_image_data->image_height = 0;
-	large_image_data->num_of_images = 0;
-	free(large_image_data->images);
-	large_image_data->images = NULL;
-}
-
-static void Vid_large_texture_set_filter(Large_image* large_image_data, bool filter)
-{
-	if(!large_image_data || !large_image_data->images)
-		return;
-
-	for(uint16_t i = 0; i < large_image_data->num_of_images; i++)
-		Draw_set_texture_filter(&large_image_data->images[i], filter);
-}
-
-static void Vid_large_texture_crop(Large_image* large_image_data, uint32_t width, uint32_t height)
-{
-	uint32_t width_offset = 0;
-	uint32_t height_offset = 0;
-
-	if(!large_image_data || !large_image_data->images
-	|| (width == large_image_data->image_width && height == large_image_data->image_height))
-		return;
-
-	for(uint16_t i = 0; i < large_image_data->num_of_images; i++)
-	{
-		float texture_width = large_image_data->images[i].c2d.tex->width;
-		float texture_height = large_image_data->images[i].c2d.tex->height;
-
-		if(width_offset + texture_width >= width)
-		{
-			//Crop for X direction.
-			uint32_t new_width = 0;
-
-			if(width > width_offset)
-				new_width = (width - width_offset);
-
-			large_image_data->images[i].subtex->width = new_width;
-			large_image_data->images[i].subtex->right = new_width / texture_width;
-		}
-
-		if(height_offset + texture_height >= height)
-		{
-			//Crop for Y direction.
-			uint32_t new_height = 0;
-
-			if(height > height_offset)
-				new_height = (height - height_offset);
-
-			large_image_data->images[i].subtex->height = new_height;
-			large_image_data->images[i].subtex->bottom = (texture_height - new_height) / texture_height;
-		}
-
-		//Update offset.
-		width_offset += texture_width;
-		if(width_offset >= large_image_data->image_width)
-		{
-			width_offset = 0;
-			height_offset += texture_height;
-		}
-	}
-}
-
-static uint32_t Vid_large_texture_init(Large_image* large_image_data, uint32_t width, uint32_t height, Raw_pixel color_format, bool zero_initialize)
-{
-	uint16_t loop = 0;
-	uint32_t width_offset = 0;
-	uint32_t height_offset = 0;
-	uint32_t result = DEF_ERR_OTHER;
-
-	if(!large_image_data || width == 0 || height == 0)
-		goto invalid_arg;
-
-	//Calculate how many textures we need.
-	if(width % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
-		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1;
-	else
-		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
-
-	if(height % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
-		loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-	else
-		loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
-
-	//Init parameters.
-	large_image_data->image_width = 0;
-	large_image_data->image_height = 0;
-	large_image_data->num_of_images = 0;
-	large_image_data->images = (Draw_image_data*)malloc(sizeof(Draw_image_data) * loop);
-	if(!large_image_data->images)
-		goto out_of_memory;
-
-	for(uint32_t i = 0; i < loop; i++)
-	{
-		uint32_t texture_width = Vid_get_min_texture_size(width - width_offset);
-		uint32_t texture_height = Vid_get_min_texture_size(height - height_offset);
-
-		result = Draw_texture_init(&large_image_data->images[i], texture_width, texture_height, color_format);
-		if(result != DEF_SUCCESS)
-		{
-			DEF_LOG_RESULT(Draw_texture_init, false, result);
-			goto error_other;
-		}
-
-		if(zero_initialize)
-		{
-			uint8_t pixel_size = 0;
-
-			if(color_format == RAW_PIXEL_RGB565LE)
-				pixel_size = 2;
-			else if(color_format == RAW_PIXEL_BGR888)
-				pixel_size = 3;
-			else if(color_format == RAW_PIXEL_ABGR8888)
-				pixel_size = 4;
-
-			memset(large_image_data->images[i].c2d.tex->data, 0x0, texture_width * texture_height * pixel_size);
-		}
-		large_image_data->num_of_images++;
-
-		//Update offset.
-		width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
-		if(width_offset >= width)
-		{
-			width_offset = 0;
-			height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
-		}
-	}
-
-	return DEF_SUCCESS;
-
-	invalid_arg:
-	return DEF_ERR_INVALID_ARG;
-
-	out_of_memory:
-	Vid_large_texture_free(large_image_data);
-	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
-
-	error_other:
-	Vid_large_texture_free(large_image_data);
-	return result;
-}
-
-static uint32_t Vid_large_texture_set_data(Large_image* large_image_data, uint8_t* raw_image, uint32_t width, uint32_t height, bool use_direct)
-{
-	uint16_t loop = 0;
-	uint32_t width_offset = 0;
-	uint32_t height_offset = 0;
-	uint32_t result = DEF_ERR_OTHER;
-
-	if(!large_image_data || !large_image_data->images || large_image_data->num_of_images == 0 || !raw_image || width == 0 || height == 0)
-		goto invalid_arg;
-
-	large_image_data->image_width = width;
-	large_image_data->image_height = height;
-
-	if(use_direct)
-	{
-		result = Draw_set_texture_data_direct(&large_image_data->images[0], raw_image, width, height);
-		if(result != DEF_SUCCESS)
-		{
-			DEF_LOG_RESULT(Draw_set_texture_data_direct, false, result);
-			goto error_other;
-		}
-	}
-	else
-	{
-		//Calculate how many textures we need.
-		if(width % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
-			loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1;
-		else
-			loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
-
-		if(height % DEF_DRAW_MAX_TEXTURE_SIZE > 0)
-			loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-		else
-			loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
-
-		if(loop > large_image_data->num_of_images)
-			loop = large_image_data->num_of_images;
-
-		for(uint16_t i = 0; i < loop; i++)
-		{
-			result = Draw_set_texture_data(&large_image_data->images[i], raw_image, width, height, width_offset, height_offset);
-			if(result != DEF_SUCCESS)
-			{
-				DEF_LOG_RESULT(Draw_set_texture_data, false, result);
-				goto error_other;
-			}
-
-			//Update offset.
-			width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
-			if(width_offset >= width)
-			{
-				width_offset = 0;
-				height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
-			}
-		}
-	}
-
-	return DEF_SUCCESS;
-
-	invalid_arg:
-	return DEF_ERR_INVALID_ARG;
-
-	error_other:
-	return result;
-}
-
-static void Vid_large_texture_draw(Large_image* large_image_data, double x_offset, double y_offset, double pic_width, double pic_height)
-{
-	uint32_t width_offset = 0;
-	uint32_t height_offset = 0;
-	double width_factor = 0;
-	double height_factor = 0;
-
-	if(!large_image_data || !large_image_data->images || large_image_data->num_of_images == 0
-	|| large_image_data->image_width == 0 || large_image_data->image_height == 0)
-		return;
-
-	width_factor = pic_width / large_image_data->image_width;
-	height_factor = pic_height / large_image_data->image_height;
-
-	for(uint16_t i = 0; i < large_image_data->num_of_images; i++)
-	{
-		if(large_image_data->images[i].subtex)
-		{
-			double texture_x_offset = x_offset + (width_offset * width_factor);
-			double texture_y_offset = y_offset + (height_offset * height_factor);
-			double texture_width = large_image_data->images[i].subtex->width * width_factor;
-			double texture_height = large_image_data->images[i].subtex->height * height_factor;
-			Draw_texture(&large_image_data->images[i], DEF_DRAW_NO_COLOR, texture_x_offset, texture_y_offset, texture_width, texture_height);
-
-			//Update offset.
-			width_offset += large_image_data->images[i].c2d.tex->width;
-			if(width_offset >= large_image_data->image_width)
-			{
-				width_offset = 0;
-				height_offset += large_image_data->images[i].c2d.tex->height;
-			}
-		}
-	}
-}
-
 static void Vid_fit_to_screen(uint16_t screen_width, uint16_t screen_height, Vid_eye eye_index)
 {
 	if(vid_player.video_info[eye_index].width != 0 && vid_player.video_info[eye_index].height != 0 && vid_player.video_info[eye_index].sar_width != 0 && vid_player.video_info[eye_index].sar_height != 0)
@@ -4040,7 +3767,7 @@ static void Vid_init_video_data(void)
 	for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 	{
 		for(uint32_t k = 0; k < EYE_MAX; k++)
-			Vid_large_texture_free(&vid_player.large_image[i][k]);
+			Draw_large_texture_free(&vid_player.large_image[i][k]);
 	}
 	Util_sync_unlock(&vid_player.texture_init_free_lock);
 }
@@ -4949,12 +4676,12 @@ void Vid_decode_thread(void* arg)
 									for(uint8_t k = 0; k < num_of_video_tracks; k++)
 									{
 										Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
-										result = Vid_large_texture_init(&vid_player.large_image[i][k], vid_player.video_info[k].codec_width, vid_player.video_info[k].codec_height, RAW_PIXEL_RGB565LE, true);
+										result = Draw_large_texture_init(&vid_player.large_image[i][k], vid_player.video_info[k].codec_width, vid_player.video_info[k].codec_height, RAW_PIXEL_RGB565LE);
 										Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 										if(result != DEF_SUCCESS)
 										{
-											DEF_LOG_RESULT(Vid_large_texture_init, false, result);
+											DEF_LOG_RESULT(Draw_large_texture_init, false, result);
 											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't allocate texture buffers!!!!!", DEF_LOG_GET_SYMBOL(), result);
 											goto error;
 										}
@@ -4965,7 +4692,7 @@ void Vid_decode_thread(void* arg)
 								for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 								{
 									for(uint32_t k = 0; k < EYE_MAX; k++)
-										Vid_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
+										Draw_large_texture_set_filter(&vid_player.large_image[i][k], vid_player.use_linear_texture_filter);
 								}
 
 								{
@@ -5367,7 +5094,7 @@ void Vid_decode_thread(void* arg)
 					for(uint8_t i = 0; i < VIDEO_BUFFERS; i++)
 					{
 						for(uint32_t k = 0; k < EYE_MAX; k++)
-							Vid_large_texture_free(&vid_player.large_image[i][k]);
+							Draw_large_texture_free(&vid_player.large_image[i][k]);
 					}
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
 
@@ -5955,13 +5682,12 @@ void Vid_decode_thread(void* arg)
 							if(vid_player.subtitle_data[vid_player.subtitle_index].bitmap)
 							{
 								//Subtitle data format is bitmap, copy raw data to subtitle texture.
-								uint32_t texture_width = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width);
-								uint32_t texture_height = Vid_get_min_texture_size(vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height);
+								uint32_t width = vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width;
+								uint32_t height = vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height;
 
 								Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
 								Draw_texture_free(&vid_player.subtitle_image[vid_player.subtitle_index]);
-								result = Draw_texture_init(&vid_player.subtitle_image[vid_player.subtitle_index], texture_width, texture_height, RAW_PIXEL_ABGR8888);
-								memset(vid_player.subtitle_image[vid_player.subtitle_index].c2d.tex->data, 0x0, texture_width * texture_height * 4);
+								result = Draw_texture_init(&vid_player.subtitle_image[vid_player.subtitle_index], width, height, RAW_PIXEL_ABGR8888);
 								Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 								if(result == DEF_SUCCESS)
@@ -6555,15 +6281,12 @@ void Vid_convert_thread(void* arg)
 						height = vid_player.video_info[packet_index].height;
 
 						if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && (vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION))//Raw image is texture format.
-							result = Vid_large_texture_set_data(&vid_player.large_image[image_index][packet_index], video, width, height, true);
+							result = Draw_large_texture_set_data(&vid_player.large_image[image_index][packet_index], video, width, height, true);
 						else//Raw image is NOT texture format.
-							result = Vid_large_texture_set_data(&vid_player.large_image[image_index][packet_index], video, width, height, false);
+							result = Draw_large_texture_set_data(&vid_player.large_image[image_index][packet_index], video, width, height, false);
 
 						if(result != DEF_SUCCESS)
-							DEF_LOG_RESULT(Vid_large_texture_set_data, false, result);
-
-						//Crop the image so that user won't see glitch on videos.
-						Vid_large_texture_crop(&vid_player.large_image[image_index][packet_index], vid_player.video_info[packet_index].width, vid_player.video_info[packet_index].height);
+							DEF_LOG_RESULT(Draw_large_texture_set_data, false, result);
 					}
 					else
 						DEF_LOG_RESULT(Util_converter_convert_color, false, result);

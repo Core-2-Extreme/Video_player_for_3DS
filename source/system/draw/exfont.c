@@ -21,8 +21,8 @@
 //N/A.
 
 //Prototypes.
-static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
-float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);
+static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float x_min, float x_max,
+float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only);
 static uint32_t Exfont_load_exfont(uint16_t exfont_id);
 static void Exfont_unload_exfont(uint16_t exfont_id);
 static void Exfont_load_font_callback(void);
@@ -408,19 +408,19 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 	*out_element = out_index;
 }
 
-void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
-float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height)
+void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float x_min, float x_max,
+float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height)
 {
-	Exfont_draw_external_fonts_internal(character, texture_x, texture_y, base_size, x_scale, y_scale, abgr8888, out_width, out_height, false);
+	Exfont_draw_external_fonts_internal(character, texture_x, texture_y, x_min, x_max, y_min, y_max, base_size, x_scale, y_scale, abgr8888, out_width, out_height, false);
 }
 
 void Exfont_draw_get_text_size(Exfont_one_char* character, float base_size, float x_scale, float y_scale, float* out_width, float* out_height)
 {
-	Exfont_draw_external_fonts_internal(character, 0, 0, base_size, x_scale, y_scale, DEF_DRAW_NO_COLOR, out_width, out_height, true);
+	Exfont_draw_external_fonts_internal(character, 0, 0, 0, 0, 0, 0, base_size, x_scale, y_scale, DEF_DRAW_NO_COLOR, out_width, out_height, true);
 }
 
-static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
-float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only)
+static void Exfont_draw_external_fonts_internal(Exfont_one_char* character, float texture_x, float texture_y, float x_min, float x_max,
+float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height, bool size_only)
 {
 	bool unknown = true;
 	uint16_t block = UINT16_MAX;
@@ -1356,11 +1356,84 @@ float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_he
 
 	x_size = ((base_size * width_rate) * x_scale);
 	y_size = (base_size * y_scale);
+
 	if(!size_only)
 	{
-		Draw_image_data font = { 0, };
-		font.c2d = util_exfont_font_images[base_index + offset];
-		Draw_texture(&font, abgr8888, texture_x, texture_y, x_size, y_size);
+		if(((texture_x + x_size) >= x_min && texture_x <= x_max) && ((texture_y + y_size) >= y_min && texture_y <= y_max))
+		{
+			Draw_image_data font = { .c2d = util_exfont_font_images[base_index + offset], };
+
+			if(texture_x < x_min || (texture_x + x_size) > x_max
+			|| texture_y < y_min || (texture_y + y_size) > y_max)
+			{
+				//Partially in range, draw partial texture.
+				float texture_x_start = (font.c2d.tex->width * font.c2d.subtex->left);
+				float texture_x_end = (font.c2d.tex->width * font.c2d.subtex->right);
+				float texture_y_start = (font.c2d.tex->height * (1 - font.c2d.subtex->top));
+				float texture_y_end = (font.c2d.tex->height * (1 - font.c2d.subtex->bottom));
+				float new_x_size = x_size;
+				float new_y_size = y_size;
+
+				if(Tex3DS_SubTextureRotated(font.c2d.subtex))
+				{
+					texture_x_start = (font.c2d.tex->height * (1 - font.c2d.subtex->right));
+					texture_x_end = (font.c2d.tex->height * (1 - font.c2d.subtex->left));
+					texture_y_start = (font.c2d.tex->width * font.c2d.subtex->top);
+					texture_y_end = (font.c2d.tex->width * font.c2d.subtex->bottom);
+				}
+
+				if(texture_x < x_min)
+				{
+					float left_cut_off_factor = ((x_min - texture_x) / x_size);
+
+					new_x_size -= (x_min - texture_x);
+					if(Tex3DS_SubTextureRotated(font.c2d.subtex))
+						texture_x_end -= (font.c2d.subtex->width * left_cut_off_factor);
+					else
+						texture_x_start += (font.c2d.subtex->width * left_cut_off_factor);
+				}
+				if((texture_x + x_size) > x_max)
+				{
+					float right_cut_off_factor = (((texture_x + x_size) - x_max) / x_size);
+
+					new_x_size -= ((texture_x + x_size) - x_max);
+					if(Tex3DS_SubTextureRotated(font.c2d.subtex))
+						texture_x_start += (font.c2d.subtex->width * right_cut_off_factor);
+					else
+						texture_x_end -= (font.c2d.subtex->width * right_cut_off_factor);
+				}
+				if(texture_y < y_min)
+				{
+					float top_cut_off_factor = ((y_min - texture_y) / y_size);
+
+					new_y_size -= (y_min - texture_y);
+					texture_y_start += (font.c2d.subtex->height * top_cut_off_factor);
+				}
+				if((texture_y + y_size) > y_max)
+				{
+					float bottom_cut_off_factor = (((texture_y + y_size) - y_max) / y_size);
+
+					new_y_size -= ((texture_y + y_size) - y_max);
+					texture_y_end -= (font.c2d.subtex->height * bottom_cut_off_factor);
+				}
+
+				if(texture_x < x_min)
+					texture_x = x_min;
+				if(texture_y < y_min)
+					texture_y = y_min;
+
+				Draw_texture_with_crop(&font, abgr8888, texture_x, texture_y, new_x_size, new_y_size, 0, 0, 0, texture_x_start, texture_x_end, texture_y_start, texture_y_end);
+			}
+			else
+			{
+				//Completely in range, draw full texture.
+				Draw_texture(&font, abgr8888, texture_x, texture_y, x_size, y_size);
+			}
+		}
+		else
+		{
+			//Completely out of range, draw nothing.
+		}
 	}
 
 	*out_width = x_size;

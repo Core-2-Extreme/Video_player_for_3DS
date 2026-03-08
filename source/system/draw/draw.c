@@ -54,6 +54,11 @@
 #define BATTERY_LEVEL_MAX			(uint8_t)(100)	//Maximum battery level in %.
 #define BATTERY_LEVEL_STEP			(uint8_t)(5)	//Each texture represents this much battery level in %.
 
+#define TOP_LCD_WIDTH				(uint16_t)(400)	//Top LCD width.
+#define BOT_LCD_WIDTH				(uint16_t)(320)	//Bottom LCD width.
+#define LCD_WIDTH(lcd)				(uint16_t)((lcd == DRAW_SCREEN_BOTTOM) ? BOT_LCD_WIDTH : TOP_LCD_WIDTH)		//LCD width for specified LCD.
+#define LCD_HEIGHT					(uint16_t)(240)	//Top height.
+
 //Typedefs.
 //Define shorter state name for hid state.
 typedef enum
@@ -80,6 +85,7 @@ DEF_LOG_ENUM_DEBUG
 //Prototypes.
 extern void memcpy_asm(uint8_t*, uint8_t*, uint32_t);
 static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size);
+static bool Draw_apply_crop(Tex3DS_SubTexture* sub_texture, float texture_width, float texture_height, float x_start, float x_end, float y_start, float y_end);
 static void Draw_internal(const char* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale,
 float y_space_scale, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x,
 float box_size_y, Draw_background texture_position, void* background_image, uint32_t texture_abgr8888);
@@ -95,6 +101,7 @@ static double util_draw_frametime = 0;
 static uint32_t util_draw_rendered_frames = 0;
 static uint32_t util_draw_rendered_frames_cache = 0;
 static uint64_t util_draw_reset_fps_counter_time = 0;
+static Draw_screen util_draw_current_screen = DRAW_SCREEN_INVALID;
 static Sync_data util_draw_need_refresh_mutex = { 0, };
 static C3D_RenderTarget* util_draw_screen[3] = { 0, };
 static C2D_SpriteSheet util_draw_sheet_texture[DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS] = { 0, };
@@ -216,6 +223,7 @@ uint32_t Draw_init(bool wide, bool _3d)
 	util_draw_reset_fps_counter_time = osGetTime() + 1000;
 	util_draw_is_800px = wide;
 	util_draw_is_3d = _3d;
+	util_draw_current_screen = DRAW_SCREEN_INVALID;
 
 	util_draw_init = true;
 	return DEF_SUCCESS;
@@ -921,39 +929,6 @@ void Draw_bot_ui(void)
 	BOT_BOX_WIDTH, BOT_BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_draw_bot_ui, DEF_DRAW_BLACK);
 }
 
-Draw_image_data* Draw_get_bot_ui_button(void)
-{
-	return &util_draw_bot_ui;
-}
-
-void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size)
-{
-	Draw_texture_with_rotation(image, abgr8888, x, y, x_size, y_size, 0, 0, 0);
-}
-
-void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y)
-{
-	if(!util_draw_init)
-		return;
-
-	if(!image || !image->c2d.tex)
-		return;
-
-	image->x = x;
-	image->y = y;
-	image->x_size = x_size;
-	image->y_size = y_size;
-	Draw_texture_internal(image->c2d, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
-}
-
-void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width)
-{
-	if(!util_draw_init)
-		return;
-
-	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
-}
-
 void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 {
 	uint32_t color = DEF_DRAW_BLACK;
@@ -1076,6 +1051,68 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	Util_str_free(&temp);
 }
 
+Draw_image_data* Draw_get_bot_ui_button(void)
+{
+	return &util_draw_bot_ui;
+}
+
+void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size)
+{
+	Draw_texture_with_rotation(image, abgr8888, x, y, x_size, y_size, 0, 0, 0);
+}
+
+void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y)
+{
+	if(!util_draw_init)
+		return;
+
+	if(!image || !image->c2d.tex)
+		return;
+
+	image->x = x;
+	image->y = y;
+	image->x_size = x_size;
+	image->y_size = y_size;
+	Draw_texture_internal(image->c2d, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
+}
+
+void Draw_texture_with_crop(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle,
+float center_x, float center_y, float crop_x_start, float crop_x_end, float crop_y_start, float crop_y_end)
+{
+	Tex3DS_SubTexture subtex = { 0, };
+
+	if(!util_draw_init)
+		return;
+
+	if(!image || !image->c2d.tex)
+		return;
+
+	//Crop it (if necessary).
+	memcpy(&subtex, image->c2d.subtex, sizeof(Tex3DS_SubTexture));
+	if(Draw_apply_crop(&subtex, image->c2d.tex->width, image->c2d.tex->height, crop_x_start, crop_x_end, crop_y_start, crop_y_end))
+	{
+		//Save old sub texture.
+		const Tex3DS_SubTexture* old_subtex = image->c2d.subtex;
+
+		//Swap sub texture.
+		image->c2d.subtex = &subtex;
+		Draw_texture_with_rotation(image, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
+
+		//Restore sub texture.
+		image->c2d.subtex = old_subtex;
+	}
+	else
+		Draw_texture_with_rotation(image, abgr8888, x, y, x_size, y_size, angle, center_x, center_y);
+}
+
+void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width)
+{
+	if(!util_draw_init)
+		return;
+
+	C2D_DrawLine(x_0, y_0, abgr8888_0, x_1, y_1, abgr8888_1, width, 0);
+}
+
 void Draw_frame_ready(void)
 {
 	if(!util_draw_init)
@@ -1092,6 +1129,7 @@ void Draw_screen_ready(Draw_screen screen, uint32_t abgr8888)
 	if (screen <= DRAW_SCREEN_INVALID || screen >= DRAW_SCREEN_MAX)
 		return;
 
+	util_draw_current_screen = screen;
 	C2D_TargetClear(util_draw_screen[screen], abgr8888);
 	C2D_SceneBegin(util_draw_screen[screen]);
 }
@@ -1125,6 +1163,80 @@ static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint
 	return pos * pixel_size;
 }
 
+static bool Draw_apply_crop(Tex3DS_SubTexture* sub_texture, float texture_width, float texture_height, float x_start, float x_end, float y_start, float y_end)
+{
+	bool is_rotated = Tex3DS_SubTextureRotated(sub_texture);
+
+	//Check for args.
+	if(x_start <= 0)
+		x_start = 0;
+	if(y_start <= 0)
+		y_start = 0;
+	if(is_rotated)
+	{
+		if(x_end >= texture_height)
+			x_end = texture_height;
+		if(y_end >= texture_width)
+			y_end = texture_width;
+	}
+	else
+	{
+		if(x_end >= texture_width)
+			x_end = texture_width;
+		if(y_end >= texture_height)
+			y_end = texture_height;
+	}
+
+	if(x_start >= x_end || y_start >= y_end)
+		return false;
+
+	//Crop it.
+	if(is_rotated)
+	{
+		if(x_end < texture_height || x_start > 0)
+		{
+			if(x_end < texture_height)
+				sub_texture->left = (1 - (x_end / texture_height));
+			if(x_start > 0)
+				sub_texture->right = (1 - (x_start / texture_height));
+
+			sub_texture->width = (x_end - x_start);
+		}
+		if(y_end < texture_width || y_start > 0)
+		{
+			if(y_end < texture_width)
+				sub_texture->bottom = (y_end / texture_width);
+			if(y_start > 0)
+				sub_texture->top = (y_start / texture_width);
+
+			sub_texture->height = (y_end - y_start);
+		}
+	}
+	else
+	{
+		if(x_end < texture_width || x_start > 0)
+		{
+			if(x_end < texture_width)
+				sub_texture->right = (x_end / texture_width);
+			if(x_start > 0)
+				sub_texture->left = (x_start / texture_width);
+
+			sub_texture->width = (x_end - x_start);
+		}
+		if(y_end < texture_height || y_start > 0)
+		{
+			if(y_end < texture_height)
+				sub_texture->bottom = (1 - (y_end / texture_height));
+			if(y_start > 0)
+				sub_texture->top = (1 - (y_start / texture_height));
+
+			sub_texture->height = (y_end - y_start);
+		}
+	}
+
+	return true;
+}
+
 static void Draw_internal(const char* text, float x, float y, float base_size, float x_scale, float y_scale, float x_space_scale,
 float y_space_scale, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x,
 float box_size_y, Draw_background texture_position, void* background_image, uint32_t texture_abgr8888)
@@ -1133,6 +1245,7 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 	uint32_t array_count = 0;
 	uint32_t length = 0;
 	float width = 0, height = 0, original_x = 0, original_y = 0;
+	float x_valid_min = 0, x_valid_max = 0, y_valid_min = 0, y_valid_max = 0;
 	float* x_start = NULL;
 	Exfont_one_char* part_text = NULL;
 	original_x = x;
@@ -1149,7 +1262,8 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 	if(length == 0)
 		return;
 
-	length++;
+	//Allocate memory.
+	length++;//For NULL terminator.
 	part_text = (Exfont_one_char*)malloc(sizeof(Exfont_one_char) * length);
 	x_start = (float*)malloc(sizeof(float) * length);
 	if(!part_text || !x_start)
@@ -1161,8 +1275,13 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 		return;
 	}
 
+	//Set default valid range.
+	x_valid_max = LCD_WIDTH(util_draw_current_screen);
+	y_valid_max = LCD_HEIGHT;
+
 	Exfont_text_parse(text, part_text, (length - 1), &array_count);
 
+	//Calculate drawing position.
 	if(x_align == DRAW_X_ALIGN_LEFT && y_align == DRAW_Y_ALIGN_TOP && texture_position == DRAW_BACKGROUND_NONE)
 		x = original_x;
 	else
@@ -1232,11 +1351,24 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 
 		image_data_pointer = (Draw_image_data*)background_image;
 		if(texture_position == DRAW_BACKGROUND_ENTIRE_BOX)
+		{
 			Draw_texture(image_data_pointer, texture_abgr8888, original_x, original_y, box_size_x, box_size_y);
+			x_valid_min = original_x;
+			x_valid_max = (original_x + box_size_x);
+			y_valid_min = original_y;
+			y_valid_max = (original_y + box_size_y);
+		}
 		else if(texture_position == DRAW_BACKGROUND_UNDER_TEXT)
 			Draw_texture(image_data_pointer, texture_abgr8888, x_min, y, used_x_max, used_y_max);
 	}
 
+	//Clamp to LCD resolution.
+	x_valid_min = Util_max_d(x_valid_min, 0);
+	y_valid_min = Util_max_d(y_valid_min, 0);
+	x_valid_max = Util_min_d(x_valid_max, LCD_WIDTH(util_draw_current_screen));
+	y_valid_max = Util_min_d(y_valid_max, LCD_HEIGHT);
+
+	//Draw it.
 	for (uint32_t i = 0; i < array_count; i++)
 	{
 		if (part_text[i].buffer[0] == 0x0)
@@ -1258,7 +1390,7 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 			continue;
 		}
 
-		Exfont_draw_external_fonts(&part_text[i], x, y, base_size, x_scale, y_scale, abgr8888, &width, &height);
+		Exfont_draw_external_fonts(&part_text[i], x, y, x_valid_min, x_valid_max, y_valid_min, y_valid_max, base_size, x_scale, y_scale, abgr8888, &width, &height);
 		x += (width + (base_size * x_space_scale));
 	}
 
@@ -1292,6 +1424,9 @@ static void Draw_texture_internal(C2D_Image image, uint32_t abgr8888, float x, f
 
 	if(!image.tex || !image.subtex || x_size <= 0 || y_size <= 0)
 		return;
+
+	if((x + x_size) < 0 || x > LCD_WIDTH(util_draw_current_screen) || (y + y_size) < 0 || y > LCD_HEIGHT)
+		return;//Completely out of range, draw nothing.
 
 	if(abgr8888 == DEF_DRAW_NO_COLOR)
 		C2D_DrawImage(image, &c2d_parameter, NULL);

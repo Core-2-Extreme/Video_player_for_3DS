@@ -132,7 +132,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed);
 
 #define Util_expl_init() DEF_ERR_DISABLED
 #define Util_expl_exit()
-#define Util_expl_query_current_dir() DEF_ERR_DISABLED
+#define Util_expl_query_current_dir(...) DEF_ERR_DISABLED
 #define Util_expl_query_num_of_file() 0
 #define Util_expl_query_current_file_index() UINT32_MAX
 #define Util_expl_query_file_name(...) DEF_ERR_DISABLED

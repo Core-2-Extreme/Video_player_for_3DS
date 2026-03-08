@@ -103,6 +103,10 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
  * @param character (in) One character (returned by Exfont_text_parse_*()).
  * @param texture_x (in) X position (in px).
  * @param texture_y (in) Y position (in px).
+ * @param x_min (in) Start of allowed X position to draw (in px).
+ * @param x_max (in) End of allowed X position to draw (in px).
+ * @param y_min (in) Start of allowed Y position to draw (in px).
+ * @param y_max (in) End of allowed Y position to draw (in px).
  * @param base_size (in) Base font size (in px).
  * @param x_scale (in) Scale for X direction.
  * @param y_scale (in) Scale for Y direction.
@@ -112,8 +116,8 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float base_size,
-float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height);
+void Exfont_draw_external_fonts(Exfont_one_char* character, float texture_x, float texture_y, float x_min, float x_max,
+float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_t abgr8888, float* out_width, float* out_height);
 
 /**
  * @brief Get text size.

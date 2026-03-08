@@ -290,6 +290,17 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 void Draw_bot_ui(void);
 
 /**
+ * @brief Draw debug info.
+ * Do nothing if draw API is not initialized.
+ * @param is_night Whether night mode is enabled.
+ * @param free_ram Free heap size in bytes.
+ * @param free_linear_ram Free linear RAM size in bytes.
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram);
+
+/**
  * @brief Get bottom UI's button.
  * @return Bottom UI's button.
  * @warning Thread dangerous (untested).
@@ -301,10 +312,10 @@ Draw_image_data* Draw_get_bot_ui_button(void);
  * Do nothing if draw API is not initialized.
  * @param image (in/out) Texture data.
  * @param abgr8888 (in) Texture color.
- * @param x (in) X position.
- * @param y (in) Y position.
- * @param x_size (in) Texture size for X direction.
- * @param y_size (in) Texture size for Y direction.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param x_size (in) Texture drawing size for X direction (in px).
+ * @param y_size (in) Texture drawing size for Y direction (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
@@ -315,10 +326,10 @@ void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, f
  * Do nothing if draw API is not initialized.
  * @param image (in/out) Texture data.
  * @param abgr8888 (in) Texture color.
- * @param x (in) X position.
- * @param y (in) Y position.
- * @param x_size (in) Texture size for X direction.
- * @param y_size (in) Texture size for Y direction.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param x_size (in) Texture drawing size for X direction (in px).
+ * @param y_size (in) Texture drawing size for Y direction (in px).
  * @param angle (in) Texture angle.
  * @param center_x (in) Center of texture for X direction (used to rotate texture).
  * @param center_y (in) Center of texture for Y direction (used to rotate texture).
@@ -328,30 +339,41 @@ void Draw_texture(Draw_image_data* image, uint32_t abgr8888, float x, float y, f
 void Draw_texture_with_rotation(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle, float center_x, float center_y);
 
 /**
+ * @brief Draw texture.
+ * Do nothing if draw API is not initialized.
+ * @param image (in/out) Texture data.
+ * @param abgr8888 (in) Texture color.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param x_size (in) Texture drawing size for X direction (in px).
+ * @param y_size (in) Texture drawing size for Y direction (in px).
+ * @param angle (in) Texture angle.
+ * @param center_x (in) Center of texture for X direction (used to rotate texture).
+ * @param center_y (in) Center of texture for Y direction (used to rotate texture).
+ * @param crop_x_start (in) Crop start position for X direction (in px).
+ * @param crop_x_end (in) Crop end position for X direction (in px).
+ * @param crop_y_start (in) Crop start position for Y direction (in px).
+ * @param crop_y_end (in) Crop end position for Y direction (in px).
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_texture_with_crop(Draw_image_data* image, uint32_t abgr8888, float x, float y, float x_size, float y_size, float angle,
+float center_x, float center_y, float crop_x_start, float crop_x_end, float crop_y_start, float crop_y_end);
+
+/**
  * @brief Draw line.
  * Do nothing if draw API is not initialized.
- * @param x_0 (in) Initial x position.
- * @param y_0 (in) Initial y position.
+ * @param x_0 (in) Initial x position (in px).
+ * @param y_0 (in) Initial y position (in px).
  * @param abgr8888_0 (in) Initial line color.
- * @param x_1 (in) Final x position.
- * @param y_1 (in) Final y position.
+ * @param x_1 (in) Final x position (in px).
+ * @param y_1 (in) Final y position (in px).
  * @param abgr8888_1 (in) Final line color.
- * @param width (in) Line width.
+ * @param width (in) Line width (in px).
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
 void Draw_line(float x_0, float y_0, uint32_t abgr8888_0, float x_1, float y_1, uint32_t abgr8888_1, float width);
-
-/**
- * @brief Draw debug info.
- * Do nothing if draw API is not initialized.
- * @param is_night Whether night mode is enabled.
- * @param free_ram Free heap size in bytes.
- * @param free_linear_ram Free linear RAM size in bytes.
- * @warning Thread dangerous (untested).
- * @warning Call it only from rendering thread.
-*/
-void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram);
 
 /**
  * @brief Ready frame for drawing.

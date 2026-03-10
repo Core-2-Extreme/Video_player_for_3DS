@@ -717,15 +717,26 @@ uint32_t Draw_large_texture_init(Draw_large_image_data* large_image, uint32_t wi
 		goto invalid_arg;
 
 	//Calculate how many textures we need.
-	if((width % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
-		loop = ((width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-	else
-		loop = (width / DEF_DRAW_MAX_TEXTURE_SIZE);
+	while(true)
+	{
+		uint32_t texture_width = Draw_get_min_texture_size(width - width_offset);
+		uint32_t texture_height = Draw_get_min_texture_size(height - height_offset);
 
-	if((height % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
-		loop *= ((height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-	else
-		loop *= (height / DEF_DRAW_MAX_TEXTURE_SIZE);
+		loop++;
+
+		//Update offset.
+		width_offset += texture_width;
+		if(width_offset >= width)
+		{
+			width_offset = 0;
+			height_offset += texture_height;
+			if(height_offset >= height)
+				break;//Done.
+		}
+	}
+
+	width_offset = 0;
+	height_offset = 0;
 
 	//Init parameters.
 	large_image->image_width = 0;
@@ -735,6 +746,7 @@ uint32_t Draw_large_texture_init(Draw_large_image_data* large_image, uint32_t wi
 	if(!large_image->images)
 		goto out_of_memory;
 
+	//Init textures.
 	for(uint32_t i = 0; i < loop; i++)
 	{
 		uint32_t texture_width = Draw_get_min_texture_size(width - width_offset);
@@ -750,11 +762,11 @@ uint32_t Draw_large_texture_init(Draw_large_image_data* large_image, uint32_t wi
 		large_image->num_of_images++;
 
 		//Update offset.
-		width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+		width_offset += texture_width;
 		if(width_offset >= width)
 		{
 			width_offset = 0;
-			height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+			height_offset += texture_height;
 		}
 	}
 
@@ -795,9 +807,6 @@ void Draw_large_texture_free(Draw_large_image_data* large_image)
 
 uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, bool use_direct)
 {
-	uint16_t loop = 0;
-	uint32_t width_offset = 0;
-	uint32_t height_offset = 0;
 	uint32_t result = DEF_ERR_OTHER;
 
 	if(!util_draw_init)
@@ -820,35 +829,31 @@ uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t
 	}
 	else
 	{
-		//Calculate how many textures we need.
-		if((pic_width % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
-			loop = ((pic_width / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-		else
-			loop = (pic_width / DEF_DRAW_MAX_TEXTURE_SIZE);
+		uint32_t width_offset = 0;
+		uint32_t height_offset = 0;
 
-		if((pic_height % DEF_DRAW_MAX_TEXTURE_SIZE) > 0)
-			loop *= ((pic_height / DEF_DRAW_MAX_TEXTURE_SIZE) + 1);
-		else
-			loop *= (pic_height / DEF_DRAW_MAX_TEXTURE_SIZE);
-
-		if(loop > large_image->num_of_images)
-			loop = large_image->num_of_images;
-
-		for(uint16_t i = 0; i < loop; i++)
+		for(uint16_t i = 0; i < large_image->num_of_images; i++)
 		{
-			result = Draw_texture_set_data(&large_image->images[i], raw_image, pic_width, pic_height, width_offset, height_offset);
-			if(result != DEF_SUCCESS)
+			if(pic_width > width_offset && pic_height > height_offset)
 			{
-				DEF_LOG_RESULT(Draw_texture_set_data, false, result);
-				goto error_other;
+				result = Draw_texture_set_data(&large_image->images[i], raw_image, pic_width, pic_height, width_offset, height_offset);
+				if(result != DEF_SUCCESS)
+				{
+					DEF_LOG_RESULT(Draw_texture_set_data, false, result);
+					goto error_other;
+				}
+			}
+			else
+			{
+				//Picture size is smaller than current offset, set nothing.
 			}
 
 			//Update offset.
-			width_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+			width_offset += large_image->images[i].c2d.tex->width;
 			if(width_offset >= pic_width)
 			{
 				width_offset = 0;
-				height_offset += DEF_DRAW_MAX_TEXTURE_SIZE;
+				height_offset += large_image->images[i].c2d.tex->height;
 			}
 		}
 	}
@@ -1274,7 +1279,7 @@ float center_x, float center_y, float crop_x_start, float crop_x_end, float crop
 	if(!util_draw_init)
 		return;
 
-	if(!image || !image->c2d.tex)
+	if(!image || !image->c2d.tex || !image->c2d.subtex)
 		return;
 
 	//Crop it (if necessary).
@@ -1320,12 +1325,12 @@ float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_s
 	//Calculate width and height after cropping.
 	for(uint16_t i = 0; i < large_image->num_of_images; i++)
 	{
-		if(large_image->images[i].subtex)
+		if(large_image->images[i].c2d.tex)
 		{
-			float x_start = Util_max_d(0, (crop_x_start - width_offset));
-			float x_end = Util_min_d(large_image->images[i].c2d.tex->width, (crop_x_end - width_offset));
-			float y_start = Util_max_d(0, (crop_y_start - height_offset));
-			float y_end = Util_min_d(large_image->images[i].c2d.tex->height, (crop_y_end - height_offset));
+			float x_start = Util_min_d(Util_max_d(0, (crop_x_start - width_offset)), large_image->images[i].c2d.tex->width);
+			float x_end = Util_min_d(Util_max_d(0, (crop_x_end - width_offset)), large_image->images[i].c2d.tex->width);
+			float y_start = Util_min_d(Util_max_d(0, (crop_y_start - height_offset)), large_image->images[i].c2d.tex->height);
+			float y_end = Util_min_d(Util_max_d(0, (crop_y_end - height_offset)), large_image->images[i].c2d.tex->height);
 
 			//Update offset.
 			width_offset += large_image->images[i].c2d.tex->width;
@@ -1344,13 +1349,13 @@ float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_s
 	height_offset = 0;
 
 	//Check for invalid cropping.
-	if(cropped_width <= 0)
+	if(cropped_width <= 0 || cropped_width > large_image->image_width)
 	{
 		cropped_width = large_image->image_width;
 		crop_x_start = 0;
 		crop_x_end = large_image->image_width;
 	}
-	if(cropped_height <= 0)
+	if(cropped_height <= 0 || cropped_height > large_image->image_height)
 	{
 		cropped_height = large_image->image_height;
 		crop_y_start = 0;
@@ -1360,12 +1365,12 @@ float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_s
 	//Draw it.
 	for(uint16_t i = 0; i < large_image->num_of_images; i++)
 	{
-		if(large_image->images[i].subtex)
+		if(large_image->images[i].c2d.tex)
 		{
-			float x_start = Util_max_d(0, (crop_x_start - width_offset));
-			float x_end = Util_min_d(large_image->images[i].c2d.tex->width, (crop_x_end - width_offset));
-			float y_start = Util_max_d(0, (crop_y_start - height_offset));
-			float y_end = Util_min_d(large_image->images[i].c2d.tex->height, (crop_y_end - height_offset));
+			float x_start = Util_min_d(Util_max_d(0, (crop_x_start - width_offset)), large_image->images[i].c2d.tex->width);
+			float x_end = Util_min_d(Util_max_d(0, (crop_x_end - width_offset)), large_image->images[i].c2d.tex->width);
+			float y_start = Util_min_d(Util_max_d(0, (crop_y_start - height_offset)), large_image->images[i].c2d.tex->height);
+			float y_end = Util_min_d(Util_max_d(0, (crop_y_end - height_offset)), large_image->images[i].c2d.tex->height);
 			float width_factor = ((x_end - x_start) / cropped_width);
 			float height_factor = ((y_end - y_start) / cropped_height);
 			float draw_width = (x_size * width_factor);
@@ -1380,7 +1385,7 @@ float x_size, float y_size, float crop_x_start, float crop_x_end, float crop_y_s
 			if(width_offset >= large_image->image_width)
 			{
 				width_offset = 0;
-				x_offset = 0;
+				x_offset = x;
 				height_offset += large_image->images[i].c2d.tex->height;
 				y_offset += draw_height;
 			}

@@ -154,7 +154,7 @@ uint32_t Util_converter_y2r_init(void);
  * @param width (in) Picture width.
  * @param height (in) Picture height.
  * @param texture_format (in) When true, rgb565 data will be outputted as texture format that
- * can be used for Draw_set_texture_data_direct().
+ * can be used for Draw_texture_set_data_direct().
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested).
 */

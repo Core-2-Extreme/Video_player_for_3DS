@@ -295,7 +295,7 @@ void Menu_init(void)
 	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_VID_ICON_PATH, menu_icon_texture_id[APP_VID], cache, 0, 1), (result == DEF_SUCCESS), result);
 	menu_icon_image[APP_VID].c2d = cache[0];
 	if(result == DEF_SUCCESS)
-		Draw_set_texture_filter(&menu_icon_image[APP_VID], true);
+		Draw_texture_set_filter(&menu_icon_image[APP_VID], true);
 #endif //DEF_VID_ENABLE_ICON
 
 #ifdef DEF_SAPP1_ENABLE_ICON

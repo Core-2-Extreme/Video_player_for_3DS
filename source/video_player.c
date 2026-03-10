@@ -5692,7 +5692,7 @@ void Vid_decode_thread(void* arg)
 
 								if(result == DEF_SUCCESS)
 								{
-									Draw_set_texture_data(&vid_player.subtitle_image[vid_player.subtitle_index], vid_player.subtitle_data[vid_player.subtitle_index].bitmap,
+									Draw_texture_set_data(&vid_player.subtitle_image[vid_player.subtitle_index], vid_player.subtitle_data[vid_player.subtitle_index].bitmap,
 									vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width, vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height, 0, 0);
 								}
 								else

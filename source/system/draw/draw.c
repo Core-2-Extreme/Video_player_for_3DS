@@ -460,7 +460,7 @@ void Draw_texture_free(Draw_image_data* image)
 	image->subtex = NULL;
 }
 
-uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height)
+uint32_t Draw_texture_set_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height)
 {
 	uint8_t pixel_size = 0;
 	int16_t copy_size = 0;
@@ -538,7 +538,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image
 	return DEF_ERR_INVALID_ARG;
 }
 
-uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
+uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
 {
 	uint8_t pixel_size = 0;
 	uint16_t increase_list_x[4]; //= { 4, 12, 4, 44, }
@@ -689,7 +689,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint3
 	return DEF_ERR_INVALID_ARG;
 }
 
-void Draw_set_texture_filter(Draw_image_data* image, bool filter)
+void Draw_texture_set_filter(Draw_image_data* image, bool filter)
 {
 	if(!util_draw_init)
 		return;
@@ -811,10 +811,10 @@ uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t
 
 	if(use_direct)
 	{
-		result = Draw_set_texture_data_direct(&large_image->images[0], raw_image, pic_width, pic_height);
+		result = Draw_texture_set_data_direct(&large_image->images[0], raw_image, pic_width, pic_height);
 		if(result != DEF_SUCCESS)
 		{
-			DEF_LOG_RESULT(Draw_set_texture_data_direct, false, result);
+			DEF_LOG_RESULT(Draw_texture_set_data_direct, false, result);
 			goto error_other;
 		}
 	}
@@ -836,10 +836,10 @@ uint32_t Draw_large_texture_set_data(Draw_large_image_data* large_image, uint8_t
 
 		for(uint16_t i = 0; i < loop; i++)
 		{
-			result = Draw_set_texture_data(&large_image->images[i], raw_image, pic_width, pic_height, width_offset, height_offset);
+			result = Draw_texture_set_data(&large_image->images[i], raw_image, pic_width, pic_height, width_offset, height_offset);
 			if(result != DEF_SUCCESS)
 			{
-				DEF_LOG_RESULT(Draw_set_texture_data, false, result);
+				DEF_LOG_RESULT(Draw_texture_set_data, false, result);
 				goto error_other;
 			}
 
@@ -874,7 +874,7 @@ void Draw_large_texture_set_filter(Draw_large_image_data* large_image, bool filt
 		return;
 
 	for(uint16_t i = 0; i < large_image->num_of_images; i++)
-		Draw_set_texture_filter(&large_image->images[i], filter);
+		Draw_texture_set_filter(&large_image->images[i], filter);
 }
 
 Draw_image_data Draw_get_empty_image(void)

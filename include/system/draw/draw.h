@@ -112,7 +112,7 @@ void Draw_texture_free(Draw_image_data* image);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height);
+uint32_t Draw_texture_set_data_direct(Draw_image_data* image, uint8_t* raw_image, uint16_t pic_width, uint16_t pic_height);
 
 /**
  * @brief Convert raw image data to texture format and set it.
@@ -125,7 +125,7 @@ uint32_t Draw_set_texture_data_direct(Draw_image_data* image, uint8_t* raw_image
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset);
+uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset);
 
 /**
  * @brief Set texture filter.
@@ -134,7 +134,7 @@ uint32_t Draw_set_texture_data(Draw_image_data* image, uint8_t* raw_image, uint3
  * @param filter (in) When true, LINEAR filter will be applied, otherwise NEAREST filter will be applied.
  * @note Thread safe.
 */
-void Draw_set_texture_filter(Draw_image_data* image, bool filter);
+void Draw_texture_set_filter(Draw_image_data* image, bool filter);
 
 /**
  * @brief Initialize a large texture.
@@ -161,7 +161,7 @@ void Draw_large_texture_free(Draw_large_image_data* large_image);
  * @param raw_image (in) Pointer for raw image data.
  * @param pic_width (in) Raw image width.
  * @param pic_height (in) Raw image height.
- * @param use_direct (in) Whether use Draw_set_texture_data_direct(), when true raw_image, pic_width and pic_height must meet Draw_set_texture_data_direct()'s requirements.
+ * @param use_direct (in) Whether use Draw_texture_set_data_direct(), when true raw_image, pic_width and pic_height must meet Draw_texture_set_data_direct()'s requirements.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */

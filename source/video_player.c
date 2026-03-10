@@ -4561,7 +4561,7 @@ void Vid_decode_thread(void* arg)
 							if(result != DEF_SUCCESS)
 							{
 								DEF_LOG_RESULT(Util_speaker_init, false, result);
-								Util_err_set_error_message(Util_err_get_error_msg(result), "You have to run dsp1 in order to listen to audio.\n(https://github.com/zoogie/DSP1/releases)", DEF_LOG_GET_SYMBOL(), result);
+								Util_err_set_error_message(Util_err_get_error_msg(result), "You have to run dsp1 in order to listen to audio.\n(https://github.com/zoogie/DSP1/releases)", DEF_LOG_GET_FUNCTION_NAME(), result);
 								Util_err_set_show_flag(true);
 								//Continue initialization.
 							}
@@ -4636,7 +4636,7 @@ void Vid_decode_thread(void* arg)
 									DEF_LOG_RESULT_SMART(result, Util_decoder_mvd_init(DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
 									if(result != DEF_SUCCESS)
 									{
-										Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW video decoder!!!!!", DEF_LOG_GET_SYMBOL(), result);
+										Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW video decoder!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 										goto error;
 									}
 								}
@@ -4664,7 +4664,7 @@ void Vid_decode_thread(void* arg)
 										DEF_LOG_RESULT_SMART(result, Util_converter_y2r_init(), (result == DEF_SUCCESS), result);
 										if(result != DEF_SUCCESS)
 										{
-											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW color converter!!!!!", DEF_LOG_GET_SYMBOL(), result);
+											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW color converter!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 											goto error;
 										}
 									}
@@ -4682,7 +4682,7 @@ void Vid_decode_thread(void* arg)
 										if(result != DEF_SUCCESS)
 										{
 											DEF_LOG_RESULT(Draw_large_texture_init, false, result);
-											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't allocate texture buffers!!!!!", DEF_LOG_GET_SYMBOL(), result);
+											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't allocate texture buffers!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 											goto error;
 										}
 									}
@@ -4763,7 +4763,7 @@ void Vid_decode_thread(void* arg)
 						{
 							result = DEF_ERR_OTHER;
 							DEF_LOG_STRING("No playable media!!!!!");
-							Util_err_set_error_message(Util_err_get_error_msg(result), "No playable media!!!!!", DEF_LOG_GET_SYMBOL(), result);
+							Util_err_set_error_message(Util_err_get_error_msg(result), "No playable media!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
 							goto error;
 						}
 

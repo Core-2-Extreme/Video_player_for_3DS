@@ -41,7 +41,7 @@
 //Close.
 #define HID_NOT_INITED_CLOSE_CFM(k)			(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 //Cancel (close).
-#define HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM((k).y, 1) || DEF_HID_HD((k).y))
+#define HID_CANCEL_CFM(k)					(bool)(DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x))
 //File selection.
 #define HID_FILE_SELECTED_TOUCH(k, id)		(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(util_expl_file_button[id], (k))))
 #define HID_FILE_CONFIRMED_BUTTON(k)		(bool)(DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
@@ -433,7 +433,7 @@ void Util_expl_draw(void)
 	}
 
 	draw_y += CONTROL_SPACE_Y;
-	Draw_c("A : OK, B : Back, Y : Close, ↑↓→← : Move", draw_x, draw_y, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
+	Draw_c("A : OK, B : Back, X : Close, ↑↓→← : Move", draw_x, draw_y, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
 
 	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
 	Draw(&util_expl_current_dir, draw_x, draw_y, FONT_SIZE_CURRENT_DIR, DEF_DRAW_BLACK);

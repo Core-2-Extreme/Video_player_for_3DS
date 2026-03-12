@@ -3916,7 +3916,7 @@ static uint32_t Vid_load_settings(void)
 	vid_player.volume = ((settings_valid_until > 7) ? (uint16_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[7]), NULL, 10), 0) : 100);
 	vid_player.seek_duration = ((settings_valid_until > 8) ? (uint8_t)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[8]), NULL, 10), 0) : 10);
 	vid_player.correct_aspect_ratio = ((settings_valid_until > 9) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[9]), NULL, 10) != 0) : true);
-	vid_player.move_content_mode = ((settings_valid_until > 10) ? (Vid_move)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : MOVE_BOTH);
+	vid_player.move_content_mode = ((settings_valid_until > 10) ? (Vid_move)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[10]), NULL, 10), 0) : MOVE_DISABLE);
 	vid_player.remember_video_pos = ((settings_valid_until > 11) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[11]), NULL, 10) != 0) : true);
 	vid_player.playback_mode = ((settings_valid_until > 12) ? (Vid_playback)Util_max(strtoul(DEF_STR_NEVER_NULL(&out_data[12]), NULL, 10), 0) : PLAYBACK_NO_REPEAT);
 	vid_player.disable_audio = ((settings_valid_until > 13) ? (strtoul(DEF_STR_NEVER_NULL(&out_data[13]), NULL, 10) != 0) : false);
@@ -3947,7 +3947,7 @@ static uint32_t Vid_load_settings(void)
 		vid_player.playback_mode = PLAYBACK_NO_REPEAT;
 
 	if(vid_player.move_content_mode >= MOVE_MAX)
-		vid_player.move_content_mode = MOVE_BOTH;
+		vid_player.move_content_mode = MOVE_DISABLE;
 
 	if(vid_player.restart_playback_threshold >= DEF_DECODER_MAX_RAW_IMAGE)
 		vid_player.restart_playback_threshold = (48 >= DEF_DECODER_MAX_RAW_IMAGE ? DEF_DECODER_MAX_RAW_IMAGE : 48);

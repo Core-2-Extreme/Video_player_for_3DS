@@ -1907,8 +1907,8 @@ void Vid_main(void)
 
 		sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_width : 1);
 		sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[i].sar_height : 1);
-		image_width[i] = (vid_player.large_image[image_index[i]][i].image_width * sar_width_ratio * vid_player.video_zoom[i]);
-		image_height[i] = (vid_player.large_image[image_index[i]][i].image_height * sar_height_ratio * vid_player.video_zoom[i]);
+		image_width[i] = (vid_player.video_info[i].width * sar_width_ratio * vid_player.video_zoom[i]);
+		image_height[i] = (vid_player.video_info[i].height * sar_height_ratio * vid_player.video_zoom[i]);
 		//Crop the image so that user won't see glitches on videos.
 		image_crop_x_start[i] = 0;
 		image_crop_x_end[i] = vid_player.video_info[i].width;

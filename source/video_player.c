@@ -42,6 +42,8 @@
 #define FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DELAY_SAMPLES								(uint8_t)(60)
 
+#define AUDIO_OUT_OF_BUFFER_THRESHOLD_MS			(uint32_t)(500)							//Audio buffer threshold to trigger buffering mode in ms.
+
 #define SEEK_IGNORE_PACKETS							(uint8_t)(5)							//Number of packets to be ignored just after seeking to make sure no leftover remaining in cache.
 #define SEEK_BACKWARD_TIMEOUT						(uint8_t)(20)							//Number of packets to wait to make sure we went back (for backward seeking).
 
@@ -2893,7 +2895,7 @@ void Vid_main(void)
 						uint32_t temp_back_color = (vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
 
 						if(playing_audio_ch != 0 && samplerate != 0)
-							buffer_health_ms = DEF_UTIL_S_TO_MS((double)buffer_health_ms / playing_audio_ch / samplerate);
+							buffer_health_ms = DEF_UTIL_S_TO_MS_D((double)buffer_health_ms / playing_audio_ch / samplerate);
 						else
 							buffer_health_ms = 0;
 
@@ -6111,6 +6113,7 @@ void Vid_convert_thread(void* arg)
 	{
 		bool drop = false;
 		uint16_t num_of_cached_raw_images = 0;
+		uint32_t audio_buffer_ms = 0;
 		uint64_t timeout_us = DEF_THREAD_ACTIVE_SLEEP_TIME;
 		double drop_threshold = 0;
 		double force_drop_threshold = 0;
@@ -6123,8 +6126,7 @@ void Vid_convert_thread(void* arg)
 		}
 
 		//If player state is playing or seeking, don't wait for commands.
-		if((vid_player.state == PLAYER_STATE_PLAYING || vid_player.state == PLAYER_STATE_SEEKING)
-		&& should_convert)
+		if((vid_player.state == PLAYER_STATE_PLAYING || vid_player.state == PLAYER_STATE_SEEKING) && should_convert)
 			timeout_us = 0;
 
 		result = Util_queue_get(&vid_player.convert_thread_command_queue, (uint32_t*)&event, NULL, timeout_us);
@@ -6205,6 +6207,17 @@ void Vid_convert_thread(void* arg)
 			num_of_cached_raw_images = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
 		else
 			num_of_cached_raw_images = Util_decoder_video_get_available_raw_image_num(packet_index, DEF_VID_DECORDER_SESSION_ID);
+
+		//Check for audio buffer.
+		if(vid_player.num_of_audio_tracks > 0)
+		{
+			//Audio buffer health (in ms) is ((buffer_size / bytes_per_sample / playing_ch / sample_rate) * 1000).
+			//3DS only supports up to 2ch.
+			uint8_t playing_ch = (vid_player.audio_info[vid_player.selected_audio_track].ch > 2 ? 2 : vid_player.audio_info[vid_player.selected_audio_track].ch);
+			uint32_t audio_buffers_size = Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID);
+
+			audio_buffer_ms = DEF_UTIL_S_TO_MS_D(audio_buffers_size / 2.0 / playing_ch / vid_player.audio_info[vid_player.selected_audio_track].sample_rate);
+		}
 
 		if(vid_player.video_frametime[packet_index] != 0)
 		{
@@ -6291,8 +6304,7 @@ void Vid_convert_thread(void* arg)
 					Util_sleep(5000);
 				else if(vid_player.state == PLAYER_STATE_PLAYING)
 				{
-					if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0
-					&& Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+					if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && audio_buffer_ms <= AUDIO_OUT_OF_BUFFER_THRESHOLD_MS)
 					{
 						//Notify we've run out of buffer.
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
@@ -6314,8 +6326,7 @@ void Vid_convert_thread(void* arg)
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
-			if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0
-			&& Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+			if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && audio_buffer_ms <= AUDIO_OUT_OF_BUFFER_THRESHOLD_MS)
 			{
 				//Notify we've run out of buffer.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,

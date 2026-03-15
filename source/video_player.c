@@ -3481,26 +3481,35 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 
 		for(uint16_t i = (DEBUG_GRAPH_ELEMENTS - 1); i >= (DEBUG_GRAPH_ELEMENTS - DEBUG_GRAPH_AVG_SAMPLES); i--)
 		{
-			uint16_t current_divisor = (DEBUG_GRAPH_ELEMENTS - (i + 1));
-
 			if(vid_player.audio_decoding_time_list[i] == 0)
-				audio_divisor = current_divisor;
+			{
+				audio_divisor = (DEBUG_GRAPH_ELEMENTS - (i + 1));
+				break;
+			}
 			else
 				audio_recent_total_time += vid_player.audio_decoding_time_list[i];
+		}
 
+		for(uint16_t i = (DEBUG_GRAPH_ELEMENTS - 1); i >= (DEBUG_GRAPH_ELEMENTS - DEBUG_GRAPH_AVG_SAMPLES); i--)
+		{
 			if(vid_player.video_decoding_time_list[i] == 0)
-				video_divisor = current_divisor;
+			{
+				video_divisor = (DEBUG_GRAPH_ELEMENTS - (i + 1));
+				break;
+			}
 			else
 				video_recent_total_time += vid_player.video_decoding_time_list[i];
+		}
 
+		for(uint16_t i = (DEBUG_GRAPH_ELEMENTS - 1); i >= (DEBUG_GRAPH_ELEMENTS - DEBUG_GRAPH_AVG_SAMPLES); i--)
+		{
 			if(vid_player.conversion_time_list[i] == 0)
-				conversion_divisor = current_divisor;
+			{
+				conversion_divisor = (DEBUG_GRAPH_ELEMENTS - (i + 1));
+				break;
+			}
 			else
 				conversion_recent_total_time += vid_player.conversion_time_list[i];
-
-			if(vid_player.audio_decoding_time_list[i] == 0 && vid_player.video_decoding_time_list[i] == 0
-			&& vid_player.conversion_time_list[i] == 0)
-				break;
 		}
 
 		if(audio_divisor != 0)

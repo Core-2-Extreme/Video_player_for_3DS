@@ -544,10 +544,10 @@ typedef struct
 	bool use_hw_color_conversion;					//Whether use hardware color conversion if available.
 	bool use_multi_threaded_decoding;				//Whether use multi-threaded software decoding if available.
 	uint8_t lower_resolution;						//Downscale level on supported codecs, 0 = 100% (no downscale), 1 = 50%, 2 = 25%.
+	uint8_t num_of_threads;							//Number of threads to use for multi-threaded software decoding.
 
 	//Other settings (user doesn't have permission to change).
 	bool show_full_screen_msg;						//Whether show how to exit full-screen msg.
-	uint8_t num_of_threads;							//Number of threads to use for multi-threaded software decoding.
 	uint32_t ram_to_keep_base;						//RAM amount to keep in bytes.
 	Media_thread_type thread_mode;					//Thread mode to use for multi-threaded software decoding.
 
@@ -591,6 +591,7 @@ typedef struct
 	Vid_file file;									//File info.
 
 	//Media.
+	bool is_eof;									//Whether EOF has been reached.
 	double media_duration;							//Media duration in ms, if the file contains both video and audio, then the longest one's duration.
 	double media_current_pos;						//Current media position in ms, if the file contains both video and audio,
 													//then the currently most advanced one's position.
@@ -3821,6 +3822,7 @@ static void Vid_init_desync_data(void)
 
 static void Vid_init_media_data(void)
 {
+	vid_player.is_eof = false;
 	vid_player.media_duration = 0;
 	vid_player.media_current_pos = 0;
 	vid_player.seek_pos_cache = 0;
@@ -4531,7 +4533,6 @@ void Vid_decode_thread(void* arg)
 {
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
-	bool is_eof = false;
 	bool is_read_packet_thread_active = false;
 	bool is_waiting_video_decoder = false;
 	uint8_t backward_timeout = SEEK_BACKWARD_TIMEOUT;
@@ -4592,7 +4593,6 @@ void Vid_decode_thread(void* arg)
 						Vid_init_subtitle_data();
 						vid_player.state = PLAYER_STATE_PLAYING;
 						vid_player.sub_state = PLAYER_SUB_STATE_NONE;
-						is_eof = false;
 						is_read_packet_thread_active = false;
 						is_waiting_video_decoder = false;
 
@@ -5072,7 +5072,7 @@ void Vid_decode_thread(void* arg)
 					Util_speaker_clear_buffer(DEF_VID_SPEAKER_SESSION_ID);
 
 					//Reset EOF flag.
-					is_eof = false;
+					vid_player.is_eof = false;
 
 					//Seek the video.
 					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.read_packet_thread_command_queue, READ_PACKET_THREAD_SEEK_REQUEST,
@@ -5323,7 +5323,7 @@ void Vid_decode_thread(void* arg)
 			switch (notification)
 			{
 				case READ_PACKET_THREAD_FINISHED_READING_EOF_NOTIFICATION:
-					is_eof = true;
+					vid_player.is_eof = true;
 
 				//Fall through.
 				case READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION:
@@ -5400,7 +5400,7 @@ void Vid_decode_thread(void* arg)
 						break;
 
 					//Do nothing if we completely reached EOF.
-					if(is_eof && Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID) == 0)
+					if(vid_player.is_eof && Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID) == 0)
 						break;
 
 					if(vid_player.state == PLAYER_STATE_PLAYING)
@@ -5507,7 +5507,7 @@ void Vid_decode_thread(void* arg)
 
 			//If we only have half number of packets in buffer, we have not reached eof
 			//and read packet thread is inactive, send a read packet request.
-			if((num_of_cached_packets < (DEF_DECODER_MAX_CACHE_PACKETS / 2)) && !is_read_packet_thread_active && !is_eof)
+			if((num_of_cached_packets < (DEF_DECODER_MAX_CACHE_PACKETS / 2)) && !is_read_packet_thread_active && !vid_player.is_eof)
 			{
 				is_read_packet_thread_active = true;
 
@@ -5516,7 +5516,7 @@ void Vid_decode_thread(void* arg)
 				NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
 			}
 
-			if(num_of_cached_packets == 0 && is_eof)
+			if(num_of_cached_packets == 0 && vid_player.is_eof)
 			{
 				//We consumed all of packets.
 				bool is_audio_done = true;
@@ -6270,7 +6270,7 @@ void Vid_convert_thread(void* arg)
 				double pos = 0;
 
 				//We doropped a frame.
-				if(vid_player.state != PLAYER_STATE_SEEKING)
+				if(vid_player.state != PLAYER_STATE_SEEKING && vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
 					vid_player.total_dropped_frames++;
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
@@ -6287,15 +6287,18 @@ void Vid_convert_thread(void* arg)
 			}
 			else
 			{
-				if(vid_player.state == PLAYER_STATE_SEEKING)
-					Util_sleep(3000);
-
-				if(num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+				if(vid_player.state == PLAYER_STATE_SEEKING || vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
+					Util_sleep(5000);
+				else if(vid_player.state == PLAYER_STATE_PLAYING)
 				{
-					//Notify we've run out of buffer.
-					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
-					NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
-					Util_sleep(3000);
+					if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0
+					&& Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+					{
+						//Notify we've run out of buffer.
+						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,
+						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+						Util_sleep(5000);
+					}
 				}
 			}
 
@@ -6311,7 +6314,8 @@ void Vid_convert_thread(void* arg)
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{
-			if(num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0 && Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
+			if(!vid_player.is_eof && num_of_cached_raw_images == 0 && vid_player.video_frametime[packet_index] != 0
+			&& Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID) == 0)
 			{
 				//Notify we've run out of buffer.
 				DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, CONVERT_THREAD_OUT_OF_BUFFER_NOTIFICATION,

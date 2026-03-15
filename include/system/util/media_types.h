@@ -126,6 +126,30 @@ DEF_LOG_ENUM_DEBUG
 	MEDIA_THREAD_TYPE_MAX
 )
 
+typedef enum
+{
+	MEDIA_3D_TYPE_INVALID = -1,
+
+	MEDIA_3D_TYPE_2D,
+	MEDIA_3D_TYPE_LEFT_RIGHT,
+	MEDIA_3D_TYPE_RIGHT_LEFT,
+	MEDIA_3D_TYPE_TOP_BOTTOM,
+	MEDIA_3D_TYPE_BOTTOM_TOP,
+	MEDIA_3D_TYPE_MAX,
+} Media_3d_type;
+
+DEF_LOG_ENUM_DEBUG
+(
+	Media_3d_type,
+	MEDIA_3D_TYPE_INVALID,
+	MEDIA_3D_TYPE_2D,
+	MEDIA_3D_TYPE_LEFT_RIGHT,
+	MEDIA_3D_TYPE_RIGHT_LEFT,
+	MEDIA_3D_TYPE_TOP_BOTTOM,
+	MEDIA_3D_TYPE_BOTTOM_TOP,
+	MEDIA_3D_TYPE_MAX
+)
+
 typedef struct
 {
 	uint32_t bitrate;				//(out) Audio bitrate in bps.
@@ -151,6 +175,7 @@ typedef struct
 	char format_name[96];			//(out) Video codec name.
 	char short_format_name[16];		//(out) Video short codec name.
 	Media_thread_type thread_type;	//(out) Threading mode.
+	Media_3d_type _3d_type;			//(out) 3D format.
 	Raw_pixel pixel_format;			//(out) Video pixel format.
 } Media_v_info;
 

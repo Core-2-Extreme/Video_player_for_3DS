@@ -18,6 +18,7 @@
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavutil/imgutils.h"
+#include "libavutil/stereo3d.h"
 #endif //DEF_DECODER_VIDEO_AUDIO_API_ENABLE
 
 #if DEF_DECODER_IMAGE_API_ENABLE
@@ -1035,6 +1036,7 @@ void Util_decoder_video_get_info(Media_v_info* video_info, uint8_t video_index, 
 	uint16_t multiple_of = 0;
 	uint32_t size = 0;
 	AVRational sar = { 0, };
+	AVCodecParameters* codec_parameters = NULL;
 
 	if(!video_info || video_index >= DEF_DECODER_MAX_VIDEO_TRACKS || session >= DEF_DECODER_MAX_SESSIONS)
 		return;
@@ -1105,6 +1107,37 @@ void Util_decoder_video_get_info(Media_v_info* video_info, uint8_t video_index, 
 		memcpy(video_info->short_format_name, util_video_decoder_codec[session][video_index]->name, size);
 	}
 	video_info->short_format_name[size] = 0x00;
+
+	//Default to 2D.
+	video_info->_3d_type = MEDIA_3D_TYPE_2D;
+	codec_parameters = util_decoder_format_context[session]->streams[util_video_decoder_stream_num[session][video_index]]->codecpar;
+	if(codec_parameters)
+	{
+		const AVPacketSideData* side_data = av_packet_side_data_get(codec_parameters->coded_side_data, codec_parameters->nb_coded_side_data, AV_PKT_DATA_STEREO3D);
+
+		if(side_data)
+		{
+			AVStereo3D* _3d_data = (AVStereo3D*)side_data->data;
+
+			if(_3d_data->view == AV_STEREO3D_VIEW_PACKED)
+			{
+				if(_3d_data->type == AV_STEREO3D_SIDEBYSIDE)
+				{
+					if(_3d_data->flags & AV_STEREO3D_FLAG_INVERT)
+						video_info->_3d_type = MEDIA_3D_TYPE_RIGHT_LEFT;
+					else
+						video_info->_3d_type = MEDIA_3D_TYPE_LEFT_RIGHT;
+				}
+				else if(_3d_data->type == AV_STEREO3D_TOPBOTTOM)
+				{
+					if(_3d_data->flags & AV_STEREO3D_FLAG_INVERT)
+						video_info->_3d_type = MEDIA_3D_TYPE_BOTTOM_TOP;
+					else
+						video_info->_3d_type = MEDIA_3D_TYPE_TOP_BOTTOM;
+				}
+			}
+		}
+	}
 }
 
 void Util_decoder_subtitle_get_info(Media_s_info* subtitle_info, uint8_t subtitle_index, uint8_t session)

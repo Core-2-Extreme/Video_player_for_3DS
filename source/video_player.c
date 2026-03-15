@@ -1751,6 +1751,7 @@ void Vid_main(void)
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
 	Vid_eye screen_pos_to_eye[SCREEN_POS_MAX] = { EYE_LEFT, EYE_RIGHT, EYE_LEFT, };
+	Vid_eye screen_pos_to_crop[SCREEN_POS_MAX] = { EYE_LEFT, EYE_RIGHT, EYE_LEFT, };
 
 	Sem_get_config(&config);
 	Sem_get_state(&state);
@@ -1916,6 +1917,94 @@ void Vid_main(void)
 		image_crop_y_end[i] = vid_player.video_info[i].height;
 	}
 
+	//Check for side-by-side like 3D videos.
+	if(vid_player.num_of_video_tracks == 1)
+	{
+		if(vid_player.video_info[EYE_LEFT]._3d_type == MEDIA_3D_TYPE_LEFT_RIGHT
+		|| vid_player.video_info[EYE_LEFT]._3d_type == MEDIA_3D_TYPE_RIGHT_LEFT
+		|| vid_player.video_info[EYE_LEFT]._3d_type == MEDIA_3D_TYPE_TOP_BOTTOM
+		|| vid_player.video_info[EYE_LEFT]._3d_type == MEDIA_3D_TYPE_BOTTOM_TOP)
+		{
+			//EYE_LEFT image has both left and right images, so force right eye to use the EYE_LEFT image.
+			screen_pos_to_eye[SCREEN_POS_TOP_RIGHT] = EYE_LEFT;
+			//Since we use different cropping values for left and right, we don't change screen_pos_to_crop.
+			// screen_pos_to_crop[SCREEN_POS_TOP_RIGHT] = EYE_LEFT;
+		}
+
+		//Crop it.
+		switch (vid_player.video_info[EYE_LEFT]._3d_type)
+		{
+			case MEDIA_3D_TYPE_LEFT_RIGHT:
+			{
+				//+----------------+----------------|
+				//|0...........(width/2).......width|
+				//+----------------+----------------|
+				//|LLLLLLLLLLLLLLLL|RRRRRRRRRRRRRRRR|
+				//|LLLLLLLLLLLLLLLL|RRRRRRRRRRRRRRRR|
+				//+----------------+----------------|
+				image_crop_x_start[EYE_LEFT] = 0;
+				image_crop_x_end[EYE_LEFT] = (vid_player.video_info[EYE_LEFT].width / 2);
+
+				image_crop_x_start[EYE_RIGHT] = (vid_player.video_info[EYE_LEFT].width / 2);
+				image_crop_x_end[EYE_RIGHT] = vid_player.video_info[EYE_LEFT].width;
+				break;
+			}
+
+			case MEDIA_3D_TYPE_RIGHT_LEFT:
+			{
+				//+----------------+----------------|
+				//|0...........(width/2).......width|
+				//+----------------+----------------|
+				//|RRRRRRRRRRRRRRRR|LLLLLLLLLLLLLLLL|
+				//|RRRRRRRRRRRRRRRR|LLLLLLLLLLLLLLLL|
+				//+----------------+----------------|
+				image_crop_x_start[EYE_LEFT] = (vid_player.video_info[EYE_LEFT].width / 2);
+				image_crop_x_end[EYE_LEFT] = vid_player.video_info[EYE_LEFT].width;
+
+				image_crop_x_start[EYE_RIGHT] = 0;
+				image_crop_x_end[EYE_RIGHT] = (vid_player.video_info[EYE_LEFT].width / 2);
+				break;
+			}
+
+			case MEDIA_3D_TYPE_TOP_BOTTOM:
+			{
+				//+------------+----------------+
+				//|           0|LLLLLLLLLLLLLLLL|
+				//|           .|LLLLLLLLLLLLLLLL|
+				//|(height / 2)+----------------|
+				//|           .|RRRRRRRRRRRRRRRR|
+				//|      height|RRRRRRRRRRRRRRRR|
+				//+------------+----------------+
+				image_crop_y_start[EYE_LEFT] = 0;
+				image_crop_y_end[EYE_LEFT] = (vid_player.video_info[EYE_LEFT].height / 2);
+
+				image_crop_y_start[EYE_RIGHT] = (vid_player.video_info[EYE_LEFT].height / 2);
+				image_crop_y_end[EYE_RIGHT] = vid_player.video_info[EYE_LEFT].height;
+				break;
+			}
+
+			case MEDIA_3D_TYPE_BOTTOM_TOP:
+			{
+				//+------------+----------------+
+				//|           0|RRRRRRRRRRRRRRRR|
+				//|           .|RRRRRRRRRRRRRRRR|
+				//|(height / 2)+----------------|
+				//|           .|LLLLLLLLLLLLLLLL|
+				//|      height|LLLLLLLLLLLLLLLL|
+				//+------------+----------------+
+				image_crop_y_start[EYE_LEFT] = (vid_player.video_info[EYE_LEFT].height / 2);
+				image_crop_y_end[EYE_LEFT] = vid_player.video_info[EYE_LEFT].height;
+
+				image_crop_y_start[EYE_RIGHT] = 0;
+				image_crop_y_end[EYE_RIGHT] = (vid_player.video_info[EYE_LEFT].height / 2);
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
+
 	for(uint32_t i = 0; i < SCREEN_POS_MAX; i++)
 	{
 		video_x_offset[i] = vid_player.video_x_offset[screen_pos_to_eye[i]];
@@ -2024,8 +2113,12 @@ void Vid_main(void)
 				//Draw videos.
 				if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 				{
-					Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_TOP_LEFT], video_y_offset[SCREEN_POS_TOP_LEFT],
-					image_width[EYE_LEFT], image_height[EYE_LEFT], image_crop_x_start[EYE_LEFT], image_crop_x_end[EYE_LEFT], image_crop_y_start[EYE_LEFT], image_crop_y_end[EYE_LEFT]);
+					Vid_screen_pos screen = SCREEN_POS_TOP_LEFT;
+					Vid_eye eye = screen_pos_to_eye[screen];
+					Vid_eye eye_crop = screen_pos_to_crop[screen];
+
+					Draw_large_texture_with_crop(&vid_player.large_image[image_index[eye]][eye], DEF_DRAW_NO_COLOR, video_x_offset[screen], video_y_offset[screen],
+					image_width[eye], image_height[eye], image_crop_x_start[eye_crop], image_crop_x_end[eye_crop], image_crop_y_start[eye_crop], image_crop_y_end[eye_crop]);
 					Util_sync_unlock(&vid_player.texture_init_free_lock);
 				}
 
@@ -2143,8 +2236,12 @@ void Vid_main(void)
 					//Draw 3D videos (right eye).
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_RIGHT]][EYE_RIGHT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_TOP_RIGHT], video_y_offset[SCREEN_POS_TOP_RIGHT],
-						image_width[EYE_RIGHT], image_height[EYE_RIGHT], image_crop_x_start[EYE_RIGHT], image_crop_x_end[EYE_RIGHT], image_crop_y_start[EYE_RIGHT], image_crop_y_end[EYE_RIGHT]);
+						Vid_screen_pos screen = SCREEN_POS_TOP_RIGHT;
+						Vid_eye eye = screen_pos_to_eye[screen];
+						Vid_eye eye_crop = screen_pos_to_crop[screen];
+
+						Draw_large_texture_with_crop(&vid_player.large_image[image_index[eye]][eye], DEF_DRAW_NO_COLOR, video_x_offset[screen], video_y_offset[screen],
+						image_width[eye], image_height[eye], image_crop_x_start[eye_crop], image_crop_x_end[eye_crop], image_crop_y_start[eye_crop], image_crop_y_end[eye_crop]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -2273,8 +2370,12 @@ void Vid_main(void)
 					//Draw videos.
 					if(Util_sync_lock(&vid_player.texture_init_free_lock, 0) == DEF_SUCCESS)
 					{
-						Draw_large_texture_with_crop(&vid_player.large_image[image_index[EYE_LEFT]][EYE_LEFT], DEF_DRAW_NO_COLOR, video_x_offset[SCREEN_POS_BOTTOM], video_y_offset[SCREEN_POS_BOTTOM],
-						image_width[EYE_LEFT], image_height[EYE_LEFT], image_crop_x_start[EYE_LEFT], image_crop_x_end[EYE_LEFT], image_crop_y_start[EYE_LEFT], image_crop_y_end[EYE_LEFT]);
+						Vid_screen_pos screen = SCREEN_POS_BOTTOM;
+						Vid_eye eye = screen_pos_to_eye[screen];
+						Vid_eye eye_crop = screen_pos_to_crop[screen];
+
+						Draw_large_texture_with_crop(&vid_player.large_image[image_index[eye]][eye], DEF_DRAW_NO_COLOR, video_x_offset[screen], video_y_offset[screen],
+						image_width[eye], image_height[eye], image_crop_x_start[eye_crop], image_crop_x_end[eye_crop], image_crop_y_start[eye_crop], image_crop_y_end[eye_crop]);
 						Util_sync_unlock(&vid_player.texture_init_free_lock);
 					}
 
@@ -3538,6 +3639,7 @@ static void Vid_log_media_info(void)
 		DEF_LOG_DOUBLE(vid_player.video_info[i].sar_width);
 		DEF_LOG_DOUBLE(vid_player.video_info[i].sar_height);
 		DEF_LOG_STRING(Raw_pixel_get_name(vid_player.video_info[i].pixel_format));
+		DEF_LOG_STRING(Media_3d_type_get_name(vid_player.video_info[i]._3d_type));
 
 		Util_str_free(&time);
 	}
@@ -3761,6 +3863,7 @@ static void Vid_init_video_data(void)
 		vid_player.video_info[i].sar_width = 1;
 		vid_player.video_info[i].sar_height = 1;
 		vid_player.video_info[i].pixel_format = RAW_PIXEL_INVALID;
+		vid_player.video_info[i]._3d_type = MEDIA_3D_TYPE_2D;
 	}
 
 	Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
@@ -4615,10 +4718,24 @@ void Vid_decode_thread(void* arg)
 								{
 									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECORDER_SESSION_ID);
 
-									//Use sar 1:2 if 800x240 and no sar value is set.
-									if(vid_player.video_info[i].width == 800 && vid_player.video_info[i].height == 240
+									if(vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_LEFT_RIGHT
+									|| vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_RIGHT_LEFT)
+									{
+										//Multiply sar height by 2 in case of side-by-side 3D videos.
+										vid_player.video_info[i].sar_height *= 2;
+									}
+									else if(vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_TOP_BOTTOM
+									|| vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_BOTTOM_TOP)
+									{
+										//Multiply sar width by 2 in case of top-bottom 3D videos.
+										vid_player.video_info[i].sar_width *= 2;
+									}
+									else if(vid_player.video_info[i].width == 800 && vid_player.video_info[i].height == 240
 									&& vid_player.video_info[i].sar_width == 1 && vid_player.video_info[i].sar_height == 1)
+									{
+										//Use sar 1:2 if 800x240 and no sar value is set.
 										vid_player.video_info[i].sar_height = 2;
+									}
 
 									if(vid_player.video_info[i].framerate == 0)
 										vid_player.video_frametime[i] = 0;

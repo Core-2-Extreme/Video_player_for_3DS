@@ -96,9 +96,10 @@ typedef enum
 {
 	DRAW_BACKGROUND_INVALID = -1,
 
-	DRAW_BACKGROUND_NONE,			//No background texture (default).
-	DRAW_BACKGROUND_ENTIRE_BOX,		//Draw background texture entire box.
-	DRAW_BACKGROUND_UNDER_TEXT,		//Only draw background texture under text.
+	DRAW_BACKGROUND_NONE,				//No background texture (default).
+	DRAW_BACKGROUND_ENTIRE_BOX,			//Draw background texture in entire box (allow text overflow).
+	DRAW_BACKGROUND_UNDER_TEXT,			//Only draw background texture under text.
+	DRAW_BACKGROUND_ENTIRE_BOX_CROP,	//Draw background texture in entire box and crop text outside of it (disallow text overflow).
 
 	DRAW_BACKGROUND_MAX,
 } Draw_background;
@@ -110,6 +111,7 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_BACKGROUND_NONE,
 	DRAW_BACKGROUND_ENTIRE_BOX,
 	DRAW_BACKGROUND_UNDER_TEXT,
+	DRAW_BACKGROUND_ENTIRE_BOX_CROP,
 	DRAW_BACKGROUND_MAX
 )
 

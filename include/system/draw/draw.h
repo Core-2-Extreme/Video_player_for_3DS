@@ -231,6 +231,24 @@ void Draw_align_c(const char* text, float x, float y, float base_size, uint32_t 
 void Draw_align(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
 
 /**
+ * @brief Draw text with cropping (and specified alignment).
+ * Do nothing if draw API is not initialized.
+ * @param text (in) Text.
+ * @param x (in) X position (in px).
+ * @param y (in) Y position (in px).
+ * @param base_size (in) Base font size (in px).
+ * @param abgr8888 (in) Font color.
+ * @param x_align (in) Text align for x direction.
+ * @param y_align (in) Text align for y direction.
+ * @param box_size_x (in) Box width (in px).
+ * @param box_size_y (in) Box height (in px).
+ * @warning Thread dangerous (untested).
+ * @warning Call it only from rendering thread.
+*/
+void Draw_with_crop_c(const char* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
+void Draw_with_crop(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y);
+
+/**
  * @brief Draw text with background (and specified alignment).
  * Do nothing if draw API is not initialized.
  * @param text (in) Text.

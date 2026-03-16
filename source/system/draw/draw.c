@@ -968,6 +968,19 @@ void Draw_align(const Str_data* text, float x, float y, float base_size, uint32_
 	Draw_internal(text->buffer, x, y, base_size, DEF_DRAW_NORMAL_SCALE_AND_SPACE, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_NONE, NULL, DEF_DRAW_NO_COLOR);
 }
 
+void Draw_with_crop_c(const char* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y)
+{
+	Draw_internal(text, x, y, base_size, DEF_DRAW_NORMAL_SCALE_AND_SPACE, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_ENTIRE_BOX_CROP, NULL, DEF_DRAW_NO_COLOR);
+}
+
+void Draw_with_crop(const Str_data* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y)
+{
+	if(!Util_str_has_data(text))
+		return;
+
+	Draw_internal(text->buffer, x, y, base_size, DEF_DRAW_NORMAL_SCALE_AND_SPACE, abgr8888, x_align, y_align, box_size_x, box_size_y, DRAW_BACKGROUND_ENTIRE_BOX_CROP, NULL, DEF_DRAW_NO_COLOR);
+}
+
 void Draw_with_background_c(const char* text, float x, float y, float base_size, uint32_t abgr8888, Draw_text_align_x x_align, Draw_text_align_y y_align,
 float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888)
 {
@@ -1653,13 +1666,16 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 		}
 
 		image_data_pointer = (Draw_image_data*)background_image;
-		if(texture_position == DRAW_BACKGROUND_ENTIRE_BOX)
+		if(texture_position == DRAW_BACKGROUND_ENTIRE_BOX || texture_position == DRAW_BACKGROUND_ENTIRE_BOX_CROP)
 		{
 			Draw_texture(image_data_pointer, texture_abgr8888, original_x, original_y, box_size_x, box_size_y);
-			x_valid_min = original_x;
-			x_valid_max = (original_x + box_size_x);
-			y_valid_min = original_y;
-			y_valid_max = (original_y + box_size_y);
+			if(texture_position == DRAW_BACKGROUND_ENTIRE_BOX_CROP)
+			{
+				x_valid_min = original_x;
+				x_valid_max = (original_x + box_size_x);
+				y_valid_min = original_y;
+				y_valid_max = (original_y + box_size_y);
+			}
 		}
 		else if(texture_position == DRAW_BACKGROUND_UNDER_TEXT)
 			Draw_texture(image_data_pointer, texture_abgr8888, x_min, y, used_x_max, used_y_max);

@@ -1441,7 +1441,8 @@ void Sem_main(void)
 				else if (sem_update_progress == UPDATE_STATE_CHECK_SUCCESS)//Success.
 				{
 					Draw(&sem_msg[(sem_new_version_available ? MSG_NEW_VERSION_AVAILABLE : MSG_UP_TO_DATE)], 17.5, 15, FONT_SIZE_UPDATE_STATE_PATCH, DEF_DRAW_BLACK);
-					Draw(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], 17.5, 35, FONT_SIZE_UPDATE_PATCH_NOTE, DEF_DRAW_BLACK);
+					Draw_with_scale(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], 15, 35, FONT_SIZE_UPDATE_PATCH_NOTE, 1, 1, 0, -0.2, DEF_DRAW_BLACK,
+					DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 290, 165, DRAW_BACKGROUND_ENTIRE_BOX_CROP, NULL, DEF_DRAW_NO_COLOR);
 				}
 
 				//Temporal workaround for UI overflow.

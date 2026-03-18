@@ -6292,7 +6292,7 @@ void Vid_convert_thread(void* arg)
 				double pos = 0;
 
 				//We doropped a frame.
-				if(vid_player.state != PLAYER_STATE_SEEKING && vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
+				if(vid_player.state != PLAYER_STATE_SEEKING && vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
 					vid_player.total_dropped_frames++;
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)

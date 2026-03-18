@@ -2142,10 +2142,8 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 	return DEF_ERR_NEED_MORE_INPUT;
 
 	out_of_linear_memory:
-	util_video_decoder_packet_ready[session][0] = false;
 	free(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0]);
 	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = NULL;
-	av_packet_free(&util_video_decoder_packet[session][0]);
 	av_frame_free(&util_mvd_video_decoder_raw_image[session][buffer_num]);
 	return DEF_ERR_OUT_OF_LINEAR_MEMORY;
 

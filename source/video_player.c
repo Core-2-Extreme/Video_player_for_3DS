@@ -47,6 +47,7 @@
 #define SEEK_IGNORE_PACKETS							(uint8_t)(5)							//Number of packets to be ignored just after seeking to make sure no leftover remaining in cache.
 #define SEEK_BACKWARD_TIMEOUT						(uint8_t)(20)							//Number of packets to wait to make sure we went back (for backward seeking).
 
+#define OOM_DECODE_RETRY_MAX						(uint8_t)(3)							//Maximum number of decoding retry in case of out of memory.
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
 #define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define SW_DECODER_RAW_IMAGE_SIZE(index)			(uint32_t)(vid_player.video_info[index].width * vid_player.video_info[index].height * 1.5)		//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
@@ -61,7 +62,7 @@
 #define SETTINGS_ELEMENTS_V4						(uint8_t)(16)							//Settings file for v1.5.0.
 #define SETTINGS_ELEMENTS_V5						(uint8_t)(17)							//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
 #define SETTINGS_ELEMENTS_V6						(uint8_t)(18)							//Settings file for v1.6.1.
-#define SETTINGS_ELEMENTS_NEWEST					(uint8_t)(SETTINGS_ELEMENTS_V6)	//Number of elements for the newest settings file.
+#define SETTINGS_ELEMENTS_NEWEST					(uint8_t)(SETTINGS_ELEMENTS_V6)			//Number of elements for the newest settings file.
 
 #define DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.
 #define DEBUG_GRAPH_AVG_SAMPLES						(uint16_t)(90)							//Number of samples to calculate average.
@@ -5944,22 +5945,27 @@ void Vid_decode_video_thread(void* arg)
 					}
 					else
 					{
+						uint32_t queue_result = DEF_ERR_OTHER;
+
 						result = Util_decoder_ready_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 
 						//Notify we've done copying packet to video decoder buffer
 						//so that decode thread can read the next packet.
 						//Too noisy.
-						// DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
-						// NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
-						result = Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						// DEF_LOG_RESULT_SMART(queue_result, Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
+						// NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (queue_result == DEF_SUCCESS), queue_result);
+						queue_result = Util_queue_add(&vid_player.decode_thread_notification_queue, DECODE_VIDEO_THREAD_FINISHED_COPYING_PACKET_NOTIFICATION,
 						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE);
-						if(result != DEF_SUCCESS)
-							DEF_LOG_RESULT(Util_queue_add, false, result);
+						if(queue_result != DEF_SUCCESS)
+							DEF_LOG_RESULT(Util_queue_add, false, queue_result);
 
 						if(result == DEF_SUCCESS)
 						{
+							uint8_t retry_count = 0;
+
 							while(true)
 							{
+								uint64_t sleep_us = 0;
 								osTickCounterUpdate(&counter);
 
 								if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
@@ -5987,22 +5993,53 @@ void Vid_decode_video_thread(void* arg)
 									}
 									else if(result == DEF_ERR_TRY_AGAIN)//Buffer is full.
 									{
+										//Waiting for buffer to be consumed by convert thread.
 										if(vid_player.video_frametime[packet_index] == 0)
-											Util_sleep(10000);
+											sleep_us = 10000;
 										else
-											Util_sleep(DEF_UTIL_MS_TO_US(vid_player.video_frametime[packet_index]));
-
-										//If we get clear cache or abort request while waiting, break the loop.
-										if(Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST)
-										|| Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_ABORT_REQUEST))
-											break;
+											sleep_us = DEF_UTIL_MS_TO_US(vid_player.video_frametime[packet_index]);
+									}
+								}
+								else if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
+								{
+									if(retry_count == 0)//Only request once per frame.
+									{
+										//Request to increase amount of RAM to keep.
+										DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,
+										NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 									}
 
-									continue;
+									retry_count++;
+									if(retry_count > OOM_DECODE_RETRY_MAX)
+										break;
+									else
+									{
+										//Hoping buffer to be consumed by convert thread and freeing some memory.
+										if(vid_player.video_frametime[packet_index] == 0)
+											sleep_us = 10000;
+										else
+											sleep_us = DEF_UTIL_MS_TO_US(vid_player.video_frametime[packet_index]);
+									}
+
+									DEF_LOG_STRING("Out of memory!!!!!");
+									DEF_LOG_UINT(retry_count);
 								}
 								else
 									break;
+
+								if(sleep_us != 0)
+									Util_sleep(sleep_us);
+
+								//If we get clear cache or abort request while waiting, break the loop.
+								if(Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_CLEAR_CACHE_REQUEST)
+								|| Util_queue_check_event_exist(&vid_player.decode_video_thread_command_queue, DECODE_VIDEO_THREAD_ABORT_REQUEST))
+									break;
 							}
+
+							if(retry_count > OOM_DECODE_RETRY_MAX)
+								DEF_LOG_STRING("Out of memory recovery was unsuccessful!!!!!");
+							else if(retry_count > 0)
+								DEF_LOG_STRING("Out of memory recovery was successful!!!!!");
 
 							if(result == DEF_SUCCESS)
 							{
@@ -6027,13 +6064,13 @@ void Vid_decode_video_thread(void* arg)
 						{
 							Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 							DEF_LOG_RESULT(Util_decoder_ready_video_packet, false, result);
-						}
 
-						if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
-						{
-							//Request to increase amount of RAM to keep.
-							DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,
-							NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+							if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
+							{
+								//Request to increase amount of RAM to keep.
+								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_INCREASE_KEEP_RAM_REQUEST,
+								NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
+							}
 						}
 					}
 
@@ -6441,7 +6478,8 @@ void Vid_convert_thread(void* arg)
 
 					if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
 					{
-						//Give up on this image on memory allocation failure.
+						//Since there's little hope that RAM to be freed by other thread,
+						//give up on this image on memory allocation failure.
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 							Util_decoder_mvd_skip_image(&pos, DEF_VID_DECORDER_SESSION_ID);
 						else

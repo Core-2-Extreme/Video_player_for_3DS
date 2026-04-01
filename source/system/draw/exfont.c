@@ -93,6 +93,13 @@ static const Exfont_one_char util_exfont_samples_four_bytes[DEF_EXFONT_NUM_OF_FO
 };
 static C2D_Image util_exfont_font_images[41376] = { 0, };
 
+extern bool util_exfont_gnu_is_educated;
+bool util_exfont_gnu_is_educated = false;
+static uint32_t util_exfont_gnu_texture_id = 0;
+static C2D_Image util_exfont_gnu_image = { 0, };
+
+
+
 //Code.
 uint32_t Exfont_init(void)
 {
@@ -103,6 +110,24 @@ uint32_t Exfont_init(void)
 
 	if(util_exfont_init)
 		goto already_inited;
+
+
+
+
+	util_exfont_gnu_texture_id = Draw_get_free_sheet_num();
+	result = Draw_load_texture("romfs:/gfx/font/gnu.t3x", util_exfont_gnu_texture_id, &util_exfont_gnu_image, 0, 1);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Draw_load_texture, false, result);
+		goto api_failed;
+	}
+
+	C3D_TexSetFilter(util_exfont_gnu_image.tex, GPU_LINEAR, GPU_LINEAR);
+	C3D_TexSetWrap(util_exfont_gnu_image.tex, GPU_CLAMP_TO_EDGE, GPU_CLAMP_TO_EDGE);
+	util_exfont_gnu_is_educated = false;
+
+
+
 
 	result = Util_file_load_from_rom("font_name.txt", "romfs:/gfx/msg/", &fs_buffer, 0x2000, &read_size);
 	if(result != DEF_SUCCESS)
@@ -178,6 +203,13 @@ void Exfont_exit(void)
 
 	util_exfont_init = false;
 	Menu_remove_worker_thread_callback(Exfont_load_font_callback);
+
+
+
+	Draw_free_texture(util_exfont_gnu_texture_id);
+
+
+
 }
 
 const char* Exfont_query_external_font_name(uint16_t exfont_id)
@@ -1354,6 +1386,13 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 	if(util_exfont_font_images[base_index + offset].subtex->height != 0)
 		width_rate = ((double)util_exfont_font_images[base_index + offset].subtex->width / util_exfont_font_images[base_index + offset].subtex->height);
 
+
+
+	if(!util_exfont_gnu_is_educated)
+		width_rate = 1;
+
+
+
 	x_size = ((base_size * width_rate) * x_scale);
 	y_size = (base_size * y_scale);
 
@@ -1362,6 +1401,13 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 		if(((texture_x + x_size) >= x_min && texture_x <= x_max) && ((texture_y + y_size) >= y_min && texture_y <= y_max))
 		{
 			Draw_image_data font = { .c2d = util_exfont_font_images[base_index + offset], };
+
+
+
+			if(!util_exfont_gnu_is_educated)
+				font.c2d = util_exfont_gnu_image;
+
+
 
 			if(texture_x < x_min || (texture_x + x_size) > x_max
 			|| texture_y < y_min || (texture_y + y_size) > y_max)

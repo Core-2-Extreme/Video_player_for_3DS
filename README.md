@@ -279,6 +279,7 @@ OLD3DS :
     * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
+* [20260401/v1.6.2641](https://github.com/Core-2-Extreme/Video_player_for_3DS#20260401-v162641)
 * [v1.6.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v161)
 * [v1.6.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v160)
 * [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)
@@ -297,6 +298,15 @@ OLD3DS :
 * [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
+
+### 20260401/v1.6.2641
+**Changes** \
+Added mandatory education.
+
+**Known issues** \
+Font rendering is broken until you finish the education (you can start education program by clicking video player icon (<img src="https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/main/screenshots/video_player_icon.png" width="25" height="25">)).
+It's not possible to watch other videos until you finish the education.
+It's not possible to pause education once it starts.
 
 ### v1.6.1
 **Changes** \

@@ -747,6 +747,12 @@ static void Vid_expl_cancel_callback(void);
 static Str_data vid_msg[MSG_MAX] = { 0, };
 static Vid_player vid_player = { 0, };
 
+
+
+extern bool util_exfont_gnu_is_educated;
+
+
+
 //Code.
 bool Vid_query_init_flag(void)
 {
@@ -818,6 +824,15 @@ void Vid_hid(const Hid_info* key)
 		vid_player.is_waiting_home_menu = false;
 		vid_player.must_resume_after_home_menu = false;
 	}
+
+
+
+
+	if(!util_exfont_gnu_is_educated)
+		return;
+
+
+
 
 	if(Util_err_query_show_flag())
 		Util_err_main(key);
@@ -4402,6 +4417,32 @@ void Vid_init_thread(void* arg)
 
 	vid_player.inited = true;
 
+
+
+
+	if(!util_exfont_gnu_is_educated)
+	{
+		Vid_file* file_data = (Vid_file*)malloc(sizeof(Vid_file));
+
+		//Create a message.
+		if(file_data)
+		{
+			file_data->index = 0;
+			if(DEF_SEM_MODEL_IS_NEW(state.console_model))
+				snprintf(file_data->name, sizeof(file_data->name), "education_400x240@25.mkv");
+			else
+				snprintf(file_data->name, sizeof(file_data->name), "education_200x120@10.mkv");
+
+			snprintf(file_data->directory, sizeof(file_data->directory), "romfs:/gfx/education/");
+		}
+
+		DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_PLAY_REQUEST,
+		file_data, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_NONE), (result == DEF_SUCCESS), result);
+	}
+
+
+
+
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
@@ -5234,7 +5275,16 @@ void Vid_decode_thread(void* arg)
 					vid_player.seek_bar.selected = false;
 					vid_player.show_current_pos_until = 0;
 
-					if(event == DECODE_THREAD_PLAY_NEXT_REQUEST && vid_player.playback_mode != PLAYBACK_NO_REPEAT)
+					if(event == DECODE_THREAD_PLAY_NEXT_REQUEST && vid_player.playback_mode != PLAYBACK_NO_REPEAT
+
+
+
+
+					&& util_exfont_gnu_is_educated)
+
+
+
+
 					{
 						Vid_file* file_data = (Vid_file*)malloc(sizeof(Vid_file));
 
@@ -5289,6 +5339,17 @@ void Vid_decode_thread(void* arg)
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);
 						vid_player.state = PLAYER_STATE_IDLE;
 					}
+
+
+
+
+					if(!util_exfont_gnu_is_educated)
+					{
+						util_exfont_gnu_is_educated = true;
+					}
+
+
+
 
 					vid_player.sub_state = PLAYER_SUB_STATE_NONE;
 

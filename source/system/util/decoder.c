@@ -636,8 +636,8 @@ uint32_t Util_decoder_audio_init(uint8_t num_of_audio_tracks, uint8_t session)
 
 void Util_decoder_video_set_enabled_cores(const bool frame_threading_cores[4], const bool slice_threading_cores[4])
 {
-	if(!frame_threading_cores[0] && !frame_threading_cores[1] && !frame_threading_cores[2] && !frame_threading_cores[3]
-	&& !slice_threading_cores[0] && !slice_threading_cores[1] && !slice_threading_cores[2] && !slice_threading_cores[3])
+	if((!frame_threading_cores[0] && !frame_threading_cores[1] && !frame_threading_cores[2] && !frame_threading_cores[3])
+	|| (!slice_threading_cores[0] && !slice_threading_cores[1] && !slice_threading_cores[2] && !slice_threading_cores[3]))
 		return;
 
 	for(uint8_t i = 0; i < 4; i++)

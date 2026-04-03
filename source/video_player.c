@@ -3766,6 +3766,11 @@ static void Vid_init_hidden_settings(void)
 			slice_cores[i] = Util_is_core_available(i);
 		}
 	}
+
+	//Skip core that Vid_decode_video_thread runs on because slice mode uses Vid_decode_video_thread + slice_cores.
+	//Frame mode uses frame_cores only so keep everything enabled.
+	slice_cores[(Util_is_core_available(2) ? 2 : 0)] = false;
+
 	Util_decoder_video_set_enabled_cores(frame_cores, slice_cores);
 }
 

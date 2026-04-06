@@ -84,8 +84,19 @@ LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -z noexecstack
 #Allocator related.
 LDFLAGS		+= -Wl,--wrap,malloc,--wrap,calloc,--wrap,realloc,--wrap,free,--wrap,_free_r,--wrap,memalign,--wrap,linearAlloc
 LDFLAGS		+= -Wl,--wrap,linearMemAlign,--wrap,linearRealloc,--wrap,linearGetSize,--wrap,linearFree,--wrap,linearSpaceFree
-#CPU usage limit related.
+#CPU usage monitor related.
 LDFLAGS		+= -Wl,--wrap,APT_GetAppCpuTimeLimit,--wrap,APT_SetAppCpuTimeLimit
+#GPU usage monitor related.
+LDFLAGS		+= -Wl,--wrap,C3D_FrameEnd,--wrap,GSPGPU_FlushDataCache,--wrap,GSPGPU_InvalidateDataCache
+#NET usage monitor related.
+LDFLAGS		+= -Wl,--wrap,recvfrom,--wrap,sendto,--wrap,httpcDownloadData
+#NVS usage monitor related.
+LDFLAGS		+= -Wl,--wrap,FSUSER_CreateFile,--wrap,FSUSER_CreateDirectory,--wrap,FSUSER_OpenFile,--wrap,FSUSER_OpenFileDirectly
+LDFLAGS		+= -Wl,--wrap,FSUSER_OpenDirectory,--wrap,FSUSER_OpenArchive,--wrap,FSFILE_OpenSubFile,--wrap,FSUSER_RenameFile
+LDFLAGS		+= -Wl,--wrap,FSUSER_RenameDirectory,--wrap,FSUSER_DeleteFile,--wrap,FSUSER_DeleteDirectory,--wrap,FSUSER_DeleteDirectoryRecursively
+LDFLAGS		+= -Wl,--wrap,FSFILE_Read,--wrap,FSDIR_Read,--wrap,FSFILE_Write,--wrap,FSFILE_GetSize,--wrap,FSFILE_SetSize
+LDFLAGS		+= -Wl,--wrap,FSFILE_GetAttributes,--wrap,FSFILE_SetAttributes,--wrap,FSFILE_SetPriority,--wrap,FSFILE_GetPriority
+LDFLAGS		+= -Wl,--wrap,FSFILE_Flush,--wrap,FSUSER_CloseArchive,--wrap,FSFILE_Close,--wrap,FSDIR_Close
 #pthread related.
 LDFLAGS		+= -Wl,--wrap,pthread_mutex_init,--wrap,pthread_mutex_lock,--wrap,pthread_mutex_unlock,--wrap,pthread_mutex_destroy
 LDFLAGS		+= -Wl,--wrap,pthread_once,--wrap,pthread_cond_init,--wrap,pthread_cond_wait,--wrap,pthread_cond_signal

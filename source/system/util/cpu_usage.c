@@ -18,10 +18,10 @@
 //Defines.
 #define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
 
-#define CPU_USAGE_X				(float)(300)		//X offset for cpu usage info in px.
-#define CPU_USAGE_Y				(float)(25)			//Y offset for cpu usage info in px.
-#define CPU_USAGE_WIDTH			(float)(100)		//Element width for cpu usage info in px.
-#define CPU_USAGE_HEIGHT		(float)(60)			//Element height for cpu usage info in px.
+#define CPU_USAGE_X				(float)(300)		//X offset for CPU usage info in px.
+#define CPU_USAGE_Y				(float)(25)			//Y offset for CPU usage info in px.
+#define CPU_USAGE_WIDTH			(float)(100)		//Element width for CPU usage info in px.
+#define CPU_USAGE_HEIGHT		(float)(60)			//Element height for CPU usage info in px.
 
 #define FONT_SIZE_CPU_USAGE		(float)(12.00)		//Font size for CPU usage info in px.
 
@@ -77,12 +77,12 @@ uint32_t Util_cpu_usage_init(void)
 
 	return DEF_SUCCESS;
 
+	already_inited:
+	return DEF_ERR_ALREADY_INITIALIZED;
+
 	nintendo_api_failed:
 	util_cpu_usage_init = false;
 	return DEF_ERR_OTHER;
-
-	already_inited:
-	return DEF_ERR_ALREADY_INITIALIZED;
 }
 
 void Util_cpu_usage_exit(void)
@@ -149,6 +149,9 @@ void Util_cpu_usage_draw(void)
 	char msg_cache[128] = { 0, };
 	Draw_image_data background = Draw_get_empty_image();
 
+	if(!util_cpu_usage_init)
+		return;
+
 	//%f expects double.
 	char_length = snprintf(msg_cache, sizeof(msg_cache), "CPU: %.1f%%", (double)Util_cpu_usage_get_cpu_usage(DEF_CPU_USAGE_ALL_CORES));
 	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)//%f expects double.
@@ -157,7 +160,7 @@ void Util_cpu_usage_draw(void)
 	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max: %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
 	Draw_with_background_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_CENTER, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	DRAW_Y_ALIGN_TOP, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)
@@ -270,4 +273,16 @@ void Util_cpu_usage_calculate_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
+
+#else
+#include "3ds.h"
+
+extern Result __real_APT_SetAppCpuTimeLimit(uint32_t percent);
+extern Result __real_APT_GetAppCpuTimeLimit(uint32_t* percent);
+Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent);
+Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent);
+
+Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent) { return __real_APT_SetAppCpuTimeLimit(percent); }
+Result __wrap_APT_GetAppCpuTimeLimit(uint32_t* percent) { return __real_APT_GetAppCpuTimeLimit(percent); }
+
 #endif //DEF_CPU_USAGE_API_ENABLE

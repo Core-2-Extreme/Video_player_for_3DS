@@ -325,7 +325,7 @@ uint32_t Util_encoder_video_init(Media_v_codec codec, uint32_t width, uint32_t h
 		if(ffmpeg_result < 0)
 		{
 			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
-			DEF_LOG_STRING("crf : 32");
+			DEF_LOG_STRING("crf: 32");
 			goto ffmpeg_api_failed;
 		}
 
@@ -333,7 +333,7 @@ uint32_t Util_encoder_video_init(Media_v_codec codec, uint32_t width, uint32_t h
 		if(ffmpeg_result < 0)
 		{
 			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
-			DEF_LOG_STRING("profile : baseline");
+			DEF_LOG_STRING("profile: baseline");
 			goto ffmpeg_api_failed;
 		}
 
@@ -341,7 +341,7 @@ uint32_t Util_encoder_video_init(Media_v_codec codec, uint32_t width, uint32_t h
 		if(ffmpeg_result < 0)
 		{
 			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
-			DEF_LOG_STRING("preset : ultrafast");
+			DEF_LOG_STRING("preset: ultrafast");
 			goto ffmpeg_api_failed;
 		}
 
@@ -349,7 +349,7 @@ uint32_t Util_encoder_video_init(Media_v_codec codec, uint32_t width, uint32_t h
 		if(ffmpeg_result < 0)
 		{
 			DEF_LOG_RESULT(av_opt_set, false, ffmpeg_result);
-			DEF_LOG_STRING("me_method : dia");
+			DEF_LOG_STRING("me_method: dia");
 			goto ffmpeg_api_failed;
 		}
 	}

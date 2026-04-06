@@ -1965,10 +1965,10 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		if((source_offset + size) > (uint32_t)util_video_decoder_packet[session][0]->size || size == 0)
 		{
 			if(size == 0)
-				DEF_LOG_FORMAT("unexpected nal size : %" PRIu32, size);
+				DEF_LOG_FORMAT("Unexpected nal size: %" PRIu32, size);
 			else
 			{
-				DEF_LOG_FORMAT("unexpected nal size : %" PRIu32 " (%" PRIu32 " > %" PRIu32 ")", size,
+				DEF_LOG_FORMAT("Unexpected nal size: %" PRIu32 " (%" PRIu32 " > %" PRIu32 ")", size,
 				(source_offset + size), (uint32_t)util_video_decoder_packet[session][0]->size);
 			}
 
@@ -1988,7 +1988,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 	}
 
 	//Set 0x11 to top-left, top-right, bottom-left and bottom-right then check them later.
-	//For more information, see : https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-20#post-9915780
+	//For more information, see: https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-20#post-9915780
 	*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = 0x11;
 	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) = 0x11;
 	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) = 0x11;

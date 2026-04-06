@@ -66,192 +66,192 @@
 #define HID_SCROLL_BAR_CFM(k)				(bool)(HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
 #define HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-//Updater : Open updater (to check for update).
+//Updater: Open updater (to check for update).
 #define HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_check_update_button, (k)))
 #define HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, (k)))
 #define HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Updater : Close updater.
+//Updater: Close updater.
 #define HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_updater_button, (k)))
 #define HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
 #define HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
-//Updater : Edition selection.
+//Updater: Edition selection.
 #define HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_select_edtion_button, (k)))
 #define HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
 #define HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
-//Updater : Edition list (.3dsx and .cia).
+//Updater: Edition list (.3dsx and .cia).
 #define HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
 #define HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
 #define HID_UPDATE_3DSX_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 #define HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_cia_button, (k)))
 #define HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, (k)))
 #define HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Updater : Back to patch note.
+//Updater: Back to patch note.
 #define HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, (k)))
 #define HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b)))
 #define HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
-//Updater : Download and install an update.
+//Updater: Download and install an update.
 #define HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dl_install_button, (k)))
 #define HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
 #define HID_UPDATE_DL_INSTALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).x))
-//Updater : Close app to apply.
+//Updater: Close app to apply.
 #define HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_app_button, (k)))
 #define HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, (k)))
 #define HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-//Language : English.
+//Language: English.
 #define HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_english_button, (k)))
 #define HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, (k)))
 #define HID_LANG_EN_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Japanese.
+//Language: Japanese.
 #define HID_LANG_JP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_japanese_button, (k)))
 #define HID_LANG_JP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_japanese_button, (k)))
 #define HID_LANG_JP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Hungarian.
+//Language: Hungarian.
 #define HID_LANG_HU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_hungarian_button, (k)))
 #define HID_LANG_HU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_hungarian_button, (k)))
 #define HID_LANG_HU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Simplified Chinese.
+//Language: Simplified Chinese.
 #define HID_LANG_ZHS_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_chinese_button, (k)))
 #define HID_LANG_ZHS_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_chinese_button, (k)))
 #define HID_LANG_ZHS_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Italian.
+//Language: Italian.
 #define HID_LANG_IT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_italian_button, (k)))
 #define HID_LANG_IT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_italian_button, (k)))
 #define HID_LANG_IT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Spanish.
+//Language: Spanish.
 #define HID_LANG_ES_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_spanish_button, (k)))
 #define HID_LANG_ES_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_spanish_button, (k)))
 #define HID_LANG_ES_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Romanian.
+//Language: Romanian.
 #define HID_LANG_RO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_romanian_button, (k)))
 #define HID_LANG_RO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_romanian_button, (k)))
 #define HID_LANG_RO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Polish.
+//Language: Polish.
 #define HID_LANG_PO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_polish_button, (k)))
 #define HID_LANG_PO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_polish_button, (k)))
 #define HID_LANG_PO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : Ryukyuan.
+//Language: Ryukyuan.
 #define HID_LANG_RYU_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ryukyuan_button, (k)))
 #define HID_LANG_RYU_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ryukyuan_button, (k)))
 #define HID_LANG_RYU_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Language : German.
+//Language: German.
 #define HID_LANG_DE_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_german_button, (k)))
 #define HID_LANG_DE_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_german_button, (k)))
 #define HID_LANG_DE_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Night mode on.
+//LCD: Night mode on.
 #define HID_LCD_NIGHT_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_on_button, (k)))
 #define HID_LCD_NIGHT_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_on_button, (k)))
 #define HID_LCD_NIGHT_ON_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Night mode off.
+//LCD: Night mode off.
 #define HID_LCD_NIGHT_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_night_mode_off_button, (k)))
 #define HID_LCD_NIGHT_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_night_mode_off_button, (k)))
 #define HID_LCD_NIGHT_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Flash mode.
+//LCD: Flash mode.
 #define HID_LCD_FLASH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_flash_mode_button, (k)))
 #define HID_LCD_FLASH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_flash_mode_button, (k)))
 #define HID_LCD_FLASH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Brightness level bar.
+//LCD: Brightness level bar.
 #define HID_LCD_BRIGHTNESS_BAR_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_brightness_bar, (k)) || DEF_HID_INIT_IN(sem_screen_brightness_slider, (k))))
 #define HID_LCD_BRIGHTNESS_BAR_CFM(k)		(bool)(HID_LCD_BRIGHTNESS_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_brightness_bar.selected))
 #define HID_LCD_BRIGHTNESS_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Turn off LCD time bar.
+//LCD: Turn off LCD time bar.
 #define HID_LCD_LCD_OFF_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_screen_off_time_bar, (k)) || DEF_HID_INIT_IN(sem_screen_off_time_slider, (k))))
 #define HID_LCD_LCD_OFF_BAR_CFM(k)			(bool)(HID_LCD_LCD_OFF_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_screen_off_time_bar.selected))
 #define HID_LCD_LCD_OFF_BAR_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Sleep time bar.
+//LCD: Sleep time bar.
 #define HID_LCD_SLEEP_BAR_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_sleep_time_bar, (k)) || DEF_HID_INIT_IN(sem_sleep_time_slider, (k))))
 #define HID_LCD_SLEEP_BAR_CFM(k)			(bool)(HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_sleep_time_bar.selected))
 #define HID_LCD_SLEEP_BAR_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : 800px mode.
+//LCD: 800px mode.
 #define HID_LCD_800PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_800px_mode_button, (k)))
 #define HID_LCD_800PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_800px_mode_button, (k)))
 #define HID_LCD_800PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : 3D mode.
+//LCD: 3D mode.
 #define HID_LCD_3D_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3d_mode_button, (k)))
 #define HID_LCD_3D_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3d_mode_button, (k)))
 #define HID_LCD_3D_DESEL(k)					(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : 400px mode.
+//LCD: 400px mode.
 #define HID_LCD_400PX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_400px_mode_button, (k)))
 #define HID_LCD_400PX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_400px_mode_button, (k)))
 #define HID_LCD_400PX_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//LCD : Auto mode.
+//LCD: Auto mode.
 #define HID_LCD_AUTO_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_auto_mode_button, (k)))
 #define HID_LCD_AUTO_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_auto_mode_button, (k)))
 #define HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Control : Scroll speed bar.
+//Control: Scroll speed bar.
 #define HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, (k)) || DEF_HID_INIT_IN(sem_scroll_speed_slider, (k))))
 #define HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
 #define HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Font : Font loading (all fonts).
+//Font: Font loading (all fonts).
 #define HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, (k)))
 #define HID_FONT_LOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_load_all_ex_font_button, (k)))
 #define HID_FONT_LOAD_ALL_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-//Font : Font unloading (all fonts except basic latin).
+//Font: Font unloading (all fonts except basic latin).
 #define HID_FONT_UNLOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_unload_all_ex_font_button, (k)))
 #define HID_FONT_UNLOAD_ALL_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_unload_all_ex_font_button, (k)))
 #define HID_FONT_UNLOAD_ALL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Font : Loading or unloading (selected font).
+//Font: Loading or unloading (selected font).
 #define HID_FONT_LOAD_UNLOAD_SEL(k, id)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_ex_font_button[id], (k)))
 #define HID_FONT_LOAD_UNLOAD_CFM(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_ex_font_button[id], (k)))
 #define HID_FONT_LOAD_UNLOAD_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Wireless : Wi-Fi on.
+//Wireless: Wi-Fi on.
 #define HID_WIRELESS_WIFI_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_on_button, (k)))
 #define HID_WIRELESS_WIFI_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_on_button, (k)))
 #define HID_WIRELESS_WIFI_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Wireless : Wi-Fi off.
+//Wireless: Wi-Fi off.
 #define HID_WIRELESS_WIFI_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_wifi_off_button, (k)))
 #define HID_WIRELESS_WIFI_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_wifi_off_button, (k)))
 #define HID_WIRELESS_WIFI_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Sending app info on.
+//Advanced: Sending app info on.
 #define HID_ADVANCED_SEND_INFO_ON_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_allow_send_info_button, (k)))
 #define HID_ADVANCED_SEND_INFO_ON_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_allow_send_info_button, (k)))
 #define HID_ADVANCED_SEND_INFO_ON_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Sending app info off.
+//Advanced: Sending app info off.
 #define HID_ADVANCED_SEND_INFO_OFF_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_deny_send_info_button, (k)))
 #define HID_ADVANCED_SEND_INFO_OFF_CFM(k)	(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_deny_send_info_button, (k)))
 #define HID_ADVANCED_SEND_INFO_OFF_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Debug on.
+//Advanced: Debug on.
 #define HID_ADVANCED_DEBUG_ON_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_on_button, (k)))
 #define HID_ADVANCED_DEBUG_ON_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_on_button, (k)))
 #define HID_ADVANCED_DEBUG_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Debug off.
+//Advanced: Debug off.
 #define HID_ADVANCED_DEBUG_OFF_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_debug_mode_off_button, (k)))
 #define HID_ADVANCED_DEBUG_OFF_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_debug_mode_off_button, (k)))
 #define HID_ADVANCED_DEBUG_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Fake model.
+//Advanced: Fake model.
 #define HID_ADVANCED_FAKE_MODEL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_use_fake_model_button, (k)))
 #define HID_ADVANCED_FAKE_MODEL_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_use_fake_model_button, (k)))
 #define HID_ADVANCED_FAKE_MODEL_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : Log dump.
+//Advanced: Log dump.
 #define HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dump_log_button, (k)))
 #define HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, (k)))
 #define HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : CPU monitor on.
+//Advanced: CPU monitor on.
 #define HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, (k)))
 #define HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, (k)))
 #define HID_ADVANCED_CPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Advanced : CPU monitor off.
+//Advanced: CPU monitor off.
 #define HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, (k)))
 #define HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, (k)))
 #define HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-//Battery : Eco on.
+//Battery: Eco on.
 #define HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
 #define HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
 #define HID_BAT_ECO_ON_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Battery : Eco off.
+//Battery: Eco off.
 #define HID_BAT_ECO_OFF_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_off_button, (k)))
 #define HID_BAT_ECO_OFF_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_off_button, (k)))
 #define HID_BAT_ECO_OFF_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-//Screen recording : Both LCDs.
+//Screen recording: Both LCDs.
 #define HID_REC_BOTH_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_both_lcd_button, (k)))
 #define HID_REC_BOTH_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_both_lcd_button, (k)))
 #define HID_REC_BOTH_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Screen recording : Top LCD.
+//Screen recording: Top LCD.
 #define HID_REC_TOP_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_top_lcd_button, (k)))
 #define HID_REC_TOP_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_top_lcd_button, (k)))
 #define HID_REC_TOP_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Screen recording : Bottom LCD.
+//Screen recording: Bottom LCD.
 #define HID_REC_BOT_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_record_bottom_lcd_button, (k)))
 #define HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
 #define HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
@@ -767,10 +767,10 @@ void Sem_init(void)
 		else if(model == CFG_MODEL_N2DSXL)
 			state.console_model = DEF_SEM_MODEL_NEW2DSXL;
 
-		DEF_LOG_FORMAT("Model : %s", sem_model_name[state.console_model]);
+		DEF_LOG_FORMAT("Model: %s", sem_model_name[state.console_model]);
 	}
 	else
-		DEF_LOG_STRING("Model : Unknown");
+		DEF_LOG_STRING("Model: Unknown");
 
 	if(Util_file_load_from_file("fake_model.txt", DEF_MENU_MAIN_DIR, &read_cache, 1, 0, &read_size) == DEF_SUCCESS && *read_cache < DEF_SEM_MODEL_MAX)
 	{
@@ -778,7 +778,7 @@ void Sem_init(void)
 		state.console_model = *read_cache;
 		sem_internal_state.fake_model = state.console_model;
 
-		DEF_LOG_FORMAT("Using fake model : %s", sem_model_name[state.console_model]);
+		DEF_LOG_FORMAT("Using fake model: %s", sem_model_name[state.console_model]);
 
 		free(read_cache);
 		read_cache = NULL;
@@ -2865,7 +2865,7 @@ static void Sem_worker_callback(void)
 
 			DEF_LOG_RESULT_SMART(result, Util_log_dump(file_name, dir_name), (result == DEF_SUCCESS), result);
 			if(result == DEF_SUCCESS)
-				DEF_LOG_FORMAT("Log file was dumped at : %s%s", dir_name, file_name);
+				DEF_LOG_FORMAT("Log file was dumped at: %s%s", dir_name, file_name);
 
 			sem_dump_log_request = false;
 		}

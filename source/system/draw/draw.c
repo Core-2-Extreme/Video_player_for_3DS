@@ -1036,7 +1036,7 @@ uint32_t Draw_load_texture(const char* file_path, uint32_t sheet_map_num, C2D_Im
 	if (!util_draw_sheet_texture[sheet_map_num])
 	{
 		DEF_LOG_RESULT(C2D_SpriteSheetLoad, false, DEF_ERR_OTHER);
-		DEF_LOG_FORMAT("Couldn't load texture file : %s", file_path);
+		DEF_LOG_FORMAT("Couldn't load texture file: %s", file_path);
 		goto error_other;
 	}
 

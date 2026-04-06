@@ -433,7 +433,7 @@ void Util_expl_draw(void)
 	}
 
 	draw_y += CONTROL_SPACE_Y;
-	Draw_c("A : OK, B : Back, X : Close, ↑↓→← : Move", draw_x, draw_y, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
+	Draw_c("A: OK, B: Back, X: Close, ↑↓→←: Move", draw_x, draw_y, FONT_SIZE_CONTROL, DEF_DRAW_BLACK);
 
 	draw_y += (ITEM_HEIGHT + ITEM_SPACE_Y);
 	Draw(&util_expl_current_dir, draw_x, draw_y, FONT_SIZE_CURRENT_DIR, DEF_DRAW_BLACK);

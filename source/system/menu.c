@@ -53,11 +53,11 @@
 #define HID_SEM_SEL(k)				(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sem_button, k))
 #define HID_SEM_CFM(k)				(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sem_button, k))
 #define HID_SEM_DESEL(k)			(bool)(DEF_HID_PHY_NP(k.touch))
-//Sub applications : Close.
+//Sub applications: Close.
 #define HID_SAPP_CLOSE_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_close_button[id], k))
 #define HID_SAPP_CLOSE_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_close_button[id], k))
 #define HID_SAPP_CLOSE_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))
-//Sub applications : Open.
+//Sub applications: Open.
 #define HID_SAPP_OPEN_SEL(k, id)	(bool)(DEF_HID_PHY_PR(k.touch) && DEF_HID_INIT_IN(menu_sapp_button[id], k))
 #define HID_SAPP_OPEN_CFM(k, id)	(bool)((DEF_HID_PR_EM(k.touch, 1) || DEF_HID_HD(k.touch)) && DEF_HID_INIT_LAST_IN(menu_sapp_button[id], k) && !menu_sapp_close_button[id].selected)
 #define HID_SAPP_OPEN_DESEL(k)		(bool)(DEF_HID_PHY_NP(k.touch))

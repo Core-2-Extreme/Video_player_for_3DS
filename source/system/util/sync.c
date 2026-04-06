@@ -348,7 +348,7 @@ uint32_t Util_sync_unlock(Sync_data* lock_object)
 	wrong_owner:
 	LightLock_Unlock(&util_sync_mutex);
 	//Log API may use sync API, so log it after unlocking mutex.
-	DEF_LOG_FORMAT("Wrong owner (current : 0x%08" PRIXPTR ") != (requested : 0x%08 " PRIXPTR ")!!!!!", (uintptr_t)owner, (uintptr_t)getThreadLocalStorage());
+	DEF_LOG_FORMAT("Wrong owner (current: 0x%08" PRIXPTR ") != (requested: 0x%08 " PRIXPTR ")!!!!!", (uintptr_t)owner, (uintptr_t)getThreadLocalStorage());
 	return DEF_ERR_OTHER;
 
 	count_underflow:
@@ -467,7 +467,7 @@ uint32_t Util_sync_cond_wait(Sync_data* cond_object, Sync_data* lock_object, uin
 	wrong_owner:
 	LightLock_Unlock(&util_sync_mutex);
 	//Log API may use sync API, so log it after unlocking mutex.
-	DEF_LOG_FORMAT("Wrong owner (current : 0x%08" PRIXPTR ") != (requested : 0x%08 " PRIXPTR ")!!!!!", (uintptr_t)owner, (uintptr_t)getThreadLocalStorage());
+	DEF_LOG_FORMAT("Wrong owner (current: 0x%08" PRIXPTR ") != (requested: 0x%08 " PRIXPTR ")!!!!!", (uintptr_t)owner, (uintptr_t)getThreadLocalStorage());
 	return DEF_ERR_OTHER;
 
 	try_again:

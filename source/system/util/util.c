@@ -22,7 +22,7 @@
 //Defines.
 #define LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
 #define IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
-											|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
+|| (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 
 //Typedefs.
 //N/A.
@@ -589,7 +589,7 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Str_d
 
 		if (!start_pos || !end_pos || (start_pos + start_text.length) > end_pos)
 		{
-			DEF_LOG_FORMAT("Failed to parse file. Error pos : %s%s", start_text.buffer, end_text.buffer);
+			DEF_LOG_FORMAT("Failed to parse file. Error pos: %s%s", start_text.buffer, end_text.buffer);
 			result = DEF_ERR_OTHER;
 			goto error_other;
 		}

@@ -279,7 +279,7 @@ uint32_t Util_log_save_bool(const char* caller, const char* symbol_name, bool va
 	if(!symbol_name || strlen(symbol_name) == 0)
 		return Util_log_format(caller, "%s", (value ? "true" : "false"));
 	else
-		return Util_log_format(caller, "%s : %s", symbol_name, (value ? "true" : "false"));
+		return Util_log_format(caller, "%s: %s", symbol_name, (value ? "true" : "false"));
 }
 
 uint32_t Util_log_save_int(const char* caller, const char* symbol_name, int64_t value)
@@ -287,7 +287,7 @@ uint32_t Util_log_save_int(const char* caller, const char* symbol_name, int64_t 
 	if(!symbol_name || strlen(symbol_name) == 0)
 		return Util_log_format(caller, "%" PRIi64, value);
 	else
-		return Util_log_format(caller, "%s : %" PRIi64, symbol_name, value);
+		return Util_log_format(caller, "%s: %" PRIi64, symbol_name, value);
 }
 
 uint32_t Util_log_save_uint(const char* caller, const char* symbol_name, uint64_t value)
@@ -295,7 +295,7 @@ uint32_t Util_log_save_uint(const char* caller, const char* symbol_name, uint64_
 	if(!symbol_name || strlen(symbol_name) == 0)
 		return Util_log_format(caller, "%" PRIu64, value);
 	else
-		return Util_log_format(caller, "%s : %" PRIu64, symbol_name, value);
+		return Util_log_format(caller, "%s: %" PRIu64, symbol_name, value);
 }
 
 uint32_t Util_log_save_hex(const char* caller, const char* symbol_name, uint64_t value)
@@ -303,7 +303,7 @@ uint32_t Util_log_save_hex(const char* caller, const char* symbol_name, uint64_t
 	if(!symbol_name || strlen(symbol_name) == 0)
 		return Util_log_format(caller, "0x%" PRIx64, value);
 	else
-		return Util_log_format(caller, "%s : 0x%" PRIx64, symbol_name, value);
+		return Util_log_format(caller, "%s: 0x%" PRIx64, symbol_name, value);
 }
 
 uint32_t Util_log_save_double(const char* caller, const char* symbol_name, double value)
@@ -311,7 +311,7 @@ uint32_t Util_log_save_double(const char* caller, const char* symbol_name, doubl
 	if(!symbol_name || strlen(symbol_name) == 0)
 		return Util_log_format(caller, "%f", value);
 	else
-		return Util_log_format(caller, "%s : %f", symbol_name, value);
+		return Util_log_format(caller, "%s: %f", symbol_name, value);
 }
 
 uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const char* text)
@@ -319,7 +319,7 @@ uint32_t Util_log_save_string(const char* caller, const char* symbol_name, const
 	if(!symbol_name || strlen(symbol_name) == 0 || symbol_name[0] == '"')
 		return Util_log_format(caller, "%s", text);
 	else
-		return Util_log_format(caller, "%s : %s", symbol_name, text);
+		return Util_log_format(caller, "%s: %s", symbol_name, text);
 }
 
 void Util_log_main(const Hid_info* key)

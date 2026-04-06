@@ -150,11 +150,11 @@ void Util_cpu_usage_draw(void)
 	Draw_image_data background = Draw_get_empty_image();
 
 	//%f expects double.
-	char_length = snprintf(msg_cache, sizeof(msg_cache), "CPU : %.1f%%", (double)Util_cpu_usage_get_cpu_usage(DEF_CPU_USAGE_ALL_CORES));
+	char_length = snprintf(msg_cache, sizeof(msg_cache), "CPU: %.1f%%", (double)Util_cpu_usage_get_cpu_usage(DEF_CPU_USAGE_ALL_CORES));
 	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)//%f expects double.
-		char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nCore #%" PRIu8 " : %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
+		char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nCore #%" PRIu8 ": %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
 
-	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max : %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
+	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max: %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
 	Draw_with_background_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
 	DRAW_Y_ALIGN_CENTER, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);

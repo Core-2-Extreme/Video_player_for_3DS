@@ -2,5 +2,5 @@
 :start
 make 3dsx
 echo Press any key to rebuild.
-pause
+pause > nul
 goto start 

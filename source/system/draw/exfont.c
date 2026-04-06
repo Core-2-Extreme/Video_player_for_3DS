@@ -534,7 +534,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				unknown = true;
 			else
 			{
-				//basic latin : U+0000[0x00]~U+007F[0x7F], passed
+				//basic latin: U+0000[0x00]~U+007F[0x7F], passed
 				if(block == DEF_EXFONT_BLOCK_BASIC_LATIN)
 					offset = character->buffer[0];
 				else
@@ -547,7 +547,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				unknown = true;
 			else
 			{
-				//latin 1 supplement : U+0080[0xC2, 0x80]~U+00FF[0xC3, 0xBF], passed
+				//latin 1 supplement: U+0080[0xC2, 0x80]~U+00FF[0xC3, 0xBF], passed
 				//U+0080[0xC2, 0x80]~U+009F[0xC2, 0x9F] are invalid character.
 				if(block == DEF_EXFONT_BLOCK_LATIN_1_SUPPLEMENT)
 				{
@@ -558,7 +558,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//latin extended a : U+0100[0xC4, 0x80]~U+017F[0xC5, 0xBF], passed
+				//latin extended a: U+0100[0xC4, 0x80]~U+017F[0xC5, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_A)
 				{
 					if(character->buffer[0] == 0xC4)
@@ -568,7 +568,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//latin extended b : U+0180[0xC6, 0x80]~U+024F[0xC9, 0x8F], passed
+				//latin extended b: U+0180[0xC6, 0x80]~U+024F[0xC9, 0x8F], passed
 				else if(block == DEF_EXFONT_BLOCK_LATIN_EXTENDED_B)
 				{
 					if(character->buffer[0] == 0xC6)
@@ -582,7 +582,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//ipa extensions : U+0250[0xC9, 0x90]~U+02AF[0xCA, 0xAF], passed
+				//ipa extensions: U+0250[0xC9, 0x90]~U+02AF[0xCA, 0xAF], passed
 				else if(block == DEF_EXFONT_BLOCK_IPA_EXTENSIONS)
 				{
 					if(character->buffer[0] == 0xC9 && character->buffer[1] >= 0x90)
@@ -592,7 +592,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//spacing_modifier_letters : U+02B0[0xCA, 0xB0]~U+02FF[0xCB, 0xBF], passed
+				//spacing_modifier_letters: U+02B0[0xCA, 0xB0]~U+02FF[0xCB, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_SPACING_MODIFIER_LETTERS)
 				{
 					if(character->buffer[0] == 0xCA && character->buffer[1] >= 0xB0)
@@ -602,7 +602,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//combining_diacritical_marks : U+0300[0xCC, 0x80]~U+036F[0xCD, 0xAF], passed
+				//combining_diacritical_marks: U+0300[0xCC, 0x80]~U+036F[0xCD, 0xAF], passed
 				else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS)
 				{
 					if(character->buffer[0] == 0xCC)
@@ -612,7 +612,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//greek and coptic : U+0370[0xCD, 0xB0]~U+03FF[0xCF, 0xBF], passed
+				//greek and coptic: U+0370[0xCD, 0xB0]~U+03FF[0xCF, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_GREEK_AND_COPTIC)
 				{
 					if(character->buffer[0] == 0xCD && character->buffer[1] >= 0xB0)
@@ -624,7 +624,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//cyrillic : U+0400[0xD0, 0x80]~U+04FF[0xD3, 0xBF], passed
+				//cyrillic: U+0400[0xD0, 0x80]~U+04FF[0xD3, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_CYRILLIC)
 				{
 					if(character->buffer[0] == 0xD0)
@@ -638,7 +638,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//cyrillic supplement : U+0500[0xD4, 0x80]~U+052F[0xD4, 0xAF], passed
+				//cyrillic supplement: U+0500[0xD4, 0x80]~U+052F[0xD4, 0xAF], passed
 				else if(block == DEF_EXFONT_BLOCK_CYRILLIC_SUPPLEMENT)
 				{
 					if(character->buffer[0] == 0xD4 && character->buffer[1] <= 0xAF)
@@ -646,7 +646,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//armenian : U+0530[0xD4, 0xB0]~U+058F[0xD6, 0x8F], passed
+				//armenian: U+0530[0xD4, 0xB0]~U+058F[0xD6, 0x8F], passed
 				else if(block == DEF_EXFONT_BLOCK_ARMENIAN)
 				{
 					if(character->buffer[0] == 0xD4 && character->buffer[1] >= 0xB0)
@@ -658,7 +658,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//hebrew : U+0590[0xD6, 0x90]~U+05FF[0xD7, 0xBF], passed
+				//hebrew: U+0590[0xD6, 0x90]~U+05FF[0xD7, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_HEBREW)
 				{
 					if(character->buffer[0] == 0xD6 && character->buffer[1] >= 0x90)
@@ -668,7 +668,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//arabic : U+0600[0xD8, 0x80]~U+06FF[0xDB, 0xBF], passed
+				//arabic: U+0600[0xD8, 0x80]~U+06FF[0xDB, 0xBF], passed
 				else if(block == DEF_EXFONT_BLOCK_ARABIC)
 				{
 					if(character->buffer[0] == 0xD8)
@@ -695,7 +695,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 			{
 				if(block <= DEF_EXFONT_BLOCK_GEORGIAN)
 				{
-					//devanagari : U+0900[0xE0, 0xA4, 0x80]~U+097F[0xE0, 0xA5, 0xBF], passed
+					//devanagari: U+0900[0xE0, 0xA4, 0x80]~U+097F[0xE0, 0xA5, 0xBF], passed
 					if(block == DEF_EXFONT_BLOCK_DEVANAGARI)
 					{
 						if(character->buffer[1] == 0xA4)
@@ -705,7 +705,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//gurmukhi : U+0A00[0xE0, 0xA8, 0x80]~U+0A7F[0xE0, 0xA9, 0xBF], passed
+					//gurmukhi: U+0A00[0xE0, 0xA8, 0x80]~U+0A7F[0xE0, 0xA9, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_GURMUKHI)
 					{
 						if(character->buffer[1] == 0xA8)
@@ -715,7 +715,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//tamil : U+0B80[0xE0, 0xAE, 0x80]~U+0BFF[0xE0, 0xAF, 0xBF], passed
+					//tamil: U+0B80[0xE0, 0xAE, 0x80]~U+0BFF[0xE0, 0xAF, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_TAMIL)
 					{
 						if(character->buffer[1] == 0xAE)
@@ -725,7 +725,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//telugu : U+0C00[0xE0, 0xB0, 0x80]~U+0C7F[0xE0, 0xB1, 0xBF], passed
+					//telugu: U+0C00[0xE0, 0xB0, 0x80]~U+0C7F[0xE0, 0xB1, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_TELUGU)
 					{
 						if(character->buffer[1] == 0xB0)
@@ -735,7 +735,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//kannada : U+0C80[0xE0, 0xB2, 0x80]~U+0CFF[0xE0, 0xB3, 0xBF], passed
+					//kannada: U+0C80[0xE0, 0xB2, 0x80]~U+0CFF[0xE0, 0xB3, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_KANNADA)
 					{
 						if(character->buffer[1] == 0xB2)
@@ -745,7 +745,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//sinhala : U+0D80[0xE0, 0xB6, 0x80]~U+0DFF[0xE0, 0xB7, 0xBF], passed
+					//sinhala: U+0D80[0xE0, 0xB6, 0x80]~U+0DFF[0xE0, 0xB7, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_SINHALA)
 					{
 						if(character->buffer[1] == 0xB6)
@@ -755,7 +755,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//thai : U+0E00[0xE0, 0xB8, 0x80]~U+0E7F[0xE0, 0xB9, 0xBF], passed
+					//thai: U+0E00[0xE0, 0xB8, 0x80]~U+0E7F[0xE0, 0xB9, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_THAI)
 					{
 						if(character->buffer[1] == 0xB8)
@@ -765,7 +765,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//lao : U+0E80[0xE0, 0xBA, 0x80]~U+0EFF[0xE0, 0xBB, 0xBF], passed
+					//lao: U+0E80[0xE0, 0xBA, 0x80]~U+0EFF[0xE0, 0xBB, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_LAO)
 					{
 						if(character->buffer[1] == 0xBA)
@@ -775,7 +775,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//tibetan : U+0F00[0xE0, 0xBC, 0x80]~U+0FFF[0xE0, 0xBF, 0xBF], passed
+					//tibetan: U+0F00[0xE0, 0xBC, 0x80]~U+0FFF[0xE0, 0xBF, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_TIBETAN)
 					{
 						if(character->buffer[1] == 0xBC)
@@ -789,7 +789,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//georgian : U+10A0[0xE1, 0x82, 0xA0]~U+10FF[0xE1, 0x83, 0xBF], passed
+					//georgian: U+10A0[0xE1, 0x82, 0xA0]~U+10FF[0xE1, 0x83, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_GEORGIAN)
 					{
 						if(character->buffer[1] == 0x82 && character->buffer[2] >= 0xA0)
@@ -804,7 +804,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				}
 				else if(block <= DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
 				{
-					//unified_canadian_aboriginal_syllabics : U+1400[0xE1, 0x90, 0x80]~U+167F[0xE1, 0x99, 0xBF], passed
+					//unified_canadian_aboriginal_syllabics: U+1400[0xE1, 0x90, 0x80]~U+167F[0xE1, 0x99, 0xBF], passed
 					if(block == DEF_EXFONT_BLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS)
 					{
 						if(character->buffer[1] == 0x90)
@@ -830,7 +830,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//phonetic_extensions : U+1D00[0xE1, 0xB4, 0x80]~U+1D7F[0xE1, 0xB5, 0xBF], passed
+					//phonetic_extensions: U+1D00[0xE1, 0xB4, 0x80]~U+1D7F[0xE1, 0xB5, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_PHONETIC_EXTENSIONS)
 					{
 						if(character->buffer[1] == 0xB4)
@@ -840,7 +840,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//combining_diacritical_marks_supplement : U+1DC0[0xE1, 0xB7, 0x80]~U+1DFF[0xE1, 0xB7, 0xBF], passed
+					//combining_diacritical_marks_supplement: U+1DC0[0xE1, 0xB7, 0x80]~U+1DFF[0xE1, 0xB7, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT)
 					{
 						if(character->buffer[1] == 0xB7)
@@ -848,7 +848,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//greek_extended : U+1F00[0xE1, 0xBC, 0x80]~U+1FFF[0xE1, 0xBF, 0xBF], passed
+					//greek_extended: U+1F00[0xE1, 0xBC, 0x80]~U+1FFF[0xE1, 0xBF, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_GREEK_EXTENDED)
 					{
 						if(character->buffer[1] == 0xBC)
@@ -862,7 +862,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//general_punctuation : U+2000[0xE2, 0x80, 0x80]~U+206F[0xE2, 0x81, 0xAF], passed
+					//general_punctuation: U+2000[0xE2, 0x80, 0x80]~U+206F[0xE2, 0x81, 0xAF], passed
 					else if(block == DEF_EXFONT_BLOCK_GENERAL_PUNCTUATION)
 					{
 						if(character->buffer[1] == 0x80)
@@ -872,7 +872,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//superscripts_and_subscripts : U+2070[0xE2, 0x81, 0xB0]~U+209F[0xE2, 0x82, 0x9F], passed
+					//superscripts_and_subscripts: U+2070[0xE2, 0x81, 0xB0]~U+209F[0xE2, 0x82, 0x9F], passed
 					else if(block == DEF_EXFONT_BLOCK_SUPERSCRIPTS_AND_SUBSCRIPTS)
 					{
 						if(character->buffer[1] == 0x81 && character->buffer[2] >= 0xB0)
@@ -882,7 +882,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//combining_diacritical_marks_for_symbols : U+20D0[0xE2, 0x83, 0x90]~U+20FF[0xE2, 0x83, 0xBF], passed
+					//combining_diacritical_marks_for_symbols: U+20D0[0xE2, 0x83, 0x90]~U+20FF[0xE2, 0x83, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_COMBINING_DIACRITICAL_MARKS_FOR_SYMBOLS)
 					{
 						if(character->buffer[1] == 0x83 && character->buffer[2] >= 0x90)
@@ -890,7 +890,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//arrows : U+2190[0xE2, 0x86, 0x90]~U+21FF[0xE2, 0x87, 0xBF], passed
+					//arrows: U+2190[0xE2, 0x86, 0x90]~U+21FF[0xE2, 0x87, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_ARROWS)
 					{
 						if(character->buffer[1] == 0x86 && character->buffer[2] >= 0x90)
@@ -900,7 +900,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//mathematical_operators : U+2200[0xE2, 0x88, 0x80]~U+22FF[0xE2, 0x8B, 0xBF], passed
+					//mathematical_operators: U+2200[0xE2, 0x88, 0x80]~U+22FF[0xE2, 0x8B, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_MATHEMATICAL_OPERATORS)
 					{
 						if(character->buffer[1] == 0x88)
@@ -914,7 +914,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//miscellaneous_technical : U+2300[0xE2, 0x8C, 0x80]~U+23FF[0xE2, 0x8F, 0xBF], passed
+					//miscellaneous_technical: U+2300[0xE2, 0x8C, 0x80]~U+23FF[0xE2, 0x8F, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_TECHNICAL)
 					{
 						if(character->buffer[1] == 0x8C)
@@ -933,7 +933,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				}
 				else if(block <= DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
 				{
-					//optical_character_recognition : U+2440[0xE2, 0x91, 0x80]~U+245F[0xE2, 0x91, 0x9F], passed
+					//optical_character_recognition: U+2440[0xE2, 0x91, 0x80]~U+245F[0xE2, 0x91, 0x9F], passed
 					if(block == DEF_EXFONT_BLOCK_OPTICAL_CHARACTER_RECOGNITION)
 					{
 						if(character->buffer[1] == 0x91 && character->buffer[2] <= 0x9F)
@@ -941,7 +941,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//enclosed_alphanumerics : U+2460[0xE2, 0x91, 0xA0]~U+24FF[0xE2, 0x93, 0xBF], passed
+					//enclosed_alphanumerics: U+2460[0xE2, 0x91, 0xA0]~U+24FF[0xE2, 0x93, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_ENCLOSED_ALPHANUMERICS)
 					{
 						if(character->buffer[1] == 0x91 && character->buffer[2] >= 0xA0)
@@ -953,7 +953,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//box_drawing : U+2500[0xE2, 0x94, 0x80]~U+257F[0xE2, 0x95, 0xBF], passed
+					//box_drawing: U+2500[0xE2, 0x94, 0x80]~U+257F[0xE2, 0x95, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_BOX_DRAWING)
 					{
 						if(character->buffer[1] == 0x94)
@@ -963,7 +963,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//block_elements : U+2580[0xE2, 0x96, 0x80]~U+259F[0xE2, 0x96, 0x9F], passed
+					//block_elements: U+2580[0xE2, 0x96, 0x80]~U+259F[0xE2, 0x96, 0x9F], passed
 					else if(block == DEF_EXFONT_BLOCK_BLOCK_ELEMENTS)
 					{
 						if(character->buffer[1] == 0x96 && character->buffer[2] <= 0x9F)
@@ -971,7 +971,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//geometric_shapes : U+25A0[0xE2, 0x96, 0xA0]~U+25FF[0xE2, 0x97, 0xBF], passed
+					//geometric_shapes: U+25A0[0xE2, 0x96, 0xA0]~U+25FF[0xE2, 0x97, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_GEOMETRIC_SHAPES)
 					{
 						if(character->buffer[1] == 0x96 && character->buffer[2] >= 0xA0)
@@ -981,7 +981,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//miscellaneous_symbols : U+2600[0xE2, 0x98, 0x80]~U+26FF[0xE2, 0x9B, 0xBF], passed
+					//miscellaneous_symbols: U+2600[0xE2, 0x98, 0x80]~U+26FF[0xE2, 0x9B, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS)
 					{
 						if(character->buffer[1] == 0x98)
@@ -995,7 +995,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//dingbats : U+2700[0xE2, 0x9C, 0x80]~U+27BF[0xE2, 0x9E, 0xBF], passed
+					//dingbats: U+2700[0xE2, 0x9C, 0x80]~U+27BF[0xE2, 0x9E, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_DINGBATS)
 					{
 						if(character->buffer[1] == 0x9C)
@@ -1007,7 +1007,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//supplemental_arrows_b : U+2900[0xE2, 0xA4, 0x80]~U+297F[0xE2, 0xA5, 0xBF], passed
+					//supplemental_arrows_b: U+2900[0xE2, 0xA4, 0x80]~U+297F[0xE2, 0xA5, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_SUPPLEMENTAL_ARROWS_B)
 					{
 						if(character->buffer[1] == 0xA4)
@@ -1017,7 +1017,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//miscellaneous_symbols_and_arrows : U+2B00[0xE2, 0xAC, 0x80]~U+2BFF[0xE2, 0xAF, 0xBF], passed
+					//miscellaneous_symbols_and_arrows: U+2B00[0xE2, 0xAC, 0x80]~U+2BFF[0xE2, 0xAF, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_ARROWS)
 					{
 						if(character->buffer[1] == 0xAC)
@@ -1031,7 +1031,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//cjk_symbol_and_punctuation : U+3000[0xE3, 0x80, 0x80]~U+303F[0xE3, 0x80, 0xBF], passed
+					//cjk_symbol_and_punctuation: U+3000[0xE3, 0x80, 0x80]~U+303F[0xE3, 0x80, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_CJK_SYMBOL_AND_PUNCTUATION)
 					{
 						if(character->buffer[1] == 0x80)
@@ -1044,7 +1044,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				}
 				else
 				{
-					//hiragana : U+3040[0xE3, 0x81, 0x80 ]~U+309F[0xE3, 0x82, 0x9F], passed
+					//hiragana: U+3040[0xE3, 0x81, 0x80 ]~U+309F[0xE3, 0x82, 0x9F], passed
 					if(block == DEF_EXFONT_BLOCK_HIRAGANA)
 					{
 						if(character->buffer[1] == 0x81)
@@ -1054,7 +1054,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//katakana : U+30A0[0xE3, 0x82, 0xA0]~U+30FF[0xE3, 0x83, 0xBF], passed
+					//katakana: U+30A0[0xE3, 0x82, 0xA0]~U+30FF[0xE3, 0x83, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_KATAKANA)
 					{
 						if(character->buffer[1] == 0x82 && character->buffer[2] >= 0xA0)
@@ -1064,7 +1064,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//cjk_compatibility : U+3300[0xE3, 0x8C, 0x80]~U+33FF[0xE3, 0x8F, 0xBF], passed
+					//cjk_compatibility: U+3300[0xE3, 0x8C, 0x80]~U+33FF[0xE3, 0x8F, 0xBF], passed
 					else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY)
 					{
 						if(character->buffer[1] == 0x8C)
@@ -1078,7 +1078,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//cjk_unified_ideographs : U+4E00[0xE4, 0xB8, 0x80]~U+9FFF[0xE9, 0xBF, 0xBF]
+					//cjk_unified_ideographs: U+4E00[0xE4, 0xB8, 0x80]~U+9FFF[0xE9, 0xBF, 0xBF]
 					else if(block == DEF_EXFONT_BLOCK_CJK_UNIFIED_IDEOGRAPHS)
 					{
 						if(character->buffer[0] >= 0xE4 && character->buffer[0] <= 0xE9)
@@ -1144,7 +1144,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//yi_syllables : U+A000[0xEA, 0x80, 0x80]~U+A48F[0xEA, 0x92, 0x8F], passed
+					//yi_syllables: U+A000[0xEA, 0x80, 0x80]~U+A48F[0xEA, 0x92, 0x8F], passed
 					else if(block == DEF_EXFONT_BLOCK_YI_SYLLABLES)
 					{
 						if(character->buffer[1] == 0x80)
@@ -1188,7 +1188,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//yi_radicals : U+A490[0xEA, 0x92, 0x90]~U+A4CF[0xEA, 0x93, 0x8F], passed
+					//yi_radicals: U+A490[0xEA, 0x92, 0x90]~U+A4CF[0xEA, 0x93, 0x8F], passed
 					else if(block == DEF_EXFONT_BLOCK_YI_RADICALS)
 					{
 						if(character->buffer[1] == 0x92 && character->buffer[2] >= 0x90)
@@ -1198,7 +1198,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//hangul_syllables : U+AC00[0xEA, 0xB0, 0x80]~U+D7AF[0xED, 0x9E, 0xAF]
+					//hangul_syllables: U+AC00[0xEA, 0xB0, 0x80]~U+D7AF[0xED, 0x9E, 0xAF]
 					else if(block == DEF_EXFONT_BLOCK_HANGUL_SYLLABLES)
 					{
 						if(character->buffer[0] >= 0xEA && character->buffer[0] <= 0xED)
@@ -1263,7 +1263,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//cjk_compatibility_forms : U+FE30[0xEF, 0xB8, 0xB0]~U+FE4F[0xEF, 0xB9, 0x8F], passed
+					//cjk_compatibility_forms: U+FE30[0xEF, 0xB8, 0xB0]~U+FE4F[0xEF, 0xB9, 0x8F], passed
 					else if(block == DEF_EXFONT_BLOCK_CJK_COMPATIBILITY_FORMS)
 					{
 						if(character->buffer[1] == 0xB8 && character->buffer[2] >= 0xB0)
@@ -1273,7 +1273,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 						else
 							unknown = true;
 					}
-					//halfwidth_and_fullwidth_forms : U+FF00[0xEF, 0xBC, 0x80]~U+FFEF[0xEF, 0xBF, 0xAF], passed
+					//halfwidth_and_fullwidth_forms: U+FF00[0xEF, 0xBC, 0x80]~U+FFEF[0xEF, 0xBF, 0xAF], passed
 					else if(block == DEF_EXFONT_BLOCK_HALFWIDTH_AND_FULLWIDTH_FORMS)
 					{
 						if(character->buffer[1] == 0xBC)
@@ -1299,7 +1299,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				unknown = true;
 			else
 			{
-				//miscellaneous_symbols_and_pictographs : U+1F300[0xF0, 0x9F, 0x8C, 0x80]~U+1F5FF[0xF0, 0x9F, 0x97, 0xBF], passed
+				//miscellaneous_symbols_and_pictographs: U+1F300[0xF0, 0x9F, 0x8C, 0x80]~U+1F5FF[0xF0, 0x9F, 0x97, 0xBF], passed
 				if(block == DEF_EXFONT_BLOCK_MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS)
 				{
 					if(character->buffer[2] == 0x8C)
@@ -1329,7 +1329,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 					else
 						unknown = true;
 				}
-				//emoticons : U+1F600[0xF0, 0x9F, 0x98, 0x80]~U+1F64F[0xF0, 0x9F, 0x99, 0x8F], passed
+				//emoticons: U+1F600[0xF0, 0x9F, 0x98, 0x80]~U+1F64F[0xF0, 0x9F, 0x99, 0x8F], passed
 				else if(block == DEF_EXFONT_BLOCK_EMOTICONS)
 				{
 					if(character->buffer[2] == 0x98)

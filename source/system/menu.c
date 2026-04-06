@@ -17,11 +17,14 @@
 #include "system/util/expl.h"
 #include "system/util/fake_pthread.h"
 #include "system/util/file.h"
+#include "system/util/gpu_usage.h"
 #include "system/util/hid.h"
 #include "system/util/httpc.h"
 #include "system/util/hw_config.h"
 #include "system/util/json_types.h"
 #include "system/util/log.h"
+#include "system/util/net_usage.h"
+#include "system/util/nvs_usage.h"
 #include "system/util/queue.h"
 #include "system/util/str.h"
 #include "system/util/sync.h"
@@ -434,6 +437,9 @@ void Menu_exit(void)
 	Util_err_exit();
 	Util_exit();
 	Util_cpu_usage_exit();
+	Util_gpu_usage_exit();
+	Util_net_usage_exit();
+	Util_nvs_usage_exit();
 	Util_fake_pthread_exit();
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -622,6 +628,15 @@ void Menu_main(void)
 
 			if(Util_cpu_usage_query_show_flag())
 				Util_cpu_usage_draw();
+
+			if(Util_gpu_usage_query_show_flag())
+				Util_gpu_usage_draw();
+
+			if(Util_net_usage_query_show_flag())
+				Util_net_usage_draw();
+
+			if(Util_nvs_usage_query_show_flag())
+				Util_nvs_usage_draw();
 
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 

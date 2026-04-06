@@ -16,10 +16,13 @@
 #include "system/util/err.h"
 #include "system/util/expl.h"
 #include "system/util/file.h"
+#include "system/util/gpu_usage.h"
 #include "system/util/hid.h"
 #include "system/util/hw_config.h"
 #include "system/util/keyboard.h"
 #include "system/util/log.h"
+#include "system/util/net_usage.h"
+#include "system/util/nvs_usage.h"
 #include "system/util/queue.h"
 #include "system/util/speaker.h"
 #include "system/util/str.h"
@@ -2225,6 +2228,15 @@ void Vid_main(void)
 			if(Util_cpu_usage_query_show_flag())
 				Util_cpu_usage_draw();
 
+			if(Util_gpu_usage_query_show_flag())
+				Util_gpu_usage_draw();
+
+			if(Util_net_usage_query_show_flag())
+				Util_net_usage_draw();
+
+			if(Util_nvs_usage_query_show_flag())
+				Util_nvs_usage_draw();
+
 			if(Util_log_query_show_flag())
 				Util_log_draw();
 
@@ -2301,6 +2313,15 @@ void Vid_main(void)
 
 				if(Util_cpu_usage_query_show_flag())
 					Util_cpu_usage_draw();
+
+				if(Util_gpu_usage_query_show_flag())
+					Util_gpu_usage_draw();
+
+				if(Util_net_usage_query_show_flag())
+					Util_net_usage_draw();
+
+				if(Util_nvs_usage_query_show_flag())
+					Util_nvs_usage_draw();
 
 				if(Util_log_query_show_flag())
 					Util_log_draw();
@@ -3268,6 +3289,15 @@ static void Vid_draw_init_exit_message(void)
 		if(Util_cpu_usage_query_show_flag())
 			Util_cpu_usage_draw();
 
+		if(Util_gpu_usage_query_show_flag())
+			Util_gpu_usage_draw();
+
+		if(Util_net_usage_query_show_flag())
+			Util_net_usage_draw();
+
+		if(Util_nvs_usage_query_show_flag())
+			Util_nvs_usage_draw();
+
 		Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
@@ -3286,6 +3316,15 @@ static void Vid_draw_init_exit_message(void)
 
 			if(Util_cpu_usage_query_show_flag())
 				Util_cpu_usage_draw();
+
+			if(Util_gpu_usage_query_show_flag())
+				Util_gpu_usage_draw();
+
+			if(Util_net_usage_query_show_flag())
+				Util_net_usage_draw();
+
+			if(Util_nvs_usage_query_show_flag())
+				Util_nvs_usage_draw();
 
 			Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 		}

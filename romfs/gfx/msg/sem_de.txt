@@ -74,3 +74,6 @@ einige Funktionen sind eingeschränkt)</62>
 <69>Auto</69>
 <70>Zeit bis zum Ruhezustand: </70>
 <71>Deutsch</71>
+<72>GPU usage monitor (may not accurate)</72>
+<73>Network usage monitor (may not accurate)</73>
+<74>Storage usage monitor (may not accurate)</74>

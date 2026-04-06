@@ -72,3 +72,6 @@ turn off the '800px(auto) mode'
 <69>Auto</69>
 <70>Time to enter sleep: </70>
 <71>Deutsch</71>
+<72>GPU usage monitor (may not accurate)</72>
+<73>Network usage monitor (may not accurate)</73>
+<74>Storage usage monitor (may not accurate)</74>

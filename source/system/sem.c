@@ -17,10 +17,13 @@
 #include "system/util/encoder.h"
 #include "system/util/err.h"
 #include "system/util/file.h"
+#include "system/util/gpu_usage.h"
 #include "system/util/hid.h"
 #include "system/util/httpc.h"
 #include "system/util/hw_config.h"
 #include "system/util/log.h"
+#include "system/util/net_usage.h"
+#include "system/util/nvs_usage.h"
 #include "system/util/str.h"
 #include "system/util/sync.h"
 #include "system/util/thread_types.h"
@@ -41,6 +44,10 @@
 #define MENU_LANGUAGES_Y_OFFSET_MIN			(double)(-75)		//Minimum y offset in languages menu.
 #define MENU_LCD_Y_OFFSET_MIN				(double)(-60)		//Minimum y offset in LCD menu.
 #define MENU_FONT_Y_OFFSET_MIN				(double)(-950)		//Minimum y offset in font menu.
+#define MENU_ADVANCED_Y_OFFSET_MIN			(double)(-120)		//Minimum y offset in advanced menu.
+#if (!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE)
+#define MENU_USAGE_MONITOR_SIZE_Y			(double)(40)		//Size (Y direction) of usage monitor control UI.
+#endif //(!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE)
 
 #define UPDATE_FLASH_INTERVAL_MS			(uint64_t)(50)		//Interval for flash mode update.
 #define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
@@ -226,6 +233,7 @@
 #define HID_ADVANCED_LOG_DUMP_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dump_log_button, (k)))
 #define HID_ADVANCED_LOG_DUMP_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dump_log_button, (k)))
 #define HID_ADVANCED_LOG_DUMP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#if DEF_CPU_USAGE_API_ENABLE
 //Advanced: CPU monitor on.
 #define HID_ADVANCED_CPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_on_button, (k)))
 #define HID_ADVANCED_CPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_on_button, (k)))
@@ -234,6 +242,37 @@
 #define HID_ADVANCED_CPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_cpu_usage_off_button, (k)))
 #define HID_ADVANCED_CPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_cpu_usage_off_button, (k)))
 #define HID_ADVANCED_CPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#endif //DEF_CPU_USAGE_API_ENABLE
+#if DEF_GPU_USAGE_API_ENABLE
+//Advanced: GPU monitor on.
+#define HID_ADVANCED_GPU_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_gpu_usage_on_button, (k)))
+#define HID_ADVANCED_GPU_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_gpu_usage_on_button, (k)))
+#define HID_ADVANCED_GPU_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Advanced: GPU monitor off.
+#define HID_ADVANCED_GPU_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_gpu_usage_off_button, (k)))
+#define HID_ADVANCED_GPU_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_gpu_usage_off_button, (k)))
+#define HID_ADVANCED_GPU_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#endif //DEF_GPU_USAGE_API_ENABLE
+#if DEF_NET_USAGE_API_ENABLE
+//Advanced: NET monitor on.
+#define HID_ADVANCED_NET_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_net_usage_on_button, (k)))
+#define HID_ADVANCED_NET_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_net_usage_on_button, (k)))
+#define HID_ADVANCED_NET_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Advanced: NET monitor off.
+#define HID_ADVANCED_NET_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_net_usage_off_button, (k)))
+#define HID_ADVANCED_NET_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_net_usage_off_button, (k)))
+#define HID_ADVANCED_NET_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#endif //DEF_NET_USAGE_API_ENABLE
+#if DEF_NVS_USAGE_API_ENABLE
+//Advanced: NVS monitor on.
+#define HID_ADVANCED_NVS_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_nvs_usage_on_button, (k)))
+#define HID_ADVANCED_NVS_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_nvs_usage_on_button, (k)))
+#define HID_ADVANCED_NVS_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Advanced: NVS monitor off.
+#define HID_ADVANCED_NVS_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_nvs_usage_off_button, (k)))
+#define HID_ADVANCED_NVS_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_nvs_usage_off_button, (k)))
+#define HID_ADVANCED_NVS_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#endif //DEF_NVS_USAGE_API_ENABLE
 //Battery: Eco on.
 #define HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
 #define HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
@@ -377,6 +416,9 @@ typedef enum
 	MSG_AUTO,
 	MSG_SLEEP_TIME,
 	MSG_GERMAN,
+	MSG_GPU_USAGE_MONITOR,
+	MSG_NET_USAGE_MONITOR,
+	MSG_NVS_USAGE_MONITOR,
 
 	MSG_MAX,
 } Sem_msg;
@@ -510,6 +552,21 @@ static bool sem_is_cpu_usage_monitor_running = false;
 static bool sem_should_cpu_usage_monitor_running = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
 
+#if DEF_GPU_USAGE_API_ENABLE
+static bool sem_is_gpu_usage_monitor_running = false;
+static bool sem_should_gpu_usage_monitor_running = false;
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+static bool sem_is_net_usage_monitor_running = false;
+static bool sem_should_net_usage_monitor_running = false;
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+static bool sem_is_nvs_usage_monitor_running = false;
+static bool sem_should_nvs_usage_monitor_running = false;
+#endif //DEF_NVS_USAGE_API_ENABLE
+
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 static Thread sem_check_connectivity_thread = NULL;
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
@@ -534,6 +591,18 @@ static Sem_update_state sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 #if DEF_CPU_USAGE_API_ENABLE
 static Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
 #endif //DEF_CPU_USAGE_API_ENABLE
+
+#if DEF_GPU_USAGE_API_ENABLE
+static Draw_image_data sem_monitor_gpu_usage_on_button = { 0, }, sem_monitor_gpu_usage_off_button = { 0, };
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+static Draw_image_data sem_monitor_net_usage_on_button = { 0, }, sem_monitor_net_usage_off_button = { 0, };
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+static Draw_image_data sem_monitor_nvs_usage_on_button = { 0, }, sem_monitor_nvs_usage_off_button = { 0, };
+#endif //DEF_NVS_USAGE_API_ENABLE
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 static bool sem_record_request = false;
@@ -1009,6 +1078,27 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected, sizeof(sem_monitor_cpu_usage_off_button.selected));
 #endif //DEF_CPU_USAGE_API_ENABLE
 
+#if DEF_GPU_USAGE_API_ENABLE
+	//GPU usage.
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_is_gpu_usage_monitor_running, sizeof(sem_is_gpu_usage_monitor_running));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_gpu_usage_on_button.selected, sizeof(sem_monitor_gpu_usage_on_button.selected));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_gpu_usage_off_button.selected, sizeof(sem_monitor_gpu_usage_off_button.selected));
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+	//NET usage.
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_is_net_usage_monitor_running, sizeof(sem_is_net_usage_monitor_running));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_net_usage_on_button.selected, sizeof(sem_monitor_net_usage_on_button.selected));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_net_usage_off_button.selected, sizeof(sem_monitor_net_usage_off_button.selected));
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+	//NVS usage.
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_is_nvs_usage_monitor_running, sizeof(sem_is_nvs_usage_monitor_running));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_on_button.selected, sizeof(sem_monitor_nvs_usage_on_button.selected));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_off_button.selected, sizeof(sem_monitor_nvs_usage_off_button.selected));
+#endif //DEF_NVS_USAGE_API_ENABLE
+
 	//Battery.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco, sizeof(sem_config.is_eco));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected, sizeof(sem_eco_mode_on_button.selected));
@@ -1095,6 +1185,21 @@ void Sem_draw_init(void)
 	sem_monitor_cpu_usage_on_button = Draw_get_empty_image();
 	sem_monitor_cpu_usage_off_button = Draw_get_empty_image();
 #endif //DEF_CPU_USAGE_API_ENABLE
+
+#if DEF_GPU_USAGE_API_ENABLE
+	sem_monitor_gpu_usage_on_button = Draw_get_empty_image();
+	sem_monitor_gpu_usage_off_button = Draw_get_empty_image();
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+	sem_monitor_net_usage_on_button = Draw_get_empty_image();
+	sem_monitor_net_usage_off_button = Draw_get_empty_image();
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+	sem_monitor_nvs_usage_on_button = Draw_get_empty_image();
+	sem_monitor_nvs_usage_off_button = Draw_get_empty_image();
+#endif //DEF_NVS_USAGE_API_ENABLE
 
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		sem_menu_button[i] = Draw_get_empty_image();
@@ -1282,6 +1387,27 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_cpu_usage_off_button.selected);
 #endif //DEF_CPU_USAGE_API_ENABLE
 
+#if DEF_GPU_USAGE_API_ENABLE
+	//GPU usage.
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_is_gpu_usage_monitor_running);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_gpu_usage_on_button.selected);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_gpu_usage_off_button.selected);
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+	//NET usage.
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_is_net_usage_monitor_running);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_net_usage_on_button.selected);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_net_usage_off_button.selected);
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+	//NVS usage.
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_is_nvs_usage_monitor_running);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_on_button.selected);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_off_button.selected);
+#endif //DEF_NVS_USAGE_API_ENABLE
+
 	//Battery.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected);
@@ -1352,6 +1478,15 @@ void Sem_main(void)
 		if(Util_cpu_usage_query_show_flag())
 			Util_cpu_usage_draw();
 
+		if(Util_gpu_usage_query_show_flag())
+			Util_gpu_usage_draw();
+
+		if(Util_net_usage_query_show_flag())
+			Util_net_usage_draw();
+
+		if(Util_nvs_usage_query_show_flag())
+			Util_nvs_usage_draw();
+
 		Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
 		if (sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
@@ -1367,7 +1502,7 @@ void Sem_main(void)
 
 		//Scroll bar.
 		if (sem_selected_menu_mode == MENU_LANGAGES || sem_selected_menu_mode == MENU_LCD
-		|| sem_selected_menu_mode == MENU_FONT)
+		|| sem_selected_menu_mode == MENU_FONT || sem_selected_menu_mode == MENU_ADVANCED)
 		{
 			Draw_texture(&background, color, 312.5, 0.0, 7.5, 15.0);
 			Draw_texture(&background, color, 312.5, 215.0, 7.5, 10.0);
@@ -1801,53 +1936,105 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == MENU_ADVANCED)
 		{
 			//Allow send app info.
-			Draw(&sem_msg[MSG_SEND_INFO_MODE], 0, 25, FONT_SIZE_SUB_TITLE, color);
+			draw_y = (sem_y_offset + 25);
+			Draw(&sem_msg[MSG_SEND_INFO_MODE], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
 
 			//Allow.
-			Draw_with_background(&sem_msg[MSG_ALLOW], 10, 40, FONT_SIZE_ALLOW_DENY, (config.is_send_info_allowed ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			draw_y += 15;
+			Draw_with_background(&sem_msg[MSG_ALLOW], 10, draw_y, FONT_SIZE_ALLOW_DENY, (config.is_send_info_allowed ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_allow_send_info_button, (sem_allow_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 			//Deny.
-			Draw_with_background(&sem_msg[MSG_DENY], 110, 40, FONT_SIZE_ALLOW_DENY, (config.is_send_info_allowed ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[MSG_DENY], 110, draw_y, FONT_SIZE_ALLOW_DENY, (config.is_send_info_allowed ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_deny_send_info_button, (sem_deny_send_info_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 
 			//Debug mode.
-			Draw(&sem_msg[MSG_DEBUG_MODE], 0, 65, FONT_SIZE_SUB_TITLE, color);
+			draw_y += 15;
+			Draw(&sem_msg[MSG_DEBUG_MODE], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[MSG_ON], 10, 80, FONT_SIZE_ON_OFF, (config.is_debug ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			draw_y += 15;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (config.is_debug ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_debug_mode_on_button, (sem_debug_mode_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 			//OFF.
-			Draw_with_background(&sem_msg[MSG_OFF], 110, 80, FONT_SIZE_ON_OFF, (config.is_debug ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (config.is_debug ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_debug_mode_off_button, (sem_debug_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 
 			//Fake model.
-			Draw(&sem_msg[MSG_FAKE_MODEL], 0, 105, FONT_SIZE_SUB_TITLE, color);
+			draw_y += 15;
+			Draw(&sem_msg[MSG_FAKE_MODEL], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
+
+			draw_y += 30;
 			if(sem_internal_state.fake_model < DEF_SEM_MODEL_MAX)
 			{
 				Util_str_format(&format_str, "%s (%s)", DEF_STR_NEVER_NULL(&sem_msg[MSG_ON]), sem_model_name[sem_internal_state.fake_model]);
-				Draw_with_background(&format_str, 10, 135, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				Draw_with_background(&format_str, 10, draw_y, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 				190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, (sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 			}
 			else
 			{
-				Draw_with_background(&sem_msg[MSG_OFF], 10, 135, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+				Draw_with_background(&sem_msg[MSG_OFF], 10, draw_y, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 				190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, (sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 			}
 
-			Draw_with_background(&sem_msg[MSG_DUMP_LOGS], 10, 165, FONT_SIZE_ADVANCED_DUMP, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			draw_y += 30;
+			Draw_with_background(&sem_msg[MSG_DUMP_LOGS], 10, draw_y, FONT_SIZE_ADVANCED_DUMP, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, (sem_dump_log_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 
 #if DEF_CPU_USAGE_API_ENABLE
 			//CPU usage monitor.
-			Draw(&sem_msg[MSG_CPU_USAGE_MONITOR], 0, 185, FONT_SIZE_SUB_TITLE, color);
+			draw_y += 20;
+			Draw(&sem_msg[MSG_CPU_USAGE_MONITOR], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
 
 			//ON.
-			Draw_with_background(&sem_msg[MSG_ON], 10, 200, FONT_SIZE_ON_OFF, (sem_is_cpu_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			draw_y += 20;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (sem_is_cpu_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_on_button, (sem_monitor_cpu_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 			//OFF.
-			Draw_with_background(&sem_msg[MSG_OFF], 110, 200, FONT_SIZE_ON_OFF, (sem_is_cpu_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_cpu_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_cpu_usage_off_button, (sem_monitor_cpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 #endif //DEF_CPU_USAGE_API_ENABLE
+
+#if DEF_GPU_USAGE_API_ENABLE
+			//GPU usage monitor.
+			draw_y += 20;
+			Draw(&sem_msg[MSG_GPU_USAGE_MONITOR], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
+
+			//ON.
+			draw_y += 20;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (sem_is_gpu_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_gpu_usage_on_button, (sem_monitor_gpu_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			//OFF.
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_gpu_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_gpu_usage_off_button, (sem_monitor_gpu_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+#endif //DEF_GPU_USAGE_API_ENABLE
+
+#if DEF_NET_USAGE_API_ENABLE
+			//NET usage monitor.
+			draw_y += 20;
+			Draw(&sem_msg[MSG_NET_USAGE_MONITOR], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
+
+			//ON.
+			draw_y += 20;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (sem_is_net_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_net_usage_on_button, (sem_monitor_net_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			//OFF.
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_net_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_net_usage_off_button, (sem_monitor_net_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+#endif //DEF_NET_USAGE_API_ENABLE
+
+#if DEF_NVS_USAGE_API_ENABLE
+			//NVS usage monitor.
+			draw_y += 20;
+			Draw(&sem_msg[MSG_NVS_USAGE_MONITOR], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
+
+			//ON.
+			draw_y += 20;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (sem_is_nvs_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_nvs_usage_on_button, (sem_monitor_nvs_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			//OFF.
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_nvs_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_nvs_usage_off_button, (sem_monitor_nvs_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+#endif //DEF_NVS_USAGE_API_ENABLE
 		}
 		else if (sem_selected_menu_mode == MENU_BATTERY)
 		{
@@ -2068,6 +2255,8 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if (sem_selected_menu_mode == MENU_ADVANCED)
 			{
+				if(HID_SCROLL_BAR_SEL(*key))
+					sem_scroll_bar.selected = true;
 				if(HID_ADVANCED_SEND_INFO_ON_SEL(*key))
 					sem_allow_send_info_button.selected = true;
 				if(HID_ADVANCED_SEND_INFO_OFF_SEL(*key))
@@ -2086,6 +2275,24 @@ void Sem_hid(const Hid_info* key)
 				if(HID_ADVANCED_CPU_OFF_SEL(*key))
 					sem_monitor_cpu_usage_off_button.selected = true;
 #endif //DEF_CPU_USAGE_API_ENABLE
+#if DEF_GPU_USAGE_API_ENABLE
+				if(HID_ADVANCED_GPU_ON_SEL(*key))
+					sem_monitor_gpu_usage_on_button.selected = true;
+				if(HID_ADVANCED_GPU_OFF_SEL(*key))
+					sem_monitor_gpu_usage_off_button.selected = true;
+#endif //DEF_GPU_USAGE_API_ENABLE
+#if DEF_NET_USAGE_API_ENABLE
+				if(HID_ADVANCED_NET_ON_SEL(*key))
+					sem_monitor_net_usage_on_button.selected = true;
+				if(HID_ADVANCED_NET_OFF_SEL(*key))
+					sem_monitor_net_usage_off_button.selected = true;
+#endif //DEF_NET_USAGE_API_ENABLE
+#if DEF_NVS_USAGE_API_ENABLE
+				if(HID_ADVANCED_NVS_ON_SEL(*key))
+					sem_monitor_nvs_usage_on_button.selected = true;
+				if(HID_ADVANCED_NVS_OFF_SEL(*key))
+					sem_monitor_nvs_usage_off_button.selected = true;
+#endif //DEF_NVS_USAGE_API_ENABLE
 			}
 			else if (sem_selected_menu_mode == MENU_BATTERY)
 			{
@@ -2130,6 +2337,23 @@ void Sem_hid(const Hid_info* key)
 							sem_y_min = MENU_LCD_Y_OFFSET_MIN;
 						else if (sem_selected_menu_mode == MENU_FONT)
 							sem_y_min = MENU_FONT_Y_OFFSET_MIN;
+						else if (sem_selected_menu_mode == MENU_ADVANCED)
+						{
+							sem_y_min = MENU_ADVANCED_Y_OFFSET_MIN;
+#if !DEF_CPU_USAGE_API_ENABLE
+							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
+#endif //!DEF_CPU_USAGE_API_ENABLE
+#if !DEF_GPU_USAGE_API_ENABLE
+							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
+#endif //!DEF_GPU_USAGE_API_ENABLE
+#if !DEF_NET_USAGE_API_ENABLE
+							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
+#endif //!DEF_NET_USAGE_API_ENABLE
+#if !DEF_NVS_USAGE_API_ENABLE
+							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
+#endif //!DEF_NVS_USAGE_API_ENABLE
+							sem_y_min = Util_min_d(sem_y_min, 0);
+						}
 
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -2444,6 +2668,24 @@ void Sem_hid(const Hid_info* key)
 					else if (HID_ADVANCED_CPU_OFF_CFM(*key))
 						sem_should_cpu_usage_monitor_running = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
+#if DEF_GPU_USAGE_API_ENABLE
+					else if (HID_ADVANCED_GPU_ON_CFM(*key))
+						sem_should_gpu_usage_monitor_running = true;
+					else if (HID_ADVANCED_GPU_OFF_CFM(*key))
+						sem_should_gpu_usage_monitor_running = false;
+#endif //DEF_GPU_USAGE_API_ENABLE
+#if DEF_NET_USAGE_API_ENABLE
+					else if (HID_ADVANCED_NET_ON_CFM(*key))
+						sem_should_net_usage_monitor_running = true;
+					else if (HID_ADVANCED_NET_OFF_CFM(*key))
+						sem_should_net_usage_monitor_running = false;
+#endif //DEF_NET_USAGE_API_ENABLE
+#if DEF_NVS_USAGE_API_ENABLE
+					else if (HID_ADVANCED_NVS_ON_CFM(*key))
+						sem_should_nvs_usage_monitor_running = true;
+					else if (HID_ADVANCED_NVS_OFF_CFM(*key))
+						sem_should_nvs_usage_monitor_running = false;
+#endif //DEF_NVS_USAGE_API_ENABLE
 				}
 				else if (sem_selected_menu_mode == MENU_BATTERY)
 				{
@@ -2638,6 +2880,24 @@ void Sem_hid(const Hid_info* key)
 		if(HID_ADVANCED_CPU_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_cpu_usage_off_button.selected = false;
 #endif //DEF_CPU_USAGE_API_ENABLE
+#if DEF_GPU_USAGE_API_ENABLE
+		if(HID_ADVANCED_GPU_ON_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_gpu_usage_on_button.selected = false;
+		if(HID_ADVANCED_GPU_OFF_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_gpu_usage_off_button.selected = false;
+#endif //DEF_GPU_USAGE_API_ENABLE
+#if DEF_NET_USAGE_API_ENABLE
+		if(HID_ADVANCED_NET_ON_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_net_usage_on_button.selected = false;
+		if(HID_ADVANCED_NET_OFF_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_net_usage_off_button.selected = false;
+#endif //DEF_NET_USAGE_API_ENABLE
+#if DEF_NVS_USAGE_API_ENABLE
+		if(HID_ADVANCED_NVS_ON_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_nvs_usage_on_button.selected = false;
+		if(HID_ADVANCED_NVS_OFF_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_nvs_usage_off_button.selected = false;
+#endif //DEF_NVS_USAGE_API_ENABLE
 		if(HID_BAT_ECO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_on_button.selected = false;
 		if(HID_BAT_ECO_OFF_DESEL(*key) || sem_scroll_mode)
@@ -2827,7 +3087,7 @@ static void Sem_worker_callback(void)
 			if(sem_should_cpu_usage_monitor_running)
 			{
 				DEF_LOG_RESULT_SMART(result, Util_cpu_usage_init(), (result == DEF_SUCCESS), result);
-				if(result == DEF_SUCCESS)
+				if(result == DEF_SUCCESS || result == DEF_ERR_ALREADY_INITIALIZED)
 				{
 					Util_cpu_usage_set_show_flag(true);
 					sem_is_cpu_usage_monitor_running = true;
@@ -2851,6 +3111,96 @@ static void Sem_worker_callback(void)
 			}
 		}
 #endif //DEF_CPU_USAGE_API_ENABLE
+#if DEF_GPU_USAGE_API_ENABLE
+		else if(sem_is_gpu_usage_monitor_running != sem_should_gpu_usage_monitor_running)
+		{
+			if(sem_should_gpu_usage_monitor_running)
+			{
+				DEF_LOG_RESULT_SMART(result, Util_gpu_usage_init(), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS || result == DEF_ERR_ALREADY_INITIALIZED)
+				{
+					Util_gpu_usage_set_show_flag(true);
+					sem_is_gpu_usage_monitor_running = true;
+				}
+				else
+				{
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start GPU usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_show_flag(true);
+					sem_should_gpu_usage_monitor_running = false;
+					//Reset key state on scene change.
+					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+				}
+			}
+			else
+			{
+				Util_gpu_usage_set_show_flag(false);
+				Util_gpu_usage_exit();
+				sem_is_gpu_usage_monitor_running = false;
+				//Reset key state on scene change.
+				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+			}
+		}
+#endif //DEF_GPU_USAGE_API_ENABLE
+#if DEF_NET_USAGE_API_ENABLE
+		else if(sem_is_net_usage_monitor_running != sem_should_net_usage_monitor_running)
+		{
+			if(sem_should_net_usage_monitor_running)
+			{
+				DEF_LOG_RESULT_SMART(result, Util_net_usage_init(), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS || result == DEF_ERR_ALREADY_INITIALIZED)
+				{
+					Util_net_usage_set_show_flag(true);
+					sem_is_net_usage_monitor_running = true;
+				}
+				else
+				{
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start NET usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_show_flag(true);
+					sem_should_net_usage_monitor_running = false;
+					//Reset key state on scene change.
+					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+				}
+			}
+			else
+			{
+				Util_net_usage_set_show_flag(false);
+				Util_net_usage_exit();
+				sem_is_net_usage_monitor_running = false;
+				//Reset key state on scene change.
+				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+			}
+		}
+#endif //DEF_NET_USAGE_API_ENABLE
+#if DEF_NVS_USAGE_API_ENABLE
+		else if(sem_is_nvs_usage_monitor_running != sem_should_nvs_usage_monitor_running)
+		{
+			if(sem_should_nvs_usage_monitor_running)
+			{
+				DEF_LOG_RESULT_SMART(result, Util_nvs_usage_init(), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS || result == DEF_ERR_ALREADY_INITIALIZED)
+				{
+					Util_nvs_usage_set_show_flag(true);
+					sem_is_nvs_usage_monitor_running = true;
+				}
+				else
+				{
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start NVS usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_show_flag(true);
+					sem_should_nvs_usage_monitor_running = false;
+					//Reset key state on scene change.
+					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+				}
+			}
+			else
+			{
+				Util_nvs_usage_set_show_flag(false);
+				Util_nvs_usage_exit();
+				sem_is_nvs_usage_monitor_running = false;
+				//Reset key state on scene change.
+				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+			}
+		}
+#endif //DEF_NVS_USAGE_API_ENABLE
 		else if(sem_dump_log_request)
 		{
 			char file_name[64] = { 0, };

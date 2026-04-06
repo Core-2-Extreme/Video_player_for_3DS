@@ -65,6 +65,15 @@ uint32_t Util_parse_file(const char* source_data, uint32_t expected_items, Str_d
 uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_string);
 
 /**
+ * @brief Fornat size to text (x B, x.y KB, x.y MB ...etc).
+ * @param size (in) Size in bytes.
+ * @param size_string (out) Formatted string (x B, x.y KB, x.y MB ...etc).
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe.
+*/
+uint32_t Util_format_size(uint32_t size, Str_data* size_string);
+
+/**
  * @brief Load a message.
  * @param file_name (in) File name in romfs:/gfx/msg/.
  * @param out_msg (out) Array for parsed message.

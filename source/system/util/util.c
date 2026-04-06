@@ -663,6 +663,54 @@ uint32_t Util_convert_seconds_to_time(double input_seconds, Str_data* time_strin
 	return result;
 }
 
+uint32_t Util_format_size(uint32_t size, Str_data* size_string)
+{
+	const char unit_list[][3] = { "B", "KB", "MB", "GB", "TB", };
+	uint8_t max_loop = DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(unit_list);
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(!size_string)
+		goto invalid_arg;
+
+	result = Util_str_init(size_string);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_init, false, result);
+		goto api_failed;
+	}
+
+	if(size < 1000 || max_loop == 1)
+		result = Util_str_format(size_string, "%" PRIu32 " %s", (uint32_t)size, unit_list[0]);
+	else
+	{
+		double size_temp = size;
+
+		for(uint8_t i = 1; i < max_loop; i++)
+		{
+			size_temp /= 1000.0;
+			if(size_temp < 1000 || (i + 1) == max_loop)
+			{
+				result = Util_str_format(size_string, "%.1f %s", size_temp, unit_list[i]);
+				break;
+			}
+		}
+	}
+
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_str_format, false, result);
+		goto api_failed;
+	}
+
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	api_failed:
+	return result;
+}
+
 uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of_msg)
 {
 	uint8_t* fs_buffer = NULL;

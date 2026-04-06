@@ -398,27 +398,12 @@ void Util_expl_draw(void)
 			Util_str_format(&message, "%s (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), DEF_STR_NEVER_NULL(&type));
 		else
 		{
-			double size = util_expl_files.size[index];
+			Str_data size_string = { 0, };
 
-			if(size < 1000)
-				Util_str_format(&message, "%s(%" PRIu32 "B) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), (uint32_t)size, DEF_STR_NEVER_NULL(&type));
-			else
-			{
-				size /= 1000.0;
-				if(size < 1000)
-					Util_str_format(&message, "%s(%.1fKB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
-				else
-				{
-					size /= 1000.0;
-					if(size < 1000)
-						Util_str_format(&message, "%s(%.1fMB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
-					else
-					{
-						size /= 1000.0;
-						Util_str_format(&message, "%s(%.1fGB) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), size, DEF_STR_NEVER_NULL(&type));
-					}
-				}
-			}
+			Util_format_size(util_expl_files.size[index], &size_string);
+
+			Util_str_format(&message, "%s(%s) (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), DEF_STR_NEVER_NULL(&size_string), DEF_STR_NEVER_NULL(&type));
+			Util_str_free(&size_string);
 		}
 		Util_str_free(&type);
 

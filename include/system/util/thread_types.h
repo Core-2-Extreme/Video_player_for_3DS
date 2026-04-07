@@ -10,11 +10,13 @@
 
 //0x18~0x3F.
 #define DEF_THREAD_PRIORITY_IDLE			(int32_t)(0x36)	//Lowest priority for user thread.
-#define DEF_THREAD_PRIORITY_LOW				(int32_t)(0x2E)
-#define DEF_THREAD_PRIORITY_BELOW_NORMAL	(int32_t)(0x2D)
+#define DEF_THREAD_PRIORITY_VERY_LOW		(int32_t)(0x32)
+#define DEF_THREAD_PRIORITY_LOW				(int32_t)(0x30)
+#define DEF_THREAD_PRIORITY_BELOW_NORMAL	(int32_t)(0x2E)
 #define DEF_THREAD_PRIORITY_NORMAL			(int32_t)(0x2C)
-#define DEF_THREAD_PRIORITY_ABOVE_NORMAL	(int32_t)(0x2B)
-#define DEF_THREAD_PRIORITY_HIGH			(int32_t)(0x2A)
+#define DEF_THREAD_PRIORITY_ABOVE_NORMAL	(int32_t)(0x2A)
+#define DEF_THREAD_PRIORITY_HIGH			(int32_t)(0x28)
+#define DEF_THREAD_PRIORITY_VERY_HIGH		(int32_t)(0x26)
 #define DEF_THREAD_PRIORITY_REALTIME		(int32_t)(0x22)	//Highest priority for user thread.
 
 #define DEF_THREAD_SYSTEM_PRIORITY_IDLE		(int32_t)(0x3F)	//Lowest priority for system thread, user thread must not use this priority.

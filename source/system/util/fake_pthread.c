@@ -333,9 +333,9 @@ int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, v
 		return ENOSYS;
 
 	if(__attr)
-		handle = threadCreate(entry_point, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate(entry_point, __arg, __attr->stacksize, DEF_THREAD_PRIORITY_VERY_LOW, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 	else
-		handle = threadCreate(entry_point, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_BELOW_NORMAL, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
+		handle = threadCreate(entry_point, __arg, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_VERY_LOW, util_fake_pthread_enabled_core_list[util_fake_pthread_core_offset], true);
 
 	if(util_fake_pthread_core_offset + 1 < util_fake_pthread_enabled_cores)
 		util_fake_pthread_core_offset++;
@@ -379,7 +379,7 @@ int __wrap_pthread_attr_init(pthread_attr_t* attr)
 
 	attr->stackaddr = NULL;
 	attr->stacksize = DEF_THREAD_STACKSIZE;
-	attr->schedparam.sched_priority = DEF_THREAD_PRIORITY_LOW;
+	attr->schedparam.sched_priority = DEF_THREAD_PRIORITY_VERY_LOW;
 	attr->detachstate = PTHREAD_CREATE_JOINABLE;
 	return 0;
 }

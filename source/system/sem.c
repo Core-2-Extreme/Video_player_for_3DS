@@ -959,7 +959,7 @@ void Sem_init(void)
 	sem_state = state;
 
 	sem_thread_run = true;
-	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, NULL, DEF_THREAD_STACKSIZE, (DEF_THREAD_PRIORITY_HIGH - 1), 1, false);
+	sem_hw_config_thread = threadCreate(Sem_hw_config_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_REALTIME, 1, false);
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)

@@ -21,6 +21,7 @@
 
 //Defines.
 #define LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
+#define HEAP_LOW_CACHE_INTERVAL_MS	(uint32_t)(100)
 #define IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
 || (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
 
@@ -67,7 +68,9 @@ void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
 void* (*malloc_heap)(size_t size) = malloc_heap_only;
 
 static bool util_init = false;
+static bool util_is_heap_low = false;
 static bool util_is_core_available[4] = { 0, };
+static uint64_t util_is_heap_low_ts = 0;
 static LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
 static LightLock util_malloc_mutex = 1;//Initially unlocked state.
 
@@ -76,6 +79,11 @@ static inline bool Util_is_heap_low(void)
 {
 	bool is_low = true;
 	void* ptr = NULL;
+	uint64_t now = osGetTime();
+
+	//Return cached result if within cache interval.
+	if(Util_get_diff(now, util_is_heap_low_ts, UINT64_MAX) < HEAP_LOW_CACHE_INTERVAL_MS)
+		return util_is_heap_low;
 
 	LightLock_Lock(&util_malloc_mutex);
 	ptr = __real_malloc(DEF_UTIL_LOW_HEAP_THRESHOLD);
@@ -84,6 +92,10 @@ static inline bool Util_is_heap_low(void)
 
 	__real_free(ptr);
 	LightLock_Unlock(&util_malloc_mutex);
+
+	//Update cache.
+	util_is_heap_low = is_low;
+	util_is_heap_low_ts = now;
 
 	return is_low;
 }

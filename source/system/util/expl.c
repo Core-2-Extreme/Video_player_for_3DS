@@ -8,13 +8,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "system/menu.h"
 #include "system/draw/draw.h"
 #include "system/util/err_types.h"
 #include "system/util/file.h"
 #include "system/util/hid.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/thread_types.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
 
@@ -92,7 +92,7 @@ typedef struct
 static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string);
 //We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b);
-static void Util_expl_read_dir_callback(void);
+void Util_expl_read_dir_thread(void* arg);
 
 //Variables.
 static void (*util_expl_callback)(Str_data*, Str_data*) = NULL;
@@ -101,6 +101,7 @@ static bool util_expl_read_dir_request = false;
 static bool util_expl_show_flag = false;
 static bool util_expl_scroll_mode = false;
 static bool util_expl_init = false;
+static bool util_expl_thread_run = false;
 static double util_expl_move_remaining = 0;
 static uint8_t util_expl_active_index = 0;
 static uint32_t util_expl_num_of_files = 0;
@@ -109,6 +110,7 @@ static uint32_t util_expl_y_offset = 0;
 static Str_data util_expl_current_dir = { 0, };
 static Draw_image_data util_expl_file_button[NUM_OF_DISPLAYED_ITEMS] = { 0, };
 static Util_expl_files util_expl_files = { 0, };
+static Thread util_expl_thread_handle = 0;
 
 //Code.
 uint32_t Util_expl_init(void)
@@ -158,11 +160,12 @@ uint32_t Util_expl_init(void)
 	for(uint8_t i = 0; i < NUM_OF_DISPLAYED_ITEMS; i++)
 		util_expl_file_button[i] = Draw_get_empty_image();
 
-	if(!Menu_add_worker_thread_callback(Util_expl_read_dir_callback))
+	util_expl_thread_run = true;
+	util_expl_thread_handle = threadCreate(Util_expl_read_dir_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
+	if(!util_expl_thread_handle)
 	{
-		result = DEF_ERR_OTHER;
-		DEF_LOG_RESULT(Menu_add_worker_thread_callback, false, result);
-		goto other;
+		DEF_LOG_RESULT(threadCreate, false, DEF_ERR_OTHER);
+		goto nintendo_api_failed;
 	}
 
 	Util_watch_add(WATCH_HANDLE_GLOBAL, &util_expl_show_flag, sizeof(util_expl_show_flag));
@@ -177,6 +180,10 @@ uint32_t Util_expl_init(void)
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
 
+	nintendo_api_failed:
+	Util_expl_exit();
+	return DEF_ERR_OTHER;
+
 	other:
 	Util_expl_exit();
 	return result;
@@ -184,11 +191,14 @@ uint32_t Util_expl_init(void)
 
 void Util_expl_exit(void)
 {
-	if(!util_expl_init)
-		return;
-
 	util_expl_init = false;
-	Menu_remove_worker_thread_callback(Util_expl_read_dir_callback);
+
+	util_expl_thread_run = false;
+	if(util_expl_thread_handle)
+	{
+		threadJoin(util_expl_thread_handle, DEF_THREAD_WAIT_TIME);
+		threadFree(util_expl_thread_handle);
+	}
 
 	Util_str_free(&util_expl_current_dir);
 	for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
@@ -799,9 +809,12 @@ static int Util_expl_compare_name(const void* a, const void* b)
 	}
 }
 
-static void Util_expl_read_dir_callback(void)
+void Util_expl_read_dir_thread(void* arg)
 {
-	if (util_expl_init)
+	(void)arg;
+	DEF_LOG_STRING("Thread started.");
+
+	while (util_expl_thread_run)
 	{
 		if (util_expl_read_dir_request)
 		{
@@ -872,30 +885,28 @@ static void Util_expl_read_dir_callback(void)
 		}
 		else if(util_expl_check_file_size_index < util_expl_num_of_files)
 		{
-			while(util_expl_check_file_size_index < util_expl_num_of_files)
+			if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
 			{
-				if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
+				uint64_t file_size = 0;
+				uint32_t result = DEF_ERR_OTHER;
+
+				result = Util_file_check_file_size(util_expl_files.name[util_expl_check_file_size_index].buffer, util_expl_current_dir.buffer, &file_size);
+				if (result == DEF_SUCCESS)
 				{
-					uint64_t file_size = 0;
-					uint32_t result = DEF_ERR_OTHER;
-
-					result = Util_file_check_file_size(util_expl_files.name[util_expl_check_file_size_index].buffer, util_expl_current_dir.buffer, &file_size);
-					if (result == DEF_SUCCESS)
-					{
-						util_expl_files.size[util_expl_check_file_size_index] = file_size;
-						Draw_set_refresh_needed(true);
-					}
-					else
-						DEF_LOG_RESULT(Util_file_check_file_size, (result == DEF_SUCCESS), result);
-
-					util_expl_check_file_size_index++;
-					//Don't check all files once as it locks worker thread too long.
-					break;
+					util_expl_files.size[util_expl_check_file_size_index] = file_size;
+					Draw_set_refresh_needed(true);
 				}
 				else
-					util_expl_check_file_size_index++;
+					DEF_LOG_RESULT(Util_file_check_file_size, (result == DEF_SUCCESS), result);
 			}
+
+			util_expl_check_file_size_index++;
 		}
+		else
+			Util_sleep(DEF_THREAD_INACTIVE_SLEEP_TIME);
 	}
+
+	DEF_LOG_STRING("Thread exit.");
+	threadExit(0);
 }
 #endif //DEF_EXPL_API_ENABLE

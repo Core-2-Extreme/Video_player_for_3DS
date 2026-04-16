@@ -26,6 +26,7 @@
 #include "system/util/net_usage.h"
 #include "system/util/nvs_usage.h"
 #include "system/util/queue.h"
+#include "system/util/ram_usage.h"
 #include "system/util/str.h"
 #include "system/util/sync.h"
 #include "system/util/thread_types.h"
@@ -440,6 +441,7 @@ void Menu_exit(void)
 	Util_gpu_usage_exit();
 	Util_net_usage_exit();
 	Util_nvs_usage_exit();
+	Util_ram_usage_exit();
 	Util_fake_pthread_exit();
 
 	DEF_LOG_RESULT_SMART(result, threadJoin(menu_worker_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -637,6 +639,9 @@ void Menu_main(void)
 
 			if(Util_nvs_usage_query_show_flag())
 				Util_nvs_usage_draw();
+
+			if(Util_ram_usage_query_show_flag())
+				Util_ram_usage_draw();
 
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 

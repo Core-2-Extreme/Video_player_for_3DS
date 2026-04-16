@@ -24,6 +24,7 @@
 #include "system/util/net_usage.h"
 #include "system/util/nvs_usage.h"
 #include "system/util/queue.h"
+#include "system/util/ram_usage.h"
 #include "system/util/speaker.h"
 #include "system/util/str.h"
 #include "system/util/sync.h"
@@ -2237,6 +2238,9 @@ void Vid_main(void)
 			if(Util_nvs_usage_query_show_flag())
 				Util_nvs_usage_draw();
 
+			if(Util_ram_usage_query_show_flag())
+				Util_ram_usage_draw();
+
 			if(Util_log_query_show_flag())
 				Util_log_draw();
 
@@ -2322,6 +2326,9 @@ void Vid_main(void)
 
 				if(Util_nvs_usage_query_show_flag())
 					Util_nvs_usage_draw();
+
+				if(Util_ram_usage_query_show_flag())
+					Util_ram_usage_draw();
 
 				if(Util_log_query_show_flag())
 					Util_log_draw();
@@ -3298,6 +3305,9 @@ static void Vid_draw_init_exit_message(void)
 		if(Util_nvs_usage_query_show_flag())
 			Util_nvs_usage_draw();
 
+		if(Util_ram_usage_query_show_flag())
+			Util_ram_usage_draw();
+
 		Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 
 		//Draw the same things on right screen if 3D mode is enabled.
@@ -3325,6 +3335,9 @@ static void Vid_draw_init_exit_message(void)
 
 			if(Util_nvs_usage_query_show_flag())
 				Util_nvs_usage_draw();
+
+			if(Util_ram_usage_query_show_flag())
+				Util_ram_usage_draw();
 
 			Draw(&vid_player.status, 0, 20, FONT_SIZE_STATUS, color);
 		}

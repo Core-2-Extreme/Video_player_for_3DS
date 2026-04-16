@@ -24,6 +24,7 @@
 #include "system/util/log.h"
 #include "system/util/net_usage.h"
 #include "system/util/nvs_usage.h"
+#include "system/util/ram_usage.h"
 #include "system/util/str.h"
 #include "system/util/sync.h"
 #include "system/util/thread_types.h"
@@ -44,10 +45,10 @@
 #define MENU_LANGUAGES_Y_OFFSET_MIN			(double)(-75)		//Minimum y offset in languages menu.
 #define MENU_LCD_Y_OFFSET_MIN				(double)(-60)		//Minimum y offset in LCD menu.
 #define MENU_FONT_Y_OFFSET_MIN				(double)(-950)		//Minimum y offset in font menu.
-#define MENU_ADVANCED_Y_OFFSET_MIN			(double)(-120)		//Minimum y offset in advanced menu.
-#if (!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE)
+#define MENU_ADVANCED_Y_OFFSET_MIN			(double)(-160)		//Minimum y offset in advanced menu.
+#if (!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE || !DEF_RAM_USAGE_API_ENABLE)
 #define MENU_USAGE_MONITOR_SIZE_Y			(double)(40)		//Size (Y direction) of usage monitor control UI.
-#endif //(!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE)
+#endif //(!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE || !DEF_RAM_USAGE_API_ENABLE)
 
 #define UPDATE_FLASH_INTERVAL_MS			(uint64_t)(50)		//Interval for flash mode update.
 #define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
@@ -273,6 +274,16 @@
 #define HID_ADVANCED_NVS_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_nvs_usage_off_button, (k)))
 #define HID_ADVANCED_NVS_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //DEF_NVS_USAGE_API_ENABLE
+#if DEF_RAM_USAGE_API_ENABLE
+//Advanced: RAM monitor on.
+#define HID_ADVANCED_RAM_ON_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_ram_usage_on_button, (k)))
+#define HID_ADVANCED_RAM_ON_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_ram_usage_on_button, (k)))
+#define HID_ADVANCED_RAM_ON_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+//Advanced: RAM monitor off.
+#define HID_ADVANCED_RAM_OFF_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_monitor_ram_usage_off_button, (k)))
+#define HID_ADVANCED_RAM_OFF_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_monitor_ram_usage_off_button, (k)))
+#define HID_ADVANCED_RAM_OFF_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
+#endif //DEF_RAM_USAGE_API_ENABLE
 //Battery: Eco on.
 #define HID_BAT_ECO_ON_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_eco_mode_on_button, (k)))
 #define HID_BAT_ECO_ON_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_eco_mode_on_button, (k)))
@@ -419,6 +430,7 @@ typedef enum
 	MSG_GPU_USAGE_MONITOR,
 	MSG_NET_USAGE_MONITOR,
 	MSG_NVS_USAGE_MONITOR,
+	MSG_RAM_USAGE_MONITOR,
 
 	MSG_MAX,
 } Sem_msg;
@@ -567,6 +579,11 @@ static bool sem_is_nvs_usage_monitor_running = false;
 static bool sem_should_nvs_usage_monitor_running = false;
 #endif //DEF_NVS_USAGE_API_ENABLE
 
+#if DEF_RAM_USAGE_API_ENABLE
+static bool sem_is_ram_usage_monitor_running = false;
+static bool sem_should_ram_usage_monitor_running = false;
+#endif //DEF_RAM_USAGE_API_ENABLE
+
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 static Thread sem_check_connectivity_thread = NULL;
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
@@ -603,6 +620,10 @@ static Draw_image_data sem_monitor_net_usage_on_button = { 0, }, sem_monitor_net
 #if DEF_NVS_USAGE_API_ENABLE
 static Draw_image_data sem_monitor_nvs_usage_on_button = { 0, }, sem_monitor_nvs_usage_off_button = { 0, };
 #endif //DEF_NVS_USAGE_API_ENABLE
+
+#if DEF_RAM_USAGE_API_ENABLE
+static Draw_image_data sem_monitor_ram_usage_on_button = { 0, }, sem_monitor_ram_usage_off_button = { 0, };
+#endif //DEF_RAM_USAGE_API_ENABLE
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 static bool sem_record_request = false;
@@ -1099,6 +1120,13 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_off_button.selected, sizeof(sem_monitor_nvs_usage_off_button.selected));
 #endif //DEF_NVS_USAGE_API_ENABLE
 
+#if DEF_RAM_USAGE_API_ENABLE
+	//RAM usage.
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_is_ram_usage_monitor_running, sizeof(sem_is_ram_usage_monitor_running));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_ram_usage_on_button.selected, sizeof(sem_monitor_ram_usage_on_button.selected));
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_ram_usage_off_button.selected, sizeof(sem_monitor_ram_usage_off_button.selected));
+#endif //DEF_RAM_USAGE_API_ENABLE
+
 	//Battery.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco, sizeof(sem_config.is_eco));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected, sizeof(sem_eco_mode_on_button.selected));
@@ -1200,6 +1228,11 @@ void Sem_draw_init(void)
 	sem_monitor_nvs_usage_on_button = Draw_get_empty_image();
 	sem_monitor_nvs_usage_off_button = Draw_get_empty_image();
 #endif //DEF_NVS_USAGE_API_ENABLE
+
+#if DEF_RAM_USAGE_API_ENABLE
+	sem_monitor_ram_usage_on_button = Draw_get_empty_image();
+	sem_monitor_ram_usage_off_button = Draw_get_empty_image();
+#endif //DEF_RAM_USAGE_API_ENABLE
 
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		sem_menu_button[i] = Draw_get_empty_image();
@@ -1408,6 +1441,13 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_nvs_usage_off_button.selected);
 #endif //DEF_NVS_USAGE_API_ENABLE
 
+#if DEF_RAM_USAGE_API_ENABLE
+	//RAM usage.
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_is_ram_usage_monitor_running);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_ram_usage_on_button.selected);
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_monitor_ram_usage_off_button.selected);
+#endif //DEF_RAM_USAGE_API_ENABLE
+
 	//Battery.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_config.is_eco);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_eco_mode_on_button.selected);
@@ -1486,6 +1526,9 @@ void Sem_main(void)
 
 		if(Util_nvs_usage_query_show_flag())
 			Util_nvs_usage_draw();
+
+		if(Util_ram_usage_query_show_flag())
+			Util_ram_usage_draw();
 
 		Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
@@ -2035,6 +2078,20 @@ void Sem_main(void)
 			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_nvs_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_nvs_usage_off_button, (sem_monitor_nvs_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 #endif //DEF_NVS_USAGE_API_ENABLE
+
+#if DEF_RAM_USAGE_API_ENABLE
+			//RAM usage monitor.
+			draw_y += 20;
+			Draw(&sem_msg[MSG_RAM_USAGE_MONITOR], 0, draw_y, FONT_SIZE_SUB_TITLE, color);
+
+			//ON.
+			draw_y += 20;
+			Draw_with_background(&sem_msg[MSG_ON], 10, draw_y, FONT_SIZE_ON_OFF, (sem_is_ram_usage_monitor_running ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_ram_usage_on_button, (sem_monitor_ram_usage_on_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			//OFF.
+			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_ram_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_ram_usage_off_button, (sem_monitor_ram_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+#endif //DEF_RAM_USAGE_API_ENABLE
 		}
 		else if (sem_selected_menu_mode == MENU_BATTERY)
 		{
@@ -2293,6 +2350,12 @@ void Sem_hid(const Hid_info* key)
 				if(HID_ADVANCED_NVS_OFF_SEL(*key))
 					sem_monitor_nvs_usage_off_button.selected = true;
 #endif //DEF_NVS_USAGE_API_ENABLE
+#if DEF_RAM_USAGE_API_ENABLE
+				if(HID_ADVANCED_RAM_ON_SEL(*key))
+					sem_monitor_ram_usage_on_button.selected = true;
+				if(HID_ADVANCED_RAM_OFF_SEL(*key))
+					sem_monitor_ram_usage_off_button.selected = true;
+#endif //DEF_RAM_USAGE_API_ENABLE
 			}
 			else if (sem_selected_menu_mode == MENU_BATTERY)
 			{
@@ -2352,6 +2415,9 @@ void Sem_hid(const Hid_info* key)
 #if !DEF_NVS_USAGE_API_ENABLE
 							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
 #endif //!DEF_NVS_USAGE_API_ENABLE
+#if !DEF_RAM_USAGE_API_ENABLE
+							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
+#endif //!DEF_RAM_USAGE_API_ENABLE
 							sem_y_min = Util_min_d(sem_y_min, 0);
 						}
 
@@ -2686,6 +2752,12 @@ void Sem_hid(const Hid_info* key)
 					else if (HID_ADVANCED_NVS_OFF_CFM(*key))
 						sem_should_nvs_usage_monitor_running = false;
 #endif //DEF_NVS_USAGE_API_ENABLE
+#if DEF_RAM_USAGE_API_ENABLE
+					else if (HID_ADVANCED_RAM_ON_CFM(*key))
+						sem_should_ram_usage_monitor_running = true;
+					else if (HID_ADVANCED_RAM_OFF_CFM(*key))
+						sem_should_ram_usage_monitor_running = false;
+#endif //DEF_RAM_USAGE_API_ENABLE
 				}
 				else if (sem_selected_menu_mode == MENU_BATTERY)
 				{
@@ -2898,6 +2970,12 @@ void Sem_hid(const Hid_info* key)
 		if(HID_ADVANCED_NVS_OFF_DESEL(*key) || sem_scroll_mode)
 			sem_monitor_nvs_usage_off_button.selected = false;
 #endif //DEF_NVS_USAGE_API_ENABLE
+#if DEF_RAM_USAGE_API_ENABLE
+		if(HID_ADVANCED_RAM_ON_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_ram_usage_on_button.selected = false;
+		if(HID_ADVANCED_RAM_OFF_DESEL(*key) || sem_scroll_mode)
+			sem_monitor_ram_usage_off_button.selected = false;
+#endif //DEF_RAM_USAGE_API_ENABLE
 		if(HID_BAT_ECO_ON_DESEL(*key) || sem_scroll_mode)
 			sem_eco_mode_on_button.selected = false;
 		if(HID_BAT_ECO_OFF_DESEL(*key) || sem_scroll_mode)
@@ -3201,6 +3279,36 @@ static void Sem_worker_callback(void)
 			}
 		}
 #endif //DEF_NVS_USAGE_API_ENABLE
+#if DEF_RAM_USAGE_API_ENABLE
+		else if(sem_is_ram_usage_monitor_running != sem_should_ram_usage_monitor_running)
+		{
+			if(sem_should_ram_usage_monitor_running)
+			{
+				DEF_LOG_RESULT_SMART(result, Util_ram_usage_init(), (result == DEF_SUCCESS), result);
+				if(result == DEF_SUCCESS || result == DEF_ERR_ALREADY_INITIALIZED)
+				{
+					Util_ram_usage_set_show_flag(true);
+					sem_is_ram_usage_monitor_running = true;
+				}
+				else
+				{
+					Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't start RAM usage module!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+					Util_err_set_show_flag(true);
+					sem_should_ram_usage_monitor_running = false;
+					//Reset key state on scene change.
+					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+				}
+			}
+			else
+			{
+				Util_ram_usage_set_show_flag(false);
+				Util_ram_usage_exit();
+				sem_is_ram_usage_monitor_running = false;
+				//Reset key state on scene change.
+				Util_hid_reset_key_state(HID_KEY_BIT_ALL);
+			}
+		}
+#endif //DEF_RAM_USAGE_API_ENABLE
 		else if(sem_dump_log_request)
 		{
 			char file_name[64] = { 0, };

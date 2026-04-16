@@ -76,3 +76,4 @@ some function may not work)</62>
 <72>GPU usage monitor (may not accurate)</72>
 <73>Network usage monitor (may not accurate)</73>
 <74>Storage usage monitor (may not accurate)</74>
+<75>RAM usage monitor (may not accurate)</75>

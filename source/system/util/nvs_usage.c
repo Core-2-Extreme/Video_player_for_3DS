@@ -21,11 +21,11 @@
 #define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
 
 #define NVS_USAGE_X				(float)(300)		//X offset for NVS usage info in px.
-#define NVS_USAGE_Y				(float)(155)		//Y offset for NVS usage info in px.
+#define NVS_USAGE_Y				(float)(120)		//Y offset for NVS usage info in px.
 #define NVS_USAGE_WIDTH			(float)(100)		//Element width for NVS usage info in px.
 #define NVS_USAGE_HEIGHT		(float)(10)			//Element height for NVS usage info in px.
 
-#define FONT_SIZE_NVS_USAGE		(float)(12.00)		//Font size for NVS usage info in px.
+#define FONT_SIZE_NVS_USAGE		(float)(11.00)		//Font size for NVS usage info in px.
 
 //Typedefs.
 //N/A.
@@ -235,8 +235,8 @@ void Util_nvs_usage_draw(void)
 	Util_str_free(&read_size_string);
 	Util_str_free(&write_size_string);
 
-	Draw_with_background_c(msg_cache, NVS_USAGE_X, NVS_USAGE_Y, FONT_SIZE_NVS_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_TOP, NVS_USAGE_WIDTH, NVS_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_scale_c(msg_cache, NVS_USAGE_X, NVS_USAGE_Y, FONT_SIZE_NVS_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NVS_USAGE_WIDTH, NVS_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 fileSize)

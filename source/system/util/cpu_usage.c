@@ -19,11 +19,11 @@
 #define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
 
 #define CPU_USAGE_X				(float)(300)		//X offset for CPU usage info in px.
-#define CPU_USAGE_Y				(float)(25)			//Y offset for CPU usage info in px.
+#define CPU_USAGE_Y				(float)(20)			//Y offset for CPU usage info in px.
 #define CPU_USAGE_WIDTH			(float)(100)		//Element width for CPU usage info in px.
 #define CPU_USAGE_HEIGHT		(float)(60)			//Element height for CPU usage info in px.
 
-#define FONT_SIZE_CPU_USAGE		(float)(12.00)		//Font size for CPU usage info in px.
+#define FONT_SIZE_CPU_USAGE		(float)(11.00)		//Font size for CPU usage info in px.
 
 //Typedefs.
 //N/A.
@@ -159,8 +159,8 @@ void Util_cpu_usage_draw(void)
 
 	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max: %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
-	Draw_with_background_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_TOP, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_scale_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 Result __wrap_APT_SetAppCpuTimeLimit(uint32_t percent)

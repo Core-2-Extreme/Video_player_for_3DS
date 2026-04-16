@@ -21,11 +21,11 @@
 #define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
 
 #define GPU_USAGE_X				(float)(300)		//X offset for GPU usage info in px.
-#define GPU_USAGE_Y				(float)(100)		//Y offset for GPU usage info in px.
+#define GPU_USAGE_Y				(float)(77.5)		//Y offset for GPU usage info in px.
 #define GPU_USAGE_WIDTH			(float)(100)		//Element width for GPU usage info in px.
 #define GPU_USAGE_HEIGHT		(float)(10)			//Element height for GPU usage info in px.
 
-#define FONT_SIZE_GPU_USAGE		(float)(12.00)		//Font size for GPU usage info in px.
+#define FONT_SIZE_GPU_USAGE		(float)(11.00)		//Font size for GPU usage info in px.
 
 //Typedefs.
 //N/A.
@@ -148,8 +148,8 @@ void Util_gpu_usage_draw(void)
 	//%f expects double.
 	snprintf(msg_cache, sizeof(msg_cache), "GPU: %.1f%%", (double)Util_gpu_usage_get_gpu_usage());
 
-	Draw_with_background_c(msg_cache, GPU_USAGE_X, GPU_USAGE_Y, FONT_SIZE_GPU_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_TOP, GPU_USAGE_WIDTH, GPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_scale_c(msg_cache, GPU_USAGE_X, GPU_USAGE_Y, FONT_SIZE_GPU_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, GPU_USAGE_WIDTH, GPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 void __wrap_C3D_FrameEnd(u8 flags)

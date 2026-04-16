@@ -21,11 +21,11 @@
 #define STACK_SIZE				(uint32_t)(2048)	//Stack size for worker threads.
 
 #define NET_USAGE_X				(float)(300)		//X offset for NET usage info in px.
-#define NET_USAGE_Y				(float)(115)		//Y offset for NET usage info in px.
+#define NET_USAGE_Y				(float)(90)			//Y offset for NET usage info in px.
 #define NET_USAGE_WIDTH			(float)(100)		//Element width for NET usage info in px.
 #define NET_USAGE_HEIGHT		(float)(10)			//Element height for NET usage info in px.
 
-#define FONT_SIZE_NET_USAGE		(float)(12.00)		//Font size for NET usage info in px.
+#define FONT_SIZE_NET_USAGE		(float)(11.00)		//Font size for NET usage info in px.
 
 //Typedefs.
 //N/A.
@@ -171,8 +171,8 @@ void Util_net_usage_draw(void)
 	Util_str_free(&download_size_string);
 	Util_str_free(&upload_size_string);
 
-	Draw_with_background_c(msg_cache, NET_USAGE_X, NET_USAGE_Y, FONT_SIZE_NET_USAGE, DEF_DRAW_BLACK, DRAW_X_ALIGN_RIGHT,
-	DRAW_Y_ALIGN_TOP, NET_USAGE_WIDTH, NET_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	Draw_with_scale_c(msg_cache, NET_USAGE_X, NET_USAGE_Y, FONT_SIZE_NET_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NET_USAGE_WIDTH, NET_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
 }
 
 ssize_t __wrap_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)

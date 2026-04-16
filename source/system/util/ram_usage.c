@@ -87,7 +87,7 @@ uint32_t Util_ram_usage_init(void)
 	return DEF_ERR_OTHER;
 
 	error_other:
-	return DEF_ERR_OTHER;
+	return result;
 }
 
 void Util_ram_usage_exit(void)

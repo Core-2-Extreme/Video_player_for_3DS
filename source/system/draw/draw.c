@@ -1631,6 +1631,7 @@ float box_size_y, Draw_background texture_position, void* background_image, uint
 
 			Exfont_draw_get_text_size(&part_text[i], base_size, x_scale, y_scale, &width, &height);
 			used_x += (width + (base_size * x_space_scale));
+			height += (base_size * y_space_scale);
 			if(used_x > used_x_max)
 				used_x_max = used_x;
 			if(height > used_y_max)

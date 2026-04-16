@@ -28,6 +28,7 @@
 #define DEF_DRAW_NO_COLOR					(uint32_t)(0x00000000)
 
 #define DEF_DRAW_NORMAL_SCALE_AND_SPACE		1.0, 1.0, 0.04, 0.01
+#define DEF_DRAW_NORMAL_SCALE_AND_COMPACT	1.0, 1.0, 0.00, -0.15
 
 typedef enum
 {

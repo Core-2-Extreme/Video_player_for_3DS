@@ -15,11 +15,13 @@
 #include "system/util/file.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
+#include "system/util/sync.h"
 #include "system/util/util.h"
 
 //Defines.
 #define USER_AGENT_FMT			(const char*)("Mozilla/5.0 (Horizon %s; ARMv6K) httpc/1.0.0")
 #define USER_AGENT_SIZE			(uint32_t)(128)
+#define MAX_CONTEXTS			(uint8_t)(32)
 
 //Typedefs.
 //N/A.
@@ -37,6 +39,8 @@ static uint32_t Util_httpc_sv_data_internal(httpcContext* httpc_context, uint32_
 static bool util_httpc_init = false;
 static char util_httpc_default_user_agent[USER_AGENT_SIZE] = { 0, };
 static char util_httpc_empty_char[1] = { 0, };
+static Sync_data util_httpc_mutex = { 0, };
+static httpcContext* util_httpc_handles[MAX_CONTEXTS] = { 0, };
 
 //Code.
 uint32_t Util_httpc_init(uint32_t buffer_size)
@@ -50,6 +54,13 @@ uint32_t Util_httpc_init(uint32_t buffer_size)
 	//Buffer size must be multiple of 0x1000.
 	if((buffer_size % 0x1000) != 0)
 		goto invalid_arg;
+
+	result = Util_sync_create(&util_httpc_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_sync_create, false, result);
+		goto error_other;
+	}
 
 	result = httpcInit(buffer_size);
 	if(result != DEF_SUCCESS)
@@ -71,6 +82,10 @@ uint32_t Util_httpc_init(uint32_t buffer_size)
 	return DEF_ERR_INVALID_ARG;
 
 	nintendo_api_failed:
+	Util_sync_destroy(&util_httpc_mutex);
+	return result;
+
+	error_other:
 	return result;
 }
 
@@ -80,7 +95,19 @@ void Util_httpc_exit(void)
 		return;
 
 	util_httpc_init = false;
+	//Cancel connections if exist.
+	Util_sync_lock(&util_httpc_mutex, UINT64_MAX);
+	for(uint8_t i = 0; i < MAX_CONTEXTS; i++)
+	{
+		if(util_httpc_handles[i])
+		{
+			httpcCancelConnection(util_httpc_handles[i]);
+			Util_httpc_close(util_httpc_handles[i]);
+		}
+	}
+	Util_sync_unlock(&util_httpc_mutex);
 	httpcExit();
+	Util_sync_destroy(&util_httpc_mutex);
 }
 
 const char* Util_httpc_get_default_user_agent(void)
@@ -633,6 +660,18 @@ static uint32_t Util_httpc_request(httpcContext* httpc_context, const char* url,
 		goto nintendo_api_failed;
 	}
 
+	//Register it.
+	Util_sync_lock(&util_httpc_mutex, UINT64_MAX);
+	for(uint8_t i = 0; i < MAX_CONTEXTS; i++)
+	{
+		if(!util_httpc_handles[i])
+		{
+			util_httpc_handles[i] = httpc_context;
+			break;
+		}
+	}
+	Util_sync_unlock(&util_httpc_mutex);
+
 	result = httpcSetSSLOpt(httpc_context, SSLCOPT_DisableVerify);
 	if (result != DEF_SUCCESS)
 	{
@@ -813,6 +852,18 @@ static void Util_httpc_close(httpcContext* httpc_context)
 		httpcCloseContext(httpc_context);
 		httpc_context->httphandle = 0;
 		httpc_context->servhandle = 0;
+
+		//Unregister it.
+		Util_sync_lock(&util_httpc_mutex, UINT64_MAX);
+		for(uint8_t i = 0; i < MAX_CONTEXTS; i++)
+		{
+			if(util_httpc_handles[i] == httpc_context)
+			{
+				util_httpc_handles[i] = NULL;
+				break;
+			}
+		}
+		Util_sync_unlock(&util_httpc_mutex);
 	}
 }
 

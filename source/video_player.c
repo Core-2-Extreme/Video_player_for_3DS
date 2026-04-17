@@ -65,7 +65,7 @@
 #define SETTINGS_ELEMENTS_V3						(uint8_t)(13)							//Settings file for v1.4.2.
 #define SETTINGS_ELEMENTS_V4						(uint8_t)(16)							//Settings file for v1.5.0.
 #define SETTINGS_ELEMENTS_V5						(uint8_t)(17)							//Settings file for v1.5.1, v1.5.2, v1.5.3 and v1.6.0.
-#define SETTINGS_ELEMENTS_V6						(uint8_t)(18)							//Settings file for v1.6.1.
+#define SETTINGS_ELEMENTS_V6						(uint8_t)(18)							//Settings file for v1.6.1 and v1.7.0.
 #define SETTINGS_ELEMENTS_NEWEST					(uint8_t)(SETTINGS_ELEMENTS_V6)			//Number of elements for the newest settings file.
 
 #define DEBUG_GRAPH_ELEMENTS						(uint16_t)(320)							//Number of debug graph elements.

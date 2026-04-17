@@ -58,19 +58,67 @@ If not, you can use these tools (**these tools are third-party tools, therefore 
 
 ## Prepare videos (advanced users)
 *If you are not familiar with CUI tools, you should use third-party tools above or consult friends, family, DeepSeek, ChatGPT and/or DuckDuckGo for how to use ffmpeg.*
-* Download [ffmpeg](https://ffmpeg.org/download.html)
-  * For NEW3DS and NEW2DS type :
-    * `ffmpeg -i {input_file_name} -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 {output_file_name}`
-  * For OLD3DS and OLD2DS type :
-    * `ffmpeg -i {input_file_name} -c:a aac -c:v mpeg4 -s 400x240 -crf 25 {output_file_name}`
-* Copy generated video files to your 3DS (anywhere on your SD card)
+1. Prepare your original videos.
+2. Download [ffmpeg](https://ffmpeg.org/download.html) if you don't have it.
+  * If you are looking forward to making non-3D videos...
+    * On NEW3DS/NEW2DS...
+      * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} {output_file_name}`
+    * On OLD3DS/OLD2DS...
+      * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} {output_file_name}`
+  * If you are looking forward to making 3D videos...
+    * That is SBS (side-by-side) (**recommended**)...
+      * On NEW3DS/NEW2DS...
+        * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
+      * On OLD3DS/OLD2DS...
+        * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
+    * That is non-SBS...
+      * Referer this: [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
+3. Copy generated videos to your 3DS (anywhere on your SD card).
 
-Replace `{input_file_name}` with your input file name and `{output_file_name}` with your output file name. \
-e.g. : `ffmpeg -i original_video.mp4 -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mkv` \
-e.g. : `ffmpeg -i original_video.avi -c:a aac -c:v libx264 -s 800x240 -preset medium -crf 25 converted_video.mkv` \
-Note : You can use any containers supported by this player, however `.mkv` is usually better especially if your video is long because it uses less RAM when playing it (hence less out of memory error).
+Where:
+* `{input_file_name}` is your original video (e.g. `my_movie.mp4`, `camera_1990_01_01.avi` etc..).
+* `{output_file_name}` is a converted file that is ready to play on your 3DS (e.g. `my_movie_converted.mkv`, `for_3ds.mp4` etc..).
+  * For most cases, `.mkv` is recommended because it uses less RAM when playing it (hence less chance of out of memory error).
+* `{audio_codec}` is an audio format (e.g. `aac`, `mp3`, `libvorbis`, `libopus` etc..).
+  * If you don't know what it is, use `aac` for `.mp4` and `libvorbis` for `.mkv`.
+* `{video_codec}` is a video format (e.g. `mpeg2video`, `mpeg4`, `libx264`, `libx265` etc..).
+  * For **OLD**3DS/2DS, `mpeg4` is recommended.
+  * For **NEW**3DS/2DS, `libx264` is recommended.
+  * If you don't know what it is, use the recommended value above.
+* `{resolution}` is a resolution of video frames.
+  * For **OLD**3DS/2DS, `400x240` is recommended.
+  * For **NEW**3DS/2DS, `800x240` or `800x480` is recommended.
+  * If you don't know what it is, use the recommended value above.
+* `{q}` is a quality of your video, lower value gives higher quality (and usually larger file size).
+  * Use `-crf {number}` for `libx264` and `libx265`.
+    * Something around `25` is a good point to start.
+      * Adjust it according to your preference.
+  * Use `-q:v {number}` for `mpeg2video` and `mpeg4`.
+    * Something around `8` is a good point to start.
+      * Adjust it according to your preference.
+* `{sbs_type}` is a stereoscopic metadata (used to know how images are aligned).
+  * Note: You should use `.mkv` for `{output_file_name}` because some containers such as `.mp4` doesn't keep this metadata.
+    * If your SBS video has left:right alignment (most common) (that is, **left picture** is for left eye, **right picture** is for **right eye**), use `left_right`.
+    * If your SBS video has right:left alignment (that is, **left picture** is for **right eye**, **right picture** is for **left eye**), use `left_right`.
+    * If your SBS video has top:bottom alignment (that is, **top picture** is for **left eye**, **bottom picture** is for **right eye**), use `top_bottom`.
+    * If your SBS video has bottom:top alignment (that is, **top picture** is for **right eye**, **bottom picture** is for **left eye**), use `bottom_top`.
 
-for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
+E.g.:
+* "I want to convert my video that is called "GNU.mp4" for my **OLD**3DS."
+  * `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mpeg4 -s 400x240 -q:v 8 GNU_for_3DS.mkv`
+* "I want to convert my video that is called "GNU.mkv" for my **NEW**3DS."
+  * `ffmpeg -i "GNU.mkv" -c:a libvorbis -c:v libx264 -s 800x240 -crf 25 GNU_for_3DS.mkv`
+* "I want to convert my video that is called "GNU.mkv" for my **NEW**3DS, **I don't care file size** and want to make it as **high quality** as possible."
+  * `ffmpeg -i "GNU.mkv" -c:a libvorbis -c:v libx264 -s 800x480 -crf 0 GNU_for_3DS.mkv`
+* "I want to convert my **left:right SBS** video that is called "GNU_in_SBS.mp4" for my **OLD**3DS."
+  * `ffmpeg -i "GNU_in_SBS.mp4" -c:a libvorbis -c:v mpeg4 -s 400x240 -q:v 8 -metadata:s:v:0 stereo_mode=left_right GNU_in_SBS_for_3DS.mkv`
+* "I want to convert my **bottom:top SBS** video that is called "GNU_in_SBS.mp4" for my **OLD**3DS, **I don't care video quality** just make it **smaller**."
+  * `ffmpeg -i "GNU_in_SBS.mp4" -c:a libvorbis -c:v mpeg4 -s 400x240 -q:v 40 -metadata:s:v:0 stereo_mode=bottom_top GNU_in_SBS_for_3DS.mkv`
+* "I want to convert my **left:right SBS** video that is called "GNU_in_SBS.mp4" for my **NEW**3DS."
+  * `ffmpeg -i "GNU_in_SBS.mp4" -c:a libvorbis -c:v libx264 -s 800x240 -crf 25 -metadata:s:v:0 stereo_mode=left_right GNU_in_SBS_for_3DS.mkv`
+
+Prp tip: If you find you frequently see "Processing video..." message during playback, try lowering `{resolution}` and/or \
+framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mpeg4 -s 256x144 -q:v 8 -r 23.976 GNU_for_3DS.mkv` for 256x144@23.976fps).
 
 ## Controls
 * In normal mode
@@ -251,8 +299,8 @@ OLD3DS:
 ![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
 
 ## Troubleshoot/FAQ
-1. Q. Can I watch side-by-side 3D videos?????
-    * A. **No** ❌, it needs to be 3DS camera format (1 video track for left eye, 1 video track for right eye) instead of common side-by-side!!!!!
+1. Q. Can I watch SBS (side-by-side) 3D videos?????
+    * A. **Yes** ✅, make sure your video has [stereoscopic metadata](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users)!!!!!
 2. Q. I've changed volume in app settings but it doesn't apply!!!!! Why?????
     * A. For now, manual volume changes in app settings **takes some time to apply** ⚠️ due to implementation!!!!!
 3. Q. Can I use variable-framerate videos?????
@@ -279,6 +327,7 @@ OLD3DS:
     * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
+* [v1.7.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v170)
 * [v1.6.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v161)
 * [v1.6.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v160)
 * [v1.5.3](https://github.com/Core-2-Extreme/Video_player_for_3DS#v153)
@@ -297,6 +346,19 @@ OLD3DS:
 * [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
+
+### v1.7.0
+**Changes** \
+Controls is now always displayed on bottom screen unless settings is opened. \
+File explorer close button has been changed from Y to X. \
+Move contents mode is now disabled by default. \
+Support for SBS (side-by-side) videos have been added. \
+Improved OOM recovery on HW decoder and dav1d decoder. \
+Ported performance improvement from a fork project.
+
+**Fixed bugs** \
+Decoding stall (causing frequent "processing video") on media files that contain unsupported codec has been fixed. \
+Initial video position has been fixed (it was slightly offset right depending on videos).
 
 ### v1.6.1
 **Changes** \

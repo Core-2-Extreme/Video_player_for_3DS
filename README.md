@@ -61,16 +61,10 @@ If not, you can use these tools (**these tools are third-party tools, therefore 
 1. Prepare your original videos.
 2. Download [ffmpeg](https://ffmpeg.org/download.html) if you don't have it.
   * If you are looking forward to making non-3D videos...
-    * On NEW3DS/NEW2DS...
-      * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} {output_file_name}`
-    * On OLD3DS/OLD2DS...
-      * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} {output_file_name}`
+    * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} {output_file_name}`
   * If you are looking forward to making 3D videos...
     * That is SBS (side-by-side) (**recommended**)...
-      * On NEW3DS/NEW2DS...
-        * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
-      * On OLD3DS/OLD2DS...
-        * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
+      * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
     * That is non-SBS...
       * Referer this: [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 3. Copy generated videos to your 3DS (anywhere on your SD card).
@@ -118,7 +112,7 @@ E.g.:
   * `ffmpeg -i "GNU_in_SBS.mp4" -c:a libvorbis -c:v libx264 -s 800x240 -crf 25 -metadata:s:v:0 stereo_mode=left_right GNU_in_SBS_for_3DS.mkv`
 
 Prp tip: If you find you frequently see "Processing video..." message during playback, try lowering `{resolution}` and/or \
-framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mpeg4 -s 256x144 -q:v 8 -r 23.976 GNU_for_3DS.mkv` for 256x144@23.976fps).
+framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mpeg4 -s 256x144 -q:v 8 -r 23.976 GNU_for_3DS.mkv` for `256x144@23.976fps`).
 
 ## Controls
 * In normal mode

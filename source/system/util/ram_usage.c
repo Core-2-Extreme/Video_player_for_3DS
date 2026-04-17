@@ -23,7 +23,7 @@
 #define RAM_USAGE_X				(float)(300)		//X offset for RAM usage info in px.
 #define RAM_USAGE_Y				(float)(150)		//Y offset for RAM usage info in px.
 #define RAM_USAGE_WIDTH			(float)(100)		//Element width for RAM usage info in px.
-#define RAM_USAGE_HEIGHT		(float)(10)			//Element height for RAM usage info in px.
+#define RAM_USAGE_HEIGHT		(float)(30)			//Element height for RAM usage info in px.
 
 #define FONT_SIZE_RAM_USAGE		(float)(11.00)		//Font size for RAM usage info in px.
 
@@ -192,31 +192,32 @@ void Util_ram_usage_set_show_flag(bool flag)
 void Util_ram_usage_draw(void)
 {
 	uint32_t char_length = 0;
+	uint32_t used = 0;
+	uint32_t total = 0;
+	double usage = 0;
 	char msg_cache[96] = { 0, };
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data used_size_string = { 0, };
-	Str_data used_linear_size_string = { 0, };
 	Str_data total_size_string = { 0, };
-	Str_data total_linear_size_string = { 0, };
 
 	if(!util_ram_usage_init)
 		return;
 
-	Util_format_size(Util_ram_usage_get_used_ram(false), &used_size_string);
-	Util_format_size(Util_ram_usage_get_used_ram(true), &used_linear_size_string);
-	Util_format_size(Util_ram_usage_get_total_ram(false), &total_size_string);
-	Util_format_size(Util_ram_usage_get_total_ram(true), &total_linear_size_string);
+	used = (Util_ram_usage_get_used_ram(false) + Util_ram_usage_get_used_ram(true));
+	total = (Util_ram_usage_get_total_ram(false) + Util_ram_usage_get_total_ram(true));
+	if(total != 0)
+		usage = (((double)used / total) * 100);
+
+	Util_format_size(used, &used_size_string);
+	Util_format_size(total, &total_size_string);
 
 	//%f expects double.
-	char_length = snprintf(msg_cache, sizeof(msg_cache), "RAM: %.1f%%", (double)Util_ram_usage_get_ram_usage(false));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(%s/%s)", DEF_STR_NEVER_NULL(&used_size_string), DEF_STR_NEVER_NULL(&total_size_string));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nLinear RAM: %.1f%%", (double)Util_ram_usage_get_ram_usage(true));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(%s/%s)", DEF_STR_NEVER_NULL(&used_linear_size_string), DEF_STR_NEVER_NULL(&total_linear_size_string));
+	char_length = snprintf(msg_cache, sizeof(msg_cache), "RAM: %.1f%%", usage);
+	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(%s/", DEF_STR_NEVER_NULL(&used_size_string));
+	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n%s)", DEF_STR_NEVER_NULL(&total_size_string));
 
 	Util_str_free(&used_size_string);
-	Util_str_free(&used_linear_size_string);
 	Util_str_free(&total_size_string);
-	Util_str_free(&total_linear_size_string);
 
 	Draw_with_scale_c(msg_cache, RAM_USAGE_X, RAM_USAGE_Y, FONT_SIZE_RAM_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
 	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, RAM_USAGE_WIDTH, RAM_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);

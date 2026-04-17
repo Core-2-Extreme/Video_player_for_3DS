@@ -23,7 +23,7 @@
 #define NVS_USAGE_X				(float)(300)		//X offset for NVS usage info in px.
 #define NVS_USAGE_Y				(float)(120)		//Y offset for NVS usage info in px.
 #define NVS_USAGE_WIDTH			(float)(100)		//Element width for NVS usage info in px.
-#define NVS_USAGE_HEIGHT		(float)(10)			//Element height for NVS usage info in px.
+#define NVS_USAGE_HEIGHT		(float)(30)			//Element height for NVS usage info in px.
 
 #define FONT_SIZE_NVS_USAGE		(float)(11.00)		//Font size for NVS usage info in px.
 

@@ -74,23 +74,23 @@ for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe
 
 ## Controls
 * In normal mode
-  * A : Play/Pause
-  * B : Stop
-  * Y : Open settings menu
-  * X : Select a file
-  * R : Zoom in
-  * L : Zoom out
-  * CPAD : Move a video and/or subtitle
-  * DPAD ←→ : Seek
-  * DPAD ↑↓ : Change screen brightness
-  * START : Back to main menu
-  * SELECT : Enter full-screen mode
-  * Touch on the bar : Seek
+  * A: Play/Pause
+  * B: Stop
+  * Y: Open settings menu
+  * X: Select a file
+  * R: Zoom in
+  * L: Zoom out
+  * CPAD: Move a video and/or subtitle
+  * DPAD ←→: Seek
+  * DPAD ↑↓: Change screen brightness
+  * START: Back to main menu
+  * SELECT: Enter full-screen mode
+  * Touch on the bar: Seek
 * In full-screen mode
-  * A : Play/Pause
-  * DPAD ←→ : Seek
-  * DPAD ↑↓ : Change screen brightness
-  * SELECT : Exit full-screen mode
+  * A: Play/Pause
+  * DPAD ←→: Seek
+  * DPAD ↑↓: Change screen brightness
+  * SELECT: Exit full-screen mode
 
 ## Supported languages
 * English
@@ -158,10 +158,10 @@ for 3D video, referer this : [How to convert your 3D video for 3DS (by T0biasCZe
 [GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Build
-You need :
+You need:
 * [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide](library/_devkitpro_install.md))
 
-If you want to build .cia, then you also need :
+If you want to build .cia, then you also need:
 * [bannertool](https://github.com/diasurgical/bannertool/releases/tag/1.2.0)
   * Broken links? Try our [backup](https://github.com/Core-2-Extreme/bannertool_fork/releases/tag/1.2.0).
 * [makerom](https://github.com/3DSGuy/Project_CTR/releases/tag/makerom-v0.18.4)
@@ -170,7 +170,7 @@ If you want to build .cia, then you also need :
 (Copy them in your path e.g. in `{devkitPro_install_dir}\tools\bin`).
 
 As of this writing, we use these packages to build this project. \
-Note : Not all of them are necessary e.g. `devkitARM-gdb` is not required to build and we don't use \
+Note: Not all of them are necessary e.g. `devkitARM-gdb` is not required to build and we don't use \
 standard `libctru` and `citro2(3)d` (that means you don't need them to build this project), \
 but we just document all of them in case someone need these information. \
 For more information, see [here](library/_devkitpro_install.md#install-devkitpro).
@@ -207,7 +207,7 @@ makerom v0.18.4
 
 If you want to make changes to the libraries, then follow [this guide](library/_devkitpro_install.md#build-libraries-usually-optional).
 
-After having all dependencies, do :
+After having all dependencies, do:
 * Clone this repository (`git clone https://github.com/core-2-extreme/{project_name}`).
   * On windows run `build_3dsx.bat` for `.3dsx` only build or `build.bat` for `.3dsx`+`.cia` build.
   * On other system, run `make 3dsx` for `.3dsx` only build or `make all` for `.3dsx`+`.cia` build.
@@ -228,26 +228,26 @@ Videos that in this resolution may be played without problems if scene changes, 
 | NEW3DS Software decoding | 800x480@30 | 800x480@30 | 800x480@30 | 800x480@24 | 800x240@30 |
 | NEW3DS Hardware decoding |    none    |    none    |    none    |1280x720@20 |    none    |
 
-**Note : Video resolution that exceeds screen resolution (400x240 on OLD2DS, 800x240 on OLD3DS, NEW2DS and NEW3DS) has little visible effect.**
+**Note: Video resolution that exceeds screen resolution (400x240 on OLD2DS, 800x240 on OLD3DS, NEW2DS and NEW3DS) has little visible effect.**
 
 ## Benchmark
 ⚠️ Decoding speed depends on encoder option, video type, video scene, etc...
 
-Original video file : [Big Buck Bunny](https://www.youtube.com/watch?v=YE7VzlLtp-4) \
-The test videos were generated with following commands : \
-mjpeg : `ffmpeg -i {input_file} -acodec copy -vcodec mjpeg -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
-mpeg1video	: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg1video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
-mpeg2video	: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg2video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
-mpeg4 : `ffmpeg -i {input_file} -acodec copy -vcodec mpeg4 -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
-h263p : `ffmpeg -i {input_file} -acodec copy -vcodec h263p -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
-h264 : `ffmpeg -i {input_file} -acodec copy -vcodec libx264 -s {width}x{height} -crf 25 -t 03:00 {output_file}` \
-h265 : `ffmpeg -i {input_file} -acodec copy -vcodec libx265 -s {width}x{height} -crf 30 -t 03:00 {output_file}` \
-av1 : `ffmpeg -i {input_file} -acodec copy -vcodec libsvtav1 -s {width}x{height} -crf 40 -row-mt 1 -cpu-used 5 -t 03:00 {output_file}`
+Original video file: [Big Buck Bunny](https://www.youtube.com/watch?v=YE7VzlLtp-4) \
+The test videos were generated with following commands: \
+mjpeg: `ffmpeg -i {input_file} -acodec copy -vcodec mjpeg -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg1video: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg1video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg2video: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg2video -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+mpeg4: `ffmpeg -i {input_file} -acodec copy -vcodec mpeg4 -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+h263p: `ffmpeg -i {input_file} -acodec copy -vcodec h263p -s {width}x{height} -q:v 5 -t 03:00 {output_file}` \
+h264: `ffmpeg -i {input_file} -acodec copy -vcodec libx264 -s {width}x{height} -crf 25 -t 03:00 {output_file}` \
+h265: `ffmpeg -i {input_file} -acodec copy -vcodec libx265 -s {width}x{height} -crf 30 -t 03:00 {output_file}` \
+av1: `ffmpeg -i {input_file} -acodec copy -vcodec libsvtav1 -s {width}x{height} -crf 40 -row-mt 1 -cpu-used 5 -t 03:00 {output_file}`
 
-NEW3DS :
+NEW3DS:
 ![new3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850778-c58cb243-854c-499f-9084-4646bd8c9de9.png)
 
-OLD3DS :
+OLD3DS:
 ![old3ds_decoding_speed](https://user-images.githubusercontent.com/45873899/221850879-c96f4764-b608-45ee-aa80-da36234ee92e.png)
 
 ## Troubleshoot/FAQ
@@ -455,7 +455,7 @@ Initial release.
 ## License
 This software is licensed under GNU General Public License v3.0 or later.
 
-Third party libraries are licensed under :
+Third party libraries are licensed under:
 
 | Library                                                                     | License                                |
 | --------------------------------------------------------------------------- | -------------------------------------- |
@@ -490,5 +490,5 @@ Third party libraries are licensed under :
 
 ## Donation
 If you find my app helpful, buy me a cup of coffee.
-* BTC : bc1qch33qdce5hwxte0pm8pn0a6qqnartg2ujklhhc
-* LTC : MKTD3U2vCMi7S7Jb1EQ2FiS4AdHC23PxJh
+* BTC: bc1qch33qdce5hwxte0pm8pn0a6qqnartg2ujklhhc
+* LTC: MKTD3U2vCMi7S7Jb1EQ2FiS4AdHC23PxJh

@@ -92,8 +92,8 @@ Where:
       * Adjust it according to your preference.
 * `{sbs_type}` is a stereoscopic metadata (used to know how images are aligned).
   * Note: You should use `.mkv` for `{output_file_name}` because some containers such as `.mp4` doesn't keep this metadata.
-    * If your SBS video has left:right alignment (most common) (that is, **left picture** is for left eye, **right picture** is for **right eye**), use `left_right`.
-    * If your SBS video has right:left alignment (that is, **left picture** is for **right eye**, **right picture** is for **left eye**), use `left_right`.
+    * If your SBS video has left:right alignment (most common) (that is, **left picture** is for **left eye**, **right picture** is for **right eye**), use `left_right`.
+    * If your SBS video has right:left alignment (that is, **left picture** is for **right eye**, **right picture** is for **left eye**), use `right_left`.
     * If your SBS video has top:bottom alignment (that is, **top picture** is for **left eye**, **bottom picture** is for **right eye**), use `top_bottom`.
     * If your SBS video has bottom:top alignment (that is, **top picture** is for **right eye**, **bottom picture** is for **left eye**), use `bottom_top`.
 
@@ -137,13 +137,14 @@ framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mp
 ## Supported languages
 * English
 * Japanese/日本語
-* Hungarian/Magyar (translated by vargaviktor)
-* Simplified Chinese/简体中文 (translated by LITTOMA)
-* Italian/Italiano (translated by dixy52-beep)
-* Spanish/Español (translated by Cookiee)
-* Romanian/Română (translated by Tescu48)
-* Polish/Polski (translated by JustScratchCoder)
-* Ryukyuan/琉球諸語 (translated by kuragehimekurara1)
+* Hungarian/Magyar (by vargaviktor)
+* Simplified Chinese/简体中文 (by LITTOMA)
+* Italian/Italiano (by dixy52-beep)
+* Spanish/Español (by Cookiee)
+* Romanian/Română (by Tescu48)
+* Polish/Polski (by JustScratchCoder)
+* Ryukyuan/琉球諸語 (by kuragehimekurara1)
+* German/Deutsch (by 0n1cOn3)
 
 ## Supported codecs
 **Supported video codecs**

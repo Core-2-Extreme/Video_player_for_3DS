@@ -41,7 +41,6 @@
 #define SEND_INFO_FMT_VER			(uint32_t)(1)			//Version of system info.
 
 #define NUM_OF_CALLBACKS			(uint16_t)(32)			//Number of worker thread callbacks.
-#define CURL_BUFFER_SIZE			(uint32_t)(0x40000)		//Buffer size for curl.
 #define HTTP_POST_BUFFER_SIZE		(uint32_t)(0x80000)		//Buffer size for httpc.
 
 //Exit check.
@@ -250,7 +249,7 @@ void Menu_init(void)
 
 	//Init rest of our modules.
 	DEF_LOG_RESULT_SMART(result, Util_httpc_init(HTTP_POST_BUFFER_SIZE), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, Util_curl_init(CURL_BUFFER_SIZE), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, Util_curl_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_init(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, Util_hid_add_callback(Menu_hid_callback), result, result);
 	DEF_LOG_RESULT_SMART(result, Util_expl_init(), (result == DEF_SUCCESS), result);

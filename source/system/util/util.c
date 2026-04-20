@@ -20,6 +20,7 @@
 #include "system/util/thread_types.h"
 
 //Defines.
+#define SOCKET_BUFFER_SIZE			(uint32_t)(0x40000)		//Buffer size for socket.
 #define LINEAR_THRESHOLD_SIZE		(uint32_t)(1000 * 32)
 #define HEAP_LOW_CACHE_INTERVAL_MS	(uint32_t)(100)
 #define IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
@@ -71,6 +72,7 @@ static bool util_init = false;
 static bool util_platform_init = false;
 static bool util_is_heap_low = false;
 static bool util_is_core_available[4] = { 0, };
+static uint32_t* util_platform_socket_buffer = NULL;
 static uint64_t util_is_heap_low_ts = 0;
 static LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
 static LightLock util_malloc_mutex = 1;//Initially unlocked state.
@@ -498,6 +500,8 @@ void Util_platform_init(void* arg)
 {
 	(void)arg;
 	uint32_t result = DEF_ERR_OTHER;
+	//Buffer size must be multiple of 0x1000.
+	uint32_t buffer_size = ((SOCKET_BUFFER_SIZE / 0x1000) * 0x1000);
 
 	if(util_platform_init)
 		return;
@@ -513,6 +517,18 @@ void Util_platform_init(void* arg)
 	DEF_LOG_RESULT_SMART(result, romfsInit(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, cfguInit(), (result == DEF_SUCCESS), result);
 	DEF_LOG_RESULT_SMART(result, amInit(), (result == DEF_SUCCESS), result);
+	util_platform_socket_buffer = (uint32_t*)memalign_heap(0x1000, buffer_size);
+	if(util_platform_socket_buffer)
+	{
+		DEF_LOG_RESULT_SMART(result, socInit(util_platform_socket_buffer, buffer_size), (result == DEF_SUCCESS), result);
+		if(result != DEF_SUCCESS)
+		{
+			free(util_platform_socket_buffer);
+			util_platform_socket_buffer = NULL;
+		}
+	}
+	else
+		DEF_LOG_RESULT(memalign_heap, false, 0);
 
 	aptSetSleepAllowed(true);
 	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
@@ -534,6 +550,9 @@ void Util_platform_exit(void* arg)
 	romfsExit();
 	cfguExit();
 	amExit();
+	socExit();
+	free(util_platform_socket_buffer);
+	util_platform_socket_buffer = NULL;
 }
 
 uint32_t Util_init(void)

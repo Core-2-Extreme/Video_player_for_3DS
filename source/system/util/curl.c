@@ -64,33 +64,16 @@ static uint32_t Util_curl_post_and_save_data_internal(Net_post_save_parameters* 
 
 //Variables.
 static bool util_curl_init = false;
-static uint32_t* util_curl_buffer = NULL;
 static char util_curl_default_user_agent[USER_AGENT_SIZE] = { 0, };
 static char util_curl_empty_char[1] = { 0, };
 
 //Code.
-uint32_t Util_curl_init(uint32_t buffer_size)
+uint32_t Util_curl_init(void)
 {
-	uint32_t result = DEF_ERR_OTHER;
 	char system_ver[0x20] = { 0, };
 
 	if(util_curl_init)
 		goto already_inited;
-
-	//Buffer size must be multiple of 0x1000.
-	if((buffer_size % 0x1000) != 0)
-		goto invalid_arg;
-
-	util_curl_buffer = (uint32_t*)memalign_heap(0x1000, buffer_size);
-	if(!util_curl_buffer)
-		goto out_of_memory;
-
-	result = socInit(util_curl_buffer, buffer_size);
-	if(result != DEF_SUCCESS)
-	{
-		DEF_LOG_RESULT(socInit, false, result);
-		goto nintendo_api_failed;
-	}
 
 	osGetSystemVersionDataString(NULL, NULL, system_ver, sizeof(system_ver));
 	snprintf(util_curl_default_user_agent, sizeof(util_curl_default_user_agent), USER_AGENT_FMT, system_ver, curl_version());
@@ -100,17 +83,6 @@ uint32_t Util_curl_init(uint32_t buffer_size)
 
 	already_inited:
 	return DEF_ERR_ALREADY_INITIALIZED;
-
-	invalid_arg:
-	return DEF_ERR_INVALID_ARG;
-
-	out_of_memory:
-	return DEF_ERR_OUT_OF_MEMORY;
-
-	nintendo_api_failed:
-	free(util_curl_buffer);
-	util_curl_buffer = NULL;
-	return result;
 }
 
 void Util_curl_exit(void)
@@ -119,9 +91,6 @@ void Util_curl_exit(void)
 		return;
 
 	util_curl_init = false;
-	socExit();
-	free(util_curl_buffer);
-	util_curl_buffer = NULL;
 }
 
 const char* Util_curl_get_default_user_agent(void)

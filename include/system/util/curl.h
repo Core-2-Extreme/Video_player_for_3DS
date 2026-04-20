@@ -9,11 +9,10 @@
 
 /**
  * @brief Initialize curl API.
- * @param buffer_size Internal buffer size used by post request.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested).
 */
-uint32_t Util_curl_init(uint32_t buffer_size);
+uint32_t Util_curl_init(void);
 
 /**
  * @brief Uninitialize curl API.
@@ -64,7 +63,7 @@ uint32_t Util_curl_post_and_save_data(Net_post_save_parameters* parameters);
 
 #else
 
-#define Util_curl_init(...) DEF_ERR_DISABLED
+#define Util_curl_init() DEF_ERR_DISABLED
 #define Util_curl_exit()
 #define Util_curl_get_default_user_agent() ""
 #define Util_curl_dl_data(...) DEF_ERR_DISABLED

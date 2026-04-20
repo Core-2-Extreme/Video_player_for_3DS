@@ -202,22 +202,10 @@ void Menu_init(void)
 	DEF_LOG_RESULT(Util_log_init, (result == DEF_SUCCESS), result);
 	DEF_LOG_FORMAT("Initializing...v%s", DEF_MENU_CURRENT_APP_VER);
 
+	DEF_LOG_RESULT_SMART(result, svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_VERY_HIGH), (result == DEF_SUCCESS), result);
+	Util_platform_init(NULL);
+
 	DEF_LOG_RESULT_SMART(result, Util_sync_create(&menu_callback_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX), (result == DEF_SUCCESS), result);
-
-	osSetSpeedupEnable(true);
-	aptSetSleepAllowed(true);
-	svcSetThreadPriority(CUR_THREAD_HANDLE, DEF_THREAD_PRIORITY_VERY_HIGH);
-
-	//Init system modules.
-	DEF_LOG_RESULT_SMART(result, fsInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, acInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, aptInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, mcuHwcInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, ptmuInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, romfsInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, cfguInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, amInit(), (result == DEF_SUCCESS), result);
-	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
 
 	//Move data directory.
 	update_main_dir_result = Menu_update_main_directory();
@@ -469,18 +457,11 @@ void Menu_exit(void)
 	Util_log_exit();
 	Util_httpc_exit();
 	Util_curl_exit();
-
-	fsExit();
-	acExit();
-	aptExit();
-	mcuHwcExit();
-	ptmuExit();
-	romfsExit();
-	cfguExit();
-	amExit();
 	Draw_exit();
 
 	Util_sync_destroy(&menu_callback_mutex);
+
+	Util_platform_exit(NULL);
 
 	Util_queue_exit();
 	Util_sync_exit();

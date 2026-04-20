@@ -32,6 +32,20 @@
 #define DEF_UTIL_NS_TO_US_D(s)				(double)(((double)(s)) / 1000.0)
 
 /**
+ * @brief Initialize platform.
+ * @param arg (in) Platform specific arg.
+ * @warning Thread dangerous (untested).
+*/
+void Util_platform_init(void* arg);
+
+/**
+ * @brief Uninitialize platform.
+ * @param arg (in) Platform specific arg.
+ * @warning Thread dangerous (untested).
+*/
+void Util_platform_exit(void* arg);
+
+/**
  * @brief Initialize util API.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @warning Thread dangerous (untested).

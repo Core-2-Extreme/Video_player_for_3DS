@@ -68,6 +68,7 @@ void* (*memalign_heap)(size_t align, size_t size) = memalign_heap_only;
 void* (*malloc_heap)(size_t size) = malloc_heap_only;
 
 static bool util_init = false;
+static bool util_platform_init = false;
 static bool util_is_heap_low = false;
 static bool util_is_core_available[4] = { 0, };
 static uint64_t util_is_heap_low_ts = 0;
@@ -491,6 +492,48 @@ uint32_t __wrap_linearSpaceFree(void)
 	LightLock_Unlock(&util_linear_alloc_mutex);
 
 	return space;
+}
+
+void Util_platform_init(void* arg)
+{
+	(void)arg;
+	uint32_t result = DEF_ERR_OTHER;
+
+	if(util_platform_init)
+		return;
+
+	osSetSpeedupEnable(true);
+
+	//Init system modules.
+	DEF_LOG_RESULT_SMART(result, fsInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, acInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, aptInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, mcuHwcInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, ptmuInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, romfsInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, cfguInit(), (result == DEF_SUCCESS), result);
+	DEF_LOG_RESULT_SMART(result, amInit(), (result == DEF_SUCCESS), result);
+
+	aptSetSleepAllowed(true);
+	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
+
+	util_platform_init = true;
+}
+
+void Util_platform_exit(void* arg)
+{
+	(void)arg;
+
+	util_platform_init = false;
+
+	fsExit();
+	acExit();
+	aptExit();
+	mcuHwcExit();
+	ptmuExit();
+	romfsExit();
+	cfguExit();
+	amExit();
 }
 
 uint32_t Util_init(void)

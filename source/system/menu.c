@@ -171,7 +171,6 @@ void Menu_init(void)
 {
 	bool is_800px = false;
 	bool is_3d = false;
-	uint8_t dummy = 0;
 	uint32_t sync_init_result = DEF_ERR_OTHER;
 	uint32_t queue_init_result = DEF_ERR_OTHER;
 	uint32_t watch_init_result = DEF_ERR_OTHER;
@@ -210,11 +209,11 @@ void Menu_init(void)
 	update_main_dir_result = Menu_update_main_directory();
 
 	//Create directories.
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR, &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "screen_recording/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "error/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "logs/", &dummy, 1, true);
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "ver/", &dummy, 1, true);
+	Util_file_create_directory(DEF_MENU_MAIN_DIR);
+	Util_file_create_directory((DEF_MENU_MAIN_DIR "screen_recording/"));
+	Util_file_create_directory((DEF_MENU_MAIN_DIR "error/"));
+	Util_file_create_directory((DEF_MENU_MAIN_DIR "logs/"));
+	Util_file_create_directory((DEF_MENU_MAIN_DIR "ver/"));
 
 	//Init our modules.
 	DEF_LOG_RESULT_SMART(result, Util_init(), (result == DEF_SUCCESS), result);

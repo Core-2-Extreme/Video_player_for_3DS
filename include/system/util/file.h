@@ -74,6 +74,14 @@ uint32_t Util_file_check_file_size(const char* file_name, const char* dir_path, 
 uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path);
 
 /**
+ * @brief Create a directory.
+ * @param dir_path (in) Directory path.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
+ * @note Thread safe.
+*/
+uint32_t Util_file_create_directory(const char* dir_path);
+
+/**
  * @brief Read all files name and type in directory.
  * @param dir_path (in) Directory path.
  * @param detected (out) Number of files in directory.

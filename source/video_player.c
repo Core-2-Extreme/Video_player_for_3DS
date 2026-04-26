@@ -2223,6 +2223,9 @@ void Vid_main(void)
 				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 			}
 
+			if(Util_log_query_show_flag())
+				Util_log_draw();
+
 			if(config.is_debug)
 				Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
 
@@ -2240,9 +2243,6 @@ void Vid_main(void)
 
 			if(Util_ram_usage_query_show_flag())
 				Util_ram_usage_draw();
-
-			if(Util_log_query_show_flag())
-				Util_log_draw();
 
 			if(Draw_is_3d_mode())
 			{
@@ -2312,6 +2312,9 @@ void Vid_main(void)
 					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
 				}
 
+				if(Util_log_query_show_flag())
+					Util_log_draw();
+
 				if(config.is_debug)
 					Draw_debug_info(config.is_night, state.free_ram, state.free_linear_ram);
 
@@ -2329,9 +2332,6 @@ void Vid_main(void)
 
 				if(Util_ram_usage_query_show_flag())
 					Util_ram_usage_draw();
-
-				if(Util_log_query_show_flag())
-					Util_log_draw();
 			}
 
 			Util_str_free(&top_center_msg);
@@ -4606,13 +4606,12 @@ void Vid_decode_thread(void* arg)
 	bool is_waiting_video_decoder = false;
 	uint8_t backward_timeout = SEEK_BACKWARD_TIMEOUT;
 	uint8_t wait_count = SEEK_IGNORE_PACKETS;
-	uint8_t dummy = 0;
 	uint32_t result = 0;
 	uint32_t audio_bar_pos = 0;
 	double seek_start_pos = 0;
 	Str_data cache_file_name = { 0, };
 
-	Util_file_save_to_file(".", DEF_MENU_MAIN_DIR "saved_pos/", &dummy, 1, true);//Create directory.
+	Util_file_create_directory((DEF_MENU_MAIN_DIR "saved_pos/"));//Create directory.
 	Util_str_init(&cache_file_name);
 
 	while (vid_player.thread_run)

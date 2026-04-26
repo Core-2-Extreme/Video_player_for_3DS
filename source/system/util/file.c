@@ -435,10 +435,10 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 		goto nintendo_api_failed;
 	}
 
-	FSFILE_Close(handle);
-	FSUSER_CloseArchive(archive);
 	free(utf16_path);
 	utf16_path = NULL;
+	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
 	return DEF_SUCCESS;
 
 	invalid_arg:
@@ -451,6 +451,59 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 	free(utf16_path);
 	utf16_path = NULL;
 	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
+	return result;
+}
+
+uint32_t Util_file_create_directory(const char* dir_path)
+{
+	bool is_root = false;
+	uint16_t* utf16_dir_path = NULL;
+	uint32_t result = DEF_ERR_OTHER;
+	FS_Archive archive = 0;
+
+	if(!dir_path)
+		goto invalid_arg;
+
+	is_root = (strlen(dir_path) == 1 && dir_path[0] == '/');
+	if(is_root)
+		goto invalid_arg;//It is not possible to "create" root directory.
+
+	result = Util_file_make_path("", dir_path, NULL, &utf16_dir_path);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_file_make_path, false, result);
+		goto error_other;
+	}
+
+	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(FSUSER_OpenArchive, false, result);
+		goto nintendo_api_failed;
+	}
+
+	result = FSUSER_CreateDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), FS_ATTRIBUTE_DIRECTORY);
+	if(result != DEF_SUCCESS && result != 0xC82044BE)//0xC82044BE means directory already exist.
+	{
+		DEF_LOG_RESULT(FSUSER_CreateDirectory, false, result);
+		goto nintendo_api_failed;
+	}
+
+	free(utf16_dir_path);
+	utf16_dir_path = NULL;
+	FSUSER_CloseArchive(archive);
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	return result;
+
+	nintendo_api_failed:
+	free(utf16_dir_path);
+	utf16_dir_path = NULL;
 	FSUSER_CloseArchive(archive);
 	return result;
 }

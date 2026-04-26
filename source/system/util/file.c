@@ -30,6 +30,7 @@ static uint32_t Util_file_make_path(const char* file_name, const char* dir_path,
 //Code.
 uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, const uint8_t* write_data, uint32_t size, bool delete_old_file)
 {
+	bool is_root = false;
 	uint16_t* utf16_dir_path = NULL;
 	uint16_t* utf16_path = NULL;
 	uint32_t written_size = 0;
@@ -40,6 +41,8 @@ uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, con
 
 	if(!file_name || !dir_path || !write_data || size == 0)
 		goto invalid_arg;
+
+	is_root = (strlen(dir_path) == 1 && dir_path[0] == '/');
 
 	result = Util_file_make_path(file_name, dir_path, &utf16_path, &utf16_dir_path);
 	if(result != DEF_SUCCESS)
@@ -55,11 +58,15 @@ uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, con
 		goto nintendo_api_failed;
 	}
 
-	result = FSUSER_CreateDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), FS_ATTRIBUTE_DIRECTORY);
-	if(result != DEF_SUCCESS && result != 0xC82044BE)//0xC82044BE means directory already exist.
+	//It is not possible to "create" root directory.
+	if(!is_root)
 	{
-		DEF_LOG_RESULT(FSUSER_CreateDirectory, false, result);
-		goto nintendo_api_failed;
+		result = FSUSER_CreateDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), FS_ATTRIBUTE_DIRECTORY);
+		if(result != DEF_SUCCESS && result != 0xC82044BE)//0xC82044BE means directory already exist.
+		{
+			DEF_LOG_RESULT(FSUSER_CreateDirectory, false, result);
+			goto nintendo_api_failed;
+		}
 	}
 
 	if (delete_old_file)

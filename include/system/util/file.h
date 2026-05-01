@@ -94,4 +94,21 @@ uint32_t Util_file_create_directory(const char* dir_path);
 */
 uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, File_type* type, uint32_t array_length);
 
+/**
+ * @brief Delete a directory.
+ * @param dir_path (in) Directory path.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
+ * @note Thread safe.
+*/
+uint32_t Util_file_delete_directory(const char* dir_path);
+
+/**
+ * @brief Check if a directory exist.
+ * If directory exist, return DEF_SUCCESS
+ * @param dir_path (in) Directory path.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
+ * @note Thread safe.
+*/
+uint32_t Util_file_check_directory_exist(const char* dir_path);
+
 #endif //!defined(DEF_FILE_H)

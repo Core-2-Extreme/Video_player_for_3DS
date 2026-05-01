@@ -78,18 +78,18 @@ typedef struct
 {
 	uint32_t size[DEF_EXPL_MAX_FILES];
 	Str_data name[DEF_EXPL_MAX_FILES];
-	Expl_file_type type[DEF_EXPL_MAX_FILES];
+	File_type type[DEF_EXPL_MAX_FILES];
 } Util_expl_files;
 
 typedef struct
 {
 	uint32_t size;
 	Str_data name;
-	Expl_file_type type;
+	File_type type;
 } Util_expl_file_compare;
 
 //Prototypes.
-static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string);
+static void Util_expl_generate_file_type_string(File_type type, Str_data* type_string);
 //We can't get rid of this "int" because library uses "int" type as return value.
 static int Util_expl_compare_name(const void* a, const void* b);
 void Util_expl_read_dir_thread(void* arg);
@@ -147,7 +147,7 @@ uint32_t Util_expl_init(void)
 	for(uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 	{
 		util_expl_files.size[i] = 0;
-		util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
+		util_expl_files.type[i] = FILE_TYPE_NONE;
 
 		result = Util_str_init(&util_expl_files.name[i]);
 		if(result != DEF_SUCCESS)
@@ -311,14 +311,14 @@ uint32_t Util_expl_query_size(uint32_t index)
 		return 0;
 }
 
-Expl_file_type Util_expl_query_type(uint32_t index)
+File_type Util_expl_query_type(uint32_t index)
 {
 	if(!util_expl_init)
-		return EXPL_FILE_TYPE_NONE;
+		return FILE_TYPE_NONE;
 	if (index < DEF_EXPL_MAX_FILES)
 		return util_expl_files.type[index];
 	else
-		return EXPL_FILE_TYPE_NONE;
+		return FILE_TYPE_NONE;
 }
 
 bool Util_expl_query_show_flag(void)
@@ -404,7 +404,7 @@ void Util_expl_draw(void)
 
 		Util_expl_generate_file_type_string(util_expl_files.type[index], &type);
 
-		if(util_expl_files.type[index] & EXPL_FILE_TYPE_DIR)
+		if(util_expl_files.type[index] & FILE_TYPE_DIR)
 			Util_str_format(&message, "%s (%s)", DEF_STR_NEVER_NULL(&util_expl_files.name[index]), DEF_STR_NEVER_NULL(&type));
 		else
 		{
@@ -557,7 +557,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 								util_expl_active_index = 0;
 								util_expl_read_dir_request = true;
 							}
-							else if (util_expl_files.type[selected_index] & EXPL_FILE_TYPE_DIR)
+							else if (util_expl_files.type[selected_index] & FILE_TYPE_DIR)
 							{
 								//Go to selected sub directory.
 								Util_str_format_append(&dir, "%s/", DEF_STR_NEVER_NULL(&util_expl_files.name[selected_index]));
@@ -683,29 +683,29 @@ void Util_expl_main(const Hid_info* key, double scroll_speed)
 		util_expl_scroll_mode = false;
 }
 
-static void Util_expl_generate_file_type_string(Expl_file_type type, Str_data* type_string)
+static void Util_expl_generate_file_type_string(File_type type, Str_data* type_string)
 {
-	if(type == EXPL_FILE_TYPE_NONE)
+	if(type == FILE_TYPE_NONE)
 	{
 		if(Util_str_add(type_string, "unknown,") != DEF_SUCCESS)
 			return;
 	}
-	if(type & EXPL_FILE_TYPE_FILE)
+	if(type & FILE_TYPE_FILE)
 	{
 		if(Util_str_add(type_string, "file,") != DEF_SUCCESS)
 			return;
 	}
-	if(type & EXPL_FILE_TYPE_DIR)
+	if(type & FILE_TYPE_DIR)
 	{
 		if(Util_str_add(type_string, "dir,") != DEF_SUCCESS)
 			return;
 	}
-	if(type & EXPL_FILE_TYPE_READ_ONLY)
+	if(type & FILE_TYPE_READ_ONLY)
 	{
 		if(Util_str_add(type_string, "read only,") != DEF_SUCCESS)
 			return;
 	}
-	if(type & EXPL_FILE_TYPE_HIDDEN)
+	if(type & FILE_TYPE_HIDDEN)
 	{
 		if(Util_str_add(type_string, "hidden,") != DEF_SUCCESS)
 			return;
@@ -720,8 +720,8 @@ static int Util_expl_compare_name(const void* a, const void* b)
 {
 	const Util_expl_file_compare* file_a = (const Util_expl_file_compare*)a;
 	const Util_expl_file_compare* file_b = (const Util_expl_file_compare*)b;
-	bool is_a_dir = (file_a->type & EXPL_FILE_TYPE_DIR);
-	bool is_b_dir = (file_b->type & EXPL_FILE_TYPE_DIR);
+	bool is_a_dir = (file_a->type & FILE_TYPE_DIR);
+	bool is_b_dir = (file_b->type & FILE_TYPE_DIR);
 
 	if((is_a_dir && is_b_dir)
 	|| (!is_a_dir && !is_b_dir))
@@ -827,7 +827,7 @@ void Util_expl_read_dir_thread(void* arg)
 			for (uint32_t i = 0; i < DEF_EXPL_MAX_FILES; i++)
 			{
 				Util_str_clear(&util_expl_files.name[i]);
-				util_expl_files.type[i] = EXPL_FILE_TYPE_NONE;
+				util_expl_files.type[i] = FILE_TYPE_NONE;
 				util_expl_files.size[i] = 0;
 			}
 			Draw_set_refresh_needed(true);
@@ -840,7 +840,7 @@ void Util_expl_read_dir_thread(void* arg)
 			if (!is_root_dir)
 			{
 				Util_str_set(&util_expl_files.name[0], ".. (Move to parent directory)");
-				util_expl_files.type[0] = EXPL_FILE_TYPE_DIR;
+				util_expl_files.type[0] = FILE_TYPE_DIR;
 			}
 
 			//Read files in directory.
@@ -885,7 +885,7 @@ void Util_expl_read_dir_thread(void* arg)
 		}
 		else if(util_expl_check_file_size_index < util_expl_num_of_files)
 		{
-			if(util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & EXPL_FILE_TYPE_NONE)
+			if(util_expl_files.type[util_expl_check_file_size_index] & FILE_TYPE_FILE || util_expl_files.type[util_expl_check_file_size_index] & FILE_TYPE_NONE)
 			{
 				uint64_t file_size = 0;
 				uint32_t result = DEF_ERR_OTHER;

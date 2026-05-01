@@ -508,7 +508,7 @@ uint32_t Util_file_create_directory(const char* dir_path)
 	return result;
 }
 
-uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, Expl_file_type* type, uint32_t array_length)
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, File_type* type, uint32_t array_length)
 {
 	uint16_t* utf16_dir_path = NULL;
 	uint32_t count = 0;
@@ -532,7 +532,7 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 			goto out_of_memory;
 		}
 
-		type[i] = EXPL_FILE_TYPE_NONE;
+		type[i] = FILE_TYPE_NONE;
 	}
 	*detected = 0;
 
@@ -580,13 +580,13 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 			goto out_of_memory;
 
 		if (fs_entry.attributes & FS_ATTRIBUTE_HIDDEN)
-			type[count] = (type[count] | EXPL_FILE_TYPE_HIDDEN);
+			type[count] = (type[count] | FILE_TYPE_HIDDEN);
 		if (fs_entry.attributes & FS_ATTRIBUTE_DIRECTORY)
-			type[count] = (type[count] | EXPL_FILE_TYPE_DIR);
+			type[count] = (type[count] | FILE_TYPE_DIR);
 		if (fs_entry.attributes & FS_ATTRIBUTE_ARCHIVE)
-			type[count] = (type[count] | EXPL_FILE_TYPE_FILE);
+			type[count] = (type[count] | FILE_TYPE_FILE);
 		if (fs_entry.attributes & FS_ATTRIBUTE_READ_ONLY)
-			type[count] = (type[count] | EXPL_FILE_TYPE_READ_ONLY);
+			type[count] = (type[count] | FILE_TYPE_READ_ONLY);
 
 		count++;
 		*detected = count;

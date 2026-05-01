@@ -5303,7 +5303,7 @@ void Vid_decode_thread(void* arg)
 								else
 									vid_player.file.index++;
 
-								if(Util_expl_query_type(vid_player.file.index) & EXPL_FILE_TYPE_FILE)
+								if(Util_expl_query_type(vid_player.file.index) & FILE_TYPE_FILE)
 								{
 									srand(time(NULL) + i);
 									if(vid_player.playback_mode == PLAYBACK_IN_ORDER)

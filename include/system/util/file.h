@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/expl_types.h"
+#include "system/util/file_types.h"
 #include "system/util/str_types.h"
 
 /**
@@ -91,6 +92,6 @@ uint32_t Util_file_create_directory(const char* dir_path);
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe.
 */
-uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, Expl_file_type* type, uint32_t array_length);
+uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, File_type* type, uint32_t array_length);
 
 #endif //!defined(DEF_FILE_H)

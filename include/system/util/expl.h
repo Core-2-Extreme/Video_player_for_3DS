@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/expl_types.h"
+#include "system/util/file_types.h"
 #include "system/util/hid_types.h"
 #include "system/util/str_types.h"
 
@@ -66,12 +67,12 @@ uint32_t Util_expl_query_size(uint32_t index);
 
 /**
  * @brief Query file type.
- * Always return EXPL_FILE_TYPE_NONE if explorer API is not initialized.
+ * Always return FILE_TYPE_NONE if explorer API is not initialized.
  * @param index (in) File index.
  * @return File type.
  * @warning Thread dangerous (untested).
 */
-Expl_file_type Util_expl_query_type(uint32_t index);
+File_type Util_expl_query_type(uint32_t index);
 
 /**
  * @brief Query explorer show flag.
@@ -137,7 +138,7 @@ void Util_expl_main(const Hid_info* key, double scroll_speed);
 #define Util_expl_query_current_file_index() UINT32_MAX
 #define Util_expl_query_file_name(...) DEF_ERR_DISABLED
 #define Util_expl_query_size(...) 0
-#define Util_expl_query_type(...) EXPL_FILE_TYPE_NONE
+#define Util_expl_query_type(...) FILE_TYPE_NONE
 #define Util_expl_query_show_flag() false
 #define Util_expl_set_callback(...)
 #define Util_expl_set_cancel_callback(...)

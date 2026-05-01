@@ -39,7 +39,7 @@ uint32_t Util_file_save_to_file(const char* file_name, const char* dir_path, con
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!file_name || !dir_path || !write_data || size == 0)
+	if(!file_name || !dir_path || !write_data || size == 0 || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	is_root = (strlen(dir_path) == 1 && dir_path[0] == '/');
@@ -136,7 +136,7 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!file_name || !dir_path || !read_data || max_size == 0 || !read_size)
+	if(!file_name || !dir_path || !read_data || max_size == 0 || !read_size || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	result = Util_file_make_path(file_name, dir_path, &utf16_path, NULL);
@@ -221,7 +221,7 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	FILE* handle = 0;
 	Str_data path = { 0, };
 
-	if(!file_name || !dir_path || !read_data || max_size == 0 || !read_size)
+	if(!file_name || !dir_path || !read_data || max_size == 0 || !read_size || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	result = Util_str_init(&path);
@@ -304,7 +304,7 @@ uint32_t Util_file_delete_file(const char* file_name, const char* dir_path)
 	uint32_t result = DEF_ERR_OTHER;
 	FS_Archive archive = 0;
 
-	if(!file_name || !dir_path)
+	if(!file_name || !dir_path || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	result = Util_file_make_path(file_name, dir_path, &utf16_path, NULL);
@@ -353,7 +353,7 @@ uint32_t Util_file_check_file_size(const char* file_name, const char* dir_path, 
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!file_name || !dir_path || !file_size)
+	if(!file_name || !dir_path || !file_size || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	result = Util_file_make_path(file_name, dir_path, &utf16_path, NULL);
@@ -411,7 +411,7 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!file_name || !dir_path)
+	if(!file_name || !dir_path || strlen(file_name) == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	result = Util_file_make_path(file_name, dir_path, &utf16_path, NULL);
@@ -462,7 +462,7 @@ uint32_t Util_file_create_directory(const char* dir_path)
 	uint32_t result = DEF_ERR_OTHER;
 	FS_Archive archive = 0;
 
-	if(!dir_path)
+	if(!dir_path || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	is_root = (strlen(dir_path) == 1 && dir_path[0] == '/');
@@ -521,7 +521,7 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 	Handle handle = 0;
 	FS_Archive archive = 0;
 
-	if(!dir_path || !detected || !file_name || !type || array_length == 0)
+	if(!dir_path || !detected || !file_name || !type || array_length == 0 || strlen(dir_path) == 0)
 		goto invalid_arg;
 
 	for(uint32_t i = 0; i < array_length; i++)

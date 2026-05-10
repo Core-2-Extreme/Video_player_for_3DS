@@ -24,6 +24,7 @@
 //This is different from DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT, Video output was made at this call, try again without calling Util_decoder_ready_video_packet().
 #define DEF_ERR_DECODER_TRY_AGAIN					(uint32_t)(0xFFFFFFF1)
 #define DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS		(uint32_t)(0xFFFFFFF0)	//Mbed TLS API returned non-success result.
+#define DEF_ERR_SOCKET_RETURNED_NOT_SUCCESS			(uint32_t)(0xFFFFFFEF)	//Socket API returned non-success result.
 #define DEF_ERR_DISABLED							(uint32_t)(0xDDDDDDDD)	//This feature has been disabled.
 #define DEF_ERR_NO_RESULT_CODE						(uint32_t)(0x12345678)	//No result codes available.
 
@@ -44,6 +45,7 @@
 #define DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT_STR		(const char*)"Try again (video output was made)."
 #define DEF_ERR_DECODER_TRY_AGAIN_STR				(const char*)"Try again."
 #define DEF_ERR_MBEDTLS_RETURNED_NOT_SUCCESS_STR	(const char*)"Mbed TLS returned NOT success."
+#define DEF_ERR_SOCKET_RETURNED_NOT_SUCCESS_STR		(const char*)"Socket returned NOT success."
 #define DEF_ERR_DISABLED_STR						(const char*)"This function is disabled."
 
 #endif //!defined(DEF_ERR_TYPES_H)

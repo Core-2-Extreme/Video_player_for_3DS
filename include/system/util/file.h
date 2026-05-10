@@ -46,6 +46,16 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, uint8_t** read_data, uint32_t max_size, uint32_t* read_size);
 
 /**
+ * @brief Rename a file.
+ * @param file_name (in) Original file name.
+ * @param dir_path (in) Original directory path.
+ * @param new_file_name (in) New file name.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
+ * @note Thread safe.
+*/
+uint32_t Util_file_rename_file(const char* file_name, const char* dir_path, const char* new_file_name);
+
+/**
  * @brief Delete a file.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
@@ -93,6 +103,15 @@ uint32_t Util_file_create_directory(const char* dir_path);
  * @note Thread safe.
 */
 uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* file_name, File_type* type, uint32_t array_length);
+
+/**
+ * @brief Rename a directory.
+ * @param dir_path (in) Original directory path.
+ * @param new_dir_path (in) New directory path.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
+ * @note Thread safe.
+*/
+uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_path);
 
 /**
  * @brief Delete a directory.

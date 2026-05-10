@@ -298,6 +298,73 @@ uint32_t Util_file_load_from_rom(const char* file_name, const char* dir_path, ui
 	return DEF_ERR_OTHER;
 }
 
+uint32_t Util_file_rename_file(const char* file_name, const char* dir_path, const char* new_file_name)
+{
+	uint16_t* utf16_path = NULL;
+	uint16_t* new_utf16_path = NULL;
+	uint32_t result = DEF_ERR_OTHER;
+	Handle handle = 0;
+	FS_Archive archive = 0;
+
+	if(!file_name || !dir_path || !new_file_name || strlen(file_name) == 0 || strlen(dir_path) == 0 || strlen(new_file_name) == 0)
+		goto invalid_arg;
+
+	result = Util_file_make_path(file_name, dir_path, &utf16_path, NULL);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_file_make_path, false, result);
+		goto error_other;
+	}
+
+	result = Util_file_make_path(new_file_name, dir_path, &new_utf16_path, NULL);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_file_make_path, false, result);
+		goto error_other;
+	}
+
+	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if (result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(FSUSER_OpenArchive, false, result);
+		goto nintendo_api_failed;
+	}
+
+	result = FSUSER_RenameFile(archive, fsMakePath(PATH_UTF16, utf16_path), archive, fsMakePath(PATH_UTF16, new_utf16_path));
+	if (result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(FSUSER_RenameFile, false, result);
+		goto nintendo_api_failed;
+	}
+
+	free(utf16_path);
+	free(new_utf16_path);
+	utf16_path = NULL;
+	new_utf16_path = NULL;
+	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	free(utf16_path);
+	free(new_utf16_path);
+	utf16_path = NULL;
+	new_utf16_path = NULL;
+	return result;
+
+	nintendo_api_failed:
+	free(utf16_path);
+	free(new_utf16_path);
+	utf16_path = NULL;
+	new_utf16_path = NULL;
+	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
+	return result;
+}
+
 uint32_t Util_file_delete_file(const char* file_name, const char* dir_path)
 {
 	uint16_t* utf16_path = NULL;
@@ -628,9 +695,81 @@ uint32_t Util_file_read_dir(const char* dir_path, uint32_t* detected, Str_data* 
 	return result;
 }
 
+uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_path)
+{
+	uint16_t* utf16_dir_path = NULL;
+	uint16_t* new_utf16_dir_path = NULL;
+	uint32_t result = DEF_ERR_OTHER;
+	Handle handle = 0;
+	FS_Archive archive = 0;
+
+	if(!dir_path || !new_dir_path || strlen(dir_path) == 0 || strlen(new_dir_path) == 0)
+		goto invalid_arg;
+
+	if((strlen(dir_path) == 1 && dir_path[0] == '/'))
+		goto invalid_arg;//It is not possible to "rename" root directory.
+
+	if((strlen(new_dir_path) == 1 && new_dir_path[0] == '/'))
+		goto invalid_arg;//It is not possible to "rename to" root directory.
+
+	result = Util_file_make_path("", dir_path, NULL, &utf16_dir_path);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_file_make_path, false, result);
+		goto error_other;
+	}
+
+	result = Util_file_make_path("", new_dir_path, NULL, &new_utf16_dir_path);
+	if(result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(Util_file_make_path, false, result);
+		goto error_other;
+	}
+
+	result = FSUSER_OpenArchive(&archive, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""));
+	if (result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(FSUSER_OpenArchive, false, result);
+		goto nintendo_api_failed;
+	}
+
+	result = FSUSER_RenameDirectory(archive, fsMakePath(PATH_UTF16, utf16_dir_path), archive, fsMakePath(PATH_UTF16, new_utf16_dir_path));
+	if (result != DEF_SUCCESS)
+	{
+		DEF_LOG_RESULT(FSUSER_RenameFile, false, result);
+		goto nintendo_api_failed;
+	}
+
+	free(utf16_dir_path);
+	free(new_utf16_dir_path);
+	utf16_dir_path = NULL;
+	new_utf16_dir_path = NULL;
+	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
+
+	error_other:
+	free(utf16_dir_path);
+	free(new_utf16_dir_path);
+	utf16_dir_path = NULL;
+	new_utf16_dir_path = NULL;
+	return result;
+
+	nintendo_api_failed:
+	free(utf16_dir_path);
+	free(new_utf16_dir_path);
+	utf16_dir_path = NULL;
+	new_utf16_dir_path = NULL;
+	FSFILE_Close(handle);
+	FSUSER_CloseArchive(archive);
+	return result;
+}
+
 uint32_t Util_file_delete_directory(const char* dir_path)
 {
-	bool is_root = false;
 	uint16_t* utf16_dir_path = NULL;
 	uint32_t result = DEF_ERR_OTHER;
 	FS_Archive archive = 0;
@@ -638,8 +777,7 @@ uint32_t Util_file_delete_directory(const char* dir_path)
 	if(!dir_path || strlen(dir_path) == 0)
 		goto invalid_arg;
 
-	is_root = (strlen(dir_path) == 1 && dir_path[0] == '/');
-	if(is_root)
+	if((strlen(dir_path) == 1 && dir_path[0] == '/'))
 		goto invalid_arg;//It is not possible to delete root directory.
 
 	result = Util_file_make_path("", dir_path, NULL, &utf16_dir_path);

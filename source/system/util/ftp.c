@@ -673,9 +673,13 @@ uint32_t Ftp_connect_data_connection(Ftp_client* client)
 		client->data_handle.fd = Ftp_connect(client->data_port_active, client->data_address_active);
 		if(client->data_handle.fd < 0)
 		{
-			DEF_LOG_RESULT(Ftp_listen, false, client->data_handle.fd);
+			DEF_LOG_RESULT(Ftp_connect, false, client->data_handle.fd);
 			goto socket_failed;
 		}
+
+		client->data_address.sin_family = AF_INET;
+		client->data_address.sin_port = htons(client->data_port_active);
+		client->data_address.sin_addr.s_addr = htonl(client->data_address_active);
 	}
 
 	return DEF_SUCCESS;

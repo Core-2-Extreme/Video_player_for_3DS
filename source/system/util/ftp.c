@@ -1766,7 +1766,6 @@ void Ftp_store_clear(Ftp_store* store)
 		return;
 
 	store->is_append = false;
-	store->buffer_offset = 0;
 	Util_str_clear(&store->dir);
 	Util_str_clear(&store->file_name);
 	if(store->buffer)

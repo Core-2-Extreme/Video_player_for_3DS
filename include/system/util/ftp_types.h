@@ -222,7 +222,6 @@ typedef struct
 	bool is_append;				//Whether this data should be appended.
 	uint8_t* buffer;			//Buffer.
 	uint32_t buffer_size;		//Buffer size.
-	uint32_t buffer_offset;		//Buffer offset.
 	Str_data dir;				//Target directory name.
 	Str_data file_name;			//Target file name.
 } Ftp_store;

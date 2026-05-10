@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_LOG_ENUM_DEBUG_ENABLE
+#define DEF_LOG_ENUM_DEBUG_ENABLE		/*(bool)(*/true/*)*/	//Enable enum log API.
 
 #define DEF_LOG_ENUM_NUM_OF_ARGS_INTERNAL( \
 a000, a001, a002, a003, a004, a005, a006, a007, a008, a009, a010, a011, a012, a013, a014, a015, a016, a017, a018, a019, \
@@ -22,7 +22,7 @@ a120, a121, a122, a123, a124, a125, ...) a125
 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, \
 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 
-#if defined(DEF_LOG_ENUM_DEBUG_ENABLE)
+#if DEF_LOG_ENUM_DEBUG_ENABLE
 
 #define DEF_LOG_ENUM_DEBUG_INVALID_VALUE_MSG		(const char*)("(Value is not registered or out of range.)")
 
@@ -214,6 +214,6 @@ static inline const char* enum_name##_get_name(enum_name value) \
 	return DEF_LOG_ENUM_DEBUG_DISABLED_MSG; \
 } \
 
-#endif //defined(DEF_LOG_ENUM_DEBUG_ENABLE)
+#endif //DEF_LOG_ENUM_DEBUG_ENABLE
 
 #endif //!defined(DEF_LOG_ENUM_TYPES_H)

@@ -5,7 +5,7 @@
 #include "system/util/cam_types.h"
 #include "system/util/raw_types.h"
 
-#if defined(DEF_CAM_API_ENABLE)
+#if DEF_CAM_API_ENABLE
 
 /**
  * @brief Initialize a camera.
@@ -111,6 +111,6 @@ void Util_cam_exit(void);
 #define Util_cam_set_noise_filter(...) DEF_ERR_DISABLED
 #define Util_cam_exit()
 
-#endif //defined(DEF_CAM_API_ENABLE)
+#endif //DEF_CAM_API_ENABLE
 
 #endif //!defined(DEF_CAM_H)

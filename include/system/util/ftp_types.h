@@ -240,6 +240,8 @@ typedef struct
 	uint16_t data_port_passive;						//Port for listen to incoming data connection (for passive mode).
 	uint16_t data_port_active;						//Port for data connection (for active mode).
 	uint32_t data_address_active;					//IP address for data connection (for active mode).
+	uint32_t my_local_address_passive;				//My local IP address (for passive mode).
+	uint32_t my_global_address_passive;				//My global IP address (for passive mode).
 	Ftp_command pending_command;					//Pending command.
 	Ftp_response response;							//Response code.
 	Ftp_list list;									//Data for LIST/NLIST commands.
@@ -261,7 +263,6 @@ typedef struct
 typedef struct
 {
 	uint8_t max_clients;					//Maximum number of clients.
-	uint16_t control_port;					//Port for listen to incoming control connection.
 	struct pollfd control_listen_handle;	//Socket for listening to incoming control connection.
 	Ftp_client* clients;					//Client list.
 	void* user_data;						//User data.

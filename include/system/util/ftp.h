@@ -480,13 +480,16 @@ void Ftp_process_appe_eof(Ftp_client* client);
  * @param clients (out) Clients to initialize.
  * @param num_of_clients (in) Maximum number of clients.
  * @param control_port (in) Port for control connection.
+ * @param local_address (in) Local IP address for server.
+ * @param global_address (in) Global IP address for server.
  * @param data_port_base (in) Base port for data connection (data_port_base + 0, data_port_base + 1, data_port_base + n...).
  * @param store_buffer_size (in) Buffer size for STOR/STOU/APPE commands.
  * @param dir_content_max_files (in) Maximum number of files for LIST/NLST commands.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
  * @note Thread safe.
 */
-uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t control_port, uint16_t data_port_base, uint32_t store_buffer_size, uint32_t dir_content_max_files);
+uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t control_port, uint32_t local_address,
+uint32_t global_address, uint16_t data_port_base, uint32_t store_buffer_size, uint32_t dir_content_max_files);
 
 /**
  * @brief Disconnect and clear clients data.

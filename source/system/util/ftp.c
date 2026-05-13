@@ -44,10 +44,13 @@ static void Ftp_process_list_nlst(Ftp_client* client, bool is_list);
 static void Ftp_process_list_nlst_bof(Ftp_client* client);
 static void Ftp_process_stor_stou_appe_data(Ftp_client* client);
 static void Ftp_process_stor_stou_appe_eof(Ftp_client* client);
+static bool Ftp_is_loopback_ip(uint32_t address);
+static bool Ftp_is_local_ip(uint32_t address);
 static int32_t Ftp_listen(uint16_t port);
 static int32_t Ftp_connect(uint16_t port, uint32_t address);
 static void Ftp_close_socket_internal(int32_t socket_handle, bool is_force);
-static uint32_t Ftp_client_init(Ftp_client* client, uint16_t control_port, uint16_t data_port, uint32_t store_buffer_size, uint32_t dir_content_max_files);
+static uint32_t Ftp_client_init(Ftp_client* client, uint16_t control_port, uint16_t data_port, uint32_t local_address,
+uint32_t global_address, uint32_t store_buffer_size, uint32_t dir_content_max_files);
 static uint32_t Ftp_current_dir_init(Ftp_current_dir* current_dir);
 static uint32_t Ftp_list_init(Ftp_list* list);
 static uint32_t Ftp_rename_init(Ftp_rename* rename);
@@ -890,49 +893,45 @@ void Ftp_process_port(Ftp_client* client)
 void Ftp_process_pasv(Ftp_client* client)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	socklen_t ip_len = sizeof(SOCU_IPInfo);
-	SOCU_IPInfo ip = { 0, };
 
 	if(!client)
 		return;
 
-	result = SOCU_GetNetworkOpt(SOL_CONFIG, NETOPT_IP_INFO, &ip, &ip_len);
-	if(result == DEF_SUCCESS)
+	if(client->data_listen_handle.fd < 0 && client->data_handle.fd < 0)
 	{
-		uint8_t local_ip[4] = { ip.ip.s_addr, ((ip.ip.s_addr) >> 8), ((ip.ip.s_addr) >> 16), ((ip.ip.s_addr) >> 24), };
-		uint8_t port[2] = { ((client->data_port_passive) >> 8), client->data_port_passive, };
+		uint32_t ip = 0;
 
-		if(client->data_listen_handle.fd < 0 && client->data_handle.fd < 0)
+		if(Ftp_is_loopback_ip(ntohl(client->control_address.sin_addr.s_addr)))
+			ip = (127 | (0 << 16) | (0 << 16) | (1 << 24));
+		else if(Ftp_is_local_ip(ntohl(client->control_address.sin_addr.s_addr)))
+			ip = client->my_local_address_passive;
+		else
+			ip = client->my_global_address_passive;
+
+		result = Ftp_listen_data_connection(client);
+		if(result == DEF_SUCCESS)
 		{
-			result = Ftp_listen_data_connection(client);
-			if(result == DEF_SUCCESS)
-			{
-				snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode has been enabled. (%" PRIu8 ",%" PRIu8 ",%" PRIu8
-				",%" PRIu8 ",%" PRIu8 ",%" PRIu8 ")", local_ip[0], local_ip[1], local_ip[2], local_ip[3], port[0], port[1]);
-				client->response = FTP_RESPONSE_PASSIVE_MODE;
-			}
-			else
-			{
-				DEF_LOG_RESULT(Ftp_listen_data_connection, false, result);
-				snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
-				client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;
-			}
+			uint8_t port_u8[2] = { ((client->data_port_passive) >> 8), client->data_port_passive, };
+			uint8_t ip_u8[4] = { ip, (ip >> 8), (ip >> 16), (ip >> 24), };
+
+			snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode has been enabled. (%" PRIu8 ",%" PRIu8 ",%" PRIu8
+			",%" PRIu8 ",%" PRIu8 ",%" PRIu8 ")", ip_u8[0], ip_u8[1], ip_u8[2], ip_u8[3], port_u8[0], port_u8[1]);
+			client->response = FTP_RESPONSE_PASSIVE_MODE;
 		}
 		else
 		{
-			DEF_LOG_STRING("Passive mode is already active or data connection exists!!!!!");
-			DEF_LOG_UINT(client->data_listen_handle.fd);
-			DEF_LOG_UINT(client->data_handle.fd);
-			snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode is already active or data connection exists!!!!!");
-			client->response = FTP_RESPONSE_COMMAND_MALFORMED;
+			DEF_LOG_RESULT(Ftp_listen_data_connection, false, result);
+			snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
+			client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;
 		}
 	}
 	else
 	{
-		DEF_LOG_STRING("Couldn't get IP address!!!!!");
-		DEF_LOG_RESULT(SOCU_GetNetworkOpt, false, result);
-		snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
-		client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;
+		DEF_LOG_STRING("Passive mode is already active or data connection exists!!!!!");
+		DEF_LOG_UINT(client->data_listen_handle.fd);
+		DEF_LOG_UINT(client->data_handle.fd);
+		snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode is already active or data connection exists!!!!!");
+		client->response = FTP_RESPONSE_COMMAND_MALFORMED;
 	}
 }
 
@@ -1620,7 +1619,8 @@ void Ftp_process_appe_eof(Ftp_client* client)
 	Ftp_process_stor_stou_appe_eof(client);
 }
 
-uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t control_port, uint16_t data_port_base, uint32_t store_buffer_size, uint32_t dir_content_max_files)
+uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t control_port, uint32_t local_address,
+uint32_t global_address, uint16_t data_port_base, uint32_t store_buffer_size, uint32_t dir_content_max_files)
 {
 	uint32_t result = DEF_ERR_OTHER;
 	uint16_t data_port_end = 0;
@@ -1633,7 +1633,6 @@ uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t
 	if(control_port >= data_port_base && control_port <= data_port_end)
 		goto invalid_arg;
 
-	clients->control_port = control_port;
 	clients->control_listen_handle.events = POLLIN;
 	clients->control_listen_handle.fd = -1;
 	clients->clients = (Ftp_client*)calloc(num_of_clients, sizeof(Ftp_client));
@@ -1662,7 +1661,7 @@ uint32_t Ftp_clients_init(Ftp_clients* clients, uint8_t num_of_clients, uint16_t
 
 	for(uint8_t i = 0; i < num_of_clients; i++)
 	{
-		result = Ftp_client_init(&clients->clients[i], control_port, (data_port_base + i), store_buffer_size, dir_content_max_files);
+		result = Ftp_client_init(&clients->clients[i], control_port, (data_port_base + i), local_address, global_address, store_buffer_size, dir_content_max_files);
 		if(result != DEF_SUCCESS)
 		{
 			DEF_LOG_RESULT(Ftp_client_init, false, result);
@@ -2166,6 +2165,31 @@ static void Ftp_process_stor_stou_appe_eof(Ftp_client* client)
 	Ftp_store_clear(&client->store);
 }
 
+static bool Ftp_is_loopback_ip(uint32_t address)
+{
+	uint8_t address_a = ((address) >> 24);
+
+    if(address_a == 127)
+		return true;
+	else
+		return false;
+}
+
+static bool Ftp_is_local_ip(uint32_t address)
+{
+	uint8_t address_a = ((address) >> 24);
+	uint8_t address_b = ((address) >> 16);
+
+    if(address_a == 10)
+		return true;//Class A.
+    else if(address_a == 172 && address_b >= 16 && address_b <= 31)
+		return true;//Class B.
+    else if(address_a == 192 && address_b == 168)
+		return true;//Class C.
+	else
+		return false;
+}
+
 static int32_t Ftp_listen(uint16_t port)
 {
 	int32_t socket_handle = 0;
@@ -2254,12 +2278,15 @@ static void Ftp_close_socket_internal(int32_t socket_handle, bool is_force)
 	}
 }
 
-static uint32_t Ftp_client_init(Ftp_client* client, uint16_t control_port, uint16_t data_port, uint32_t store_buffer_size, uint32_t dir_content_max_files)
+static uint32_t Ftp_client_init(Ftp_client* client, uint16_t control_port, uint16_t data_port, uint32_t local_address,
+uint32_t global_address, uint32_t store_buffer_size, uint32_t dir_content_max_files)
 {
 	uint32_t result = DEF_ERR_OTHER;
 
 	client->control_port = control_port;
 	client->data_port_passive = data_port;
+	client->my_local_address_passive = local_address;
+	client->my_global_address_passive = global_address;
 	client->data_listen_handle.events = POLLIN;
 	client->data_listen_handle.fd = -1;
 	client->control_handle.events = POLLIN;

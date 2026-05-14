@@ -764,7 +764,7 @@ uint32_t Util_format_size(uint32_t size, Str_data* size_string)
 			size_temp /= 1000.0;
 			if(size_temp < 1000 || (i + 1) == max_loop)
 			{
-				result = Util_str_format(size_string, "%.1f %s", size_temp, unit_list[i]);
+				result = Util_str_format(size_string, "%.2f %s", size_temp, unit_list[i]);
 				break;
 			}
 		}

@@ -72,4 +72,5 @@ If you wish to build them, then do so in this order.
 10. [nghttp2](nghttp2_build.md)
 11. [curl](curl_build.md)
 12. [stb](stb.md)
-13. [finalize](copy_libraries.md)
+13. [jsmn](jsmn.md)
+14. [finalize](copy_libraries.md)

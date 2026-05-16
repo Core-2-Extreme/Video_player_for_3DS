@@ -9,8 +9,9 @@
 
 /**
  * @brief Receive a FTP command via control connection.
+ * If received command was unknown, command will be FTP_COMMAND_INVALID and arg contains raw command (+arg if exists) without <CRLF>.
  * @param socket_handle (in) Socket handle for control connection.
- * @param command (out) Received command, this will be FTP_COMMAND_INVALID if unknown FTP command was received.
+ * @param command (out) Received FTP command.
  * @param arg (out) Arg for command (e.g. if raw command was "USER anonymous<CRLF>", this will be "anonymous<NULL>").
  * @param arg_size (in) Size of arg.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.

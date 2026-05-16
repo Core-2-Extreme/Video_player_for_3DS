@@ -192,6 +192,13 @@ uint32_t Ftp_receive_command(int32_t socket_handle, Ftp_command* command, char* 
 		}
 	}
 
+	//If command was unknown, just remove \r\n.
+	if(*command == FTP_COMMAND_INVALID)
+	{
+		uint32_t eof_index = (eof - arg);
+		arg[eof_index] = 0x00;//NULL terminator.
+	}
+
 	return DEF_SUCCESS;
 
 	invalid_arg:

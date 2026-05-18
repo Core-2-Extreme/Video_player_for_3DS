@@ -98,6 +98,17 @@ uint32_t Util_format_size(uint32_t size, Str_data* size_string);
 uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of_msg);
 
 /**
+ * @brief Load a JSON message.
+ * @param json_buffer (in) Raw JSON string.
+ * @param keys (in) Array for JSON keys.
+ * @param out_msg (out) Array for parsed messages.
+ * @param num_of_array (in) Number of messages/keys.
+ * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
+ * @note Thread safe.
+*/
+uint32_t Util_load_json_msg(const char* json_buffer, const char** keys, Str_data* out_msg, uint32_t num_of_array);
+
+/**
  * @brief Convert [\n](new line), ["](double quote) and [\](backslash) to escape expression.
  * @param text (in) Input text.
  * @param escaped_text (out) Escaped text.

@@ -15,6 +15,7 @@
 
 #include "system/util/err_types.h"
 #include "system/util/file.h"
+#include "system/util/json.h"
 #include "system/util/log.h"
 #include "system/util/str.h"
 #include "system/util/thread_types.h"
@@ -813,6 +814,75 @@ uint32_t Util_load_msg(const char* file_name, Str_data* out_msg, uint32_t num_of
 	free(fs_buffer);
 	fs_buffer = NULL;
 	return result;
+}
+
+uint32_t Util_load_json_msg(const char* json_buffer, const char** keys, Str_data* out_msg, uint32_t num_of_array)
+{
+	uint32_t result = DEF_ERR_OTHER;
+	Json_data json = { 0, };
+
+	if(!json_buffer || !keys || !out_msg || num_of_array == 0)
+		goto invalid_arg;
+
+	result = Util_json_parse(json_buffer, &json);
+	if(result == DEF_SUCCESS)
+	{
+		Json_extracted_data extracted_data = { 0, };
+
+		for(uint32_t i = 0; i < num_of_array; i++)
+		{
+			if(!keys[i])
+				continue;//We may have valid messages after this, so don't break here.
+
+			result = Util_json_get_data(keys[i], &json, &extracted_data);
+			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_json_get_data, false, result);
+				DEF_LOG_STRING(keys[i]);
+				break;
+			}
+
+			result = Util_str_init(&out_msg[i]);
+			if(result != DEF_SUCCESS)
+			{
+				DEF_LOG_RESULT(Util_str_init, false, result);
+				break;
+			}
+
+			if(extracted_data.type != JSON_TYPE_STRING)
+			{
+				//We may have valid messages after this, so don't break here.
+				if(extracted_data.type == JSON_TYPE_INVALID)
+					DEF_LOG_STRING("Key not found!!!!!");
+				else
+					DEF_LOG_STRING("Invalid type!!!!!");
+
+				DEF_LOG_STRING(Json_value_type_get_name(extracted_data.type));
+				DEF_LOG_STRING(keys[i]);
+
+				result = Util_str_set(&out_msg[i], keys[i]);
+			}
+			else
+				result = Util_str_set(&out_msg[i], (char*)extracted_data.value);
+
+			if(result != DEF_SUCCESS)
+				DEF_LOG_RESULT(Util_str_set, false, result);//We may have valid messages after this, so don't break here.
+
+			free(extracted_data.value);
+			extracted_data.value = NULL;
+		}
+
+		free(extracted_data.value);
+		extracted_data.value = NULL;
+	}
+	else
+		DEF_LOG_RESULT(Util_json_parse, false, result);
+
+	Util_json_free(&json);
+	return DEF_SUCCESS;
+
+	invalid_arg:
+	return DEF_ERR_INVALID_ARG;
 }
 
 uint32_t Util_encode_to_escape(const char* text, Str_data* escaped_text)

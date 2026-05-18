@@ -434,7 +434,7 @@ uint32_t Ftp_get_path(const char* current_dir, const char* cmd_path, Str_data* d
 	{
 		//Split filename (if exists).
 		last_slash_pos = strrchr(dir->buffer, '/');
-		if(last_slash_pos && last_slash_pos > dir->buffer)
+		if(last_slash_pos && last_slash_pos >= dir->buffer)
 		{
 			uint32_t new_length = ((last_slash_pos - dir->buffer) + 1);
 

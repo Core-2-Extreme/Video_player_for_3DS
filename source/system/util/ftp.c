@@ -915,21 +915,30 @@ void Ftp_process_pasv(Ftp_client* client)
 		else
 			ip = client->my_global_address_passive;
 
-		result = Ftp_listen_data_connection(client);
-		if(result == DEF_SUCCESS)
+		if(ip != 0)
 		{
-			uint8_t port_u8[2] = { ((client->data_port_passive) >> 8), client->data_port_passive, };
-			uint8_t ip_u8[4] = { ip, (ip >> 8), (ip >> 16), (ip >> 24), };
+			result = Ftp_listen_data_connection(client);
+			if(result == DEF_SUCCESS)
+			{
+				uint8_t port_u8[2] = { ((client->data_port_passive) >> 8), client->data_port_passive, };
+				uint8_t ip_u8[4] = { ip, (ip >> 8), (ip >> 16), (ip >> 24), };
 
-			snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode has been enabled. (%" PRIu8 ",%" PRIu8 ",%" PRIu8
-			",%" PRIu8 ",%" PRIu8 ",%" PRIu8 ")", ip_u8[0], ip_u8[1], ip_u8[2], ip_u8[3], port_u8[0], port_u8[1]);
-			client->response = FTP_RESPONSE_PASSIVE_MODE;
+				snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode has been enabled. (%" PRIu8 ",%" PRIu8 ",%" PRIu8
+				",%" PRIu8 ",%" PRIu8 ",%" PRIu8 ")", ip_u8[0], ip_u8[1], ip_u8[2], ip_u8[3], port_u8[0], port_u8[1]);
+				client->response = FTP_RESPONSE_PASSIVE_MODE;
+			}
+			else
+			{
+				DEF_LOG_RESULT(Ftp_listen_data_connection, false, result);
+				snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
+				client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;
+			}
 		}
 		else
 		{
-			DEF_LOG_RESULT(Ftp_listen_data_connection, false, result);
-			snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
-			client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;
+			DEF_LOG_STRING("IP address is NOT provided!!!!!");
+			snprintf(client->message_buffer, sizeof(client->message_buffer), "Passive mode is NOT available now!!!!!");
+			client->response = FTP_RESPONSE_COMMAND_UNIMPLEMENTED;
 		}
 	}
 	else

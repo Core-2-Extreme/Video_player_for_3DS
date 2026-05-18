@@ -241,6 +241,28 @@ bool Util_str_has_data(const Str_data* string)
 		return true;
 }
 
+bool Util_str_is_same(const Str_data* string_a, const Str_data* string_b)
+{
+	if(!string_b)
+		return false;
+	else
+		return Util_str_is_same_c(string_a, string_b->buffer);
+}
+
+bool Util_str_is_same_c(const Str_data* string_a, const char* string_b)
+{
+	uint32_t string_b_length = 0;
+
+	if(!Util_str_is_valid(string_a) || !string_b)
+		return false;
+
+	string_b_length = strlen(string_b);
+	if(string_a->length != string_b_length)
+		return false;
+	else
+		return (strncmp(string_a->buffer, string_b, string_a->length) == 0);
+}
+
 static uint32_t Util_str_get_optimal_buffer_capacity(const Str_data* string)
 {
 	uint32_t optimal_capacity = 0;

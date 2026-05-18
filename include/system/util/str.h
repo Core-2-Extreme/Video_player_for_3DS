@@ -117,4 +117,26 @@ bool Util_str_is_valid(const Str_data* string);
 */
 bool Util_str_has_data(const Str_data* string);
 
+/**
+ * @brief Check if string is same.
+ * @note This is case sensitive.
+ * This is same as Util_str_is_same_c() except second arg is Str_data* isntead of char*.
+ * @param string_a (in) Pointer for string to compare.
+ * @param string_b (in) Pointer for string to compare.
+ * @return True if both strings are empty (length == 0) or have the exact same string, otherwise false.
+ * @note Thread safe.
+*/
+bool Util_str_is_same(const Str_data* string_a, const Str_data* string_b);
+
+/**
+ * @brief Check if string is same.
+ * @note This is case sensitive.
+ * This is same as Util_str_is_same() except second arg is char* isntead of Str_data*.
+ * @param string_a (in) Pointer for string to compare.
+ * @param string_b (in) Pointer for string to compare.
+ * @return True if both strings are empty (length == 0) or have the exact same string, otherwise false.
+ * @note Thread safe.
+*/
+bool Util_str_is_same_c(const Str_data* string_a, const char* string_b);
+
 #endif //!defined(DEF_STR_H)

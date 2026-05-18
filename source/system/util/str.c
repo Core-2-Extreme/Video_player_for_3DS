@@ -205,6 +205,9 @@ uint32_t Util_str_resize(Str_data* string, uint32_t new_capacity)
 	if(!temp_buffer)
 		goto out_of_memory;
 
+	if(new_capacity < string->length)
+		string->length = new_capacity;//String has been truncated, update length.
+
 	//Update buffer information.
 	string->buffer = temp_buffer;
 	string->capacity = new_capacity;
@@ -273,7 +276,7 @@ static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, cons
 		old_length = 0;
 
 	buffer = (string->buffer + old_length);
-	remaining_capacity = (string->capacity - old_length) + 1;
+	remaining_capacity = ((string->capacity - old_length) + 1);
 
 	new_length = vsnprintf(buffer, remaining_capacity, format_string, args);
 	new_length += old_length;
@@ -288,7 +291,7 @@ static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, cons
 		//Update pointer (since realloc may change pointer)
 		//and remaining size then retry.
 		buffer = (string->buffer + old_length);
-		remaining_capacity = (string->capacity - old_length) + 1;
+		remaining_capacity = ((string->capacity - old_length) + 1);
 		vsnprintf(buffer, remaining_capacity, format_string, args);
 	}
 

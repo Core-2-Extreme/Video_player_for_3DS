@@ -1,0 +1,36 @@
+{
+	"address":
+	{
+		"lan": "LAN地址： %s:%hu (%s %s)\n",
+		"lan_initializing": "正在努力搜索LAN地址...\n",
+		"lan_unknown": "搜索LAN地址失败了，所以在LAN上不能打开passive模式。\n",
+		"wan": "WAN地址： %s:%hu (%s %s)\n",
+		"wan_initializing": "正在努力搜索WAN地址...\n",
+		"wan_unknown": "搜索WAN地址失败了，所以在WAN上不能打开passive模式。\n"
+	},
+	"client_info":
+	{
+		"control_conn": "命令连接： %s:%hu",
+		"current_dir": "文件夹： %s\n",
+		"data_conn": "， 数据连接： %s:%hu (%s)\n",
+		"last_cmd": "上次命令： %s， 参数： %s\n",
+		"last_res": "上次回复： %s",
+		"received": " (下载： %s)\n",
+		"sent": " (上传： %s)\n",
+		"title": "连接 (%hhu/%hhu)：\n"
+	},
+	"config":
+	{
+		"allow": "允许",
+		"allow_when_no_control_conn": "允许 (如果没有命令连接)",
+		"allow_when_no_data_conn": "允许 (如果没有数据连接)",
+		"delete": "删除文件和文件夹： %s",
+		"disallow": "不允许",
+		"hide": "私藏",
+		"read": "读文件： %s",
+		"rename": "重命名文件和文件夹： %s",
+		"show": "显示",
+		"sleep": "待机： %s",
+		"write": "写文件： %s"
+	}
+}

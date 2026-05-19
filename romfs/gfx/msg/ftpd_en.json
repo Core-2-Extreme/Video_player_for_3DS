@@ -1,0 +1,36 @@
+{
+	"address":
+	{
+		"lan": "LAN address: %s:%hu (%s %s)\n",
+		"lan_initializing": "Getting LAN address...\n",
+		"lan_unknown": "LAN address is unknown\npassive mode won't work over LAN.\n",
+		"wan": "WAN address: %s:%hu (%s %s)\n",
+		"wan_initializing": "Getting WAN address...\n",
+		"wan_unknown": "WAN address is unknown\npassive mode won't work over WAN.\n"
+	},
+	"client_info":
+	{
+		"control_conn": "Control: %s:%hu",
+		"current_dir": "Dir: %s\n",
+		"data_conn": ", Data: %s:%hu (%s)\n",
+		"last_cmd": "Last cmd: %s, Arg: %s\n",
+		"last_res": "Last res: %s",
+		"received": " (DL: %s)\n",
+		"sent": " (UL: %s)\n",
+		"title": "Active connections (%hhu/%hhu):\n"
+	},
+	"config":
+	{
+		"allow": "Allow",
+		"allow_when_no_control_conn": "Allow (when no control connections)",
+		"allow_when_no_data_conn": "Allow (when no data connections)",
+		"delete": "Delete files/directories: %s",
+		"disallow": "Disallow",
+		"hide": "Hide",
+		"read": "Read files: %s",
+		"rename": "Rename files/directories: %s",
+		"show": "Show",
+		"sleep": "Sleep: %s",
+		"write": "Write files: %s"
+	}
+}

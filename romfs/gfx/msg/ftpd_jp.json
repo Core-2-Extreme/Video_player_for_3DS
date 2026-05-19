@@ -1,0 +1,36 @@
+{
+	"address":
+	{
+		"lan": "LAN接続先： %s:%hu (%s %s)\n",
+		"lan_initializing": "LAN接続先を取得中...\n",
+		"lan_unknown": "LAN接続先は不明のため、受身接続はLAN経由で使用不能です。\n",
+		"wan": "WAN接続先： %s:%hu (%s %s)\n",
+		"wan_initializing": "WAN接続先を取得中...\n",
+		"wan_unknown": "WAN接続先は不明のため、受身接続はWAN経由で使用不能です。\n"
+	},
+	"client_info":
+	{
+		"control_conn": "命令接続： %s:%hu",
+		"current_dir": "ディレクトリ： %s\n",
+		"data_conn": "、 転送接続： %s:%hu (%s)\n",
+		"last_cmd": "最終命令： %s、 引数： %s\n",
+		"last_res": "最終応答： %s",
+		"received": " (受信： %s)\n",
+		"sent": " (送信： %s)\n",
+		"title": "接続情報 (%hhu/%hhu)：\n"
+	},
+	"config":
+	{
+		"allow": "許可",
+		"allow_when_no_control_conn": "許可 (命令接続の無い場合)",
+		"allow_when_no_data_conn": "許可 (転送接続の無い場合)",
+		"delete": "ファイルとディレクトリの削除： %s",
+		"disallow": "禁止",
+		"hide": "非表示",
+		"read": "ファイルの読取： %s",
+		"rename": "ファイルとディレクトリの名前変更： %s",
+		"show": "表示",
+		"sleep": "スリープ： %s",
+		"write": "ファイルの書込： %s"
+	}
+}

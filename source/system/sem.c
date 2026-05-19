@@ -30,6 +30,7 @@
 #include "system/util/thread_types.h"
 #include "system/util/util.h"
 #include "system/util/watch.h"
+#include "ftp_daemon.h"
 #include "video_player.h"
 
 //Defines.
@@ -3114,11 +3115,11 @@ static void Sem_worker_callback(void)
 				DEF_LOG_RESULT_SMART(result, Vid_load_msg("en"), (result == DEF_SUCCESS), result);
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-			DEF_LOG_RESULT_SMART(result, Sapp1_load_msg(config.lang), (result == DEF_SUCCESS), result);
+#ifdef DEF_FTPD_ENABLE
+			DEF_LOG_RESULT_SMART(result, Ftpd_load_msg(config.lang), (result == DEF_SUCCESS), result);
 			if (result != DEF_SUCCESS)
-				DEF_LOG_RESULT_SMART(result, Sapp1_load_msg("en"), (result == DEF_SUCCESS), result);
-#endif //DEF_SAPP1_ENABLE
+				DEF_LOG_RESULT_SMART(result, Ftpd_load_msg("en"), (result == DEF_SUCCESS), result);
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 			DEF_LOG_RESULT_SMART(result, Sapp2_load_msg(config.lang), (result == DEF_SUCCESS), result);

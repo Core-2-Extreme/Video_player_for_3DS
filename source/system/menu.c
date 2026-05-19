@@ -32,6 +32,7 @@
 #include "system/util/thread_types.h"
 #include "system/util/watch.h"
 #include "system/util/util.h"
+#include "ftp_daemon.h"
 #include "video_player.h"
 
 //Defines.
@@ -68,12 +69,12 @@
 #define FONT_SIZE_EXIT_CHECK		(float)(15.00)	//Font size for exit check messages.
 #define FONT_SIZE_NEW_VERSION		(float)(21.00)	//Font size for new version available messages.
 #define FONT_SIZE_HOW_TO_UPDATE		(float)(15.00)	//Font size for update instruction messages.
-#if (defined(DEF_VID_ENABLE) || defined(DEF_SAPP1_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
+#if (defined(DEF_VID_ENABLE) || defined(DEF_FTPD_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
 #define FONT_SIZE_CLOSE_BUTTON		(float)(15.00)	//Font size for close buttons.
-#endif //(defined(DEF_VID_ENABLE) || defined(DEF_SAPP1_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
-#if (defined(DEF_VID_ENABLE_NAME) || defined(DEF_SAPP1_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
+#endif //(defined(DEF_VID_ENABLE) || defined(DEF_FTPD_ENABLE) || defined(DEF_SAPP2_ENABLE) || defined(DEF_SAPP3_ENABLE) || defined(DEF_SAPP4_ENABLE) || defined(DEF_SAPP5_ENABLE) || defined(DEF_SAPP6_ENABLE) || defined(DEF_SAPP7_ENABLE))
+#if (defined(DEF_VID_ENABLE_NAME) || defined(DEF_FTPD_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
 #define FONT_SIZE_SUB_APP_NAME		(float)(12.00)	//Font size for sub application names.
-#endif //(defined(DEF_VID_ENABLE_NAME) || defined(DEF_SAPP1_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
+#endif //(defined(DEF_VID_ENABLE_NAME) || defined(DEF_FTPD_ENABLE_NAME) || defined(DEF_SAPP2_ENABLE_NAME) || defined(DEF_SAPP3_ENABLE_NAME) || defined(DEF_SAPP4_ENABLE_NAME) || defined(DEF_SAPP5_ENABLE_NAME) || defined(DEF_SAPP6_ENABLE_NAME) || defined(DEF_SAPP7_ENABLE_NAME))
 
 //Typedefs.
 typedef enum
@@ -90,7 +91,7 @@ typedef enum
 typedef enum
 {
 	APP_VID,	//Video player.
-	APP_1,		//Sub application 1 (not used).
+	APP_FTPD,	//FTP daemon.
 	APP_2,		//Sub application 2 (not used).
 	APP_3,		//Sub application 3 (not used).
 	APP_4,		//Sub application 4 (not used).
@@ -288,11 +289,11 @@ void Menu_init(void)
 		Draw_texture_set_filter(&menu_icon_image[APP_VID], true);
 #endif //DEF_VID_ENABLE_ICON
 
-#ifdef DEF_SAPP1_ENABLE_ICON
-	menu_icon_texture_id[APP_1] = Draw_get_free_sheet_num();
-	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_SAPP1_ICON_PATH, menu_icon_texture_id[APP_1], cache, 0, 1), (result == DEF_SUCCESS), result);
-	menu_icon_image[APP_1].c2d = cache[0];
-#endif //DEF_SAPP1_ENABLE_ICON
+#ifdef DEF_FTPD_ENABLE_ICON
+	menu_icon_texture_id[APP_FTPD] = Draw_get_free_sheet_num();
+	DEF_LOG_RESULT_SMART(result, Draw_load_texture(DEF_FTPD_ICON_PATH, menu_icon_texture_id[APP_FTPD], cache, 0, 1), (result == DEF_SUCCESS), result);
+	menu_icon_image[APP_FTPD].c2d = cache[0];
+#endif //DEF_FTPD_ENABLE_ICON
 
 #ifdef DEF_SAPP2_ENABLE_ICON
 	menu_icon_texture_id[APP_2] = Draw_get_free_sheet_num();
@@ -374,10 +375,10 @@ void Menu_exit(void)
 		Vid_exit(draw);
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-	if (Sapp1_query_init_flag())
-		Sapp1_exit(draw);
-#endif //DEF_SAPP1_ENABLE
+#ifdef DEF_FTPD_ENABLE
+	if (Ftpd_query_init_flag())
+		Ftpd_exit(draw);
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 	if (Sapp2_query_init_flag())
@@ -641,22 +642,22 @@ void Menu_main(void)
 			}
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-			Draw_texture(&menu_sapp_button[APP_1], menu_sapp_button[APP_1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80, 0, 60, 60);
+#ifdef DEF_FTPD_ENABLE
+			Draw_texture(&menu_sapp_button[APP_FTPD], menu_sapp_button[APP_FTPD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 60, 60);
 
-#ifdef DEF_SAPP1_ENABLE_ICON
-			Draw_texture(&menu_icon_image[APP_1], DEF_DRAW_NO_COLOR, 80, 0, 60, 60);
-#endif //DEF_SAPP1_ENABLE_ICON
-#ifdef DEF_SAPP1_ENABLE_NAME
-			Draw_align_c(DEF_SAPP1_NAME, 80, 0, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
-#endif //DEF_SAPP1_ENABLE_NAME
+#ifdef DEF_FTPD_ENABLE_ICON
+			Draw_texture(&menu_icon_image[APP_FTPD], DEF_DRAW_NO_COLOR, 0, 0, 60, 60);
+#endif //DEF_FTPD_ENABLE_ICON
+#ifdef DEF_FTPD_ENABLE_NAME
+			Draw_align_c(DEF_FTPD_NAME, 0, 0, FONT_SIZE_SUB_APP_NAME, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 60, 60);
+#endif //DEF_FTPD_ENABLE_NAME
 
-			if(Sapp1_query_init_flag())
+			if(Ftpd_query_init_flag())
 			{
-				Draw_texture(&menu_sapp_close_button[APP_1], menu_sapp_close_button[APP_1].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 125, 0, 15, 15.0);
-				Draw_c("X", 127.5, 0, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
+				Draw_texture(&menu_sapp_close_button[APP_FTPD], menu_sapp_close_button[APP_FTPD].selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 45, 0, 15, 15.0);
+				Draw_c("X", 47.5, 0, FONT_SIZE_CLOSE_BUTTON, DEF_DRAW_RED);
 			}
-#endif //DEF_SAPP1_ENABLE
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 			Draw_texture(&menu_sapp_button[APP_2], menu_sapp_button[APP_2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160, 0, 60, 60);
@@ -792,18 +793,18 @@ void Menu_main(void)
 		}
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-		if(menu_init_request[APP_1])
+#ifdef DEF_FTPD_ENABLE
+		if(menu_init_request[APP_FTPD])
 		{
-			Sapp1_init(true);
-			menu_init_request[APP_1] = false;
+			Ftpd_init(true);
+			menu_init_request[APP_FTPD] = false;
 		}
-		else if(menu_exit_request[APP_1])
+		else if(menu_exit_request[APP_FTPD])
 		{
-			Sapp1_exit(true);
-			menu_exit_request[APP_1] = false;
+			Ftpd_exit(true);
+			menu_exit_request[APP_FTPD] = false;
 		}
-#endif //DEF_SAPP1_ENABLE
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 		if(menu_init_request[APP_2])
@@ -889,10 +890,10 @@ void Menu_main(void)
 		Vid_main();
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-	else if (Sapp1_query_running_flag())
-		Sapp1_main();
-#endif //DEF_SAPP1_ENABLE
+#ifdef DEF_FTPD_ENABLE
+	else if (Ftpd_query_running_flag())
+		Ftpd_main();
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 	else if (Sapp2_query_running_flag())
@@ -991,12 +992,12 @@ static void Menu_hid_callback(void)
 						menu_sapp_button[APP_VID].selected = true;
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-					if (HID_SAPP_CLOSE_SEL(key, APP_1) && Sapp1_query_init_flag())
-						menu_sapp_close_button[APP_1].selected = true;
-					else if (HID_SAPP_OPEN_SEL(key, APP_1))
-						menu_sapp_button[APP_1].selected = true;
-#endif //DEF_SAPP1_ENABLE
+#ifdef DEF_FTPD_ENABLE
+					if (HID_SAPP_CLOSE_SEL(key, APP_FTPD) && Ftpd_query_init_flag())
+						menu_sapp_close_button[APP_FTPD].selected = true;
+					else if (HID_SAPP_OPEN_SEL(key, APP_FTPD))
+						menu_sapp_button[APP_FTPD].selected = true;
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 					if (HID_SAPP_CLOSE_SEL(key, APP_2) && Sapp2_query_init_flag())
@@ -1078,25 +1079,25 @@ static void Menu_hid_callback(void)
 					}
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-					else if (HID_SAPP_CLOSE_CFM(key, APP_1) && Sapp1_query_init_flag())
+#ifdef DEF_FTPD_ENABLE
+					else if (HID_SAPP_CLOSE_CFM(key, APP_FTPD) && Ftpd_query_init_flag())
 					{
-						menu_exit_request[APP_1] = true;
-						while(menu_exit_request[APP_1])
+						menu_exit_request[APP_FTPD] = true;
+						while(menu_exit_request[APP_FTPD])
 							Util_sleep(20000);
 					}
-					else if (HID_SAPP_OPEN_CFM(key, APP_1))
+					else if (HID_SAPP_OPEN_CFM(key, APP_FTPD))
 					{
-						if (!Sapp1_query_init_flag())
+						if (!Ftpd_query_init_flag())
 						{
-							menu_init_request[APP_1] = true;
-							while(menu_init_request[APP_1])
+							menu_init_request[APP_FTPD] = true;
+							while(menu_init_request[APP_FTPD])
 								Util_sleep(20000);
 						}
 						else
-							Sapp1_resume();
+							Ftpd_resume();
 					}
-#endif //DEF_SAPP1_ENABLE
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 					else if (HID_SAPP_CLOSE_CFM(key, APP_2) && Sapp2_query_init_flag())
@@ -1246,10 +1247,10 @@ static void Menu_hid_callback(void)
 		Vid_hid(&key);
 #endif //DEF_VID_ENABLE
 
-#ifdef DEF_SAPP1_ENABLE
-	else if (Sapp1_query_running_flag())
-		Sapp1_hid(&key);
-#endif //DEF_SAPP1_ENABLE
+#ifdef DEF_FTPD_ENABLE
+	else if (Ftpd_query_running_flag())
+		Ftpd_hid(&key);
+#endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
 	else if (Sapp2_query_running_flag())

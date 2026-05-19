@@ -16,7 +16,8 @@ typedef enum
 	WATCH_HANDLE_LOG,				//(log.c) Watch handle for log API.
 	WATCH_HANDLE_MAIN_MENU,			//(menu.c) Watch handle for main menu.
 	WATCH_HANDLE_SETTINGS_MENU,		//(setting_menu.c) Watch handle for settings menu.
-	WATCH_HANDLE_VIDEO_PLAYER,		//(video_player.p) Watch handle for video player.
+	WATCH_HANDLE_VIDEO_PLAYER,		//(video_player.c) Watch handle for video player.
+	WATCH_HANDLE_FTP_DAEMON,		//(ftp_daemon.c) Watch handle for FTP daemon.
 
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT = INT8_MAX,
@@ -33,6 +34,7 @@ DEF_LOG_ENUM_DEBUG
 	WATCH_HANDLE_MAIN_MENU,
 	WATCH_HANDLE_SETTINGS_MENU,
 	WATCH_HANDLE_VIDEO_PLAYER,
+	WATCH_HANDLE_FTP_DAEMON,
 	WATCH_HANDLE_MAX,
 	WATCH_HANDLE_FORCE_8BIT
 )
@@ -46,6 +48,7 @@ typedef uint16_t Watch_handle_bit;
 #define	DEF_WATCH_HANDLE_BIT_MAIN_MENU		(Watch_handle_bit)(1 << WATCH_HANDLE_MAIN_MENU)		//Watch handle bit for WATCH_HANDLE_MAIN_MENU.
 #define	DEF_WATCH_HANDLE_BIT_SETTINGS_MENU	(Watch_handle_bit)(1 << WATCH_HANDLE_SETTINGS_MENU)	//Watch handle bit for WATCH_HANDLE_SETTINGS_MENU.
 #define	DEF_WATCH_HANDLE_BIT_VIDEO_PLAYER	(Watch_handle_bit)(1 << WATCH_HANDLE_VIDEO_PLAYER)	//Watch handle bit for WATCH_HANDLE_VIDEO_PLAYER.
+#define	DEF_WATCH_HANDLE_BIT_FTP_DAEMON		(Watch_handle_bit)(1 << WATCH_HANDLE_FTP_DAEMON)	//Watch handle bit for WATCH_HANDLE_FTP_DAEMON.
 
 typedef struct
 {

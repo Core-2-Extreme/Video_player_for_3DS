@@ -2114,12 +2114,10 @@ static uint32_t Ftpd_process_control_connection(Ftp_clients* clients, uint8_t cl
 
 					result = Ftp_send_response(client->control_handle.fd, client->response, client->message_buffer);
 					if(result != DEF_SUCCESS)
-					{
 						DEF_LOG_RESULT(Ftp_send_response, false, result);
-						goto error;
-					}
-					client->response = FTP_RESPONSE_INVALID;
-					client->message_buffer[0] = 0x00;
+
+					Ftp_client_clear(client);
+					Ftpd_client_user_data_clear(client);
 				}
 			}
 			else
@@ -2581,16 +2579,10 @@ static void Ftpd_server_thread(void* arg)
 
 									result = Ftp_send_response(client->control_handle.fd, client->response, client->message_buffer);
 									if(result != DEF_SUCCESS)
-									{
 										DEF_LOG_RESULT(Ftp_send_response, false, result);
-										Ftp_client_clear(client);
-										Ftpd_client_user_data_clear(client);
-									}
-									else
-									{
-										client->response = FTP_RESPONSE_INVALID;
-										client->message_buffer[0] = 0x00;
-									}
+
+									Ftp_client_clear(client);
+									Ftpd_client_user_data_clear(client);
 								}
 
 								break;

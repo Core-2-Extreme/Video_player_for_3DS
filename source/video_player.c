@@ -5947,7 +5947,7 @@ void Vid_decode_video_thread(void* arg)
 	(void)arg;
 	DEF_LOG_STRING("Thread started.");
 	uint32_t result = DEF_ERR_OTHER;
-	double skip = 0;
+	double skip[EYE_MAX] = { 0, };
 	TickCounter counter = { 0, };
 
 	osTickCounterStart(&counter);
@@ -5984,9 +5984,10 @@ void Vid_decode_video_thread(void* arg)
 					free(packet_info);
 					packet_info = NULL;
 
-					if(vid_player.allow_skip_frames && skip > vid_player.video_frametime[packet_index] && (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime[packet_index] != 0)
+					if(vid_player.allow_skip_frames && skip[packet_index] > vid_player.video_frametime[packet_index]
+					&& (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime[packet_index] != 0)
 					{
-						skip -= vid_player.video_frametime[packet_index];
+						skip[packet_index] -= vid_player.video_frametime[packet_index];
 						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
 
 						//Notify we've done copying packet to video decoder buffer (we skipped the frame here)
@@ -6042,7 +6043,7 @@ void Vid_decode_video_thread(void* arg)
 											double time = osTickCounterRead(&counter);
 
 											Vid_update_decoding_statistics(time, key_frame);
-											Vid_update_decoding_delay(time, &skip, packet_index);
+											Vid_update_decoding_delay(time, &skip[packet_index], packet_index);
 										}
 
 										key_frame = false;
@@ -6105,7 +6106,7 @@ void Vid_decode_video_thread(void* arg)
 									double time = osTickCounterRead(&counter);
 
 									Vid_update_decoding_statistics(time, key_frame);
-									Vid_update_decoding_delay(time, &skip, packet_index);
+									Vid_update_decoding_delay(time, &skip[packet_index], packet_index);
 								}
 							}
 							else if(result != DEF_ERR_NEED_MORE_INPUT)
@@ -6163,7 +6164,8 @@ void Vid_decode_video_thread(void* arg)
 
 				case DECODE_VIDEO_THREAD_ABORT_REQUEST:
 				{
-					skip = 0;
+					for(uint32_t i = 0; i < EYE_MAX; i++)
+						skip[i] = 0;
 
 					//Clear cache.
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
@@ -6421,10 +6423,19 @@ void Vid_convert_thread(void* arg)
 			//Update current media position.
 			vid_player.media_current_pos = Vid_get_current_media_pos(vid_player.video_current_pos[EYE_LEFT], vid_player.video_current_pos[EYE_RIGHT], vid_player.audio_current_pos);
 
-			if((packet_index + 1) < vid_player.num_of_video_tracks)
-				packet_index++;
+			if(num_of_cached_raw_images > 0 && drop && vid_player.state != PLAYER_STATE_SEEKING)
+			{
+				//We've dropped frame because we couldn't keep up.
+				//And we may still need to drop more frames on this track so don't change packet_index and
+				//check it again on next loop, otherwise we can never keep up on multi-track videos.
+			}
 			else
-				packet_index = 0;
+			{
+				if((packet_index + 1) < vid_player.num_of_video_tracks)
+					packet_index++;
+				else
+					packet_index = 0;
+			}
 		}
 		else if(vid_player.state == PLAYER_STATE_PLAYING)
 		{

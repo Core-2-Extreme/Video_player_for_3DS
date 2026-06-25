@@ -5984,9 +5984,6 @@ void Vid_decode_video_thread(void* arg)
 					key_frame = packet_info->is_key_frame;
 					packet_index = packet_info->packet_index;
 
-					free(packet_info);
-					packet_info = NULL;
-
 					if(vid_player.allow_skip_frames && skip[packet_index] > vid_player.video_frametime[packet_index]
 					&& (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime[packet_index] != 0)
 					{
@@ -6198,6 +6195,9 @@ void Vid_decode_video_thread(void* arg)
 					break;
 			}
 		}
+
+		free(message);
+		message = NULL;
 	}
 
 	DEF_LOG_STRING("Thread exit.");

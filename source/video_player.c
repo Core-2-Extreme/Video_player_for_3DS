@@ -55,6 +55,7 @@
 #define RAM_TO_KEEP_BASE							(uint32_t)(1000 * 1000 * 6)				//6MB.
 #define HW_DECODER_RAW_IMAGE_SIZE					(uint32_t)(vid_player.video_info[EYE_LEFT].width * vid_player.video_info[EYE_LEFT].height * 2)	//HW decoder always returns raw image in RGB565LE, so number of pixels * 2.
 #define SW_DECODER_RAW_IMAGE_SIZE(index)			(uint32_t)(vid_player.video_info[index].width * vid_player.video_info[index].height * 1.5)		//We are assuming raw image format is YUV420P because it is the most common format, so number of pixels * 1.5.
+#define HW_DECODER_MAX_PX							(uint32_t)(1920)						//Maximum image width/height that HW decoder supports in px.
 
 #define NUM_OF_THREADS_MIN							(uint8_t)(2)							//Minimum number of threads for multi-threaded decoding.
 #define NUM_OF_THREADS_MAX							(uint8_t)(8)							//Maximum number of threads for multi-threaded decoding.
@@ -4812,8 +4813,10 @@ void Vid_decode_thread(void* arg)
 								}
 
 								//Hardware decoder only supports 1 track at a time.
+								//todo fix string comparison
 								if(num_of_video_tracks == 1 && vid_player.use_hw_decoding && vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P
-								&& strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0)
+								&& strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0
+								&& vid_player.video_info[EYE_LEFT].codec_width <= HW_DECODER_MAX_PX && vid_player.video_info[EYE_LEFT].codec_height <= HW_DECODER_MAX_PX)
 								{
 									//We can use HW decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);

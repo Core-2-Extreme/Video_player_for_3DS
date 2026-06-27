@@ -716,6 +716,8 @@ static void Vid_update_video_delay(Vid_eye eye_index);
 static double Vid_get_media_duration(double video_track_0_duration, double video_track_1_duration, double audio_track_duration);
 static double Vid_get_current_media_pos(double video_track_0_pos, double video_track_1_pos, double audio_track_pos);
 static bool Vid_has_video(uint8_t num_of_video_tracks, double video_frametimes[EYE_MAX]);
+static bool Vid_can_use_hw_decoder(const Vid_player* player, uint8_t num_of_video_tracks);
+static bool Vid_can_use_hw_color_converter(const Vid_player* player, uint8_t num_of_video_tracks);
 static void Vid_log_media_info(void);
 static void Vid_init_variable(void);
 static void Vid_init_settings(void);
@@ -3675,6 +3677,41 @@ static bool Vid_has_video(uint8_t num_of_video_tracks, double video_frametimes[E
 	}
 }
 
+static bool Vid_can_use_hw_decoder(const Vid_player* player, uint8_t num_of_video_tracks)
+{
+	if(!player->use_hw_decoding)
+		return false;//User doesn't allow use of HW decoder.
+	if(num_of_video_tracks != 1)
+		return false;//HW decoder only supports 1 track at a time.
+	if(player->video_info[EYE_LEFT].pixel_format != RAW_PIXEL_YUV420P)
+		return false;//Color format is unsupported.
+	//todo fix string comparison
+	if(strcmp(player->video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") != 0)
+		return false;//Video format is unsupported.
+	if(player->video_info[EYE_LEFT].codec_width > HW_DECODER_MAX_PX || player->video_info[EYE_LEFT].codec_height > HW_DECODER_MAX_PX)
+		return false;//Resolution is unsupported.
+
+	return true;
+}
+
+static bool Vid_can_use_hw_color_converter(const Vid_player* player, uint8_t num_of_video_tracks)
+{
+	if(!player->use_hw_color_conversion)
+		return false;//Used doesn't allow use of HW converter.
+	if(player->sub_state & PLAYER_SUB_STATE_HW_DECODING)
+		return false;//HW decoder also converts color space, no conversion needed.
+
+	for(uint8_t i = 0; i < num_of_video_tracks; i++)
+	{
+		if((player->video_info[i].pixel_format != RAW_PIXEL_YUV420P && player->video_info[i].pixel_format != RAW_PIXEL_YUVJ420P))
+			return false;//Color format is unsupported.
+		else if(player->video_info[i].codec_width > DEF_DRAW_MAX_TEXTURE_SIZE || player->video_info[i].codec_height > DEF_DRAW_MAX_TEXTURE_SIZE)
+			return false;//Resolution is unsupported.
+	}
+
+	return true;
+}
+
 static void Vid_log_media_info(void)
 {
 	//Video.
@@ -4812,11 +4849,7 @@ void Vid_decode_thread(void* arg)
 										vid_player.video_frametime[i] = (1000.0 / vid_player.video_info[i].framerate);
 								}
 
-								//Hardware decoder only supports 1 track at a time.
-								//todo fix string comparison
-								if(num_of_video_tracks == 1 && vid_player.use_hw_decoding && vid_player.video_info[EYE_LEFT].pixel_format == RAW_PIXEL_YUV420P
-								&& strcmp(vid_player.video_info[EYE_LEFT].format_name, "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10") == 0
-								&& vid_player.video_info[EYE_LEFT].codec_width <= HW_DECODER_MAX_PX && vid_player.video_info[EYE_LEFT].codec_height <= HW_DECODER_MAX_PX)
+								if(Vid_can_use_hw_decoder(&vid_player, num_of_video_tracks))
 								{
 									//We can use HW decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);
@@ -4829,32 +4862,16 @@ void Vid_decode_thread(void* arg)
 									}
 								}
 
-								if(!(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) && vid_player.use_hw_color_conversion)
+								if(Vid_can_use_hw_color_converter(&vid_player, num_of_video_tracks))
 								{
-									bool can_use_hw_color_converter = true;
+									//We can use HW color converter for this video.
+									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_CONVERSION);
 
-									//Check if we can use HW color converter (y2r).
-									for(uint8_t i = 0; i < num_of_video_tracks; i++)
+									DEF_LOG_RESULT_SMART(result, Util_converter_y2r_init(), (result == DEF_SUCCESS), result);
+									if(result != DEF_SUCCESS)
 									{
-										if(vid_player.video_info[i].codec_width > DEF_DRAW_MAX_TEXTURE_SIZE || vid_player.video_info[i].codec_height > DEF_DRAW_MAX_TEXTURE_SIZE
-										|| (vid_player.video_info[i].pixel_format != RAW_PIXEL_YUV420P && vid_player.video_info[i].pixel_format != RAW_PIXEL_YUVJ420P))
-										{
-											can_use_hw_color_converter = false;
-											break;
-										}
-									}
-
-									if(can_use_hw_color_converter)
-									{
-										//We can use HW color converter for this video.
-										vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_CONVERSION);
-
-										DEF_LOG_RESULT_SMART(result, Util_converter_y2r_init(), (result == DEF_SUCCESS), result);
-										if(result != DEF_SUCCESS)
-										{
-											Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW color converter!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
-											goto error;
-										}
+										Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW color converter!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
+										goto error;
 									}
 								}
 

@@ -14,7 +14,7 @@
 /// would be nice if newlib had this already
 #ifndef SSIZE_MAX
 #ifdef SIZE_MAX
-#define SSIZE_MAX ((SIZE_MAX) >> 1)
+#define SSIZE_MAX ((ssize_t)((SIZE_MAX) >> 1))
 #endif
 #endif
 
@@ -82,4 +82,4 @@ typedef struct {
 extern void* (*memalign_heap)(size_t align, size_t size);
 extern void* (*malloc_heap)(size_t size);
 //Can be NULL.
-extern int (*custom_mbedtls_hardware_poll)(void *data, unsigned char *output, size_t len, size_t *olen);
+extern int (*custom_mbedtls_platform_get_entropy)(uint32_t flags, size_t *estimate_bits, unsigned char *output, size_t output_size);

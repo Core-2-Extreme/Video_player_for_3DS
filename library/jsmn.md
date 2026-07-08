@@ -1,8 +1,7 @@
 # Download a jsmn library
 
-It works on Ubuntu 24.04, it should also work on WSL. \
-As of this writing, we are using `devkitARM r65-1`. \
-For more information, see [README](../README.md#build).
+It works on PureOS 11, it should also work on other GNU/Linux based machines. \
+As of this writing, we are using `devkitARM r68-1`.
 
 * **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.

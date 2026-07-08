@@ -4,9 +4,7 @@
  *
  * This file contains common definitions shared by all PSA crypto drivers.
  * Do not include it directly: instead, include the header file(s) for
- * the type(s) of driver that you are implementing. For example, if
- * you are writing a dynamically registered driver for a secure element,
- * include `psa/crypto_se_driver.h`.
+ * the type(s) of driver that you are implementing.
  *
  * This file is part of the PSA Crypto Driver Model, containing functions for
  * driver developers to implement to enable hardware to be called in a

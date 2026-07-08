@@ -37,20 +37,29 @@
 #include "rational.h"
 
 /**
+ * @defgroup lavu_iamf Immersive Audio Model and Formats
+ * @ingroup lavu_audio
+ *
+ * Immersive Audio Model and Formats related functions and defines
+ *
  * @defgroup lavu_iamf_params Parameter Definition
+ * @ingroup lavu_iamf
  * @{
  * Parameters as defined in section 3.6.1 and 3.8 of IAMF.
  * @}
+ *
  * @defgroup lavu_iamf_audio Audio Element
+ * @ingroup lavu_iamf
  * @{
  * Audio Elements as defined in section 3.6 of IAMF.
  * @}
+ *
  * @defgroup lavu_iamf_mix Mix Presentation
+ * @ingroup lavu_iamf
  * @{
  * Mix Presentations as defined in section 3.7 of IAMF.
  * @}
  *
- * @}
  * @addtogroup lavu_iamf_params
  * @{
  */
@@ -204,11 +213,11 @@ typedef struct AVIAMFParamDefinition {
     enum AVIAMFParamDefinitionType type;
 
     /**
-     * Identifier for the paremeter substream.
+     * Identifier for the parameter substream.
      */
     unsigned int parameter_id;
     /**
-     * Sample rate for the paremeter substream. It must not be 0.
+     * Sample rate for the parameter substream. It must not be 0.
      */
     unsigned int parameter_rate;
 
@@ -321,14 +330,17 @@ typedef struct AVIAMFLayer {
     /**
      * Demixing matrix as defined in section 3.6.3 of IAMF.
      *
-     * The length of the array is ch_layout.nb_channels multiplied by the sum of
-     * the amount of streams in the group plus the amount of streams in the group
-     * that are stereo.
-     *
      * May be set only if @ref ambisonics_mode == AV_IAMF_AMBISONICS_MODE_PROJECTION,
      * must be NULL otherwise.
      */
     AVRational *demixing_matrix;
+
+    /**
+     * The length of the Demixing matrix array. Must be ch_layout.nb_channels multiplied
+     * by the sum of the amount of streams in the group plus the amount of streams in
+     * the group that are stereo.
+     */
+    unsigned int nb_demixing_matrix;
 } AVIAMFLayer;
 
 
@@ -484,10 +496,14 @@ typedef struct AVIAMFSubmixElement {
 enum AVIAMFSubmixLayoutType {
     /**
      * The layout follows the loudspeaker sound system convention of ITU-2051-3.
+     * @ref AVIAMFSubmixLayout.sound_system must be set.
      */
     AV_IAMF_SUBMIX_LAYOUT_TYPE_LOUDSPEAKERS = 2,
     /**
      * The layout is binaural.
+     *
+     * @note @ref AVIAMFSubmixLayout.sound_system may be set to
+     * AV_CHANNEL_LAYOUT_BINAURAL to simplify API usage, but it's not mandatory.
      */
     AV_IAMF_SUBMIX_LAYOUT_TYPE_BINAURAL = 3,
 };
@@ -505,9 +521,9 @@ typedef struct AVIAMFSubmixLayout {
 
     /**
      * Channel layout matching one of Sound Systems A to J of ITU-2051-3, plus
-     * 7.1.2ch and 3.1.2ch
-     * If layout_type is not AV_IAMF_SUBMIX_LAYOUT_TYPE_LOUDSPEAKERS, this field
-     * is undefined.
+     * 7.1.2ch, 3.1.2ch, and binaural.
+     * If layout_type is not AV_IAMF_SUBMIX_LAYOUT_TYPE_LOUDSPEAKERS or
+     * AV_IAMF_SUBMIX_LAYOUT_TYPE_BINAURAL, this field is undefined.
      */
     AVChannelLayout sound_system;
     /**
@@ -673,6 +689,7 @@ AVIAMFSubmixLayout *av_iamf_submix_add_layout(AVIAMFSubmix *submix);
  *                         upon return, *mix_presentation will be set to NULL.
  */
 void av_iamf_mix_presentation_free(AVIAMFMixPresentation **mix_presentation);
+
 /**
  * @}
  */

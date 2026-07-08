@@ -1,9 +1,11 @@
-/*
- *  Declaration of context structures for use with the PSA driver wrapper
- *  interface. This file contains the context structures for key derivation
- *  operations.
+/**
+ * \file crypto_driver_contexts_key_derivation.h
  *
- *  Warning: This file will be auto-generated in the future.
+ * \brief Declaration of context structures for use with the PSA driver wrapper
+ * interface. This file contains the context structures for key derivation
+ * operations.
+ *
+ * \warning This file will be auto-generated in the future.
  *
  * \note This file may not be included directly. Applications must
  * include psa/crypto.h.
@@ -24,7 +26,7 @@
 #include "psa/crypto_driver_common.h"
 
 /* Include the context structure definitions for the Mbed TLS software drivers */
-#include "psa/crypto_builtin_key_derivation.h"
+#include "mbedtls/private/crypto_builtin_key_derivation.h"
 
 /* Include the context structure definitions for those drivers that were
  * declared during the autogeneration process. */

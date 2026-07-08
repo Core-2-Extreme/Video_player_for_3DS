@@ -10,7 +10,7 @@
 #ifndef MBEDTLS_PLATFORM_TIME_H
 #define MBEDTLS_PLATFORM_TIME_H
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,4 +76,4 @@ int mbedtls_platform_set_time(mbedtls_time_t (*time_func)(mbedtls_time_t *time))
 }
 #endif
 
-#endif /* platform_time.h */
+#endif /* MBEDTLS_PLATFORM_TIME_H */

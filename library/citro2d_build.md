@@ -1,8 +1,7 @@
 # Build a custom citro2d library
 
-It works on Ubuntu 24.04, it should also work on WSL. \
-As of this writing, we are using `devkitARM r65-1`. \
-For more information, see [README](../README.md#build).
+It works on PureOS 11, it should also work on other GNU/Linux based machines. \
+As of this writing, we are using `devkitARM r68-1`.
 
 * **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.
@@ -15,13 +14,13 @@ For more information, see [README](../README.md#build).
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed such as -j value). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/citro2d_custom && cd citro2d_custom && git reset --hard ccd5a8260c0ad8f0606e98bd9fa2fb6a0c2d9cce && make -j 8 && sudo -E make install && cd ../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/citro2d_custom && cd citro2d_custom && git reset --hard 9ce2bd50a425805c3beaf90a48fe952fc4dba80b && make -j 8 && sudo -E make install && cd ../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `Fixed install directory and libctru directory` (`ccd5a8260c0ad8f0606e98bd9fa2fb6a0c2d9cce`).
+Used commit : `Suppressed warnings` (`9ce2bd50a425805c3beaf90a48fe952fc4dba80b`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/citro2d_custom && cd citro2d_custom && git reset --hard ccd5a8260c0ad8f0606e98bd9fa2fb6a0c2d9cce
+git clone -b 3ds https://github.com/Core-2-Extreme/citro2d_custom && cd citro2d_custom && git reset --hard 9ce2bd50a425805c3beaf90a48fe952fc4dba80b
 ```
 
 ## Configure

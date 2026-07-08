@@ -173,7 +173,7 @@ uint32_t Util_encoder_audio_init(Media_a_codec codec, uint32_t original_sample_r
 	util_audio_encoder_context[session]->codec_type = AVMEDIA_TYPE_AUDIO;
 	util_audio_encoder_context[session]->time_base = (AVRational){ 1, (int32_t)encode_sample_rate };
 	if(codec_id == AV_CODEC_ID_AAC)
-		util_audio_encoder_context[session]->profile = FF_PROFILE_AAC_LOW;
+		util_audio_encoder_context[session]->profile = AV_PROFILE_AAC_LOW;
 
 	ffmpeg_result = avcodec_open2(util_audio_encoder_context[session], util_audio_encoder_codec[session], NULL);
 	if(ffmpeg_result != 0)

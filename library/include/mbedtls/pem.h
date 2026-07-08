@@ -11,7 +11,8 @@
 #define MBEDTLS_PEM_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
+#include "mbedtls/compat-3-crypto.h"
 
 #include <stddef.h>
 
@@ -25,8 +26,6 @@
 #define MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT          -0x1080
 /** PEM string is not as expected. */
 #define MBEDTLS_ERR_PEM_INVALID_DATA                      -0x1100
-/** Failed to allocate memory. */
-#define MBEDTLS_ERR_PEM_ALLOC_FAILED                      -0x1180
 /** RSA IV is not in hex-format. */
 #define MBEDTLS_ERR_PEM_INVALID_ENC_IV                    -0x1200
 /** Unsupported key encryption algorithm. */
@@ -37,8 +36,6 @@
 #define MBEDTLS_ERR_PEM_PASSWORD_MISMATCH                 -0x1380
 /** Unavailable feature, e.g. hashing/encryption combination. */
 #define MBEDTLS_ERR_PEM_FEATURE_UNAVAILABLE               -0x1400
-/** Bad input parameters to function. */
-#define MBEDTLS_ERR_PEM_BAD_INPUT_DATA                    -0x1480
 /** \} name PEM Error codes */
 
 #ifdef __cplusplus
@@ -75,8 +72,8 @@ void mbedtls_pem_init(mbedtls_pem_context *ctx);
  * \param pwdlen    length of password
  * \param use_len   destination for total length used from data buffer. It is
  *                  set after header is correctly read, so unless you get
- *                  MBEDTLS_ERR_PEM_BAD_INPUT_DATA or
- *                  MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
+ *                  #PSA_ERROR_INVALID_ARGUMENT or
+ *                  #MBEDTLS_ERR_PEM_NO_HEADER_FOOTER_PRESENT, use_len is
  *                  the length to skip.
  *
  * \note            Attempts to check password correctness by verifying if
@@ -143,7 +140,7 @@ void mbedtls_pem_free(mbedtls_pem_context *ctx);
  *                  and \p buf buffers.
  *
  * \return          \c 0 on success.
- * \return          #MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL if \p buf isn't large
+ * \return          #PSA_ERROR_BUFFER_TOO_SMALL if \p buf isn't large
  *                  enough to hold the PEM buffer. In  this case, `*olen` holds
  *                  the required minimum size of \p buf.
  * \return          Another PEM or BASE64 error code on other kinds of failure.
@@ -157,4 +154,4 @@ int mbedtls_pem_write_buffer(const char *header, const char *footer,
 }
 #endif
 
-#endif /* pem.h */
+#endif /* MBEDTLS_PEM_H */

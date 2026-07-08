@@ -19,6 +19,7 @@
 
 #include "crypto_types.h"
 #include "crypto_compat.h"
+#include "crypto_values.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,35 @@ extern "C" {
 #if !defined(MBEDTLS_PSA_KEY_SLOT_COUNT)
 #define MBEDTLS_PSA_KEY_SLOT_COUNT 32
 #endif
+
+/* If the size of static key slots is not explicitly defined by the user, then
+ * try to guess it based on some of the most common the key types enabled in the build.
+ * See mbedtls_config.h for the definition of MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE. */
+#if !defined(MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE)
+
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE 1
+
+#if PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_EXPORT_ASYMMETRIC_KEY_MAX_SIZE
+#endif
+
+/* This covers ciphers, AEADs and CMAC. */
+#if PSA_CIPHER_MAX_KEY_LENGTH > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_CIPHER_MAX_KEY_LENGTH
+#endif
+
+/* For HMAC, it's typical but not mandatory to use a key size that is equal to
+ * the hash size. */
+#if defined(PSA_WANT_ALG_HMAC)
+#if PSA_HASH_MAX_SIZE > MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#undef MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE
+#define MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE PSA_HASH_MAX_SIZE
+#endif
+#endif /* PSA_WANT_ALG_HMAC */
+
+#endif /* !MBEDTLS_PSA_STATIC_KEY_SLOT_BUFFER_SIZE*/
 
 /** \addtogroup attributes
  * @{
@@ -73,122 +103,6 @@ static inline psa_algorithm_t psa_get_key_enrollment_algorithm(
 {
     return attributes->MBEDTLS_PRIVATE(policy).MBEDTLS_PRIVATE(alg2);
 }
-
-#if defined(MBEDTLS_PSA_CRYPTO_SE_C)
-
-/** Retrieve the slot number where a key is stored.
- *
- * A slot number is only defined for keys that are stored in a secure
- * element.
- *
- * This information is only useful if the secure element is not entirely
- * managed through the PSA Cryptography API. It is up to the secure
- * element driver to decide how PSA slot numbers map to any other interface
- * that the secure element may have.
- *
- * \param[in] attributes        The key attribute structure to query.
- * \param[out] slot_number      On success, the slot number containing the key.
- *
- * \retval #PSA_SUCCESS
- *         The key is located in a secure element, and \p *slot_number
- *         indicates the slot number that contains it.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The caller is not permitted to query the slot number.
- *         Mbed TLS currently does not return this error.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key is not located in a secure element.
- */
-psa_status_t psa_get_key_slot_number(
-    const psa_key_attributes_t *attributes,
-    psa_key_slot_number_t *slot_number);
-
-/** Choose the slot number where a key is stored.
- *
- * This function declares a slot number in the specified attribute
- * structure.
- *
- * A slot number is only meaningful for keys that are stored in a secure
- * element. It is up to the secure element driver to decide how PSA slot
- * numbers map to any other interface that the secure element may have.
- *
- * \note Setting a slot number in key attributes for a key creation can
- *       cause the following errors when creating the key:
- *       - #PSA_ERROR_NOT_SUPPORTED if the selected secure element does
- *         not support choosing a specific slot number.
- *       - #PSA_ERROR_NOT_PERMITTED if the caller is not permitted to
- *         choose slot numbers in general or to choose this specific slot.
- *       - #PSA_ERROR_INVALID_ARGUMENT if the chosen slot number is not
- *         valid in general or not valid for this specific key.
- *       - #PSA_ERROR_ALREADY_EXISTS if there is already a key in the
- *         selected slot.
- *
- * \param[out] attributes       The attribute structure to write to.
- * \param slot_number           The slot number to set.
- */
-static inline void psa_set_key_slot_number(
-    psa_key_attributes_t *attributes,
-    psa_key_slot_number_t slot_number)
-{
-    attributes->MBEDTLS_PRIVATE(has_slot_number) = 1;
-    attributes->MBEDTLS_PRIVATE(slot_number) = slot_number;
-}
-
-/** Remove the slot number attribute from a key attribute structure.
- *
- * This function undoes the action of psa_set_key_slot_number().
- *
- * \param[out] attributes       The attribute structure to write to.
- */
-static inline void psa_clear_key_slot_number(
-    psa_key_attributes_t *attributes)
-{
-    attributes->MBEDTLS_PRIVATE(has_slot_number) = 0;
-}
-
-/** Register a key that is already present in a secure element.
- *
- * The key must be located in a secure element designated by the
- * lifetime field in \p attributes, in the slot set with
- * psa_set_key_slot_number() in the attribute structure.
- * This function makes the key available through the key identifier
- * specified in \p attributes.
- *
- * \param[in] attributes        The attributes of the existing key.
- *
- * \retval #PSA_SUCCESS
- *         The key was successfully registered.
- *         Note that depending on the design of the driver, this may or may
- *         not guarantee that a key actually exists in the designated slot
- *         and is compatible with the specified attributes.
- * \retval #PSA_ERROR_ALREADY_EXISTS
- *         There is already a key with the identifier specified in
- *         \p attributes.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The secure element driver for the specified lifetime does not
- *         support registering a key.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The identifier in \p attributes is invalid, namely the identifier is
- *         not in the user range, or
- *         \p attributes specifies a lifetime which is not located
- *         in a secure element, or no slot number is specified in \p attributes,
- *         or the specified slot number is not valid.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The caller is not authorized to register the specified key slot.
- * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
- * \retval #PSA_ERROR_INSUFFICIENT_STORAGE \emptydescription
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
- * \retval #PSA_ERROR_DATA_INVALID \emptydescription
- * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
- * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
- * \retval #PSA_ERROR_BAD_STATE
- *         The library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t mbedtls_psa_register_se_key(
-    const psa_key_attributes_t *attributes);
-
-#endif /* MBEDTLS_PSA_CRYPTO_SE_C */
 
 /**@}*/
 
@@ -242,78 +156,6 @@ typedef struct mbedtls_psa_stats_s {
  *       may not expose this function.
  */
 void mbedtls_psa_get_stats(mbedtls_psa_stats_t *stats);
-
-/**
- * \brief Inject an initial entropy seed for the random generator into
- *        secure storage.
- *
- * This function injects data to be used as a seed for the random generator
- * used by the PSA Crypto implementation. On devices that lack a trusted
- * entropy source (preferably a hardware random number generator),
- * the Mbed PSA Crypto implementation uses this value to seed its
- * random generator.
- *
- * On devices without a trusted entropy source, this function must be
- * called exactly once in the lifetime of the device. On devices with
- * a trusted entropy source, calling this function is optional.
- * In all cases, this function may only be called before calling any
- * other function in the PSA Crypto API, including psa_crypto_init().
- *
- * When this function returns successfully, it populates a file in
- * persistent storage. Once the file has been created, this function
- * can no longer succeed.
- *
- * If any error occurs, this function does not change the system state.
- * You can call this function again after correcting the reason for the
- * error if possible.
- *
- * \warning This function **can** fail! Callers MUST check the return status.
- *
- * \warning If you use this function, you should use it as part of a
- *          factory provisioning process. The value of the injected seed
- *          is critical to the security of the device. It must be
- *          *secret*, *unpredictable* and (statistically) *unique per device*.
- *          You should be generate it randomly using a cryptographically
- *          secure random generator seeded from trusted entropy sources.
- *          You should transmit it securely to the device and ensure
- *          that its value is not leaked or stored anywhere beyond the
- *          needs of transmitting it from the point of generation to
- *          the call of this function, and erase all copies of the value
- *          once this function returns.
- *
- * This is an Mbed TLS extension.
- *
- * \note This function is only available on the following platforms:
- * * If the compile-time option MBEDTLS_PSA_INJECT_ENTROPY is enabled.
- *   Note that you must provide compatible implementations of
- *   mbedtls_nv_seed_read and mbedtls_nv_seed_write.
- * * In a client-server integration of PSA Cryptography, on the client side,
- *   if the server supports this feature.
- * \param[in] seed          Buffer containing the seed value to inject.
- * \param[in] seed_size     Size of the \p seed buffer.
- *                          The size of the seed in bytes must be greater
- *                          or equal to both #MBEDTLS_ENTROPY_BLOCK_SIZE
- *                          and the value of \c MBEDTLS_ENTROPY_MIN_PLATFORM
- *                          in `library/entropy_poll.h` in the Mbed TLS source
- *                          code.
- *                          It must be less or equal to
- *                          #MBEDTLS_ENTROPY_MAX_SEED_SIZE.
- *
- * \retval #PSA_SUCCESS
- *         The seed value was injected successfully. The random generator
- *         of the PSA Crypto implementation is now ready for use.
- *         You may now call psa_crypto_init() and use the PSA Crypto
- *         implementation.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         \p seed_size is out of range.
- * \retval #PSA_ERROR_STORAGE_FAILURE
- *         There was a failure reading or writing from storage.
- * \retval #PSA_ERROR_NOT_PERMITTED
- *         The library has already been initialized. It is no longer
- *         possible to call this function.
- */
-psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
-                                        size_t seed_size);
 
 /** \addtogroup crypto_types
  * @{
@@ -416,7 +258,7 @@ psa_status_t mbedtls_psa_inject_entropy(const uint8_t *seed,
 /**@}*/
 
 
-/** \defgroup psa_external_rng External random generator
+/** \defgroup psa_rng Random generator
  * @{
  */
 
@@ -465,6 +307,155 @@ psa_status_t mbedtls_psa_external_get_random(
     uint8_t *output, size_t output_size, size_t *output_length);
 #endif /* MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG */
 
+/** Force an immediate reseed of the PSA random generator.
+ *
+ * The entropy source(s) are the ones configured at compile time.
+ *
+ * The random generator is always seeded automatically before use, and
+ * it is reseeded as needed based on the configured policy, so most
+ * applications do not need to call this function.
+ *
+ * The main reason to call this function is in scenarios where the process
+ * state is cloned (i.e. duplicated) while the random generator is active.
+ * In such scenarios, you must call this function in every clone of
+ * the original process before performing any cryptographic operation
+ * that uses randomness. (Note that any operation that uses a private or
+ * secret key may use randomness internally even if the result is not
+ * randomized, but hashing and signature verification are ok.) For example:
+ *
+ * - If the process is part of a live virtual machine that is cloned,
+ *   call this function after cloning so that the new instance has a
+ *   distinct random generator state.
+ * - If the process is part of a hibernated image that may be resumed
+ *   multiple times, call this function after resuming so that each
+ *   resumed instance has a distinct random generator state.
+ * - If the process is cloned through the fork() system call, the
+ *   child process should call this function before using the random
+ *   generator.
+ *
+ * An additional consideration applies in configurations where there is no
+ * actual entropy source, only a nonvolatile seed (i.e.
+ * #MBEDTLS_ENTROPY_NV_SEED and #MBEDTLS_ENTROPY_NO_SOURCES_OK are enabled,
+ * and #MBEDTLS_PSA_BUILTIN_GET_ENTROPY and #MBEDTLS_PSA_DRIVER_GET_ENTROPY
+ * are disabled).
+ * In such configurations, simply calling psa_random_reseed() in multiple
+ * cloned processes would result in the same random generator state in
+ * all the clones. To avoid this, in such configurations, you must pass
+ * a unique \p perso string in every clone.
+ *
+ * \note  This function has no effect when the compilation option
+ *        #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled.
+ *
+ * \note  In client-server builds, this function may not be available
+ *        from clients, since the decision to reseed is generally based
+ *        on the server state.
+ *
+ * \note  If the entropy source fails, the random generator remains usable:
+ *        subsequent calls to generate random data will succeed until
+ *        the random generator itself decides to reseed. If you want to
+ *        force a reseed, either treat the failure as a fatal error,
+ *        or call psa_random_deplete() instead of this function (or in
+ *        addition).
+ *
+ * \param[in] perso     A personalization string, i.e. a byte string to
+ *                      inject into the random generator state in addition
+ *                      to entropy obtained from the normal source(s).
+ *                      In most cases, it is fine for \c perso to be
+ *                      empty. The main use case for a personalization
+ *                      string is when the random generator state is cloned,
+ *                      as described above, and there is no actual entropy
+ *                      source.
+ * \param perso_size    Length of \c perso in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         The reseed succeeded.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled. This
+ *         configuration does not support explicit reseeding.
+ * \retval #PSA_ERROR_INSUFFICIENT_ENTROPY
+ *         The entropy source failed.
+ */
+psa_status_t psa_random_reseed(const uint8_t *perso, size_t perso_size);
+
+/** Force a reseed of the PSA random generator the next time it is used.
+ *
+ * The entropy source(s) are the ones configured at compile time.
+ *
+ * The random generator is always seeded automatically before use, and
+ * it is reseeded as needed based on the configured policy, so most
+ * applications do not need to call this function.
+ *
+ * This function has a similar purpose as psa_random_reseed(),
+ * but the reseed will happen the next time the random generator is used.
+ * The advantage of this function is that it does not fail unless the
+ * system is in an unintended state, so it can be used in contexts where
+ * propagating errors is difficult.
+ *
+ * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+ *       is enabled.
+ *
+ * \note If prediction resistance is enabled (either explicitly, or because
+ *       the reseed interval is set to 1), calling this function is
+ *       unnecessary since the random generator will always reseed anyway.
+ *
+ * \retval #PSA_SUCCESS
+ *         The reseed succeeded.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled. This
+ *         configuration does not support explicit reseeding.
+ */
+psa_status_t psa_random_deplete(void);
+
+/** Enable or disable prediction resistance in the PSA random generator.
+ *
+ * When prediction resistance is enabled, the random generator
+ * injects extra entropy before each request regardless of its size.
+ * As a consequence, a temporary compromise of the random generator
+ * state does not, by itself, compromise future steps.
+ * Furthermore, duplicating the random generator state (because the
+ * running application instance is cloned) is safe since it will
+ * not lead to identical random generator outputs in the clones.
+ *
+ * When prediction resistance is disabled, the random generator injects
+ * extra entropy periodically only as determined by
+ * #MBEDTLS_PSA_RNG_RESEED_INTERVAL.
+ *
+ * Prediction resistance is disabled by default, although setting
+ * #MBEDTLS_PSA_RNG_RESEED_INTERVAL to \c 1 satisfies the prediction
+ * resistance property even when the specific setting for
+ * prediction resistance is disabled.
+ *
+ * \note This function has no effect when #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG
+ *       is enabled.
+ *
+ * \note Prediction resistance cannot be enabled when the only entropy source
+ *       is a nonvolatile seed, since prediction resistance is effectively
+ *       impossible to achieve without actual entropy.
+ *
+ * \param enabled   \c 1 to enable prediction resistance.
+ *                  \c 0 to disable prediction resistance.
+ *
+ * \retval #PSA_SUCCESS
+ *         The PSA random generator is active, and prediction resistance
+ *         has been changed to the desired option.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The PSA random generator is not active.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         \p enabled is not valid.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         PSA uses an external random generator because the compilation
+ *         option #MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG is enabled.
+ *         Or, the random generator only has a nonvolatile seed but no entropy
+ *         source, and prediction resistance has been requested.
+ */
+psa_status_t psa_random_set_prediction_resistance(unsigned enabled);
+
 /**@}*/
 
 /** \defgroup psa_builtin_keys Built-in keys
@@ -479,7 +470,7 @@ psa_status_t mbedtls_psa_external_get_random(
  * #PSA_KEY_ID_VENDOR_MIN and #PSA_KEY_ID_VENDOR_MAX and must not intersect
  * with any other set of implementation-chosen key identifiers.
  *
- * This value is part of the library's ABI since changing it would invalidate
+ * This value is part of the library's API since changing it would invalidate
  * the values of built-in key identifiers in applications.
  */
 #define MBEDTLS_PSA_KEY_ID_BUILTIN_MIN          ((psa_key_id_t) 0x7fff0000)
@@ -497,7 +488,6 @@ psa_status_t mbedtls_psa_external_get_random(
  */
 typedef uint64_t psa_drv_slot_number_t;
 
-#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
 /** Test whether a key identifier belongs to the builtin key range.
  *
  * \param key_id  Key identifier to test.
@@ -513,6 +503,7 @@ static inline int psa_key_id_is_builtin(psa_key_id_t key_id)
            (key_id <= MBEDTLS_PSA_KEY_ID_BUILTIN_MAX);
 }
 
+#if defined(MBEDTLS_PSA_CRYPTO_BUILTIN_KEYS)
 /** Platform function to obtain the location and slot number of a built-in key.
  *
  * An application-specific implementation of this function must be provided if
@@ -565,6 +556,20 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
 
 /** @} */
 
+/** \defgroup psa_crypto_client Functions defined by a client provider
+ *
+ * The functions in this group are meant to be implemented by providers of
+ * the PSA Crypto client interface. They are provided by the library when
+ * #MBEDTLS_PSA_CRYPTO_C is enabled.
+ *
+ * \note All functions in this group are experimental, as using
+ *       alternative client interface providers is experimental.
+ *
+ * @{
+ */
+
+/**@}*/
+
 /** \addtogroup crypto_types
  * @{
  */
@@ -583,6 +588,8 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
 #define PSA_ALG_IS_PAKE(alg)                                        \
     (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_PAKE)
 
+#define PSA_ALG_JPAKE_BASE                      ((psa_algorithm_t) 0x0a000100)
+
 /** The Password-authenticated key exchange by juggling (J-PAKE) algorithm.
  *
  * This is J-PAKE as defined by RFC 8236, instantiated with the following
@@ -600,7 +607,6 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * psa_pake_cs_set_algorithm(cipher_suite, PSA_ALG_JPAKE);
  * psa_pake_cs_set_primitive(cipher_suite,
  *                           PSA_PAKE_PRIMITIVE(type, family, bits));
- * psa_pake_cs_set_hash(cipher_suite, hash);
  * \endcode
  *
  * For more information on how to set a specific curve or field, refer to the
@@ -612,7 +618,6 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * psa_pake_setup(operation, cipher_suite);
  * psa_pake_set_user(operation, ...);
  * psa_pake_set_peer(operation, ...);
- * psa_pake_set_password_key(operation, ...);
  * \endcode
  *
  * The password is provided as a key. This can be the password text itself,
@@ -623,7 +628,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * Section 2.3.8 of _SEC 1: Elliptic Curve Cryptography_
  * (https://www.secg.org/sec1-v2.pdf), before reducing it modulo \c q. Here
  * \c q is order of the group defined by the primitive set in the cipher suite.
- * The \c psa_pake_set_password_key() function returns an error if the result
+ * The \c psa_pake_setup() function returns an error if the result
  * of the reduction is 0.)
  *
  * The key exchange flow for J-PAKE is as follows:
@@ -680,7 +685,7 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * -# To access the shared secret call
  *    \code
  *    // Get Ka=Kb=K
- *    psa_pake_get_implicit_key()
+ *    psa_pake_get_shared_key()
  *    \endcode
  *
  * For more information consult the documentation of the individual
@@ -697,8 +702,107 @@ psa_status_t mbedtls_psa_platform_get_builtin_key(
  * To make the authentication explicit there are various methods, see Section 5
  * of RFC 8236 for two examples.
  *
+ * \note As of TF-PSA-Crypto 1.0.0, the JPAKE implementation has the
+ *       following limitations:
+ *       - The only supported primitive is ECC on the curve secp256r1, i.e.
+ *         `PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
+ *          PSA_ECC_FAMILY_SECP_R1, 256)`.
+ *       - The only supported hash algorithm is SHA-256, i.e.
+ *         `PSA_ALG_SHA_256`.
+ *       - When using the built-in implementation, the user ID and the peer ID
+ *         must be `"client"` (6-byte string) and `"server"` (6-byte string),
+ *         or the other way round.
+ *         Third-party drivers may or may not have this limitation.
+ *
  */
-#define PSA_ALG_JPAKE                   ((psa_algorithm_t) 0x0a000100)
+#define PSA_ALG_JPAKE(hash_alg) \
+    (PSA_ALG_JPAKE_BASE | ((hash_alg) & (PSA_ALG_HASH_MASK)))
+
+/** Whether the specified algorithm is a JPAKE algorithm.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is of the form #PSA_ALG_JPAKE(\c hash_alg)
+ *         for some hash algorithm \c hash_alg, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_JPAKE(alg) \
+    (((alg) & (~(PSA_ALG_HASH_MASK))) == PSA_ALG_JPAKE_BASE)
+
+#define PSA_KEY_TYPE_SPAKE2P_PUBLIC_KEY_BASE        ((psa_key_type_t) 0x4400)
+#define PSA_KEY_TYPE_SPAKE2P_KEY_PAIR_BASE          ((psa_key_type_t) 0x7400)
+
+/** SPAKE2+ key pair.
+ *
+ * Not implemented yet.
+ */
+#define PSA_KEY_TYPE_SPAKE2P_KEY_PAIR(curve)            \
+    (PSA_KEY_TYPE_SPAKE2P_KEY_PAIR_BASE | (curve))
+
+/** SPAKE2+ public key.
+ *
+ * Not implemented yet.
+ */
+#define PSA_KEY_TYPE_SPAKE2P_PUBLIC_KEY(curve)          \
+    (PSA_KEY_TYPE_SPAKE2P_PUBLIC_KEY_BASE | (curve))
+
+/** Whether a key type is a SPAKE2+ key pair type. */
+#define PSA_KEY_TYPE_IS_SPAKE2P_KEY_PAIR(type)          \
+    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==         \
+     PSA_KEY_TYPE_SPAKE2P_KEY_PAIR_BASE)
+
+/** Whether a key type is a SPAKE2+ public key type. */
+#define PSA_KEY_TYPE_IS_SPAKE2P_PUBLIC_KEY(type)        \
+    (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==         \
+     PSA_KEY_TYPE_SPAKE2P_PUBLIC_KEY_BASE)
+
+/** Whether a key type is a SPAKE2+ key pair or public key type. */
+#define PSA_KEY_TYPE_IS_SPAKE2P(type)                   \
+    ((PSA_KEY_TYPE_PUBLIC_KEY_OF_KEY_PAIR(type) &       \
+      ~PSA_KEY_TYPE_ECC_CURVE_MASK) == PSA_KEY_TYPE_SPAKE2P_PUBLIC_KEY_BASE)
+
+#define PSA_ALG_SPAKE2P_HMAC_BASE               ((psa_algorithm_t) 0x0a000400)
+
+/** SPAKE2+ algorithm using HMAC for key confirmation.
+ *
+ * Not implemented yet.
+ */
+#define PSA_ALG_SPAKE2P_HMAC(hash_alg)                                  \
+    (PSA_ALG_SPAKE2P_HMAC_BASE | ((hash_alg) & (PSA_ALG_HASH_MASK)))
+#define PSA_ALG_IS_SPAKE2P_HMAC(alg)                                    \
+    (((alg) & (~(PSA_ALG_HASH_MASK))) == PSA_ALG_SPAKE2P_HMAC_BASE)
+
+/** SPAKE2+ algorithm using CMAC for key confirmation.
+ *
+ * Not implemented yet.
+ */
+#define PSA_ALG_SPAKE2P_CMAC_BASE               ((psa_algorithm_t) 0x0a000500)
+#define PSA_ALG_SPAKE2P_CMAC(hash_alg)                          \
+    (PSA_ALG_SPAKE2P_CMAC_BASE | ((hash_alg) & (PSA_ALG_HASH_MASK)))
+#define PSA_ALG_IS_SPAKE2P_CMAC(alg)                            \
+    (((alg) & (~(PSA_ALG_HASH_MASK))) == PSA_ALG_SPAKE2P_CMAC_BASE)
+
+/** SPAKE2+ algorithm variant used by the Matter specification version 1.2.
+ *
+ * Not implemented yet.
+ */
+#define PSA_ALG_SPAKE2P_MATTER                  ((psa_algorithm_t) 0x0a000609)
+
+/** Whether the specified algorithm is any SPAKE2+ algorithm variant.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is of the form #PSA_ALG_SPAKE2P_CMAC(\c hash_alg),
+ *         #PSA_ALG_SPAKE2P_HMAC(\c hash_alg) or #PSA_ALG_SPAKE2P_MATTER
+ *         for some hash algorithm \c hash_alg, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_SPAKE2P(alg)         \
+    (PSA_ALG_IS_SPAKE2P_HMAC(alg) ||    \
+     PSA_ALG_IS_SPAKE2P_CMAC(alg) ||    \
+     (alg) == PSA_ALG_SPAKE2P_MATTER)
 
 /** @} */
 
@@ -849,9 +953,9 @@ typedef uint32_t psa_pake_primitive_t;
  *         ::psa_pake_primitive_t.
  */
 #define PSA_PAKE_PRIMITIVE(pake_type, pake_family, pake_bits) \
-    ((pake_bits & 0xFFFF) != pake_bits) ? 0 :                 \
-    ((psa_pake_primitive_t) (((pake_type) << 24 |             \
-                              (pake_family) << 16) | (pake_bits)))
+    (((pake_bits & 0xFFFF) != pake_bits) ? 0 :                 \
+     ((psa_pake_primitive_t) (((pake_type) << 24 |             \
+                               (pake_family) << 16) | (pake_bits))))
 
 /** The key share being sent to or received from the peer.
  *
@@ -905,6 +1009,243 @@ typedef uint32_t psa_pake_primitive_t;
  */
 #define PSA_PAKE_STEP_ZK_PROOF                  ((psa_pake_step_t) 0x03)
 
+/** The key confirmation value.
+ *
+ * This is only used with PAKE algorithms with an explicit key confirmation
+ * phase.
+ *
+ * Refer to the documentation of the PAKE algorithm for information about
+ * the input format.
+ */
+#define PSA_PAKE_STEP_CONFIRM                   ((psa_pake_step_t) 0x04)
+
+/**@}*/
+
+/** A sufficient output buffer size for psa_pake_output().
+ *
+ * If the size of the output buffer is at least this large, it is guaranteed
+ * that psa_pake_output() will not fail due to an insufficient output buffer
+ * size. The actual size of the output might be smaller in any given call.
+ *
+ * See also #PSA_PAKE_OUTPUT_MAX_SIZE
+ *
+ * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_PAKE(\p alg) is true).
+ * \param primitive     A primitive of type ::psa_pake_primitive_t that is
+ *                      compatible with algorithm \p alg.
+ * \param output_step   A value of type ::psa_pake_step_t that is valid for the
+ *                      algorithm \p alg.
+ * \return              A sufficient output buffer size for the specified
+ *                      PAKE algorithm, primitive, and output step. If the
+ *                      PAKE algorithm, primitive, or output step is not
+ *                      recognized, or the parameters are incompatible,
+ *                      return 0.
+ */
+#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)               \
+    (PSA_ALG_IS_JPAKE(alg) &&                                           \
+     primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
+                                     PSA_ECC_FAMILY_SECP_R1, 256) ?    \
+     (                                                                 \
+         output_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                   \
+         output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                   \
+         32                                                              \
+     ) :                                                               \
+     0)
+
+/** A sufficient input buffer size for psa_pake_input().
+ *
+ * The value returned by this macro is guaranteed to be large enough for any
+ * valid input to psa_pake_input() in an operation with the specified
+ * parameters.
+ *
+ * See also #PSA_PAKE_INPUT_MAX_SIZE
+ *
+ * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_PAKE(\p alg) is true).
+ * \param primitive     A primitive of type ::psa_pake_primitive_t that is
+ *                      compatible with algorithm \p alg.
+ * \param input_step    A value of type ::psa_pake_step_t that is valid for the
+ *                      algorithm \p alg.
+ * \return              A sufficient input buffer size for the specified
+ *                      input, cipher suite and algorithm. If the cipher suite,
+ *                      the input type or PAKE algorithm is not recognized, or
+ *                      the parameters are incompatible, return 0.
+ */
+#define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step)                 \
+    (PSA_ALG_IS_JPAKE(alg) &&                                           \
+     primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
+                                     PSA_ECC_FAMILY_SECP_R1, 256) ?    \
+     (                                                                 \
+         input_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                    \
+         input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                    \
+         32                                                              \
+     ) :                                                               \
+     0)
+
+/** Output buffer size for psa_pake_output() for any of the supported PAKE
+ * algorithm and primitive suites and output step.
+ *
+ * This macro must expand to a compile-time constant integer.
+ *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_OUTPUT_SIZE()
+ *
+ * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p output_step).
+ */
+#define PSA_PAKE_OUTPUT_MAX_SIZE 65
+
+/** Input buffer size for psa_pake_input() for any of the supported PAKE
+ * algorithm and primitive suites and input step.
+ *
+ * This macro must expand to a compile-time constant integer.
+ *
+ * The value of this macro must be at least as large as the largest value
+ * returned by PSA_PAKE_INPUT_SIZE()
+ *
+ * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p output_step).
+ */
+#define PSA_PAKE_INPUT_MAX_SIZE 65
+
+/** Returns a suitable initializer for a PAKE cipher suite object of type
+ * psa_pake_cipher_suite_t.
+ */
+#define PSA_PAKE_CIPHER_SUITE_INIT { PSA_ALG_NONE, 0, 0, 0, 0 }
+
+/** Returns a suitable initializer for a PAKE operation object of type
+ * psa_pake_operation_t.
+ */
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+#define PSA_PAKE_OPERATION_INIT { 0 }
+#else
+#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
+                                  { 0 }, { { 0 } } }
+#endif
+
+/**
+ * A key confirmation value that indicates an confirmed key in a PAKE cipher suite.
+ *
+ * This key confirmation value will result in the PAKE algorithm exchanging data
+ * to verify that the shared key is identical for both parties. This is the default
+ * key confirmation value in an initialized PAKE cipher suite object.
+ *
+ * Some algorithms do not include confirmation of the shared key.
+ */
+#define PSA_PAKE_CONFIRMED_KEY 0
+
+/**
+ * A key confirmation value that indicates an unconfirmed key in a PAKE cipher suite.
+ *
+ * This key confirmation value will result in the PAKE algorithm terminating prior to
+ * confirming that the resulting shared key is identical for both parties.
+ *
+ * Some algorithms do not support returning an unconfirmed shared key.
+ *
+ * \warning When the shared key is not confirmed as part of the PAKE operation, the
+ *          application is responsible for mitigating risks that arise from the possible
+ *          mismatch in the output keys.
+ */
+#define PSA_PAKE_UNCONFIRMED_KEY 1
+
+struct psa_pake_cipher_suite_s {
+    psa_algorithm_t algorithm;
+    psa_pake_primitive_type_t type;
+    psa_pake_family_t family;
+    uint16_t  bits;
+    uint32_t key_confirmation;
+};
+
+struct psa_crypto_driver_pake_inputs_s {
+    uint8_t *MBEDTLS_PRIVATE(password);
+    size_t MBEDTLS_PRIVATE(password_len);
+    uint8_t *MBEDTLS_PRIVATE(user);
+    size_t MBEDTLS_PRIVATE(user_len);
+    uint8_t *MBEDTLS_PRIVATE(peer);
+    size_t MBEDTLS_PRIVATE(peer_len);
+    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
+    struct psa_pake_cipher_suite_s MBEDTLS_PRIVATE(cipher_suite);
+};
+
+typedef enum psa_crypto_driver_pake_step {
+    PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
+    PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
+    PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
+    PSA_JPAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
+    PSA_JPAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
+    PSA_JPAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
+    PSA_JPAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
+    PSA_JPAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
+    PSA_JPAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
+    PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
+    PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
+} psa_crypto_driver_pake_step_t;
+
+typedef enum psa_jpake_round {
+    PSA_JPAKE_FIRST = 0,
+    PSA_JPAKE_SECOND = 1,
+    PSA_JPAKE_FINISHED = 2
+} psa_jpake_round_t;
+
+typedef enum psa_jpake_io_mode {
+    PSA_JPAKE_INPUT = 0,
+    PSA_JPAKE_OUTPUT = 1
+} psa_jpake_io_mode_t;
+
+struct psa_jpake_computation_stage_s {
+    /* The J-PAKE round we are currently on */
+    psa_jpake_round_t MBEDTLS_PRIVATE(round);
+    /* The 'mode' we are currently in (inputting or outputting) */
+    psa_jpake_io_mode_t MBEDTLS_PRIVATE(io_mode);
+    /* The number of completed inputs so far this round */
+    uint8_t MBEDTLS_PRIVATE(inputs);
+    /* The number of completed outputs so far this round */
+    uint8_t MBEDTLS_PRIVATE(outputs);
+    /* The next expected step (KEY_SHARE, ZK_PUBLIC or ZK_PROOF) */
+    psa_pake_step_t MBEDTLS_PRIVATE(step);
+};
+
+#define PSA_JPAKE_EXPECTED_INPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                          ((round) == PSA_JPAKE_FIRST ? 2 : 1))
+#define PSA_JPAKE_EXPECTED_OUTPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
+                                           ((round) == PSA_JPAKE_FIRST ? 2 : 1))
+
+struct psa_pake_operation_s {
+#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
+    mbedtls_psa_client_handle_t handle;
+#else
+    /** Unique ID indicating which driver got assigned to do the
+     * operation. Since driver contexts are driver-specific, swapping
+     * drivers halfway through the operation is not supported.
+     * ID values are auto-generated in psa_crypto_driver_wrappers.h
+     * ID value zero means the context is not valid or not assigned to
+     * any driver (i.e. none of the driver contexts are active). */
+    unsigned int MBEDTLS_PRIVATE(id);
+    /* Algorithm of the PAKE operation */
+    psa_algorithm_t MBEDTLS_PRIVATE(alg);
+    /* A primitive of type compatible with algorithm */
+    psa_pake_primitive_t MBEDTLS_PRIVATE(primitive);
+    /* Stage of the PAKE operation: waiting for the setup, collecting inputs
+     * or computing. */
+    uint8_t MBEDTLS_PRIVATE(stage);
+    /* Holds computation stage of the PAKE algorithms. */
+    union {
+        uint8_t MBEDTLS_PRIVATE(dummy);
+#if defined(PSA_WANT_ALG_JPAKE)
+        struct psa_jpake_computation_stage_s MBEDTLS_PRIVATE(jpake);
+#endif
+    } MBEDTLS_PRIVATE(computation_stage);
+    union {
+        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
+        struct psa_crypto_driver_pake_inputs_s MBEDTLS_PRIVATE(inputs);
+    } MBEDTLS_PRIVATE(data);
+#endif
+};
+
+/** \addtogroup pake
+ * @{
+ */
+
 /** The type of the data structure for PAKE cipher suites.
  *
  * This is an implementation-defined \c struct. Applications should not
@@ -931,6 +1272,8 @@ static psa_algorithm_t psa_pake_cs_get_algorithm(
  * This function overwrites any PAKE algorithm
  * previously set in \p cipher_suite.
  *
+ * \note For #PSA_ALG_JPAKE, the only supported hash algorithm is SHA-256.
+ *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param algorithm            The PAKE algorithm to write.
  *                             (`PSA_ALG_XXX` values of type ::psa_algorithm_t
@@ -953,6 +1296,10 @@ static psa_pake_primitive_t psa_pake_cs_get_primitive(
 /** Declare the primitive for a PAKE cipher suite.
  *
  * This function overwrites any primitive previously set in \p cipher_suite.
+ *
+ * \note For #PSA_ALG_JPAKE, the only supported primitive is ECC on the curve
+ *       secp256r1, i.e. `PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,
+ *       PSA_ECC_FAMILY_SECP_R1, 256)`.
  *
  * \param[out] cipher_suite    The cipher suite structure to write to.
  * \param primitive            The primitive to write. If this is 0, the
@@ -980,35 +1327,28 @@ static psa_pake_family_t psa_pake_cs_get_family(
 static uint16_t psa_pake_cs_get_bits(
     const psa_pake_cipher_suite_t *cipher_suite);
 
-/** Retrieve the hash algorithm from a PAKE cipher suite.
+/** Retrieve the key confirmation from a PAKE cipher suite.
  *
  * \param[in] cipher_suite      The cipher suite structure to query.
  *
- * \return The hash algorithm stored in the cipher suite structure. The return
- *         value is 0 if the PAKE is not parametrised by a hash algorithm or if
- *         the hash algorithm is not set.
+ * \return A key confirmation value: either #PSA_PAKE_CONFIRMED_KEY or
+ *         #PSA_PAKE_UNCONFIRMED_KEY.
  */
-static psa_algorithm_t psa_pake_cs_get_hash(
-    const psa_pake_cipher_suite_t *cipher_suite);
+static uint32_t psa_pake_cs_get_key_confirmation(const psa_pake_cipher_suite_t *cipher_suite);
 
-/** Declare the hash algorithm for a PAKE cipher suite.
+/** Declare the key confirmation for a PAKE cipher suite.
  *
- * This function overwrites any hash algorithm
- * previously set in \p cipher_suite.
+ * This function overwrites any key confirmation previously set in \p cipher_suite.
  *
- * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
- * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
- * for more information.
+ * The documentation of individual PAKE algorithms specifies which key confirmation values
+ * are valid for the algorithm.
  *
  * \param[out] cipher_suite     The cipher suite structure to write to.
- * \param hash                  The hash involved in the cipher suite.
- *                              (`PSA_ALG_XXX` values of type ::psa_algorithm_t
- *                              such that #PSA_ALG_IS_HASH(\c alg) is true.)
- *                              If this is 0, the hash algorithm in
- *                              \p cipher_suite becomes unspecified.
+ * \param[in]  key_confirmation The key confirmation value to write: either
+ *                              #PSA_PAKE_CONFIRMED_KEY or #PSA_PAKE_UNCONFIRMED_KEY.
  */
-static void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
-                                 psa_algorithm_t hash);
+static void psa_pake_cs_set_key_confirmation(psa_pake_cipher_suite_t *cipher_suite,
+                                             uint32_t key_confirmation);
 
 /** The type of the state data structure for PAKE operations.
  *
@@ -1158,126 +1498,107 @@ psa_status_t psa_crypto_driver_pake_get_cipher_suite(
     const psa_crypto_driver_pake_inputs_t *inputs,
     psa_pake_cipher_suite_t *cipher_suite);
 
-/** Set the session information for a password-authenticated key exchange.
+/** Setup a password-authenticated key exchange.
  *
  * The sequence of operations to set up a password-authenticated key exchange
- * is as follows:
- * -# Allocate an operation object which will be passed to all the functions
+ * operation is as follows:
+ * -# Allocate a PAKE operation object which will be passed to all the functions
  *    listed here.
  * -# Initialize the operation object with one of the methods described in the
- *    documentation for #psa_pake_operation_t, e.g.
+ *    documentation for #psa_pake_operation_t. For example, using
  *    #PSA_PAKE_OPERATION_INIT.
- * -# Call psa_pake_setup() to specify the cipher suite.
+ * -# Call #psa_pake_setup() to specify the cipher suite.
  * -# Call \c psa_pake_set_xxx() functions on the operation to complete the
  *    setup. The exact sequence of \c psa_pake_set_xxx() functions that needs
  *    to be called depends on the algorithm in use.
  *
- * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
- * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
- * for more information.
- *
  * A typical sequence of calls to perform a password-authenticated key
  * exchange:
- * -# Call psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to get the
+ * -# Call #psa_pake_output(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to get the
  *    key share that needs to be sent to the peer.
- * -# Call psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to provide
+ * -# Call #psa_pake_input(operation, #PSA_PAKE_STEP_KEY_SHARE, ...) to provide
  *    the key share that was received from the peer.
- * -# Depending on the algorithm additional calls to psa_pake_output() and
- *    psa_pake_input() might be necessary.
- * -# Call psa_pake_get_implicit_key() for accessing the shared secret.
+ * -# Depending on the algorithm additional calls to #psa_pake_output() and
+ *    #psa_pake_input() might be necessary.
+ * -# Call #psa_pake_get_shared_key() to access the shared secret.
  *
- * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
- * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
- * for more information.
+ * Refer to the documentation of individual PAKE algorithms for details on the
+ * required set up and operation for each algorithm, and for constraints on the
+ * format and content of valid passwords. See PAKE algorithms.
  *
- * If an error occurs at any step after a call to psa_pake_setup(),
- * the operation will need to be reset by a call to psa_pake_abort(). The
- * application may call psa_pake_abort() at any time after the operation
- * has been initialized.
+ * After a successful call to #psa_pake_setup(), the operation is active, and
+ * the application must eventually terminate the operation. The following events
+ * terminate an operation:
+ * - A successful call to #psa_pake_get_shared_key().
+ * - A call to #psa_pake_abort().
  *
- * After a successful call to psa_pake_setup(), the application must
- * eventually terminate the operation. The following events terminate an
- * operation:
- * - A call to psa_pake_abort().
- * - A successful call to psa_pake_get_implicit_key().
+ * If #psa_pake_setup() returns an error, the operation object is unchanged. If
+ * a subsequent function call with an active operation returns an error, the operation
+ * enters an error state.
  *
- * \param[in,out] operation     The operation object to set up. It must have
- *                              been initialized but not set up yet.
- * \param[in] cipher_suite      The cipher suite to use. (A cipher suite fully
- *                              characterizes a PAKE algorithm and determines
- *                              the algorithm as well.)
+ * To abandon an active operation, or reset an operation in an error state, call
+ * #psa_pake_abort().
+ *
+ * \param[in,out] operation     The operation object to set up. It must have been
+ *                              initialized as per the documentation for
+ *                              #psa_pake_operation_t and not yet in use.
+ * \param[in] password_key      Identifier of the key holding the password or a
+ *                              value derived from the password. It must remain
+ *                              valid until the operation terminates.
+ *
+ *                              The valid key types depend on the PAKE algorithm,
+ *                              and participant role. Refer to the documentation of
+ *                              individual PAKE algorithms for more information, see
+ *                              PAKE algorithms.
+ *
+ *                              The key must permit the usage #PSA_KEY_USAGE_DERIVE.
+ * \param[in] cipher_suite      The cipher suite to use. A PAKE cipher suite fully
+ *                              characterizes a PAKE algorithm, including the PAKE
+ *                              algorithm.
+ *
+ *                              The cipher suite must be compatible with the key type
+ *                              of \p password_key.
  *
  * \retval #PSA_SUCCESS
- *         Success.
- * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The algorithm in \p cipher_suite is not a PAKE algorithm, or the
- *         PAKE primitive in \p cipher_suite is not compatible with the
- *         PAKE algorithm, or the hash algorithm in \p cipher_suite is invalid
- *         or not compatible with the PAKE algorithm and primitive.
- * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The algorithm in \p cipher_suite is not a supported PAKE algorithm,
- *         or the PAKE primitive in \p cipher_suite is not supported or not
- *         compatible with the PAKE algorithm, or the hash algorithm in
- *         \p cipher_suite is not supported or not compatible with the PAKE
- *         algorithm and primitive.
- * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
- * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ *         Success. The operation is now active.
  * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid, or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
- */
-psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
-                            const psa_pake_cipher_suite_t *cipher_suite);
-
-/** Set the password for a password-authenticated key exchange from key ID.
- *
- * Call this function when the password, or a value derived from the password,
- * is already present in the key store.
- *
- * \param[in,out] operation     The operation object to set the password for. It
- *                              must have been set up by psa_pake_setup() and
- *                              not yet in use (neither psa_pake_output() nor
- *                              psa_pake_input() has been called yet). It must
- *                              be on operation for which the password hasn't
- *                              been set yet (psa_pake_set_password_key()
- *                              hasn't been called yet).
- * \param password              Identifier of the key holding the password or a
- *                              value derived from the password (eg. by a
- *                              memory-hard function).  It must remain valid
- *                              until the operation terminates. It must be of
- *                              type #PSA_KEY_TYPE_PASSWORD or
- *                              #PSA_KEY_TYPE_PASSWORD_HASH. It has to allow
- *                              the usage #PSA_KEY_USAGE_DERIVE.
- *
- * \retval #PSA_SUCCESS
- *         Success.
+ *         The following conditions can result in this error:
+ *         - The operation state is not valid: it must be inactive.
+ *         - The library requires initializing by a call to #psa_crypto_init().
  * \retval #PSA_ERROR_INVALID_HANDLE
- *         \p password is not a valid key identifier.
+ *         \p password_key is not a valid key identifier.
  * \retval #PSA_ERROR_NOT_PERMITTED
- *         The key does not have the #PSA_KEY_USAGE_DERIVE flag, or it does not
- *         permit the \p operation's algorithm.
+ *         \p password_key does not have the #PSA_KEY_USAGE_DERIVE flag, or it does
+ *         not permit the algorithm in \p cipher_suite.
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         The key type for \p password is not #PSA_KEY_TYPE_PASSWORD or
- *         #PSA_KEY_TYPE_PASSWORD_HASH, or \p password is not compatible with
- *         the \p operation's cipher suite.
+ *         The following conditions can result in this error:
+ *         - The algorithm in \p cipher_suite is not a PAKE algorithm, or encodes an
+ *           invalid hash algorithm.
+ *         - The PAKE primitive in \p cipher_suite is not compatible with the PAKE
+ *           algorithm.
+ *         - The key confirmation value in \p cipher_suite is not compatible with the
+ *           PAKE algorithm and primitive.
+ *         - The key type or key size of \p password_key is not compatible with
+ *           \p cipher_suite.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         The key type or key size of \p password is not supported with the
- *         \p operation's cipher suite.
+ *         The following conditions can result in this error:
+ *         - The algorithm in \p cipher_suite is not a supported PAKE algorithm, or
+ *           encodes an unsupported hash algorithm.
+ *         - The PAKE primitive in \p cipher_suite is not supported or not compatible
+ *           with the PAKE algorithm.
+ *         - The key confirmation value in \p cipher_suite is not supported, or not
+ *           compatible, with the PAKE algorithm and primitive.
+ *         - The key type or key size of \p password_key is not supported with
+ *           \p cipher_suite.
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  * \retval #PSA_ERROR_DATA_INVALID \emptydescription
- * \retval #PSA_ERROR_BAD_STATE
- *         The operation state is not valid (it must have been set up.), or
- *         the library has not been previously initialized by psa_crypto_init().
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
-psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
-                                       mbedtls_svc_key_id_t password);
+psa_status_t psa_pake_setup(psa_pake_operation_t *operation,
+                            mbedtls_svc_key_id_t password_key,
+                            const psa_pake_cipher_suite_t *cipher_suite);
 
 /** Set the user ID for a password-authenticated key exchange.
  *
@@ -1289,6 +1610,10 @@ psa_status_t psa_pake_set_password_key(psa_pake_operation_t *operation,
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
+ *
+ * \note When using the built-in implementation of #PSA_ALG_JPAKE, the user ID
+ *       must be `"client"` (6-byte string) or `"server"` (6-byte string).
+ *       Third-party drivers may or may not have this limitation.
  *
  * \param[in,out] operation     The operation object to set the user ID for. It
  *                              must have been set up by psa_pake_setup() and
@@ -1330,6 +1655,10 @@ psa_status_t psa_pake_set_user(psa_pake_operation_t *operation,
  * Refer to the documentation of individual PAKE algorithm types (`PSA_ALG_XXX`
  * values of type ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true)
  * for more information.
+ *
+ * \note When using the built-in implementation of #PSA_ALG_JPAKE, the peer ID
+ *       must be `"client"` (6-byte string) or `"server"` (6-byte string).
+ *       Third-party drivers may or may not have this limitation.
  *
  * \param[in,out] operation     The operation object to set the peer ID for. It
  *                              must have been set up by psa_pake_setup() and
@@ -1402,6 +1731,41 @@ psa_status_t psa_pake_set_peer(psa_pake_operation_t *operation,
  */
 psa_status_t psa_pake_set_role(psa_pake_operation_t *operation,
                                psa_pake_role_t role);
+
+/** Set the context data for a password-authenticated key exchange.
+ *
+ * Not all PAKE algorithms use context data. Only call this function
+ * for algorithms that need it.
+ *
+ * \param[in,out] operation     The operation object to specify the
+ *                              application's role for. It must have been set up
+ *                              by psa_pake_setup() and not yet in use (neither
+ *                              psa_pake_output() nor psa_pake_input() has been
+ *                              called yet). It must be an operation for which
+ *                              the context hasn't been specified
+ *                              (psa_pake_set_context() hasn't been called yet).
+ * \param[in] context           The context to set.
+ * \param context_len           The length of \p context in bytes.
+ *
+ * \retval #PSA_SUCCESS
+ *         Success.
+ * \retval #PSA_ERROR_INVALID_ARGUMENT
+ *         The algorithm in \p operation does not use a context.
+ * \retval #PSA_ERROR_NOT_SUPPORTED
+ *         The library configuration does not support PAKE algorithms with
+ *         a context, or this specific context value is not supported for
+ *         the given \p operation.
+ * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
+ * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The operation state is not valid, or
+ *         the library has not been previously initialized by psa_crypto_init().
+ *         It is implementation-dependent whether a failure to initialize
+ *         results in this error code.
+ */
+psa_status_t psa_pake_set_context(psa_pake_operation_t *operation,
+                                  const uint8_t *context,
+                                  size_t context_len);
 
 /** Get output for a step of a password-authenticated key exchange.
  *
@@ -1518,66 +1882,134 @@ psa_status_t psa_pake_input(psa_pake_operation_t *operation,
                             const uint8_t *input,
                             size_t input_length);
 
-/** Get implicitly confirmed shared secret from a PAKE.
+/** Extract the shared secret from the PAKE as a key.
  *
- * At this point there is a cryptographic guarantee that only the authenticated
- * party who used the same password is able to compute the key. But there is no
- * guarantee that the peer is the party it claims to be and was able to do so.
+ * This is the final call in a PAKE operation, which retrieves the shared
+ * secret as a key. It is recommended that this key is used as an input to
+ * a key derivation operation to produce additional cryptographic keys. For
+ * some PAKE algorithms, the shared secret is also suitable for use as a key
+ * in cryptographic operations such as encryption. Refer to the documentation
+ * of individual PAKE algorithms for more information, see PAKE algorithms.
  *
- * That is, the authentication is only implicit. Since the peer is not
- * authenticated yet, no action should be taken yet that assumes that the peer
- * is who it claims to be. For example, do not access restricted files on the
- * peer's behalf until an explicit authentication has succeeded.
+ * Depending on the key confirmation requested in the cipher suite,
+ * #psa_pake_get_shared_key() must be called either before or after the
+ * key-confirmation output and input steps for the PAKE algorithm. The key
+ * confirmation affects the guarantees that can be made about the shared key:
  *
- * This function can be called after the key exchange phase of the operation
- * has completed. It imports the shared secret output of the PAKE into the
- * provided derivation operation. The input step
- * #PSA_KEY_DERIVATION_INPUT_SECRET is used when placing the shared key
- * material in the key derivation operation.
+ * Unconfirmed key:
  *
- * The exact sequence of calls to perform a password-authenticated key
- * exchange depends on the algorithm in use.  Refer to the documentation of
- * individual PAKE algorithm types (`PSA_ALG_XXX` values of type
- * ::psa_algorithm_t such that #PSA_ALG_IS_PAKE(\c alg) is true) for more
- * information.
+ * If the cipher suite used to set up the operation requested an unconfirmed
+ * key, the application must call #psa_pake_get_shared_key() after the
+ * key-exchange output and input steps are completed. The PAKE algorithm
+ * provides a cryptographic guarantee that only a peer who used the same
+ * password and identity inputs is able to compute the same key. However,
+ * there is no guarantee that the peer is the participant it claims to be
+ * and was able to compute the same key.
  *
- * When this function returns successfully, \p operation becomes inactive.
- * If this function returns an error status, both \p operation
- * and \c key_derivation operations enter an error state and must be aborted by
- * calling psa_pake_abort() and psa_key_derivation_abort() respectively.
+ * Since the peer is not authenticated, no action should be taken that assumes
+ * that the peer is who it claims to be. For example, do not access restricted
+ * resources on the peer’s behalf until an explicit authentication has succeeded.
  *
- * \param[in,out] operation    Active PAKE operation.
- * \param[out] output          A key derivation operation that is ready
- *                             for an input step of type
- *                             #PSA_KEY_DERIVATION_INPUT_SECRET.
+ * \note Some PAKE algorithms do not enable the output of the shared secret
+ * until it has been confirmed.
+ *
+ * Confirmed key:
+ *
+ * If the cipher suite used to set up the operation requested a confirmed key,
+ * the application must call #psa_pake_get_shared_key() after the key-exchange
+ * and key-confirmation output and input steps are completed.
+ *
+ * Following key confirmation, the PAKE algorithm provides a cryptographic
+ * guarantee that the peer used the same password and identity inputs, and
+ * has computed the identical shared secret key.
+ *
+ * Since the peer is not authenticated, no action should be taken that assumes
+ * that the peer is who it claims to be. For example, do not access restricted
+ * resources on the peer’s behalf until an explicit authentication has succeeded.
+ *
+ * \note Some PAKE algorithms do not include any key-confirmation steps.
+ *
+ * The exact sequence of calls to perform a password-authenticated key exchange
+ * depends on the algorithm in use. Refer to the documentation of individual PAKE
+ * algorithms for more information. See PAKE algorithms.
+ *
+ * When this function returns successfully, the operation becomes inactive. If this
+ * function returns an error status, the operation enters an error state and must
+ * be aborted by calling #psa_pake_abort().
+ *
+ * \param[in,out]   operation   Active PAKE operation.
+ * \param[in]       attributes  The attributes for the new key. This function uses
+ *                              the attributes as follows:
+ *                              The key type is required. All PAKE algorithms can
+ *                              output a key of type #PSA_KEY_TYPE_DERIVE or
+ *                              #PSA_KEY_TYPE_HMAC. PAKE algorithms that produce a
+ *                              pseudo-random shared secret, can also output
+ *                              block-cipher key types, for example
+ *                              #PSA_KEY_TYPE_AES. Refer to the documentation of
+ *                              individual PAKE algorithms for more information.
+ *                              See PAKE algorithms.
+ *
+ *                              The key size in attributes must be zero. The
+ *                              returned key size is always determined from the
+ *                              PAKE shared secret.
+ *
+ *                              The key permitted-algorithm policy is required for
+ *                              keys that will be used for a cryptographic operation.
+ *
+ *                              The key usage flags define what operations are permitted
+ *                              with the key.
+ *
+ *                              The key lifetime and identifier are required for a
+ *                              persistent key.
+ *
+ *                              \note This is an input parameter: It is not updated
+ *                              with the final key attributes. The final attributes
+ *                              of the new key can be queried by calling
+ *                              #psa_get_key_attributes() with the key’s identifier.
+ * \param[out]      key         On success, an identifier for the newly created key.
+ *                              #PSA_KEY_ID_NULL on failure.
  *
  * \retval #PSA_SUCCESS
- *         Success.
+ *         Success. If the key is persistent, the key material and the key’s metadata have
+ *         been saved to persistent storage.
+ * \retval #PSA_ERROR_BAD_STATE
+ *         The following conditions can result in this error:
+ *         The state of PAKE operation \p operation is not valid: It must be ready to return
+ *         the shared secret.
+ *         For an unconfirmed key, this will be when the key-exchange output and input
+ *         steps are complete, but prior to any key-confirmation output and input steps.
+ *         For a confirmed key, this will be when all key-exchange and key-confirmation
+ *         output and input steps are complete.
+ *         The library requires initializing by a call to #psa_crypto_init().
+ * \retval #PSA_ERROR_NOT_PERMITTED
+ *         The implementation does not permit creating a key with the specified attributes
+ *         due to some implementation-specific policy.
+ * \retval #PSA_ERROR_ALREADY_EXISTS
+ *         This is an attempt to create a persistent key, and there is already a persistent
+ *         key with the given identifier.
+ *
  * \retval #PSA_ERROR_INVALID_ARGUMENT
- *         #PSA_KEY_DERIVATION_INPUT_SECRET is not compatible with the
- *         algorithm in the \p output key derivation operation.
+ *         The following conditions can result in this error:
+ *         The \p key type is not valid for output from this \p operation’s algorithm.
+ *         The \p key size is nonzero.
+ *         The \p key lifetime is invalid.
+ *         The \p key identifier is not valid for the key lifetime.
+ *         The \p key usage flags include invalid values.
+ *         The \p key’s permitted-usage algorithm is invalid.
+ *         The \p key attributes, as a whole, are invalid.
  * \retval #PSA_ERROR_NOT_SUPPORTED
- *         Input from a PAKE is not supported by the algorithm in the \p output
- *         key derivation operation.
+ *         The \p key attributes, as a whole, are not supported for creation from a PAKE secret,
+ *         either by the implementation in general or in the specified storage location.
  * \retval #PSA_ERROR_INSUFFICIENT_MEMORY \emptydescription
  * \retval #PSA_ERROR_COMMUNICATION_FAILURE \emptydescription
  * \retval #PSA_ERROR_CORRUPTION_DETECTED \emptydescription
  * \retval #PSA_ERROR_STORAGE_FAILURE \emptydescription
  * \retval #PSA_ERROR_DATA_CORRUPT \emptydescription
  * \retval #PSA_ERROR_DATA_INVALID \emptydescription
- * \retval #PSA_ERROR_BAD_STATE
- *         The PAKE operation state is not valid (it must be active, but beyond
- *         that validity is specific to the algorithm), or
- *         the library has not been previously initialized by psa_crypto_init(),
- *         or the state of \p output is not valid for
- *         the #PSA_KEY_DERIVATION_INPUT_SECRET step. This can happen if the
- *         step is out of order or the application has done this step already
- *         and it may not be repeated.
- *         It is implementation-dependent whether a failure to initialize
- *         results in this error code.
  */
-psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
-                                       psa_key_derivation_operation_t *output);
+psa_status_t psa_pake_get_shared_key(psa_pake_operation_t *operation,
+                                     const psa_key_attributes_t *attributes,
+                                     mbedtls_svc_key_id_t *key);
 
 /** Abort a PAKE operation.
  *
@@ -1589,7 +2021,7 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
  * object has been initialized as described in #psa_pake_operation_t.
  *
  * In particular, calling psa_pake_abort() after the operation has been
- * terminated by a call to psa_pake_abort() or psa_pake_get_implicit_key()
+ * terminated by a call to #psa_pake_abort() or #psa_pake_get_shared_key()
  * is safe and has no effect.
  *
  * \param[in,out] operation    The operation to abort.
@@ -1606,114 +2038,6 @@ psa_status_t psa_pake_get_implicit_key(psa_pake_operation_t *operation,
 psa_status_t psa_pake_abort(psa_pake_operation_t *operation);
 
 /**@}*/
-
-/** A sufficient output buffer size for psa_pake_output().
- *
- * If the size of the output buffer is at least this large, it is guaranteed
- * that psa_pake_output() will not fail due to an insufficient output buffer
- * size. The actual size of the output might be smaller in any given call.
- *
- * See also #PSA_PAKE_OUTPUT_MAX_SIZE
- *
- * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_PAKE(\p alg) is true).
- * \param primitive     A primitive of type ::psa_pake_primitive_t that is
- *                      compatible with algorithm \p alg.
- * \param output_step   A value of type ::psa_pake_step_t that is valid for the
- *                      algorithm \p alg.
- * \return              A sufficient output buffer size for the specified
- *                      PAKE algorithm, primitive, and output step. If the
- *                      PAKE algorithm, primitive, or output step is not
- *                      recognized, or the parameters are incompatible,
- *                      return 0.
- */
-#define PSA_PAKE_OUTPUT_SIZE(alg, primitive, output_step)               \
-    (alg == PSA_ALG_JPAKE &&                                           \
-     primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
-                                     PSA_ECC_FAMILY_SECP_R1, 256) ?    \
-     (                                                                 \
-         output_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                   \
-         output_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                   \
-         32                                                              \
-     ) :                                                               \
-     0)
-
-/** A sufficient input buffer size for psa_pake_input().
- *
- * The value returned by this macro is guaranteed to be large enough for any
- * valid input to psa_pake_input() in an operation with the specified
- * parameters.
- *
- * See also #PSA_PAKE_INPUT_MAX_SIZE
- *
- * \param alg           A PAKE algorithm (\c PSA_ALG_XXX value such that
- *                      #PSA_ALG_IS_PAKE(\p alg) is true).
- * \param primitive     A primitive of type ::psa_pake_primitive_t that is
- *                      compatible with algorithm \p alg.
- * \param input_step    A value of type ::psa_pake_step_t that is valid for the
- *                      algorithm \p alg.
- * \return              A sufficient input buffer size for the specified
- *                      input, cipher suite and algorithm. If the cipher suite,
- *                      the input type or PAKE algorithm is not recognized, or
- *                      the parameters are incompatible, return 0.
- */
-#define PSA_PAKE_INPUT_SIZE(alg, primitive, input_step)                 \
-    (alg == PSA_ALG_JPAKE &&                                           \
-     primitive == PSA_PAKE_PRIMITIVE(PSA_PAKE_PRIMITIVE_TYPE_ECC,      \
-                                     PSA_ECC_FAMILY_SECP_R1, 256) ?    \
-     (                                                                 \
-         input_step == PSA_PAKE_STEP_KEY_SHARE ? 65 :                    \
-         input_step == PSA_PAKE_STEP_ZK_PUBLIC ? 65 :                    \
-         32                                                              \
-     ) :                                                               \
-     0)
-
-/** Output buffer size for psa_pake_output() for any of the supported PAKE
- * algorithm and primitive suites and output step.
- *
- * This macro must expand to a compile-time constant integer.
- *
- * The value of this macro must be at least as large as the largest value
- * returned by PSA_PAKE_OUTPUT_SIZE()
- *
- * See also #PSA_PAKE_OUTPUT_SIZE(\p alg, \p primitive, \p output_step).
- */
-#define PSA_PAKE_OUTPUT_MAX_SIZE 65
-
-/** Input buffer size for psa_pake_input() for any of the supported PAKE
- * algorithm and primitive suites and input step.
- *
- * This macro must expand to a compile-time constant integer.
- *
- * The value of this macro must be at least as large as the largest value
- * returned by PSA_PAKE_INPUT_SIZE()
- *
- * See also #PSA_PAKE_INPUT_SIZE(\p alg, \p primitive, \p output_step).
- */
-#define PSA_PAKE_INPUT_MAX_SIZE 65
-
-/** Returns a suitable initializer for a PAKE cipher suite object of type
- * psa_pake_cipher_suite_t.
- */
-#define PSA_PAKE_CIPHER_SUITE_INIT { PSA_ALG_NONE, 0, 0, 0, PSA_ALG_NONE }
-
-/** Returns a suitable initializer for a PAKE operation object of type
- * psa_pake_operation_t.
- */
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
-#define PSA_PAKE_OPERATION_INIT { 0 }
-#else
-#define PSA_PAKE_OPERATION_INIT { 0, PSA_ALG_NONE, 0, PSA_PAKE_OPERATION_STAGE_SETUP, \
-                                  { 0 }, { { 0 } } }
-#endif
-
-struct psa_pake_cipher_suite_s {
-    psa_algorithm_t algorithm;
-    psa_pake_primitive_type_t type;
-    psa_pake_family_t family;
-    uint16_t  bits;
-    psa_algorithm_t hash;
-};
 
 static inline psa_algorithm_t psa_pake_cs_get_algorithm(
     const psa_pake_cipher_suite_t *cipher_suite)
@@ -1760,109 +2084,17 @@ static inline uint16_t psa_pake_cs_get_bits(
     return cipher_suite->bits;
 }
 
-static inline psa_algorithm_t psa_pake_cs_get_hash(
-    const psa_pake_cipher_suite_t *cipher_suite)
+
+static inline uint32_t psa_pake_cs_get_key_confirmation(const psa_pake_cipher_suite_t *cipher_suite)
 {
-    return cipher_suite->hash;
+    return cipher_suite->key_confirmation;
 }
 
-static inline void psa_pake_cs_set_hash(psa_pake_cipher_suite_t *cipher_suite,
-                                        psa_algorithm_t hash)
+static inline void psa_pake_cs_set_key_confirmation(psa_pake_cipher_suite_t *cipher_suite,
+                                                    uint32_t key_confirmation)
 {
-    if (!PSA_ALG_IS_HASH(hash)) {
-        cipher_suite->hash = 0;
-    } else {
-        cipher_suite->hash = hash;
-    }
+    cipher_suite->key_confirmation = key_confirmation;
 }
-
-struct psa_crypto_driver_pake_inputs_s {
-    uint8_t *MBEDTLS_PRIVATE(password);
-    size_t MBEDTLS_PRIVATE(password_len);
-    uint8_t *MBEDTLS_PRIVATE(user);
-    size_t MBEDTLS_PRIVATE(user_len);
-    uint8_t *MBEDTLS_PRIVATE(peer);
-    size_t MBEDTLS_PRIVATE(peer_len);
-    psa_key_attributes_t MBEDTLS_PRIVATE(attributes);
-    psa_pake_cipher_suite_t MBEDTLS_PRIVATE(cipher_suite);
-};
-
-typedef enum psa_crypto_driver_pake_step {
-    PSA_JPAKE_STEP_INVALID        = 0,  /* Invalid step */
-    PSA_JPAKE_X1_STEP_KEY_SHARE   = 1,  /* Round 1: input/output key share (for ephemeral private key X1).*/
-    PSA_JPAKE_X1_STEP_ZK_PUBLIC   = 2,  /* Round 1: input/output Schnorr NIZKP public key for the X1 key */
-    PSA_JPAKE_X1_STEP_ZK_PROOF    = 3,  /* Round 1: input/output Schnorr NIZKP proof for the X1 key */
-    PSA_JPAKE_X2_STEP_KEY_SHARE   = 4,  /* Round 1: input/output key share (for ephemeral private key X2).*/
-    PSA_JPAKE_X2_STEP_ZK_PUBLIC   = 5,  /* Round 1: input/output Schnorr NIZKP public key for the X2 key */
-    PSA_JPAKE_X2_STEP_ZK_PROOF    = 6,  /* Round 1: input/output Schnorr NIZKP proof for the X2 key */
-    PSA_JPAKE_X2S_STEP_KEY_SHARE  = 7,  /* Round 2: output X2S key (our key) */
-    PSA_JPAKE_X2S_STEP_ZK_PUBLIC  = 8,  /* Round 2: output Schnorr NIZKP public key for the X2S key (our key) */
-    PSA_JPAKE_X2S_STEP_ZK_PROOF   = 9,  /* Round 2: output Schnorr NIZKP proof for the X2S key (our key) */
-    PSA_JPAKE_X4S_STEP_KEY_SHARE  = 10, /* Round 2: input X4S key (from peer) */
-    PSA_JPAKE_X4S_STEP_ZK_PUBLIC  = 11, /* Round 2: input Schnorr NIZKP public key for the X4S key (from peer) */
-    PSA_JPAKE_X4S_STEP_ZK_PROOF   = 12  /* Round 2: input Schnorr NIZKP proof for the X4S key (from peer) */
-} psa_crypto_driver_pake_step_t;
-
-typedef enum psa_jpake_round {
-    PSA_JPAKE_FIRST = 0,
-    PSA_JPAKE_SECOND = 1,
-    PSA_JPAKE_FINISHED = 2
-} psa_jpake_round_t;
-
-typedef enum psa_jpake_io_mode {
-    PSA_JPAKE_INPUT = 0,
-    PSA_JPAKE_OUTPUT = 1
-} psa_jpake_io_mode_t;
-
-struct psa_jpake_computation_stage_s {
-    /* The J-PAKE round we are currently on */
-    psa_jpake_round_t MBEDTLS_PRIVATE(round);
-    /* The 'mode' we are currently in (inputting or outputting) */
-    psa_jpake_io_mode_t MBEDTLS_PRIVATE(io_mode);
-    /* The number of completed inputs so far this round */
-    uint8_t MBEDTLS_PRIVATE(inputs);
-    /* The number of completed outputs so far this round */
-    uint8_t MBEDTLS_PRIVATE(outputs);
-    /* The next expected step (KEY_SHARE, ZK_PUBLIC or ZK_PROOF) */
-    psa_pake_step_t MBEDTLS_PRIVATE(step);
-};
-
-#define PSA_JPAKE_EXPECTED_INPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
-                                          ((round) == PSA_JPAKE_FIRST ? 2 : 1))
-#define PSA_JPAKE_EXPECTED_OUTPUTS(round) ((round) == PSA_JPAKE_FINISHED ? 0 : \
-                                           ((round) == PSA_JPAKE_FIRST ? 2 : 1))
-
-struct psa_pake_operation_s {
-#if defined(MBEDTLS_PSA_CRYPTO_CLIENT) && !defined(MBEDTLS_PSA_CRYPTO_C)
-    mbedtls_psa_client_handle_t handle;
-#else
-    /** Unique ID indicating which driver got assigned to do the
-     * operation. Since driver contexts are driver-specific, swapping
-     * drivers halfway through the operation is not supported.
-     * ID values are auto-generated in psa_crypto_driver_wrappers.h
-     * ID value zero means the context is not valid or not assigned to
-     * any driver (i.e. none of the driver contexts are active). */
-    unsigned int MBEDTLS_PRIVATE(id);
-    /* Algorithm of the PAKE operation */
-    psa_algorithm_t MBEDTLS_PRIVATE(alg);
-    /* A primitive of type compatible with algorithm */
-    psa_pake_primitive_t MBEDTLS_PRIVATE(primitive);
-    /* Stage of the PAKE operation: waiting for the setup, collecting inputs
-     * or computing. */
-    uint8_t MBEDTLS_PRIVATE(stage);
-    /* Holds computation stage of the PAKE algorithms. */
-    union {
-        uint8_t MBEDTLS_PRIVATE(dummy);
-#if defined(PSA_WANT_ALG_JPAKE)
-        psa_jpake_computation_stage_t MBEDTLS_PRIVATE(jpake);
-#endif
-    } MBEDTLS_PRIVATE(computation_stage);
-    union {
-        psa_driver_pake_context_t MBEDTLS_PRIVATE(ctx);
-        psa_crypto_driver_pake_inputs_t MBEDTLS_PRIVATE(inputs);
-    } MBEDTLS_PRIVATE(data);
-#endif
-};
 
 static inline struct psa_pake_cipher_suite_s psa_pake_cipher_suite_init(void)
 {

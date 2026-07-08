@@ -12,7 +12,7 @@
 #define MBEDTLS_PSA_UTIL_H
 #include "mbedtls/private_access.h"
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 
 #include "psa/crypto.h"
 
@@ -69,40 +69,6 @@ int mbedtls_psa_get_random(void *p_rng,
 /** \defgroup psa_tls_helpers TLS helper functions
  * @{
  */
-#if defined(PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY)
-#include <mbedtls/ecp.h>
-
-/** Convert an ECC curve identifier from the Mbed TLS encoding to PSA.
- *
- * \param grpid         An Mbed TLS elliptic curve identifier
- *                      (`MBEDTLS_ECP_DP_xxx`).
- * \param[out] bits     On success the bit size of the curve; 0 on failure.
- *
- * \return              If the curve is supported in the PSA API, this function
- *                      returns the proper PSA curve identifier
- *                      (`PSA_ECC_FAMILY_xxx`). This holds even if the curve is
- *                      not supported by the ECP module.
- * \return              \c 0 if the curve is not supported in the PSA API.
- */
-psa_ecc_family_t mbedtls_ecc_group_to_psa(mbedtls_ecp_group_id grpid,
-                                          size_t *bits);
-
-/** Convert an ECC curve identifier from the PSA encoding to Mbed TLS.
- *
- * \param family        A PSA elliptic curve family identifier
- *                      (`PSA_ECC_FAMILY_xxx`).
- * \param bits          The bit-length of a private key on \p curve.
- *
- * \return              If the curve is supported in the PSA API, this function
- *                      returns the corresponding Mbed TLS elliptic curve
- *                      identifier (`MBEDTLS_ECP_DP_xxx`).
- * \return              #MBEDTLS_ECP_DP_NONE if the combination of \c curve
- *                      and \p bits is not supported.
- */
-mbedtls_ecp_group_id mbedtls_ecc_group_from_psa(psa_ecc_family_t family,
-                                                size_t bits);
-#endif /* PSA_WANT_KEY_TYPE_ECC_PUBLIC_KEY */
-
 /**
  * \brief           This function returns the PSA algorithm identifier
  *                  associated with the given digest type.
@@ -141,7 +107,33 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
 }
 #endif /* MBEDTLS_PSA_CRYPTO_CLIENT */
 
-#if defined(MBEDTLS_PSA_UTIL_HAVE_ECDSA)
+#if defined(PSA_HAVE_ALG_SOME_ECDSA)
+
+/**
+ * \brief           Maximum size of a DER-encoded ECDSA signature for a
+ *                  given curve bit size.
+ *
+ * \param bits      Curve size in bits.
+ * \return          Maximum signature size in bytes.
+ *
+ * \note            This macro returns a compile-time constant if its argument
+ *                  is one. It may evaluate its argument multiple times.
+ */
+/*
+ *     Ecdsa-Sig-Value ::= SEQUENCE {
+ *         r       INTEGER,
+ *         s       INTEGER
+ *     }
+ *
+ * For each of r and s, the value (V) may include an extra initial "0" bit.
+ */
+#define MBEDTLS_ECDSA_DER_MAX_SIG_LEN(bits)                               \
+    (/*T,L of SEQUENCE*/ ((bits) >= 61 * 8 ? 3 : 2) +              \
+     /*T,L of r,s*/ 2 * (((bits) >= 127 * 8 ? 3 : 2) +     \
+                         /*V of r,s*/ ((bits) + 8) / 8))
+
+/** The maximal size of a DER-encoded ECDSA signature in Bytes. */
+#define MBEDTLS_ECDSA_DER_MAX_LEN  MBEDTLS_ECDSA_DER_MAX_SIG_LEN(PSA_VENDOR_ECC_MAX_CURVE_BITS)
 
 /** Convert an ECDSA signature from raw format to DER ASN.1 format.
  *
@@ -155,12 +147,22 @@ static inline mbedtls_md_type_t mbedtls_md_type_from_psa_alg(psa_algorithm_t psa
  *                          is at least the size of the actual output. (The size
  *                          of the output can vary depending on the presence of
  *                          leading zeros in the data.) You can use
- *                          #MBEDTLS_ECDSA_MAX_SIG_LEN(\p bits) to determine a
- *                          size that is large enough for all signatures for a
+ *                          #MBEDTLS_ECDSA_DER_MAX_SIG_LEN(\p bits) to determine
+ *                          a size that is large enough for all signatures for a
  *                          given value of \p bits.
  * \param[out]  der_len     On success it contains the amount of valid data
  *                          (in bytes) written to \p der. It's undefined
  *                          in case of failure.
+ *
+ * \note                    The behavior is undefined if \p der is null,
+ *                          even if \p der_size is 0.
+ *
+ * \return                  0 if successful.
+ * \return                  #PSA_ERROR_BUFFER_TOO_SMALL if \p der_size
+ *                          is too small or if \p bits is larger than the
+ *                          largest supported curve.
+ * \return                  #MBEDTLS_ERR_ASN1_INVALID_DATA if one of the
+ *                          numbers in the signature is 0.
  */
 int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_len,
                              unsigned char *der, size_t der_size, size_t *der_len);
@@ -177,11 +179,20 @@ int mbedtls_ecdsa_raw_to_der(size_t bits, const unsigned char *raw, size_t raw_l
  * \param[out]  raw_len     On success it is updated with the amount of valid
  *                          data (in bytes) written to \p raw. It's undefined
  *                          in case of failure.
+ *
+ * \return                  0 if successful.
+ * \return                  #PSA_ERROR_BUFFER_TOO_SMALL if \p raw_size
+ *                          is too small or if \p bits is larger than the
+ *                          largest supported curve.
+ * \return                  #MBEDTLS_ERR_ASN1_INVALID_DATA if the data in
+ *                          \p der is inconsistent with \p bits.
+ * \return                  An \c MBEDTLS_ERR_ASN1_xxx error code if
+ *                          \p der is malformed.
  */
 int mbedtls_ecdsa_der_to_raw(size_t bits, const unsigned char *der, size_t der_len,
                              unsigned char *raw, size_t raw_size, size_t *raw_len);
 
-#endif /* MBEDTLS_PSA_UTIL_HAVE_ECDSA */
+#endif /* PSA_HAVE_ALG_SOME_ECDSA */
 
 /**@}*/
 

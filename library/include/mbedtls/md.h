@@ -17,17 +17,20 @@
 
 #include <stddef.h>
 
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
 #include "mbedtls/platform_util.h"
 
 /** The selected feature is not available. */
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080
 /** Bad input parameters to function. */
-#define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100
+#define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     PSA_ERROR_INVALID_ARGUMENT
 /** Failed to allocate memory. */
-#define MBEDTLS_ERR_MD_ALLOC_FAILED                       -0x5180
+#define MBEDTLS_ERR_MD_ALLOC_FAILED                       PSA_ERROR_INSUFFICIENT_MEMORY
+
+#if defined(MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS)
 /** Opening or reading of file failed. */
 #define MBEDTLS_ERR_MD_FILE_IO_ERROR                      -0x5200
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,46 +70,31 @@ typedef enum {
  * and legacy, then assume the buffer's size is PSA_HASH_MAX_SIZE in another
  * part of the code based on PSA.
  */
-#if defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA3_512)
+#if defined(PSA_WANT_ALG_SHA_512) || defined(PSA_WANT_ALG_SHA3_512)
 #define MBEDTLS_MD_MAX_SIZE         64  /* longest known is SHA512 */
-#elif defined(MBEDTLS_MD_CAN_SHA384) || defined(MBEDTLS_MD_CAN_SHA3_384)
+#elif defined(PSA_WANT_ALG_SHA_384) || defined(PSA_WANT_ALG_SHA3_384)
 #define MBEDTLS_MD_MAX_SIZE         48  /* longest known is SHA384 */
-#elif defined(MBEDTLS_MD_CAN_SHA256) || defined(MBEDTLS_MD_CAN_SHA3_256)
+#elif defined(PSA_WANT_ALG_SHA_256) || defined(PSA_WANT_ALG_SHA3_256)
 #define MBEDTLS_MD_MAX_SIZE         32  /* longest known is SHA256 */
-#elif defined(MBEDTLS_MD_CAN_SHA224) || defined(MBEDTLS_MD_CAN_SHA3_224)
+#elif defined(PSA_WANT_ALG_SHA_224) || defined(PSA_WANT_ALG_SHA3_224)
 #define MBEDTLS_MD_MAX_SIZE         28  /* longest known is SHA224 */
 #else
 #define MBEDTLS_MD_MAX_SIZE         20  /* longest known is SHA1 or RIPE MD-160
                                            or smaller (MD5 and earlier) */
 #endif
 
-#if defined(MBEDTLS_MD_CAN_SHA3_224)
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         144 /* the longest known is SHA3-224 */
-#elif defined(MBEDTLS_MD_CAN_SHA3_256)
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         136
-#elif defined(MBEDTLS_MD_CAN_SHA512) || defined(MBEDTLS_MD_CAN_SHA384)
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         128
-#elif defined(MBEDTLS_MD_CAN_SHA3_384)
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         104
-#elif defined(MBEDTLS_MD_CAN_SHA3_512)
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         72
-#else
-#define MBEDTLS_MD_MAX_BLOCK_SIZE         64
-#endif
-
 /**
  * Opaque struct.
  *
- * Constructed using either #mbedtls_md_info_from_string or
- * #mbedtls_md_info_from_type.
+ * Constructed using #mbedtls_md_info_from_type.
  *
- * Fields can be accessed with #mbedtls_md_get_size,
- * #mbedtls_md_get_type and #mbedtls_md_get_name.
+ * Fields can be accessed with #mbedtls_md_get_size
+ * and #mbedtls_md_get_type.
  */
 /* Defined internally in library/md_wrap.h. */
 typedef struct mbedtls_md_info_t mbedtls_md_info_t;
 
-/**
+/*
  * Used internally to indicate whether a context uses legacy or PSA.
  *
  * Internal use only.
@@ -187,6 +175,9 @@ void mbedtls_md_free(mbedtls_md_context_t *ctx);
  *                  to use.
  * \param hmac      Defines if HMAC is used. 0: HMAC is not used (saves some memory),
  *                  or non-zero: HMAC is used with this context.
+ * \note            From TF-PSA-Crypto 1.0 and Mbed TLS 4.0 onwards, \p hmac MUST be
+ *                  set to 0. HMAC operations are no longer supported via MD and
+ *                  may only be performed via the psa_mac_ API.
  *
  * \return          \c 0 on success.
  * \return          #MBEDTLS_ERR_MD_BAD_INPUT_DATA on parameter-verification
@@ -336,6 +327,25 @@ int mbedtls_md_finish(mbedtls_md_context_t *ctx, unsigned char *output);
 MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md(const mbedtls_md_info_t *md_info, const unsigned char *input, size_t ilen,
                unsigned char *output);
+
+#if defined(MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS)
+
+/**
+ * \brief           This function allocates internal structures for HMAC
+ *                  operations.
+ *
+ *                  It should be called after mbedtls_md_setup(). Makes it necessary
+ *                  to call mbedtls_md_free() later.
+ *
+ * \param ctx       The context to set up.
+ * \param md_info   The information structure of the message-digest algorithm
+ *                  to use.
+ *
+ * \return          \c 0 on success.
+ * \return          #MBEDTLS_ERR_MD_ALLOC_FAILED on memory-allocation failure.
+ */
+MBEDTLS_CHECK_RETURN_TYPICAL
+int mbedtls_md_hmac_setup(mbedtls_md_context_t *ctx, const mbedtls_md_info_t *md_info);
 
 /**
  * \brief           This function returns the list of digests supported by the
@@ -518,6 +528,8 @@ MBEDTLS_CHECK_RETURN_TYPICAL
 int mbedtls_md_hmac(const mbedtls_md_info_t *md_info, const unsigned char *key, size_t keylen,
                     const unsigned char *input, size_t ilen,
                     unsigned char *output);
+
+#endif /* MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS */
 
 #ifdef __cplusplus
 }

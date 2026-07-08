@@ -1,8 +1,7 @@
 # Bbuild a zlib for 3DS
 
-It works on Ubuntu 24.04, it should also work on WSL. \
-As of this writing, we are using `devkitARM r65-1`. \
-For more information, see [README](../README.md#build).
+It works on PureOS 11, it should also work on other GNU/Linux based machines. \
+As of this writing, we are using `devkitARM r68-1`.
 
 * **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.
@@ -15,13 +14,13 @@ For more information, see [README](../README.md#build).
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed such as -j value). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/zlib_for_3DS && cd zlib_for_3DS && git reset --hard 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf && CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3 -Wno-error=implicit-function-declaration" LDFLAGS=" -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs -lctru" ./configure --static --prefix="/opt/devkitpro/extra_lib" && make -j 8 && sudo make install && cd ../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/zlib_for_3DS && cd zlib_for_3DS && git reset --hard da607da739fa6047df13e66a2af6b8bec7c2a498 && CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3 -Wno-error=implicit-function-declaration" LDFLAGS=" -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs -lctru" ./configure --static --prefix="/opt/devkitpro/extra_lib" && make -j 8 && sudo make install && cd ../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `zlib 1.3.1` (`51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf`).
+Used commit : `zlib 1.3.2` (`da607da739fa6047df13e66a2af6b8bec7c2a498`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/zlib_for_3DS && cd zlib_for_3DS && git reset --hard 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf
+git clone -b 3ds https://github.com/Core-2-Extreme/zlib_for_3DS && cd zlib_for_3DS && git reset --hard da607da739fa6047df13e66a2af6b8bec7c2a498
 ```
 
 ## Configure

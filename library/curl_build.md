@@ -1,8 +1,7 @@
 # Bbuild a curl for 3DS
 
-It works on Ubuntu 24.04, it should also work on WSL. \
-As of this writing, we are using `devkitARM r65-1`. \
-For more information, see [README](../README.md#build).
+It works on PureOS 11, it should also work on other GNU/Linux based machines. \
+As of this writing, we are using `devkitARM r68-1`.
 
 * **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.
@@ -15,19 +14,19 @@ For more information, see [README](../README.md#build).
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed such as -j value). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/curl_for_3DS && cd curl_for_3DS && git reset --hard d8aee88e8bca77ed4d6090fa58b550d4e23796e3 && autoreconf -fi && ./configure --host=arm-none-eabi CC=/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc --prefix=/opt/devkitpro/extra_lib CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" CPPFLAGS="-I/opt/devkitpro/extra_lib/include" LDFLAGS="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs" LIBS="-lctru" --disable-shared --enable-static --enable-http --enable-ftp --enable-websockets --disable-threaded-resolver --disable-ntlm-wb --disable-docs --without-zstd --enable-file --enable-proxy --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-mqtt --disable-manual --disable-docs --disable-ipv6 --disable-unix-sockets --with-mbedtls --with-nghttp2 --without-zlib --without-libpsl --without-zstd && make -j 8 && sudo make install && cd ../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/curl_for_3DS && cd curl_for_3DS && git reset --hard 555f7e95e296995fb0fd1cc227ebb45912845eb5 && autoreconf -fi && ./configure --host=arm-none-eabi CC=/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc --prefix=/opt/devkitpro/extra_lib CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" CPPFLAGS="-I/opt/devkitpro/extra_lib/include" LDFLAGS="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs" LIBS="-lctru" --disable-shared --enable-static --enable-http --enable-ftp --enable-websockets --disable-threaded-resolver --disable-docs --without-zstd --enable-file --enable-proxy --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-mqtt --disable-manual --disable-docs --disable-ipv6 --disable-unix-sockets --with-mbedtls --with-nghttp2 --without-zlib --without-libpsl --without-zstd && make -j 8 && sudo make install && cd ../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `Applied patch based on curl port for 3DS` (`d8aee88e8bca77ed4d6090fa58b550d4e23796e3`).
+Used commit : `Fixed port number and removed F_SETFD` (`555f7e95e296995fb0fd1cc227ebb45912845eb5`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/curl_for_3DS && cd curl_for_3DS && git reset --hard d8aee88e8bca77ed4d6090fa58b550d4e23796e3
+git clone -b 3ds https://github.com/Core-2-Extreme/curl_for_3DS && cd curl_for_3DS && git reset --hard 555f7e95e296995fb0fd1cc227ebb45912845eb5
 ```
 
 ## Configure
 Note : You may need to install autoconf and libtool (`sudo apt install autoconf libtool`) if you haven't installed it.
 ```
-autoreconf -fi && ./configure --host=arm-none-eabi CC=/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc --prefix=/opt/devkitpro/extra_lib CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" CPPFLAGS="-I/opt/devkitpro/extra_lib/include" LDFLAGS="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs" LIBS="-lctru" --disable-shared --enable-static --enable-http --enable-ftp --enable-websockets --disable-threaded-resolver --disable-ntlm-wb --disable-docs --without-zstd --enable-file --enable-proxy --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-mqtt --disable-manual --disable-docs --disable-ipv6 --disable-unix-sockets --with-mbedtls --with-nghttp2 --without-zlib --without-libpsl --without-zstd
+autoreconf -fi && ./configure --host=arm-none-eabi CC=/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc --prefix=/opt/devkitpro/extra_lib CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -O3" CPPFLAGS="-I/opt/devkitpro/extra_lib/include" LDFLAGS="-mfloat-abi=hard -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs" LIBS="-lctru" --disable-shared --enable-static --enable-http --enable-ftp --enable-websockets --disable-threaded-resolver --disable-docs --without-zstd --enable-file --enable-proxy --disable-ldap --disable-ldaps --disable-rtsp --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-mqtt --disable-manual --disable-docs --disable-ipv6 --disable-unix-sockets --with-mbedtls --with-nghttp2 --without-zlib --without-libpsl --without-zstd
 ```
 
 ## Build and install

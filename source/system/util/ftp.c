@@ -323,7 +323,7 @@ uint32_t Ftp_send_data(int32_t socket_handle, const uint8_t* buffer, uint32_t si
 
 uint32_t Ftp_get_path(const char* current_dir, const char* cmd_path, Str_data* dir, Str_data* file)
 {
-	const char parent_dir[2] = "..";
+	const char parent_dir[2] __attribute__((nonstring)) = "..";
 	char* last_slash_pos = NULL;
 	uint32_t length = 0;
 	uint32_t result = DEF_ERR_OTHER;

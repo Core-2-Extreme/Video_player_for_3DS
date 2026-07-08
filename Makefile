@@ -59,9 +59,9 @@ RSF_HIGH_RAM_PATH	:= resource/app_high_ram.rsf
 #---------------------------------------------------------------------------------
 ARCH		:= -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-# We don't use :
-# -Wfloat-equal -Wunsuffixed-float-constants -Wpacked -Wpadded -Waggregate-return -Wdate-time -Wconversion -Wcast-align
-# -Wbad-function-cast -Wtraditional -Wstrict-overflow=5 -Wuseless-cast -Wformat-nonliteral
+#We don't use :
+#-Wfloat-equal -Wunsuffixed-float-constants -Wpacked -Wpadded -Waggregate-return -Wdate-time -Wconversion -Wcast-align
+#-Wbad-function-cast -Wtraditional -Wstrict-overflow=5 -Wuseless-cast -Wformat-nonliteral
 CFLAGS		:= -Wall -Wextra -Wpedantic -g -O3 -mword-relocations -fomit-frame-pointer -ffunction-sections $(ARCH) $(INCLUDE) -D__3DS__
 CFLAGS		+= -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Wnull-dereference -Winit-self -Wimplicit-fallthrough=3 -Wshift-overflow=2
 CFLAGS		+= -Wunused-const-variable=2 -Wuse-after-free=3 -Wuninitialized -Wstrict-aliasing=3 -Wstring-compare -Wstringop-overflow=4
@@ -76,6 +76,9 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11
 #-U__STRICT_ANSI__ is needed for citro2d.
 CFLAGS		+= -U__STRICT_ANSI__ -std=c99
 CFLAGS		+= -Wjump-misses-init -Wstrict-prototypes -Wnested-externs -Wmissing-prototypes -Wmissing-variable-declarations
+
+#Libavutil uses `[[]]` and `#pragma GCC diagnostic ignored` doesn't work for some reasons, so we must put it here.
+CFLAGS		+= -Wno-c11-c23-compat
 
 ASFLAGS		:= $(ARCH)
 LDFLAGS		= -specs=3dsx.specs $(ARCH) -Wl,-Map,$(notdir $*.map) -z noexecstack

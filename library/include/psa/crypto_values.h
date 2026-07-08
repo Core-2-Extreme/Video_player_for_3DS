@@ -27,6 +27,7 @@
 #ifndef PSA_CRYPTO_VALUES_H
 #define PSA_CRYPTO_VALUES_H
 #include "mbedtls/private_access.h"
+#include <psa/crypto_types.h>
 
 /** \defgroup error Error codes
  * @{
@@ -502,17 +503,6 @@
  * ARIA block cipher. */
 #define PSA_KEY_TYPE_ARIA                           ((psa_key_type_t) 0x2406)
 
-/** Key for a cipher or MAC algorithm based on DES or 3DES (Triple-DES).
- *
- * The size of the key can be 64 bits (single DES), 128 bits (2-key 3DES) or
- * 192 bits (3-key 3DES).
- *
- * Note that single DES and 2-key 3DES are weak and strongly
- * deprecated and should only be used to decrypt legacy data. 3-key 3DES
- * is weak and deprecated and should only be used in legacy protocols.
- */
-#define PSA_KEY_TYPE_DES                            ((psa_key_type_t) 0x2301)
-
 /** Key for a cipher, AEAD or MAC algorithm based on the
  * Camellia block cipher. */
 #define PSA_KEY_TYPE_CAMELLIA                       ((psa_key_type_t) 0x2403)
@@ -583,9 +573,12 @@
     (((type) & ~PSA_KEY_TYPE_ECC_CURVE_MASK) ==                         \
      PSA_KEY_TYPE_ECC_PUBLIC_KEY_BASE)
 
+#define PSA_KEY_TYPE_HAS_ECC_FAMILY(type)       \
+    (PSA_KEY_TYPE_IS_ECC(type) || PSA_KEY_TYPE_IS_SPAKE2P(type))
+
 /** Extract the curve from an elliptic curve key type. */
 #define PSA_KEY_TYPE_ECC_GET_FAMILY(type)                        \
-    ((psa_ecc_family_t) (PSA_KEY_TYPE_IS_ECC(type) ?             \
+    ((psa_ecc_family_t) (PSA_KEY_TYPE_HAS_ECC_FAMILY(type) ?      \
                          ((type) & PSA_KEY_TYPE_ECC_CURVE_MASK) : \
                          0))
 
@@ -595,21 +588,17 @@
 /** SEC Koblitz curves over prime fields.
  *
  * This family comprises the following curves:
- * secp192k1, secp224k1, secp256k1.
+ * secp256k1.
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
- *
- * \note For secp224k1, the bit-size is 225 (size of a private value).
- *
- * \note Mbed TLS only supports secp192k1 and secp256k1.
  */
 #define PSA_ECC_FAMILY_SECP_K1           ((psa_ecc_family_t) 0x17)
 
 /** SEC random curves over prime fields.
  *
  * This family comprises the following curves:
- * secp192r1, secp224r1, secp256r1, secp384r1, secp521r1.
+ * secp256r1, secp384r1, secp521r1.
  * They are defined in _Standards for Efficient Cryptography_,
  * _SEC 2: Recommended Elliptic Curve Domain Parameters_.
  * https://www.secg.org/sec2-v2.pdf
@@ -789,6 +778,7 @@
 #define PSA_ALG_CATEGORY_ASYMMETRIC_ENCRYPTION  ((psa_algorithm_t) 0x07000000)
 #define PSA_ALG_CATEGORY_KEY_DERIVATION         ((psa_algorithm_t) 0x08000000)
 #define PSA_ALG_CATEGORY_KEY_AGREEMENT          ((psa_algorithm_t) 0x09000000)
+#define PSA_ALG_CATEGORY_XOF                    ((psa_algorithm_t) 0x0d000000)
 
 /** Whether an algorithm is vendor-defined.
  *
@@ -906,6 +896,18 @@
     (PSA_ALG_IS_KEY_DERIVATION(alg) &&              \
      (alg) & PSA_ALG_KEY_DERIVATION_STRETCHING_FLAG)
 
+/** Whether the specified algorithm is a XOF (extendable-output function)
+ * algorithm.
+ *
+ * \param alg An algorithm identifier (value of type #psa_algorithm_t).
+ *
+ * \return 1 if \p alg is a XOF algorithm, 0 otherwise.
+ *         This macro may return either 0 or 1 if \p alg is not a supported
+ *         algorithm identifier.
+ */
+#define PSA_ALG_IS_XOF(alg)                                            \
+    (((alg) & PSA_ALG_CATEGORY_MASK) == PSA_ALG_CATEGORY_XOF)
+
 /** An invalid algorithm identifier value. */
 /* *INDENT-OFF* (https://github.com/ARM-software/psa-arch-tests/issues/337) */
 #define PSA_ALG_NONE                            ((psa_algorithm_t)0)
@@ -980,6 +982,36 @@
  * perform an operation. It is only valid to build policies.
  */
 #define PSA_ALG_ANY_HASH                        ((psa_algorithm_t) 0x020000ff)
+
+/** The SHAKE128 XOF (extendable-output function) algorithm.
+ *
+ * This is the SHAKE128 extendable-output function defined in FIPS 202,
+ * based on the Keccak sponge construction.
+ */
+#define PSA_ALG_SHAKE128                        ((psa_algorithm_t) 0x0d000100)
+
+/** The SHAKE256 XOF (extendable-output function) algorithm.
+ *
+ * This is the SHAKE256 extendable-output function defined in FIPS 202,
+ * based on the Keccak sponge construction.
+ */
+#define PSA_ALG_SHAKE256                        ((psa_algorithm_t) 0x0d000200)
+
+#define PSA_ALG_XOF_CONTEXT_FLAG                ((psa_algorithm_t) 0x00008000)
+/** Whether the specified XOF algorithm supports a context.
+ *
+ * \param xof_alg       A XOF algorithm (\c PSA_ALG_XXX value such that
+ *                      #PSA_ALG_IS_XOF(\p xof_alg) is true).
+ *
+ * \return              \c 1 if \p xof_alg supports a context parameter
+ *                      passed with psa_xof_set_context(). This includes
+ *                      XOF algorithms with an optional context.
+ *                      \c 0 if \p xof_alg does not allow a context parameter.
+ *                      Unspecified if \p xof_alg is not a supported
+ *                      XOF algorithm.
+ */
+#define PSA_ALG_XOF_HAS_CONTEXT(xof_alg)        \
+    (((xof_alg) & PSA_ALG_XOF_CONTEXT_FLAG) != 0)
 
 #define PSA_ALG_MAC_SUBCATEGORY_MASK            ((psa_algorithm_t) 0x00c00000)
 #define PSA_ALG_HMAC_BASE                       ((psa_algorithm_t) 0x03800000)
@@ -2010,9 +2042,9 @@
  * the other secret depends on the key exchange specified in the cipher suite:
  * - for a plain PSK cipher suite (RFC 4279, Section 2), omit
  *   PSA_KEY_DERIVATION_INPUT_OTHER_SECRET
- * - for a DHE-PSK (RFC 4279, Section 3) or ECDHE-PSK cipher suite
- *   (RFC 5489, Section 2), the other secret should be the output of the
- *   PSA_ALG_FFDH or PSA_ALG_ECDH key agreement performed with the peer.
+ * - for a ECDHE-PSK cipher suite (RFC 5489, Section 2), the other secret
+ *   should be the output of the PSA_ALG_FFDH or PSA_ALG_ECDH key agreement
+ *   performed with the peer.
  *   The recommended way to pass this input is to use a key derivation
  *   algorithm constructed as
  *   PSA_ALG_KEY_AGREEMENT(ka_alg, PSA_ALG_TLS12_PSK_TO_MS(hash_alg))
@@ -2020,13 +2052,6 @@
  *   this input may be an output of `psa_raw_key_agreement()` passed with
  *   psa_key_derivation_input_bytes(), or an equivalent input passed with
  *   psa_key_derivation_input_bytes() or psa_key_derivation_input_key().
- * - for a RSA-PSK cipher suite (RFC 4279, Section 4), the other secret
- *   should be the 48-byte client challenge (the PreMasterSecret of
- *   (RFC 5246, Section 7.4.7.1)) concatenation of the TLS version and
- *   a 46-byte random string chosen by the client. On the server, this is
- *   typically an output of psa_asymmetric_decrypt() using
- *   PSA_ALG_RSA_PKCS1V15_CRYPT, passed to the key derivation operation
- *   with `psa_key_derivation_input_bytes()`.
  *
  * For example, `PSA_ALG_TLS12_PSK_TO_MS(PSA_ALG_SHA_256)` represents the
  * TLS-1.2 PSK to MasterSecret derivation PRF using HMAC-SHA-256.
@@ -2560,6 +2585,25 @@ static inline int mbedtls_svc_key_id_is_null(mbedtls_svc_key_id_t key)
  * is sufficient to permit the copy.
  */
 #define PSA_KEY_USAGE_COPY                      ((psa_key_usage_t) 0x00000002)
+
+/** Whether the key may be used the public side of a key agreement or PAKE.
+ *
+ * This macro can be used when checking a key's capabilities, for example
+ * with mbedtls_pk_can_do_psa().
+ *
+ * \note Currently, no API function requires this flag.
+ *       Key agreement functions (psa_raw_key_agreement(), psa_key_agreement(),
+ *       psa_key_derivation_key_agreement()) and psa_pake_input() take the
+ *       public key in exported form, not as a key object, so no usage flag
+ *       is involved.
+ *       For PAKE algorithms with a verifier role such as SPAKE2+,
+ *       psa_pake_setup() requires #PSA_KEY_USAGE_DERIVE even when passing
+ *       a public key in the verifier role.
+ *
+ * \note The value of this macro is determined by a draft version of the
+ *       PSA Cryptography API, and may change before this draft is finalized.
+ */
+#define PSA_KEY_USAGE_DERIVE_PUBLIC            ((psa_key_usage_t) 0x00000080)
 
 /** Whether the key may be used to encrypt a message.
  *

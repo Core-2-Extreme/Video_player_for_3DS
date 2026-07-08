@@ -37,6 +37,10 @@ typedef enum
 	C2D_TintSolid, ///< Plain solid tint color
 	C2D_TintMult,  ///< Tint color multiplied by texture color
 	C2D_TintLuma,  ///< Tint color multiplied by grayscale converted texture color
+	C2D_TintAdd,  ///< Tint color added to the texture color
+	C2D_TintSub,  ///< Tint color subtracted from the texture color
+	C2D_TintOneMinusAdd,  ///< 1 - Texture.rgb + tint color
+	C2D_TintOneMinusSub,  ///< 1 - Texture.rgb - tint color 
 } C2D_TintMode;
 
 typedef struct

@@ -19,4 +19,4 @@ cp -r /opt/devkitpro/extra_lib/lib/*.a {project_folder}/library/lib/ && cp -r /o
 is enough.
 
 Congratulations, you've done!!!!! \
-Go back to [top](../README.md#build).
+Go back to [readme](../README.md#build).

@@ -1,8 +1,7 @@
 # Bbuild a mbedtls for 3DS
 
-It works on Ubuntu 24.04, it should also work on WSL. \
-As of this writing, we are using `devkitARM r65-1`. \
-For more information, see [README](../README.md#build).
+It works on PureOS 11, it should also work on other GNU/Linux based machines. \
+As of this writing, we are using `devkitARM r68-1`.
 
 * **⚠️Install [devkitpro](_devkitpro_install.md) first.⚠️**
 * Note : This step is optional.
@@ -15,23 +14,24 @@ For more information, see [README](../README.md#build).
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed such as -j value). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/mbedtls_for_3DS && cd mbedtls_for_3DS && git reset --hard f34674083bced4c8802ee9630ca9eb113856e8a6 && git submodule update --init && make lib -j 8 CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3" LDFLAGS=" -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs -lctru" && sudo make install DESTDIR="/opt/devkitpro/extra_lib" && cd ../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/mbedtls_for_3DS && cd mbedtls_for_3DS && git reset --hard ecf77d19bfc2b2630cccabb033ab7227ff6b0beb && git submodule update --init && cd tf-psa-crypto/ && git submodule update --init && cd ../ && cmake -S . -B build -DCMAKE_C_COMPILER="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" -DCMAKE_C_FLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3" -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF && cmake --build build --target lib -j 8 && sudo cmake --install build --prefix "/opt/devkitpro/extra_lib" && cd ../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `Applied changes to compile with devkitpro` (`f34674083bced4c8802ee9630ca9eb113856e8a6`).
+Used commit : `Forgot to commit mbedtls config` (`ecf77d19bfc2b2630cccabb033ab7227ff6b0beb`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/mbedtls_for_3DS && cd mbedtls_for_3DS && git reset --hard f34674083bced4c8802ee9630ca9eb113856e8a6 && git submodule update --init
+git clone -b 3ds https://github.com/Core-2-Extreme/mbedtls_for_3DS && cd mbedtls_for_3DS && git reset --hard ecf77d19bfc2b2630cccabb033ab7227ff6b0beb && git submodule update --init && cd tf-psa-crypto/ && git submodule update --init && cd ../
 ```
 
 ## Configure
+Note : You may need to install jinja2 (`sudo apt install python3-jinja2`) if you haven't installed it.
 ```
-echo Configurations are passed to the make when building, continue to the next step. \(It is a good idea to check the command before copypasta everything.\)
+cmake -S . -B build -DCMAKE_C_COMPILER="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" -DCMAKE_C_FLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3" -DCMAKE_C_STANDARD_LIRBARIES="-lctru" -DCMAKE_EXE_LINKER_FLAGS="-L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs" -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF
 ```
 
 ## Build and install
 ```
-make lib -j 8 CC="/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc" CFLAGS="-march=armv6k -mfloat-abi=hard -mtune=mpcore -mtp=cp15 -std=c99 -O3" LDFLAGS=" -L/opt/devkitpro/extra_lib/lib -specs=3dsx.specs -lctru" && sudo make install DESTDIR="/opt/devkitpro/extra_lib"
+cmake --build build --target lib -j 8 && sudo cmake --install build --prefix "/opt/devkitpro/extra_lib"
 ```
 
 ## Go to parent directory

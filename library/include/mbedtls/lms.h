@@ -19,13 +19,11 @@
 #include <stddef.h>
 
 #include "mbedtls/private_access.h"
-#include "mbedtls/build_info.h"
+#include "tf-psa-crypto/build_info.h"
+#include "mbedtls/compat-3-crypto.h"
 
-#define MBEDTLS_ERR_LMS_BAD_INPUT_DATA   -0x0011 /**< Bad data has been input to an LMS function */
 #define MBEDTLS_ERR_LMS_OUT_OF_PRIVATE_KEYS -0x0013 /**< Specified LMS key has utilised all of its private keys */
 #define MBEDTLS_ERR_LMS_VERIFY_FAILED    -0x0015 /**< LMS signature verification failed */
-#define MBEDTLS_ERR_LMS_ALLOC_FAILED     -0x0017 /**< LMS failed to allocate space for a private key */
-#define MBEDTLS_ERR_LMS_BUFFER_TOO_SMALL -0x0019 /**< Input/output buffer is too small to contain requited data */
 
 /* Currently only defined for SHA256, 32 is the max hash output size */
 #define MBEDTLS_LMOTS_N_HASH_LEN_MAX           (32u)
@@ -352,8 +350,6 @@ void mbedtls_lms_private_free(mbedtls_lms_private_t *ctx);
  *                           into.
  * \param type               The LMS parameter set identifier.
  * \param otstype            The LMOTS parameter set identifier.
- * \param f_rng              The RNG function to be used to generate the key ID.
- * \param p_rng              The RNG context to be passed to f_rng
  * \param seed               The seed used to deterministically generate the
  *                           key.
  * \param seed_size          The length of the seed.
@@ -364,8 +360,7 @@ void mbedtls_lms_private_free(mbedtls_lms_private_t *ctx);
 int mbedtls_lms_generate_private_key(mbedtls_lms_private_t *ctx,
                                      mbedtls_lms_algorithm_type_t type,
                                      mbedtls_lmots_algorithm_type_t otstype,
-                                     int (*f_rng)(void *, unsigned char *, size_t),
-                                     void *p_rng, const unsigned char *seed,
+                                     const unsigned char *seed,
                                      size_t seed_size);
 
 /**
@@ -411,9 +406,6 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
  *
  * \param ctx                The initialized LMS private context from which the
  *                           private key will be read.
- * \param f_rng              The RNG function to be used for signature
- *                           generation.
- * \param p_rng              The RNG context to be passed to f_rng
  * \param msg                The buffer from which the message will be read.
  * \param msg_size           The size of the message that will be read.
  * \param sig                The buf into which the signature will be stored.
@@ -427,8 +419,7 @@ int mbedtls_lms_calculate_public_key(mbedtls_lms_public_t *ctx,
  * \return         A non-zero error code on failure.
  */
 int mbedtls_lms_sign(mbedtls_lms_private_t *ctx,
-                     int (*f_rng)(void *, unsigned char *, size_t),
-                     void *p_rng, const unsigned char *msg,
+                     const unsigned char *msg,
                      unsigned int msg_size, unsigned char *sig, size_t sig_size,
                      size_t *sig_len);
 #endif /* defined(MBEDTLS_LMS_PRIVATE) */

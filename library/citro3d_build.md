@@ -14,13 +14,13 @@ As of this writing, we are using `devkitARM r68-1`.
 If you've done it before or experienced user, then just use this all-in-one command (and make an adjustment if needed such as -j value). \
 If you want to know in detail, continue to the next section for step-by-step instructions.
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/citro3d_custom && cd citro3d_custom && git reset --hard 8f0ccde19f529656f1bc3f4b38a092d11f8720fb && make -j 8 && sudo -E make install && cd ../ && echo Success.
+git clone -b 3ds https://github.com/Core-2-Extreme/citro3d_custom && cd citro3d_custom && git reset --hard 464b01141f7acf2ae8564a2c0a936b9c17c13219 && make -j 8 && sudo -E make install && cd ../ && echo Success.
 ```
 
 ## Clone and setup source code to specific version (commit)
-Used commit : `Suppressed warnings` (`8f0ccde19f529656f1bc3f4b38a092d11f8720fb`).
+Used commit : `Removed debug by default for smaller file` (`464b01141f7acf2ae8564a2c0a936b9c17c13219`).
 ```
-git clone -b 3ds https://github.com/Core-2-Extreme/citro3d_custom && cd citro3d_custom && git reset --hard 8f0ccde19f529656f1bc3f4b38a092d11f8720fb
+git clone -b 3ds https://github.com/Core-2-Extreme/citro3d_custom && cd citro3d_custom && git reset --hard 464b01141f7acf2ae8564a2c0a936b9c17c13219
 ```
 
 ## Configure

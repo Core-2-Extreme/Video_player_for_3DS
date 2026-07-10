@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define DEF_THREAD_STACKSIZE				(uint32_t)(64 * 1024)
+#define DEF_THREAD_PTHREAD_STACKSIZE		(uint32_t)(128 * 1024)
 #define DEF_THREAD_INACTIVE_SLEEP_TIME		(uint64_t)(100000)
 #define DEF_THREAD_ACTIVE_SLEEP_TIME		(uint64_t)(50000)
 #define DEF_THREAD_WAIT_TIME				(uint64_t)(10000000000)	//10s.

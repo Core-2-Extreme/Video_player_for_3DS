@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "libavutil/log.h"
 #include "mbedtls/base64.h"
 #include "3ds.h"
 
@@ -49,6 +50,7 @@ static void* Util_realloc_heap_to_linear(void* ptr, size_t size);
 static void* Util_realloc_linear_to_heap(void* ptr, size_t size);
 static void* memalign_heap_only(size_t align, size_t size);
 static void* malloc_heap_only(size_t size);
+static void Util_ffmpeg_log(void* ptr, int level, const char* fmt, va_list vl);
 void* __wrap_malloc(size_t size);
 void* __wrap_calloc(size_t items, size_t size);
 void* __wrap_realloc(void* ptr, size_t size);
@@ -497,6 +499,17 @@ uint32_t __wrap_linearSpaceFree(void)
 	return space;
 }
 
+static void Util_ffmpeg_log(void* ptr, int level, const char* fmt, va_list vl)
+{
+	(void)ptr;
+	(void)level;
+	(void)fmt;
+	(void)vl;
+
+	// if(level <= AV_LOG_INFO)
+	// 	DEF_LOG_VFORMAT(fmt, vl);
+}
+
 void Util_platform_init(void* arg)
 {
 	(void)arg;
@@ -533,6 +546,8 @@ void Util_platform_init(void* arg)
 
 	aptSetSleepAllowed(true);
 	DEF_LOG_RESULT_SMART(result, APT_SetAppCpuTimeLimit(30), (result == DEF_SUCCESS), result);
+
+	av_log_set_callback(Util_ffmpeg_log);
 
 	util_platform_init = true;
 }

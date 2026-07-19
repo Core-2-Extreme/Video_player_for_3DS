@@ -1011,6 +1011,26 @@ Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float bo
 	Draw_internal(text->buffer, x, y, base_size, x_scale, y_scale, x_space_scale, y_space_scale, abgr8888, x_align, y_align, box_size_x, box_size_y, texture_position, background_image, texture_abgr8888);
 }
 
+Draw_visibility Draw_visibility_check(double x, double width, double x_valid_start,
+double x_valid_end, double y, double height, double y_valid_start, double y_valid_end)
+{
+	double x_end = (x + width);
+	double y_end = (y + height);
+
+	if(!util_draw_init)
+		return DRAW_VISIBILITY_INVALID;
+	else if((x >= x_valid_start && x <= x_valid_end) && (x_end >= x_valid_start && x_end <= x_valid_end)
+	&& (y >= y_valid_start && y <= y_valid_end) && (y_end >= y_valid_start && y_end <= y_valid_end))
+		return DRAW_VISIBILITY_FULLY_VISIBLE;
+	else if((x >= x_valid_start && x <= x_valid_end) || (x_end >= x_valid_start && x_end <= x_valid_end)
+	|| (y >= y_valid_start && y <= y_valid_end) || (y_end >= y_valid_start && y_end <= y_valid_end))
+		return DRAW_VISIBILITY_PARTIALLY_VISIBLE;
+	else if((x <= x_valid_start && x_end >= x_valid_end) && (y <= y_valid_start && y_end >= y_valid_end))
+		return DRAW_VISIBILITY_PARTIALLY_VISIBLE;//Element is larger than valid drawing area.
+	else
+		return DRAW_VISIBILITY_INVISIBLE;
+}
+
 uint32_t Draw_get_free_sheet_num(void)
 {
 	if(!util_draw_init)

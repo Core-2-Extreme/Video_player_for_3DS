@@ -116,6 +116,17 @@ DEF_LOG_ENUM_DEBUG
 	DRAW_BACKGROUND_MAX
 )
 
+typedef enum
+{
+	DRAW_VISIBILITY_INVALID = -1,
+
+	DRAW_VISIBILITY_INVISIBLE,				//Element is invisible.
+	DRAW_VISIBILITY_PARTIALLY_VISIBLE,		//Element is partially visible (therefore partially invisible).
+	DRAW_VISIBILITY_FULLY_VISIBLE,			//Element is fully visible.
+
+	DRAW_VISIBILITY_MAX,
+} Draw_visibility;
+
 typedef struct
 {
 	C2D_Image c2d;				//Texture data.

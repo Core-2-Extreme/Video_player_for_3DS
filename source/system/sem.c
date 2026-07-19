@@ -308,6 +308,16 @@
 #define HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
+#define SUB_MENU_X_START					(double)(0)		//X start offset for sub menu in px.
+#define SUB_MENU_Y_START					(double)(0)		//Y start offset for sub menu in px.
+#define SUB_MENU_X_END						(double)(320)	//X end offset for sub menu in px.
+#define SUB_MENU_Y_END						(double)(240)	//Y end offset for sub menu in px.
+#define SUB_MENU_X							(double)(10)	//X offset for sub menu in px.
+#define SUB_MENU_Y							(double)(0)		//Y offset for sub menu in px.
+#define SUB_MENU_SPACE_Y					(double)(5)		//Element spacing for sub menu (for Y direction) in px.
+#define SUB_MENU_WIDTH						(double)(300)	//Element width for sub menu in px.
+#define SUB_MENU_HEIGHT						(double)(20)	//Element height for sub menu in px.
+
 #define FONT_SIZE_ON_OFF					(float)(16.50)	//Font size for ON/OFF buttons.
 #define FONT_SIZE_ALLOW_DENY				(float)(19.50)	//Font size for allow/deny buttons.
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
@@ -508,7 +518,14 @@ typedef struct
 	Sem_model fake_model;
 } Sem_internal_state;
 
+typedef struct
+{
+	Sem_msg msg;		//Message ID to display.
+	Sem_menu menu_id;	//Menu ID to use.
+} Sem_sub_menu;
+
 //Prototypes.
+static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
@@ -637,6 +654,19 @@ static uint16_t sem_rec_height = 480;
 static Thread sem_record_thread = NULL, sem_encode_thread = NULL;
 static Sem_record sem_selected_recording_mode = RECORD_BOTH;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+
+static const Sem_sub_menu sem_sub_menus[] =
+{
+	{ .msg = MSG_UPDATE,	.menu_id = MENU_UPDATE,		},
+	{ .msg = MSG_LANGAGES,	.menu_id = MENU_LANGAGES,	},
+	{ .msg = MSG_LCD,		.menu_id = MENU_LCD,		},
+	{ .msg = MSG_CONTROL,	.menu_id = MENU_CONTROL,	},
+	{ .msg = MSG_FONT,		.menu_id = MENU_FONT,		},
+	{ .msg = MSG_WIFI,		.menu_id = MENU_WIFI,		},
+	{ .msg = MSG_ADVANCED,	.menu_id = MENU_ADVANCED,	},
+	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
+	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
+};
 
 //Code.
 bool Sem_query_init_flag(void)
@@ -1555,50 +1585,15 @@ void Sem_main(void)
 
 		if (sem_selected_menu_mode == MENU_TOP)
 		{
-			//Update.
-			draw_y = sem_y_offset;
-			Draw_with_background(&sem_msg[MSG_UPDATE], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_UPDATE], (sem_menu_button[MENU_UPDATE].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			//Sub menus.
+			draw_x = SUB_MENU_X;
+			draw_y = (sem_y_offset + SUB_MENU_Y);
 
-			//Languages.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_LANGAGES], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_LANGAGES], (sem_menu_button[MENU_LANGAGES].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//LCD.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_LCD], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_LCD], (sem_menu_button[MENU_LCD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Control.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_CONTROL], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_CONTROL], (sem_menu_button[MENU_CONTROL].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Font.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_FONT], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_FONT], (sem_menu_button[MENU_FONT].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Wireless.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_WIFI], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_WIFI], (sem_menu_button[MENU_WIFI].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Advanced.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_ADVANCED], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_ADVANCED], (sem_menu_button[MENU_ADVANCED].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Battery.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_BATTERY], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_BATTERY], (sem_menu_button[MENU_BATTERY].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Screen recording.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_RECORDING], 0, draw_y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_menu_button[MENU_RECORDING], (sem_menu_button[MENU_RECORDING].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_sub_menus); i++)
+			{
+				Sem_sub_menu_button(&sem_sub_menus[i], draw_x, draw_y, color);
+				draw_y += (SUB_MENU_HEIGHT + SUB_MENU_SPACE_Y);
+			}
 		}
 		else if (sem_selected_menu_mode == MENU_UPDATE)
 		{
@@ -2993,6 +2988,21 @@ void Sem_hid(const Hid_info* key)
 
 	if(Util_log_query_show_flag())
 		Util_log_main(key);
+}
+
+static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, SUB_MENU_WIDTH, SUB_MENU_X_START, SUB_MENU_X_END, y, SUB_MENU_HEIGHT, SUB_MENU_Y_START, SUB_MENU_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (sem_menu_button[sub_menu->menu_id].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		Draw_image_data* button = &sem_menu_button[sub_menu->menu_id];
+		Str_data* msg = &sem_msg[sub_menu->msg];
+
+		Draw_with_background(msg, x, y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		SUB_MENU_WIDTH, SUB_MENU_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
+	}
 }
 
 static void Sem_get_system_info(void)

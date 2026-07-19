@@ -299,6 +299,23 @@ void Draw_with_scale(const Str_data* text, float x, float y, float base_size, fl
 Draw_text_align_x x_align, Draw_text_align_y y_align, float box_size_x, float box_size_y, Draw_background texture_position, Draw_image_data* background_image, uint32_t texture_abgr8888);
 
 /**
+ * @brief Check if element is fully visible.
+ * Always return DRAW_VISIBILITY_INVALID if draw API is not initialized.
+ * @param x (in) Drawing position X (in px).
+ * @param width (in) Element width (in px).
+ * @param x_valid_start (in) Start of valid X range (in px).
+ * @param x_valid_end (in) End of valid X range (in px).
+ * @param y (in) Drawing position Y (in px).
+ * @param height (in) Element height (in px).
+ * @param y_valid_start (in) Start of valid Y range (in px).
+ * @param y_valid_end (in) End of valid Y range (in px).
+ * @return Visibility.
+ * @note Thread safe.
+*/
+Draw_visibility Draw_visibility_check(double x, double width, double x_valid_start,
+double x_valid_end, double y, double height, double y_valid_start, double y_valid_end);
+
+/**
  * @brief Get free sheet index that can be used for Draw_load_texture().
  * Always return UINT32_MAX if draw API is not initialized.
  * @return Free sheet index.

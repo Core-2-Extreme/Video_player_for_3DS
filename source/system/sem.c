@@ -42,15 +42,6 @@
 #define UPDATE_FILE_PREFIX					/*(const char*)(*/"Vid_"/*)*/
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
-#define MENU_TOP_Y_OFFSET_MIN				(double)(0)			//Minimum y offset in top menu.
-#define MENU_LANGUAGES_Y_OFFSET_MIN			(double)(-75)		//Minimum y offset in languages menu.
-#define MENU_LCD_Y_OFFSET_MIN				(double)(-60)		//Minimum y offset in LCD menu.
-#define MENU_FONT_Y_OFFSET_MIN				(double)(-950)		//Minimum y offset in font menu.
-#define MENU_ADVANCED_Y_OFFSET_MIN			(double)(-160)		//Minimum y offset in advanced menu.
-#if (!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE || !DEF_RAM_USAGE_API_ENABLE)
-#define MENU_USAGE_MONITOR_SIZE_Y			(double)(40)		//Size (Y direction) of usage monitor control UI.
-#endif //(!DEF_CPU_USAGE_API_ENABLE || !DEF_GPU_USAGE_API_ENABLE || !DEF_NET_USAGE_API_ENABLE || !DEF_NVS_USAGE_API_ENABLE || !DEF_RAM_USAGE_API_ENABLE)
-
 #define UPDATE_FLASH_INTERVAL_MS			(uint64_t)(50)		//Interval for flash mode update.
 #define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
 #define UPDATE_DRAW_INTERVAL_MS				(uint64_t)(1000)	//Interval for draw update (to update time on screen).
@@ -291,6 +282,12 @@
 #define HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
 #define HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+
+#define SCROLL_BAR_Y_END					(double)(225)	//Y end offset for scroll bar in px.
+#define SCROLL_BAR_X						(double)(312.5)	//X offset for scroll bar in px.
+#define SCROLL_BAR_Y						(double)(0)		//Y offset for scroll bar in px.
+#define SCROLL_BAR_WIDTH					(double)(7.5)	//Element width for scroll bar in px.
+#define SCROLL_BAR_HEIGHT					(double)(40)	//Element height for scroll bar in px.
 
 #define SUB_MENU_X_START					(double)(0)		//X start offset for sub menu in px.
 #define SUB_MENU_Y_START					(double)(0)		//Y start offset for sub menu in px.
@@ -550,6 +547,7 @@ typedef struct
 } Sem_language;
 
 //Prototypes.
+static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos);
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static void Sem_updater_status(Sem_update_state state, bool is_new_ver_available, const Str_data* additional_text, double x, double y, uint32_t color);
@@ -587,7 +585,7 @@ static bool sem_scroll_mode = false;
 static bool sem_dump_log_request = false;
 static bool sem_should_wifi_enabled = false;
 static double sem_y_offset = 0;
-static double sem_y_min = MENU_TOP_Y_OFFSET_MIN;
+static double sem_y_min = 0;
 static double sem_touch_x_move_left = 0;
 static double sem_touch_y_move_left = 0;
 static const char* sem_model_name[6] = { "OLD 3DS", "OLD 3DS XL", "OLD 2DS", "NEW 3DS", "NEW 3DS XL", "NEW 2DS XL", };
@@ -1569,7 +1567,6 @@ void Sem_main(void)
 		double draw_x = 0;
 		double draw_y = 0;
 		Str_data format_str = { 0, };
-		Draw_image_data background = Draw_get_empty_image();
 
 		Draw_set_refresh_needed(false);
 		Util_str_init(&format_str);
@@ -1613,13 +1610,8 @@ void Sem_main(void)
 		}
 
 		//Scroll bar.
-		if (sem_selected_menu_mode == MENU_LANGAGES || sem_selected_menu_mode == MENU_LCD
-		|| sem_selected_menu_mode == MENU_FONT || sem_selected_menu_mode == MENU_ADVANCED)
-		{
-			Draw_texture(&background, color, 312.5, 0.0, 7.5, 15.0);
-			Draw_texture(&background, color, 312.5, 215.0, 7.5, 10.0);
-			Draw_texture(&sem_scroll_bar, sem_scroll_bar.selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE, 312.5, 15.0 + (195 * (sem_y_offset / sem_y_min)), 7.5, 5.0);
-		}
+		if (sem_y_min < 0)
+			Sem_scroll_bar(&sem_scroll_bar, sem_y_offset, sem_y_min);
 
 		if (sem_selected_menu_mode == MENU_TOP)
 		{
@@ -1632,6 +1624,9 @@ void Sem_main(void)
 				Sem_sub_menu_button(&sem_sub_menus[i], draw_x, draw_y, color);
 				draw_y += (SUB_MENU_HEIGHT + SUB_MENU_SPACE_Y);
 			}
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - SUB_MENU_Y_END), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_UPDATE)
 		{
@@ -1704,8 +1699,12 @@ void Sem_main(void)
 				Sem_updater_patch_note(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], draw_x, draw_y, color);
 				draw_y += (UPDATER_PATCH_NOTE_HEIGHT + UPDATER_SPACE_Y);
 			}
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - UPDATER_Y_END), 0);
 #else
 			Draw_c("☢Updater is disabled\non this app.☢", 10, 25, FONT_SIZE_DISABLED_MSG, DEF_DRAW_RED);
+			sem_y_min = 0;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 		}
 		else if (sem_selected_menu_mode == MENU_LANGAGES)
@@ -1719,6 +1718,9 @@ void Sem_main(void)
 				Sem_language_button(&sem_languages[i], config.lang, draw_x, draw_y, color, DEF_DRAW_RED);
 				draw_y += (LANG_HEIGHT + LANG_SPACE_Y);
 			}
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - LANG_Y_END), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_LCD)
 		{
@@ -1846,6 +1848,11 @@ void Sem_main(void)
 			//Auto.
 			Draw_with_background(&sem_msg[MSG_AUTO], 235, draw_y, FONT_SIZE_LCD_MODE, ((config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO) ? DEF_DRAW_RED : cache_color[2]),
 			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_auto_mode_button, (sem_auto_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+
+			draw_y += 25;
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_CONTROL)
 		{
@@ -1857,6 +1864,9 @@ void Sem_main(void)
 			//Bar.
 			Draw_texture(&sem_scroll_speed_slider, DEF_DRAW_WEAK_RED, 10, 46.5, 300, 7);
 			Draw_texture(&sem_scroll_speed_bar, sem_scroll_speed_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, 40, 10, 20);
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_FONT)
 		{
@@ -1905,6 +1915,9 @@ void Sem_main(void)
 				}
 				draw_y += 20.0;
 			}
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_WIFI)
 		{
@@ -1921,6 +1934,9 @@ void Sem_main(void)
 			//Connected SSID.
 			Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_CONNECTED_SSID]), state.connected_wifi);
 			Draw(&format_str, 0, 65, FONT_SIZE_WIRELESS_SSID, color);
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_ADVANCED)
 		{
@@ -2038,6 +2054,11 @@ void Sem_main(void)
 			Draw_with_background(&sem_msg[MSG_OFF], 110, draw_y, FONT_SIZE_ON_OFF, (sem_is_ram_usage_monitor_running ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_monitor_ram_usage_off_button, (sem_monitor_ram_usage_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 #endif //DEF_RAM_USAGE_API_ENABLE
+
+			draw_y += 20;
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_BATTERY)
 		{
@@ -2050,6 +2071,9 @@ void Sem_main(void)
 			//OFF.
 			Draw_with_background(&sem_msg[MSG_OFF], 110, 40, FONT_SIZE_ON_OFF, (config.is_eco ? color : DEF_DRAW_RED), DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 			90, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_eco_mode_off_button, (sem_eco_mode_off_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_RECORDING)
 		{
@@ -2073,8 +2097,12 @@ void Sem_main(void)
 
 			if(!can_record)
 				Draw(&sem_msg[MSG_CANNOT_RECORD], 10, 120, FONT_SIZE_REC_UNAVAILABLE, DEF_DRAW_RED);
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
 #else
 			Draw_c("☢Screen recorder is disabled\non this app.☢", 10, 25, FONT_SIZE_DISABLED_MSG, DEF_DRAW_RED);
+			sem_y_min = 0;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		}
 
@@ -2137,6 +2165,8 @@ void Sem_hid(const Hid_info* key)
 		{
 			if (HID_BACK_SEL(*key))
 				sem_back_button.selected = true;
+			else if(sem_y_min < 0 && HID_SCROLL_BAR_SEL(*key))
+				sem_scroll_bar.selected = true;
 			else if (sem_selected_menu_mode == MENU_UPDATE)
 			{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
@@ -2158,8 +2188,6 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if (sem_selected_menu_mode == MENU_LANGAGES)
 			{
-				if(HID_SCROLL_BAR_SEL(*key))
-					sem_scroll_bar.selected = true;
 				if(!sem_reload_msg_request)
 				{
 					if(HID_LANG_EN_SEL(*key))
@@ -2186,8 +2214,6 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if (sem_selected_menu_mode == MENU_LCD)
 			{
-				if(HID_SCROLL_BAR_SEL(*key))
-					sem_scroll_bar.selected = true;
 				if(HID_LCD_NIGHT_ON_SEL(*key))
 					sem_night_mode_on_button.selected = true;
 				if(HID_LCD_NIGHT_OFF_SEL(*key))
@@ -2217,8 +2243,6 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if (sem_selected_menu_mode == MENU_FONT)
 			{
-				if(HID_SCROLL_BAR_SEL(*key))
-					sem_scroll_bar.selected = true;
 				if(HID_FONT_LOAD_ALL_SEL(*key) && !is_exfont_busy)
 					sem_load_all_ex_font_button.selected = true;
 				if(HID_FONT_UNLOAD_ALL_SEL(*key) && !is_exfont_busy)
@@ -2239,8 +2263,6 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if (sem_selected_menu_mode == MENU_ADVANCED)
 			{
-				if(HID_SCROLL_BAR_SEL(*key))
-					sem_scroll_bar.selected = true;
 				if(HID_ADVANCED_SEND_INFO_ON_SEL(*key))
 					sem_allow_send_info_button.selected = true;
 				if(HID_ADVANCED_SEND_INFO_OFF_SEL(*key))
@@ -2329,32 +2351,6 @@ void Sem_hid(const Hid_info* key)
 								sem_check_update_request = true;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 						}
-						else if (sem_selected_menu_mode == MENU_LANGAGES)
-							sem_y_min = MENU_LANGUAGES_Y_OFFSET_MIN;
-						else if (sem_selected_menu_mode == MENU_LCD)
-							sem_y_min = MENU_LCD_Y_OFFSET_MIN;
-						else if (sem_selected_menu_mode == MENU_FONT)
-							sem_y_min = MENU_FONT_Y_OFFSET_MIN;
-						else if (sem_selected_menu_mode == MENU_ADVANCED)
-						{
-							sem_y_min = MENU_ADVANCED_Y_OFFSET_MIN;
-#if !DEF_CPU_USAGE_API_ENABLE
-							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
-#endif //!DEF_CPU_USAGE_API_ENABLE
-#if !DEF_GPU_USAGE_API_ENABLE
-							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
-#endif //!DEF_GPU_USAGE_API_ENABLE
-#if !DEF_NET_USAGE_API_ENABLE
-							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
-#endif //!DEF_NET_USAGE_API_ENABLE
-#if !DEF_NVS_USAGE_API_ENABLE
-							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
-#endif //!DEF_NVS_USAGE_API_ENABLE
-#if !DEF_RAM_USAGE_API_ENABLE
-							sem_y_min -= MENU_USAGE_MONITOR_SIZE_Y;
-#endif //!DEF_RAM_USAGE_API_ENABLE
-							sem_y_min = Util_min_d(sem_y_min, 0);
-						}
 
 						//Reset key state on scene change.
 						Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -2368,7 +2364,6 @@ void Sem_hid(const Hid_info* key)
 				{
 					//Back to top page.
 					sem_y_offset = 0.0;
-					sem_y_min = MENU_TOP_Y_OFFSET_MIN;
 					sem_selected_menu_mode = MENU_TOP;
 					//Reset key state on scene change.
 					Util_hid_reset_key_state(HID_KEY_BIT_ALL);
@@ -2727,10 +2722,12 @@ void Sem_hid(const Hid_info* key)
 		//Scroll.
 		if(HID_SCROLL_BAR_CFM(*key))
 		{
+			double temp = (SCROLL_BAR_Y_END - SCROLL_BAR_Y - (SCROLL_BAR_HEIGHT / 2));
+
 			sem_touch_x_move_left = 0;
 			sem_touch_y_move_left = 0;
 
-			sem_y_offset = ((key->touch_y - 15.0) / 195.0) * sem_y_min;
+			sem_y_offset = ((key->touch_y / temp) * sem_y_min);
 		}
 		else if(DEF_HID_PHY_PR(key->touch) || DEF_HID_PHY_HE(key->touch))
 		{
@@ -2753,8 +2750,8 @@ void Sem_hid(const Hid_info* key)
 				sem_touch_y_move_left = 0;
 		}
 
-		if(sem_touch_y_move_left * config.scroll_speed != 0)
-			sem_y_offset -= sem_touch_y_move_left * config.scroll_speed;
+		if((sem_touch_y_move_left * config.scroll_speed) != 0)
+			sem_y_offset -= (sem_touch_y_move_left * config.scroll_speed);
 
 		if (sem_y_offset >= 0)
 			sem_y_offset = 0.0;
@@ -2811,11 +2808,11 @@ void Sem_hid(const Hid_info* key)
 			sem_night_mode_off_button.selected = false;
 		if(HID_LCD_FLASH_DESEL(*key) || sem_scroll_mode)
 			sem_flash_mode_button.selected = false;
-		if(HID_LCD_BRIGHTNESS_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_BRIGHTNESS_BAR_DESEL(*key) || sem_scroll_mode)
 			sem_screen_brightness_bar.selected = false;
-		if(HID_LCD_LCD_OFF_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_LCD_OFF_BAR_DESEL(*key) || sem_scroll_mode)
 			sem_screen_off_time_bar.selected = false;
-		if(HID_LCD_SLEEP_BAR_DESEL(*key))//We prioritize this over scroll mode.
+		if(HID_LCD_SLEEP_BAR_DESEL(*key) || sem_scroll_mode)
 			sem_sleep_time_bar.selected = false;
 		if(HID_LCD_800PX_DESEL(*key) || sem_scroll_mode)
 			sem_800px_mode_button.selected = false;
@@ -2898,6 +2895,17 @@ void Sem_hid(const Hid_info* key)
 
 	if(Util_log_query_show_flag())
 		Util_log_main(key);
+}
+
+static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos)
+{
+	uint32_t button_color = (bar->selected ? DEF_DRAW_BLUE : DEF_DRAW_WEAK_BLUE);
+	double y = SCROLL_BAR_Y;
+
+	if(min_pos != 0)
+		y += ((SCROLL_BAR_Y_END - SCROLL_BAR_HEIGHT) * (current_pos / min_pos));
+
+	Draw_texture(bar, button_color, SCROLL_BAR_X, y, SCROLL_BAR_WIDTH, SCROLL_BAR_HEIGHT);
 }
 
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color)

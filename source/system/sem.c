@@ -311,12 +311,22 @@
 #define SUB_MENU_X_START					(double)(0)		//X start offset for sub menu in px.
 #define SUB_MENU_Y_START					(double)(0)		//Y start offset for sub menu in px.
 #define SUB_MENU_X_END						(double)(320)	//X end offset for sub menu in px.
-#define SUB_MENU_Y_END						(double)(240)	//Y end offset for sub menu in px.
+#define SUB_MENU_Y_END						(double)(225)	//Y end offset for sub menu in px.
 #define SUB_MENU_X							(double)(10)	//X offset for sub menu in px.
 #define SUB_MENU_Y							(double)(0)		//Y offset for sub menu in px.
 #define SUB_MENU_SPACE_Y					(double)(5)		//Element spacing for sub menu (for Y direction) in px.
 #define SUB_MENU_WIDTH						(double)(300)	//Element width for sub menu in px.
 #define SUB_MENU_HEIGHT						(double)(20)	//Element height for sub menu in px.
+
+#define LANG_X_START						(double)(0)		//X start offset for lang in px.
+#define LANG_Y_START						(double)(0)		//Y start offset for lang in px.
+#define LANG_X_END							(double)(320)	//X end offset for lang in px.
+#define LANG_Y_END							(double)(225)	//Y end offset for lang in px.
+#define LANG_X								(double)(10)	//X offset for lang in px.
+#define LANG_Y								(double)(30)	//Y offset for lang in px.
+#define LANG_SPACE_Y						(double)(5)		//Element spacing for lang (for Y direction) in px.
+#define LANG_WIDTH							(double)(300)	//Element width for lang in px.
+#define LANG_HEIGHT							(double)(20)	//Element height for lang in px.
 
 #define FONT_SIZE_ON_OFF					(float)(16.50)	//Font size for ON/OFF buttons.
 #define FONT_SIZE_ALLOW_DENY				(float)(19.50)	//Font size for allow/deny buttons.
@@ -344,7 +354,7 @@
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 //Languages.
 #define FONT_SIZE_LANG						(float)(22.50)	//Font size for each language button.
-#define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(16.50)	//Font size for chinese button in German (temporal workaround).
+#define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(19.50)	//Font size for chinese button in German (temporal workaround).
 //LCD.
 #define FONT_SIZE_LCD_MODE					(float)(19.50)	//Font size for LCD mode.
 #define FONT_SIZE_LCD_FLASH					(float)(24.00)	//Font size for flash mode.
@@ -524,8 +534,16 @@ typedef struct
 	Sem_menu menu_id;	//Menu ID to use.
 } Sem_sub_menu;
 
+typedef struct
+{
+	const char* lang;			//Language name.
+	Sem_msg msg;				//Message ID to display.
+	Draw_image_data* button;	//Button to use.
+} Sem_language;
+
 //Prototypes.
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
+static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
@@ -666,6 +684,19 @@ static const Sem_sub_menu sem_sub_menus[] =
 	{ .msg = MSG_ADVANCED,	.menu_id = MENU_ADVANCED,	},
 	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
 	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
+};
+static const Sem_language sem_languages[] =
+{
+	{ .lang = "en",		.msg = MSG_ENGLISH,		.button = &sem_english_button,		},
+	{ .lang = "jp",		.msg = MSG_JAPANESE,	.button = &sem_japanese_button,		},
+	{ .lang = "hu",		.msg = MSG_HUNGARIAN,	.button = &sem_hungarian_button,	},
+	{ .lang = "zh-cn",	.msg = MSG_CHINESE,		.button = &sem_chinese_button,		},
+	{ .lang = "it",		.msg = MSG_ITALIAN,		.button = &sem_italian_button,		},
+	{ .lang = "es",		.msg = MSG_SPANISH,		.button = &sem_spanish_button,		},
+	{ .lang = "ro",		.msg = MSG_ROMANIAN,	.button = &sem_romanian_button,		},
+	{ .lang = "pl",		.msg = MSG_POLISH,		.button = &sem_polish_button,		},
+	{ .lang = "ryu",	.msg = MSG_RYUKYUAN,	.button = &sem_ryukyuan_button,		},
+	{ .lang = "de",		.msg = MSG_GERMAN,		.button = &sem_german_button,		},
 };
 
 //Code.
@@ -1710,65 +1741,14 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == MENU_LANGAGES)
 		{
 			//Languages.
+			draw_x = LANG_X;
+			draw_y = (sem_y_offset + LANG_Y);
 
-			//English.
-			draw_y = (sem_y_offset + 25);
-			Draw_with_background(&sem_msg[MSG_ENGLISH], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "en") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_english_button, (sem_english_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Japanese.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_JAPANESE], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "jp") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_japanese_button, (sem_japanese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Hungarian.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_HUNGARIAN], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "hu") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_hungarian_button, (sem_hungarian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Chinese.
-			draw_y += 25;
-			//Temporal workaround for UI overflow.
-			if(strcmp(config.lang, "de") == 0)
+			for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_languages); i++)
 			{
-				Draw_with_background(&sem_msg[MSG_CHINESE], 10, draw_y, FONT_SIZE_LANG_CN_DE_WORKAROUND, ((strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color),
-				DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, (sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+				Sem_language_button(&sem_languages[i], config.lang, draw_x, draw_y, color, DEF_DRAW_RED);
+				draw_y += (LANG_HEIGHT + LANG_SPACE_Y);
 			}
-			else
-			{
-				Draw_with_background(&sem_msg[MSG_CHINESE], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "zh-cn") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-				DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_chinese_button, (sem_chinese_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			}
-
-			//Italian.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_ITALIAN], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "it") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_italian_button, (sem_italian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Spanish.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_SPANISH], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "es") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_spanish_button, (sem_spanish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Romanian.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_ROMANIAN], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "ro") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_romanian_button, (sem_romanian_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Polish.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_POLISH], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "pl") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_polish_button, (sem_polish_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//Ryukyuan.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_RYUKYUAN], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "ryu") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_ryukyuan_button, (sem_ryukyuan_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			//German.
-			draw_y += 25;
-			Draw_with_background(&sem_msg[MSG_GERMAN], 10, draw_y, FONT_SIZE_LANG, ((strcmp(config.lang, "de") == 0) ? DEF_DRAW_RED : color), DRAW_X_ALIGN_LEFT,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_german_button, (sem_german_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
 		}
 		else if (sem_selected_menu_mode == MENU_LCD)
 		{
@@ -2940,7 +2920,7 @@ void Sem_hid(const Hid_info* key)
 			sem_debug_mode_off_button.selected = false;
 		if(HID_ADVANCED_FAKE_MODEL_DESEL(*key) || sem_scroll_mode)
 			sem_use_fake_model_button.selected = false;
-		if(HID_ADVANCED_LOG_DUMP_DESEL(*key)  || sem_scroll_mode)
+		if(HID_ADVANCED_LOG_DUMP_DESEL(*key) || sem_scroll_mode)
 			sem_dump_log_button.selected = false;
 #if DEF_CPU_USAGE_API_ENABLE
 		if(HID_ADVANCED_CPU_ON_DESEL(*key) || sem_scroll_mode)
@@ -2992,7 +2972,8 @@ void Sem_hid(const Hid_info* key)
 
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color)
 {
-	Draw_visibility visibility = Draw_visibility_check(x, SUB_MENU_WIDTH, SUB_MENU_X_START, SUB_MENU_X_END, y, SUB_MENU_HEIGHT, SUB_MENU_Y_START, SUB_MENU_Y_END);
+	Draw_visibility visibility = Draw_visibility_check(x, SUB_MENU_WIDTH, SUB_MENU_X_START,
+	SUB_MENU_X_END, y, SUB_MENU_HEIGHT, SUB_MENU_Y_START, SUB_MENU_Y_END);
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
@@ -3002,6 +2983,27 @@ static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y
 
 		Draw_with_background(msg, x, y, FONT_SIZE_SUB_MENU, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 		SUB_MENU_WIDTH, SUB_MENU_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
+	}
+}
+
+static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, LANG_WIDTH,
+	LANG_X_START, LANG_X_END, y, LANG_HEIGHT, LANG_Y_START, LANG_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (language->button->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		float font_size = FONT_SIZE_LANG;
+		Str_data* msg = &sem_msg[language->msg];
+
+		color = ((strcmp(current_lang, language->lang) == 0) ? selected_color : color);
+		//Temporal workaround for UI overflow.
+		if(strcmp(current_lang, "de") == 0 && strcmp(language->lang, "zh-cn") == 0)
+			font_size = FONT_SIZE_LANG_CN_DE_WORKAROUND;
+
+		Draw_with_background(msg, x, y, font_size, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		LANG_WIDTH, LANG_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, language->button, button_color);
 	}
 }
 

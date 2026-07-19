@@ -2206,7 +2206,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 		timebase = av_q2d(util_decoder_format_context[session]->streams[util_subtitle_decoder_stream_num[session][packet_index]]->time_base);
 		if(timebase != 0)
 		{
-			subtitle_data->start_time = (double)util_subtitle_decoder_packet[session][packet_index]->dts * timebase * 1000;//calc pos
+			subtitle_data->start_time = ((double)util_subtitle_decoder_packet[session][packet_index]->dts * timebase * 1000);//Calc pos.
 			subtitle_data->end_time = subtitle_data->start_time + (util_subtitle_decoder_packet[session][packet_index]->duration * timebase * 1000);
 		}
 
@@ -2226,13 +2226,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 				uint8_t* index_table = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[0];
 				uint32_t* color_table = (uint32_t*)util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->data[1];
 				uint32_t index = 0;
-				uint32_t size = util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->w * util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->h * 4;
-
-				if(util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->nb_colors != 4)
-				{
-					DEF_LOG_STRING("Unsupported format.");
-					goto unsupported;
-				}
+				uint32_t size = (util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->w * util_subtitle_decoder_raw_data[session][packet_index]->rects[i]->h * 4);
 
 				subtitle_data->bitmap = (uint8_t*)malloc(size);
 				if(!subtitle_data->bitmap)

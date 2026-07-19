@@ -5884,27 +5884,50 @@ void Vid_decode_thread(void* arg)
 						result = Util_decoder_subtitle_decode(&vid_player.subtitle_data[vid_player.subtitle_index], packet_index, DEF_VID_DECORDER_SESSION_ID);
 						if(result == DEF_SUCCESS)
 						{
-							if(vid_player.subtitle_data[vid_player.subtitle_index].bitmap)
+							Media_s_data* s_data = &vid_player.subtitle_data[vid_player.subtitle_index];
+
+							if(s_data->bitmap)
 							{
 								//Subtitle data format is bitmap, copy raw data to subtitle texture.
-								uint32_t width = vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width;
-								uint32_t height = vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height;
+								Draw_image_data* s_image = &vid_player.subtitle_image[vid_player.subtitle_index];
 
 								Util_sync_lock(&vid_player.texture_init_free_lock, UINT64_MAX);
-								Draw_texture_free(&vid_player.subtitle_image[vid_player.subtitle_index]);
-								result = Draw_texture_init(&vid_player.subtitle_image[vid_player.subtitle_index], width, height, RAW_PIXEL_ABGR8888);
+								Draw_texture_free(s_image);
+								result = Draw_texture_init(s_image, s_data->bitmap_width, s_data->bitmap_height, RAW_PIXEL_ABGR8888);
 								Util_sync_unlock(&vid_player.texture_init_free_lock);
 
 								if(result == DEF_SUCCESS)
-								{
-									Draw_texture_set_data(&vid_player.subtitle_image[vid_player.subtitle_index], vid_player.subtitle_data[vid_player.subtitle_index].bitmap,
-									vid_player.subtitle_data[vid_player.subtitle_index].bitmap_width, vid_player.subtitle_data[vid_player.subtitle_index].bitmap_height, 0, 0);
-								}
+									Draw_texture_set_data(s_image, s_data->bitmap, s_data->bitmap_width, s_data->bitmap_height, 0, 0);
 								else
 									DEF_LOG_RESULT(Draw_texture_init, false, result);
 
-								free(vid_player.subtitle_data[vid_player.subtitle_index].bitmap);
-								vid_player.subtitle_data[vid_player.subtitle_index].bitmap = NULL;
+								if(vid_player.num_of_video_tracks > 0)
+								{
+									//We can't know if this subtitle is supposed to be shown on which video track, so we jsut use EYE_LEFT.
+									double sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1);
+									double sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1);
+									double x_scale = ((vid_player.video_info[EYE_LEFT].width * sar_width_ratio) / (s_data->bitmap_x + s_data->bitmap_width));
+									double y_scale = ((vid_player.video_info[EYE_LEFT].height * sar_height_ratio) / (s_data->bitmap_y + s_data->bitmap_height));
+									double min_scale = Util_min_d(x_scale, y_scale);
+
+									//Correct subtitle position if it goes out of range.
+									if(min_scale < 1)
+									{
+										DEF_LOG_FORMAT("Correcting subtitle size from: %" PRIu32 "x%" PRIu32 " [%" PRIu32 ", %" PRIu32 "]",
+										s_data->bitmap_width, s_data->bitmap_height, s_data->bitmap_x, s_data->bitmap_y);
+
+										s_data->bitmap_x *= (min_scale * 0.95);
+										s_data->bitmap_y *= (min_scale * 0.95);
+										s_data->bitmap_width *= (min_scale * 0.95);
+										s_data->bitmap_height *= (min_scale * 0.95);
+
+										DEF_LOG_FORMAT("To: %" PRIu32 "x%" PRIu32 " [%" PRIu32 ", %" PRIu32 "] because it was too large for the video!!!!!",
+										s_data->bitmap_width, s_data->bitmap_height, s_data->bitmap_x, s_data->bitmap_y);
+									}
+								}
+
+								free(s_data->bitmap);
+								s_data->bitmap = NULL;
 							}
 
 							if(vid_player.subtitle_index + 1 >= SUBTITLE_BUFFERS)

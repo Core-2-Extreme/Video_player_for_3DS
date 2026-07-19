@@ -6,7 +6,7 @@
 <5>Conexión inalámbrica</5>
 <6>Configuración avanzada</6>
 <7>Batería</7>
-<8>Buscar actualizaciones</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Modo noche</11>
@@ -33,16 +33,17 @@
 <32>Búsqueda fallida.</32>
 <33>Actualizado.</33>
 <34>Nueva versión disponible.</34>
-<35>Atrás (B)</35>
-<36>Ir a selección de versión (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>El archivo se guardará en </39>
 <40>Descargando...</40>
 <41>Instalando...</41>
-<42>Éxito</42>
+<42>Éxito! Por favor,
+reinicia la aplicación para actualizar.</42>
 <43>Error</43>
-<44>Por favor, reinicia la aplicación para actualizar.</44>
+<44></44>
 <45>Descargar e instalar (X)</45>
 <46>Cerrar aplicación</46>
 <47>Wifi</47>

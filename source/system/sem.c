@@ -75,18 +75,6 @@
 #define HID_SCROLL_BAR_CFM(k)				(bool)(HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
 #define HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-//Updater: Open updater (to check for update).
-#define HID_UPDATE_OPEN_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_check_update_button, (k)))
-#define HID_UPDATE_OPEN_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_check_update_button, (k)))
-#define HID_UPDATE_OPEN_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
-//Updater: Close updater.
-#define HID_UPDATE_CLOSE_UPDATER_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_updater_button, (k)))
-#define HID_UPDATE_CLOSE_UPDATER_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_updater_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b))
-#define HID_UPDATE_CLOSE_UPDATER_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
-//Updater: Edition selection.
-#define HID_UPDATE_EDITION_SELECTION_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_select_edtion_button, (k)))
-#define HID_UPDATE_EDITION_SELECTION_CFM(k)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_select_edtion_button, (k))) || (DEF_HID_PR_EM((k).a, 1) || DEF_HID_HD((k).a))
-#define HID_UPDATE_EDITION_SELECTION_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).a))
 //Updater: Edition list (.3dsx and .cia).
 #define HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
 #define HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
@@ -94,10 +82,6 @@
 #define HID_UPDATE_CIA_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_cia_button, (k)))
 #define HID_UPDATE_CIA_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_cia_button, (k)))
 #define HID_UPDATE_CIA_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-//Updater: Back to patch note.
-#define HID_UPDATE_BACK_PATCH_NOTE_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_back_to_patch_note_button, (k)))
-#define HID_UPDATE_BACK_PATCH_NOTE_CFM(k)	(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_back_to_patch_note_button, (k))) || (DEF_HID_PR_EM((k).b, 1) || DEF_HID_HD((k).b)))
-#define HID_UPDATE_BACK_PATCH_NOTE_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch) && DEF_HID_PHY_NP((k).b))
 //Updater: Download and install an update.
 #define HID_UPDATE_DL_INSTALL_SEL(k)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_dl_install_button, (k)))
 #define HID_UPDATE_DL_INSTALL_CFM(k)		(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_dl_install_button, (k))) || (DEF_HID_PR_EM((k).x, 1) || DEF_HID_HD((k).x)))
@@ -318,6 +302,30 @@
 #define SUB_MENU_WIDTH						(double)(300)	//Element width for sub menu in px.
 #define SUB_MENU_HEIGHT						(double)(20)	//Element height for sub menu in px.
 
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#define UPDATER_X_START						(double)(0)		//X start offset for updater in px.
+#define UPDATER_Y_START						(double)(0)		//Y start offset for updater in px.
+#define UPDATER_X_END						(double)(320)	//X end offset for updater in px.
+#define UPDATER_Y_END						(double)(225)	//Y end offset for updater in px.
+#define UPDATER_X							(double)(10)	//X offset for updater in px.
+#define UPDATER_Y							(double)(30)	//Y offset for updater in px.
+#define UPDATER_SPACE_Y						(double)(5)		//Element spacing for updater (for Y direction) in px.
+	#define UPDATER_STATUS_WIDTH				(double)(300)	//Element width for status in px.
+	#define UPDATER_STATUS_HEIGHT				(double)(15)	//Element height for status in px.
+	#define UPDATER_STATUS_SUCCESS_HEIGHT		(double)(30)	//Element height for status (when update successfully finished) in px.
+	#define UPDATER_CLOSE_WIDTH					(double)(300)	//Element width for close button in px.
+	#define UPDATER_CLOSE_HEIGHT				(double)(15)	//Element height for close button in px.
+	#define UPDATER_EDITION_SPACE_X				(double)(20)	//Element spacing for edition button (for X direction) in px.
+	#define UPDATER_EDITION_WIDTH				(double)(140)	//Element width for edition button in px.
+	#define UPDATER_EDITION_HEIGHT				(double)(15)	//Element height for edition button in px.
+	#define UPDATER_3DSX_PATH_WIDTH				(double)(300)	//Element width for 3dsx install path in px.
+	#define UPDATER_3DSX_PATH_HEIGHT			(double)(20)	//Element height for 3dsx install path in px.
+	#define UPDATER_INSTALL_WIDTH				(double)(300)	//Element width for install button in px.
+	#define UPDATER_INSTALL_HEIGHT				(double)(20)	//Element height for install button in px.
+	#define UPDATER_PATCH_NOTE_WIDTH			(double)(300)	//Element width for patch note in px.
+	#define UPDATER_PATCH_NOTE_HEIGHT			(double)(190)	//Element height for patch note in px.
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+
 #define LANG_X_START						(double)(0)		//X start offset for lang in px.
 #define LANG_Y_START						(double)(0)		//Y start offset for lang in px.
 #define LANG_X_END							(double)(320)	//X end offset for lang in px.
@@ -338,19 +346,12 @@
 #endif //!(((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER) && (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER))
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 //Updater.
-#define FONT_SIZE_UPDATE					(float)(22.50)	//Font size for update button.
-#define FONT_SIZE_UPDATE_STATE_PATCH		(float)(15.00)	//Font size for update state messages in patch note.
-#define FONT_SIZE_UPDATE_PATCH_NOTE			(float)(12.75)	//Font size for patch note.
-#define FONT_SIZE_UPDATE_EDITION			(float)(24.00)	//Font size for edition messages.
-#define FONT_SIZE_UPDATE_3DSX_PATH			(float)(15.00)	//Font size for 3dsx download path messages.
-#define FONT_SIZE_UPDATE_3DSX_ACTUAL_PATH	(float)(12.75)	//Font size for 3dsx download path.
-#define FONT_SIZE_UPDATE_STATE_SELECT_VER	(float)(22.50)	//Font size for update state messages in select version.
-#define FONT_SIZE_UPDATE_RESTART			(float)(13.50)	//Font size for restart to apply messages.
-#define FONT_SIZE_UPDATE_PROCEEDED_SIZE		(float)(12.75)	//Font size for proceeded (downloaded/installed) size.
-#define FONT_SIZE_UPDATE_CLOSE				(float)(13.50)	//Font size for close app button.
-#define FONT_SIZE_UPDATE_BACK_NEXT			(float)(12.75)	//Font size for back/next buttons.
-#define FONT_SIZE_UPDATE_NEXT_RO_WORKAROUND	(float)(10.50)	//Font size for next button in Romanian (temporal workaround).
-#define FONT_SIZE_UPDATE_NEXT_DE_WORKAROUND	(float)(11.25)	//Font size for next button in German (temporal workaround).
+#define FONT_SIZE_UPDATER_STATE				(float)(15.00)	//Font size for state messages.
+#define FONT_SIZE_UPDATER_CLOSE				(float)(14.00)	//Font size for close app messages.
+#define FONT_SIZE_UPDATER_PATCH_NOTE		(float)(14.00)	//Font size for patch note.
+#define FONT_SIZE_UPDATER_EDITION			(float)(18.00)	//Font size for edition messages.
+#define FONT_SIZE_UPDATER_INSTALL			(float)(18.00)	//Font size for install button messages.
+#define FONT_SIZE_UPDATER_3DSX_PATH			(float)(15.00)	//Font size for 3dsx download path messages.
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 //Languages.
 #define FONT_SIZE_LANG						(float)(22.50)	//Font size for each language button.
@@ -383,7 +384,7 @@ typedef enum
 	MSG_WIFI,
 	MSG_ADVANCED,
 	MSG_BATTERY,
-	MSG_CHECK_UPDATE,
+	MSG_8,										//No longer used, it was MSG_CHECK_UPDATE.
 	MSG_ENGLISH,
 	MSG_JAPANESE,
 	MSG_NIGHT_MODE,
@@ -410,9 +411,8 @@ typedef enum
 	MSG_CHECKING_UPDATE_FAILED,
 	MSG_UP_TO_DATE,
 	MSG_NEW_VERSION_AVAILABLE,
-	MSG_CLOSE_UPDATER,
-	MSG_BACK_TO_PATCH_NOTE = MSG_CLOSE_UPDATER,	//Same as MSG_CLOSE_UPDATER.
-	MSG_SELECT_EDITION,
+	MSG_35,										//No longer used, it was MSG_CLOSE_UPDATER/MSG_BACK_TO_PATCH_NOTE.
+	MSG_36,										//No longer used, it was MSG_SELECT_EDITION.
 	MSG_3DSX,
 	MSG_CIA,
 	MSG_FILE_PATH,
@@ -420,7 +420,7 @@ typedef enum
 	MSG_INSTALLING,
 	MSG_SUCCESS,
 	MSG_FAILURE,
-	MSG_RESTART,
+	MSG_44,										//No longer used, it was MSG_RESTART.
 	MSG_DL_INSTALL,
 	MSG_CLOSE_APP,
 	MSG_WIFI_MODE,
@@ -536,6 +536,14 @@ typedef struct
 
 typedef struct
 {
+	bool* is_available;			//Whether this edition is available.
+	Sem_msg msg;				//Message ID to display.
+	Sem_edition edition_id;		//Edition ID to use.
+	Draw_image_data* button;	//Button to use.
+} Sem_updater_edition;
+
+typedef struct
+{
 	const char* lang;			//Language name.
 	Sem_msg msg;				//Message ID to display.
 	Draw_image_data* button;	//Button to use.
@@ -543,6 +551,14 @@ typedef struct
 
 //Prototypes.
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+static void Sem_updater_status(Sem_update_state state, bool is_new_ver_available, const Str_data* additional_text, double x, double y, uint32_t color);
+static void Sem_updater_close_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color);
+static void Sem_updater_edition_button(const Sem_updater_edition* edition, Sem_edition selected_edition, double x, double y, uint32_t color, uint32_t disabled_color, uint32_t selected_color);
+static void Sem_updater_3dsx_path(Sem_msg msg_id, const Str_data* path, double x, double y, uint32_t color);
+static void Sem_updater_install_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color);
+static void Sem_updater_patch_note(const Str_data* patch_note, double x, double y, uint32_t color);
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
@@ -627,16 +643,14 @@ static Thread sem_check_connectivity_thread = NULL;
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static bool sem_check_update_request = false;
 static bool sem_new_version_available = false;
-static bool sem_show_patch_note_request = false;
-static bool sem_select_ver_request = false;
 static bool sem_dl_file_request = false;
+static bool sem_is_3dsx_available = false;
+static bool sem_is_cia_available = false;
 static uint32_t sem_installed_size = 0;
 static uint32_t sem_total_cia_size = 0;
 static uint32_t sem_dled_size = 0;
 static Thread sem_update_thread = NULL;
-static Draw_image_data sem_check_update_button = { 0, }, sem_select_edtion_button = { 0, }, sem_close_updater_button = { 0, },
-sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_back_to_patch_note_button = { 0, },
-sem_close_app_button = { 0, };
+static Draw_image_data sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_close_app_button = { 0, };
 static Sem_edition sem_selected_edition = EDTION_NONE;
 static Sem_update_state sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
@@ -685,6 +699,13 @@ static const Sem_sub_menu sem_sub_menus[] =
 	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
 	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
 };
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+static const Sem_updater_edition sem_updater_editions[] =
+{
+	{ .is_available = &sem_is_3dsx_available,	.msg = MSG_3DSX,	.edition_id = EDTION_3DSX,	.button = &sem_3dsx_button,	},
+	{ .is_available = &sem_is_cia_available,	.msg = MSG_CIA,		.edition_id = EDTION_CIA,	.button = &sem_cia_button,	},
+};
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static const Sem_language sem_languages[] =
 {
 	{ .lang = "en",		.msg = MSG_ENGLISH,		.button = &sem_english_button,		},
@@ -1074,22 +1095,16 @@ void Sem_init(void)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	//Updater.
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_show_patch_note_request, sizeof(sem_show_patch_note_request));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request, sizeof(sem_select_ver_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request, sizeof(sem_dl_file_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request, sizeof(sem_check_update_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition, sizeof(sem_selected_edition));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size, sizeof(sem_installed_size));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size, sizeof(sem_dled_size));
 
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_close_updater_button.selected, sizeof(sem_close_updater_button.selected));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_select_edtion_button.selected, sizeof(sem_select_edtion_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_3dsx_button.selected, sizeof(sem_3dsx_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected, sizeof(sem_cia_button.selected));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_back_to_patch_note_button.selected, sizeof(sem_back_to_patch_note_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected, sizeof(sem_dl_install_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected, sizeof(sem_close_app_button.selected));
-	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected, sizeof(sem_check_update_button.selected));
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
@@ -1261,13 +1276,9 @@ void Sem_draw_init(void)
 	sem_dump_log_button = Draw_get_empty_image();
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-	sem_check_update_button = Draw_get_empty_image();
-	sem_select_edtion_button = Draw_get_empty_image();
-	sem_close_updater_button = Draw_get_empty_image();
 	sem_3dsx_button = Draw_get_empty_image();
 	sem_cia_button = Draw_get_empty_image();
 	sem_dl_install_button = Draw_get_empty_image();
-	sem_back_to_patch_note_button = Draw_get_empty_image();
 	sem_close_app_button = Draw_get_empty_image();
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
@@ -1395,22 +1406,16 @@ void Sem_exit(void)
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	//Updater.
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_show_patch_note_request);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_select_ver_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_selected_edition);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_installed_size);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dled_size);
 
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_close_updater_button.selected);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_select_edtion_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_3dsx_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_back_to_patch_note_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected);
-	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_button.selected);
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
@@ -1533,6 +1538,7 @@ void Sem_exit(void)
 void Sem_main(void)
 {
 	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t weak_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	uint32_t cache_color[DEF_EXFONT_NUM_OF_FONT_NAME];
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SETTINGS_MENU);
@@ -1550,6 +1556,7 @@ void Sem_main(void)
 	if (config.is_night)
 	{
 		color = DEF_DRAW_WHITE;
+		weak_color = DEF_DRAW_WEAK_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
 
@@ -1629,110 +1636,73 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == MENU_UPDATE)
 		{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-			//Check for updates.
-			Draw_with_background(&sem_msg[MSG_CHECK_UPDATE], 10, 25, FONT_SIZE_UPDATE, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-			240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_check_update_button, (sem_check_update_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			draw_x = UPDATER_X;
+			draw_y = (sem_y_offset + UPDATER_Y);
 
-			if (sem_show_patch_note_request)
+			//Prepare additional status message.
+			if(sem_update_progress == UPDATE_STATE_DOWNLOADING)
+				Util_format_size(sem_dled_size, &format_str);
+			else if(sem_update_progress == UPDATE_STATE_INSTALLING)
 			{
-				Draw_texture(&background, DEF_DRAW_AQUA, 15, 15, 290, 200);
-				Draw_texture(&sem_select_edtion_button, sem_select_edtion_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 15, 200, 145, 15);
-				Draw_texture(&sem_close_updater_button, sem_close_updater_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 160, 200, 145, 15);
+				double installed_size_mb = (sem_installed_size / 1000.0 / 1000.0);
+				double total_size_mb = (sem_total_cia_size / 1000.0 / 1000.0);
 
-				if(sem_update_progress == UPDATE_STATE_CHECKING)//Checking.
-					Draw(&sem_msg[MSG_CHECKING_UPDATE], 17.5, 15, FONT_SIZE_UPDATE_STATE_PATCH, DEF_DRAW_BLACK);
-				else if(sem_update_progress == UPDATE_STATE_CHECK_FAILURE)//Failed.
-					Draw(&sem_msg[MSG_CHECKING_UPDATE_FAILED], 17.5, 15, FONT_SIZE_UPDATE_STATE_PATCH, DEF_DRAW_BLACK);
-				else if (sem_update_progress == UPDATE_STATE_CHECK_SUCCESS)//Success.
-				{
-					Draw(&sem_msg[(sem_new_version_available ? MSG_NEW_VERSION_AVAILABLE : MSG_UP_TO_DATE)], 17.5, 15, FONT_SIZE_UPDATE_STATE_PATCH, DEF_DRAW_BLACK);
-					Draw_with_scale(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], 15, 35, FONT_SIZE_UPDATE_PATCH_NOTE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT,
-					DEF_DRAW_BLACK, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, 290, 165, DRAW_BACKGROUND_ENTIRE_BOX_CROP, NULL, DEF_DRAW_NO_COLOR);
-				}
-
-				//Temporal workaround for UI overflow.
-				if(strcmp(config.lang, "ro") == 0)
-					Draw(&sem_msg[MSG_SELECT_EDITION], 17.5, 200, FONT_SIZE_UPDATE_NEXT_RO_WORKAROUND, DEF_DRAW_BLACK);
-				else
-					Draw(&sem_msg[MSG_SELECT_EDITION], 17.5, 200, FONT_SIZE_UPDATE_BACK_NEXT, DEF_DRAW_BLACK);
-
-				Draw(&sem_msg[MSG_CLOSE_UPDATER], 162.5, 200, FONT_SIZE_UPDATE_BACK_NEXT, DEF_DRAW_BLACK);
+				Util_str_format(&format_str, "%.2f%%", (installed_size_mb / total_size_mb));
 			}
-			else if (sem_select_ver_request)
+
+			//Status.
+			Sem_updater_status(sem_update_progress, sem_new_version_available, &format_str, draw_x, draw_y, color);
+			if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
+				draw_y += (UPDATER_STATUS_SUCCESS_HEIGHT + UPDATER_SPACE_Y);
+			else
+				draw_y += (UPDATER_STATUS_HEIGHT + UPDATER_SPACE_Y);
+
+			if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 			{
-				bool can_press = false;
+				Sem_updater_close_button(&sem_close_app_button, MSG_CLOSE_APP, draw_x, draw_y, color);
+				draw_y += (UPDATER_CLOSE_HEIGHT + UPDATER_SPACE_Y);
+			}
 
-				Draw_texture(&background, DEF_DRAW_AQUA, 15, 15, 290, 200);
-				Draw_texture(&sem_back_to_patch_note_button, sem_back_to_patch_note_button.selected ? DEF_DRAW_WHITE : DEF_DRAW_WEAK_WHITE, 15, 200, 145, 15);
-				Draw_texture(&sem_dl_install_button, sem_dl_install_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, 160, 200, 145, 15);
-				Draw_texture(&sem_3dsx_button, sem_3dsx_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 15, 100, 25);
-				Draw_texture(&sem_cia_button, sem_cia_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED, 15, 45, 100, 25);
+			if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
+			{
+				//Edition selection.
+				for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_updater_editions); i++)
+				{
+					Sem_updater_edition_button(&sem_updater_editions[i], sem_selected_edition, draw_x, draw_y, color, weak_color, DEF_DRAW_RED);
+					draw_x += (UPDATER_EDITION_WIDTH + UPDATER_EDITION_SPACE_X);
+					if((draw_x + UPDATER_EDITION_WIDTH) > UPDATER_X_END)
+					{
+						draw_x = UPDATER_X;
+						draw_y += (UPDATER_EDITION_HEIGHT + UPDATER_SPACE_Y);
+					}
+				}
+				draw_x = UPDATER_X;
 
-				//3dsx.
 				if(sem_selected_edition == EDTION_3DSX)
-					Draw(&sem_msg[MSG_3DSX], 17.5, 15, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_RED);
-				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1')
-					Draw(&sem_msg[MSG_3DSX], 17.5, 15, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_BLACK);
-				else
-					Draw(&sem_msg[MSG_3DSX], 17.5, 15, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_WEAK_BLACK);
-
-				//Cia.
-				if(sem_selected_edition == EDTION_CIA)
-					Draw(&sem_msg[MSG_CIA], 17.5, 45, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_RED);
-				else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1')
-					Draw(&sem_msg[MSG_CIA], 17.5, 45, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_BLACK);
-				else
-					Draw(&sem_msg[MSG_CIA], 17.5, 45, FONT_SIZE_UPDATE_EDITION, DEF_DRAW_WEAK_BLACK);
-
-				if (sem_selected_edition == EDTION_3DSX)
 				{
 					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]));
-					Draw(&sem_msg[MSG_FILE_PATH], 17.5, 110, FONT_SIZE_UPDATE_3DSX_PATH, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 120, FONT_SIZE_UPDATE_3DSX_ACTUAL_PATH, DEF_DRAW_RED);
+
+					Sem_updater_3dsx_path(MSG_FILE_PATH, &format_str, draw_x, draw_y, color);
+					draw_y += (UPDATER_3DSX_PATH_HEIGHT + UPDATER_SPACE_Y);
 				}
 
-				if(sem_update_progress == UPDATE_STATE_DOWNLOADING)
+				//Install.
+				for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_updater_editions); i++)
 				{
-					uint32_t dled_size_kb = (sem_dled_size / 1000);
-					double dled_size_mb = (sem_dled_size / 1000.0 / 1000.0);
-
-					//Downloading.
-					Util_str_format(&format_str, "%.2fMB(%" PRIu32 "KB)", dled_size_mb, dled_size_kb);
-					Draw(&sem_msg[MSG_DOWNLOADING], 17.5, 130, FONT_SIZE_UPDATE_STATE_SELECT_VER, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 150, FONT_SIZE_UPDATE_PROCEEDED_SIZE, DEF_DRAW_BLACK);
+					if(sem_updater_editions[i].edition_id == sem_selected_edition && sem_updater_editions[i].is_available)
+					{
+						Sem_updater_install_button(&sem_dl_install_button, MSG_DL_INSTALL, draw_x, draw_y, color);
+						draw_y += (UPDATER_INSTALL_HEIGHT + UPDATER_SPACE_Y);
+						break;
+					}
 				}
-				else if(sem_update_progress == UPDATE_STATE_INSTALLING)
-				{
-					double installed_size_mb = (sem_installed_size / 1000.0 / 1000.0);
-					double total_size_mb = (sem_total_cia_size / 1000.0 / 1000.0);
+			}
 
-					//Installing.
-					Util_str_format(&format_str, "%.2fMB/%.2fMB", installed_size_mb, total_size_mb);
-					Draw(&sem_msg[MSG_INSTALLING], 17.5, 130, FONT_SIZE_UPDATE_STATE_SELECT_VER, DEF_DRAW_BLACK);
-					Draw(&format_str, 17.5, 150, FONT_SIZE_UPDATE_PROCEEDED_SIZE, DEF_DRAW_BLACK);
-				}
-				else if (sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
-				{
-					//Success.
-					Draw(&sem_msg[MSG_SUCCESS], 17.5, 130, FONT_SIZE_UPDATE_STATE_SELECT_VER, DEF_DRAW_BLACK);
-					Draw(&sem_msg[MSG_RESTART], 17.5, 150, FONT_SIZE_UPDATE_RESTART, DEF_DRAW_BLACK);
-					Draw_with_background(&sem_msg[MSG_CLOSE_APP], 15, 180, FONT_SIZE_UPDATE_CLOSE, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-					290, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_close_app_button, (sem_close_app_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW));
-				}
-				else if (sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
-					Draw(&sem_msg[MSG_FAILURE], 17.5, 130, FONT_SIZE_UPDATE_STATE_SELECT_VER, DEF_DRAW_BLACK);
-
-				if((sem_selected_edition != EDTION_NONE)
-				&& (DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_AVAILABLE_BASE + sem_selected_edition]))[0] == '1')
-					can_press = true;
-
-				//Temporal workaround for UI overflow.
-				if(strcmp(config.lang, "de") == 0)
-					Draw(&sem_msg[MSG_DL_INSTALL], 162.5, 200, FONT_SIZE_UPDATE_NEXT_DE_WORKAROUND, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
-				else
-					Draw(&sem_msg[MSG_DL_INSTALL], 162.5, 200, FONT_SIZE_UPDATE_BACK_NEXT, (can_press ? DEF_DRAW_BLACK : DEF_DRAW_WEAK_BLACK));
-
-				Draw(&sem_msg[MSG_BACK_TO_PATCH_NOTE], 17.5, 200, FONT_SIZE_UPDATE_BACK_NEXT, DEF_DRAW_BLACK);
+			if(sem_update_progress != UPDATE_STATE_CHECK_FAILURE && sem_update_progress != UPDATE_STATE_CHECKING)
+			{
+				//Patch note.
+				Sem_updater_patch_note(&sem_newest_ver_data[UPDATE_DATA_PATCH_NOTE], draw_x, draw_y, color);
+				draw_y += (UPDATER_PATCH_NOTE_HEIGHT + UPDATER_SPACE_Y);
 			}
 #else
 			Draw_c("☢Updater is disabled\non this app.☢", 10, 25, FONT_SIZE_DISABLED_MSG, DEF_DRAW_RED);
@@ -2138,23 +2108,16 @@ void Sem_hid(const Hid_info* key)
 		Util_err_main(key);
 	else
 	{
-		bool enable_back_button = true;
 		bool is_exfont_busy = (Exfont_is_loading_external_font() || Exfont_is_unloading_external_font());
 		bool record_request = false;
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-		bool is_3dsx_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1');
-		bool is_cia_available = ((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1');
-		const bool is_available[EDTION_MAX] = { is_3dsx_available, is_cia_available, };
+		const bool is_available[EDTION_MAX] = { sem_is_3dsx_available, sem_is_cia_available, };
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
 
 		record_request = sem_record_request;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-		enable_back_button = (!sem_show_patch_note_request && !sem_select_ver_request);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 		//Notify user that button is being pressed.
 		if(HID_SYSTEM_UI_SEL(*key))
@@ -2172,36 +2135,24 @@ void Sem_hid(const Hid_info* key)
 		}
 		else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
 		{
-			if (HID_BACK_SEL(*key) && enable_back_button)
+			if (HID_BACK_SEL(*key))
 				sem_back_button.selected = true;
 			else if (sem_selected_menu_mode == MENU_UPDATE)
 			{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-				if (sem_show_patch_note_request)
+				if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 				{
-					if (HID_UPDATE_CLOSE_UPDATER_SEL(*key))
-						sem_close_updater_button.selected = true;
-					if (HID_UPDATE_EDITION_SELECTION_SEL(*key))
-						sem_select_edtion_button.selected = true;
-				}
-				else if (sem_select_ver_request && !sem_dl_file_request)
-				{
-					if (HID_UPDATE_3DSX_SEL(*key) && is_3dsx_available)
+					if (HID_UPDATE_3DSX_SEL(*key) && sem_is_3dsx_available)
 						sem_3dsx_button.selected = true;
-					if (HID_UPDATE_CIA_SEL(*key) && is_cia_available)
+					if (HID_UPDATE_CIA_SEL(*key) && sem_is_cia_available)
 						sem_cia_button.selected = true;
-					if (HID_UPDATE_BACK_PATCH_NOTE_SEL(*key))
-						sem_back_to_patch_note_button.selected = true;
-					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDTION_NONE
-					&& is_available[sem_selected_edition])
+					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDTION_NONE && is_available[sem_selected_edition])
 						sem_dl_install_button.selected = true;
-					if(HID_UPDATE_CLOSE_APP_SEL(*key) && sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
-						sem_close_app_button.selected = true;
 				}
-				else
+				else if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 				{
-					if(HID_UPDATE_OPEN_UPDATER_SEL(*key))
-						sem_check_update_button.selected = true;
+					if(HID_UPDATE_CLOSE_APP_SEL(*key))
+						sem_close_app_button.selected = true;
 				}
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 			}
@@ -2370,7 +2321,15 @@ void Sem_hid(const Hid_info* key)
 						//Go to selected page.
 						sem_y_offset = 0.0;
 						sem_selected_menu_mode = (Sem_menu)i;
-						if (sem_selected_menu_mode == MENU_LANGAGES)
+						if (sem_selected_menu_mode == MENU_UPDATE)
+						{
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+							if(sem_update_progress != UPDATE_STATE_CHECKING && sem_update_progress != UPDATE_STATE_DOWNLOADING
+							&& sem_update_progress != UPDATE_STATE_INSTALLING)
+								sem_check_update_request = true;
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+						}
+						else if (sem_selected_menu_mode == MENU_LANGAGES)
 							sem_y_min = MENU_LANGUAGES_Y_OFFSET_MIN;
 						else if (sem_selected_menu_mode == MENU_LCD)
 							sem_y_min = MENU_LCD_Y_OFFSET_MIN;
@@ -2405,7 +2364,7 @@ void Sem_hid(const Hid_info* key)
 			}
 			else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
 			{
-				if (HID_BACK_CFM(*key) && enable_back_button)
+				if (HID_BACK_CFM(*key))
 				{
 					//Back to top page.
 					sem_y_offset = 0.0;
@@ -2417,40 +2376,19 @@ void Sem_hid(const Hid_info* key)
 				else if (sem_selected_menu_mode == MENU_UPDATE)
 				{
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-					if (sem_show_patch_note_request)
+					if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 					{
-						if(HID_UPDATE_CLOSE_UPDATER_CFM(*key))
-							sem_show_patch_note_request = false;
-						else if(HID_UPDATE_EDITION_SELECTION_CFM(*key))
-						{
-							sem_show_patch_note_request = false;
-							sem_select_ver_request = true;
-						}
-					}
-					else if (sem_select_ver_request && !sem_dl_file_request)
-					{
-						if (HID_UPDATE_3DSX_CFM(*key) && is_3dsx_available)
+						if (HID_UPDATE_3DSX_CFM(*key) && sem_is_3dsx_available)
 							sem_selected_edition = EDTION_3DSX;
-						else if (HID_UPDATE_CIA_CFM(*key) && is_cia_available)
+						else if (HID_UPDATE_CIA_CFM(*key) && sem_is_cia_available)
 							sem_selected_edition = EDTION_CIA;
-						else if (HID_UPDATE_BACK_PATCH_NOTE_CFM(*key))
-						{
-							sem_show_patch_note_request = true;
-							sem_select_ver_request = false;
-						}
-						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDTION_NONE
-						&& is_available[sem_selected_edition])
+						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDTION_NONE && is_available[sem_selected_edition])
 							sem_dl_file_request = true;
-						else if(HID_UPDATE_CLOSE_APP_CFM(*key) && sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
-							Menu_set_must_exit_flag(true);
 					}
-					else
+					else if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
 					{
-						if(HID_UPDATE_OPEN_UPDATER_CFM(*key))
-						{
-							sem_check_update_request = true;
-							sem_show_patch_note_request = true;
-						}
+						if(HID_UPDATE_CLOSE_APP_CFM(*key))
+							Menu_set_must_exit_flag(true);
 					}
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 				}
@@ -2838,21 +2776,13 @@ void Sem_hid(const Hid_info* key)
 		if(HID_BACK_DESEL(*key) || sem_scroll_mode)
 			sem_back_button.selected = false;
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
-		if(HID_UPDATE_OPEN_UPDATER_DESEL(*key) || sem_scroll_mode)
-			sem_check_update_button.selected = false;
-		if(HID_UPDATE_CLOSE_UPDATER_DESEL(*key))//No scroll exists in the sub window.
-			sem_close_updater_button.selected = false;
-		if(HID_UPDATE_EDITION_SELECTION_DESEL(*key))//No scroll exists in the sub window.
-			sem_select_edtion_button.selected = false;
-		if(HID_UPDATE_3DSX_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_3DSX_DESEL(*key) || sem_scroll_mode)
 			sem_3dsx_button.selected = false;
-		if(HID_UPDATE_CIA_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_CIA_DESEL(*key) || sem_scroll_mode)
 			sem_cia_button.selected = false;
-		if(HID_UPDATE_BACK_PATCH_NOTE_DESEL(*key))//No scroll exists in the sub window.
-			sem_back_to_patch_note_button.selected = false;
-		if(HID_UPDATE_DL_INSTALL_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_DL_INSTALL_DESEL(*key) || sem_scroll_mode)
 			sem_dl_install_button.selected = false;
-		if(HID_UPDATE_CLOSE_APP_DESEL(*key))//No scroll exists in the sub window.
+		if(HID_UPDATE_CLOSE_APP_DESEL(*key) || sem_scroll_mode)
 			sem_close_app_button.selected = false;
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 		if(HID_LANG_EN_DESEL(*key) || sem_scroll_mode)
@@ -2985,6 +2915,128 @@ static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y
 		SUB_MENU_WIDTH, SUB_MENU_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
 	}
 }
+
+#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+static void Sem_updater_status(Sem_update_state state, bool is_new_ver_available, const Str_data* additional_text, double x, double y, uint32_t color)
+{
+	double height = (state == UPDATE_STATE_UPDATE_SUCCESS ? UPDATER_STATUS_SUCCESS_HEIGHT : UPDATER_STATUS_HEIGHT);
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_STATUS_WIDTH,
+	UPDATER_X_START, UPDATER_X_END, y, height, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		Str_data msg = { 0, };
+		Sem_msg msg_id = MSG_CHECKING_UPDATE;
+
+		Util_str_init(&msg);
+
+		if(state == UPDATE_STATE_CHECKING)
+			msg_id = MSG_CHECKING_UPDATE;
+		else if(state == UPDATE_STATE_CHECK_FAILURE)
+			msg_id = MSG_CHECKING_UPDATE_FAILED;
+		else if (state == UPDATE_STATE_CHECK_SUCCESS)
+		{
+			if(is_new_ver_available)
+				msg_id = MSG_NEW_VERSION_AVAILABLE;
+			else
+				msg_id = MSG_UP_TO_DATE;
+		}
+		else if(sem_update_progress == UPDATE_STATE_DOWNLOADING)
+			msg_id = MSG_DOWNLOADING;
+		else if(sem_update_progress == UPDATE_STATE_INSTALLING)
+			msg_id = MSG_INSTALLING;
+		else if (sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
+			msg_id = MSG_SUCCESS;
+		else if (sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
+			msg_id = MSG_FAILURE;
+
+		Util_str_format(&msg, "%s %s", DEF_STR_NEVER_NULL(&sem_msg[msg_id]), DEF_STR_NEVER_NULL(additional_text));
+
+		Draw(&msg, x, y, FONT_SIZE_UPDATER_STATE, color);
+		Util_str_free(&msg);
+	}
+}
+
+static void Sem_updater_close_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_CLOSE_WIDTH, UPDATER_X_START,
+	UPDATER_X_END, y, UPDATER_CLOSE_HEIGHT, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (button->selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
+		Str_data* msg = &sem_msg[msg_id];
+
+		Draw_with_background(msg, x, y, FONT_SIZE_UPDATER_CLOSE, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		UPDATER_CLOSE_WIDTH, UPDATER_CLOSE_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
+	}
+}
+
+static void Sem_updater_edition_button(const Sem_updater_edition* edition, Sem_edition selected_edition, double x, double y, uint32_t color, uint32_t disabled_color, uint32_t selected_color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_EDITION_WIDTH, UPDATER_X_START,
+	UPDATER_X_END, y, UPDATER_EDITION_HEIGHT, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (edition->button->selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED);
+		Str_data* msg = &sem_msg[edition->msg];
+		Draw_image_data* button = edition->button;
+
+		if(edition->edition_id == selected_edition)
+			color = selected_color;
+		else if(!edition->is_available)
+			color = disabled_color;
+
+		Draw_with_background(msg, x, y, FONT_SIZE_UPDATER_EDITION, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		UPDATER_EDITION_WIDTH, UPDATER_EDITION_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
+	}
+}
+
+static void Sem_updater_3dsx_path(Sem_msg msg_id, const Str_data* path, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_3DSX_PATH_WIDTH, UPDATER_X_START,
+	UPDATER_X_END, y, UPDATER_3DSX_PATH_HEIGHT, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		Str_data* msg = &sem_msg[msg_id];
+
+		Draw(msg, x, y, FONT_SIZE_UPDATER_3DSX_PATH, color);
+		Draw(path, x, (y + (UPDATER_3DSX_PATH_HEIGHT / 2)), FONT_SIZE_UPDATER_3DSX_PATH, DEF_DRAW_RED);
+	}
+}
+
+static void Sem_updater_install_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_INSTALL_WIDTH, UPDATER_X_START,
+	UPDATER_X_END, y, UPDATER_INSTALL_HEIGHT, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (button->selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+		Str_data* msg = &sem_msg[msg_id];
+
+		Draw_with_background(msg, x, y, FONT_SIZE_UPDATER_INSTALL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		UPDATER_INSTALL_WIDTH, UPDATER_INSTALL_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, button, button_color);
+	}
+}
+
+static void Sem_updater_patch_note(const Str_data* patch_note, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, UPDATER_PATCH_NOTE_WIDTH, UPDATER_X_START,
+	UPDATER_X_END, y, UPDATER_PATCH_NOTE_HEIGHT, UPDATER_Y_START, UPDATER_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		Draw_image_data background = Draw_get_empty_image();
+
+		Draw_with_scale(patch_note, x, y, FONT_SIZE_UPDATER_PATCH_NOTE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT,
+		color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, UPDATER_PATCH_NOTE_WIDTH, UPDATER_PATCH_NOTE_HEIGHT,
+		DRAW_BACKGROUND_ENTIRE_BOX_CROP, &background, DEF_DRAW_WEAK_GREEN);
+	}
+}
+#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color)
 {
@@ -3946,9 +3998,12 @@ void Sem_update_thread(void* arg)
 						else
 							sem_new_version_available = false;
 
-						if(envIsHomebrew() && (DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE]))[0] == '1')
+						sem_is_3dsx_available = Util_str_is_same_c(&sem_newest_ver_data[UPDATE_DATA_3DSX_AVAILABLE], "1");
+						sem_is_cia_available = Util_str_is_same_c(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE], "1");
+
+						if(envIsHomebrew() && sem_is_3dsx_available)
 							sem_selected_edition = EDTION_3DSX;
-						else if((DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE]))[0] == '1')
+						else if(sem_is_cia_available)
 							sem_selected_edition = EDTION_CIA;
 					}
 

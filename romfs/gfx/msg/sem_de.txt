@@ -6,7 +6,7 @@
 <5>Drahtlos</5>
 <6>Erweiterte Einstellungen</6>
 <7>Akku</7>
-<8>Nach Updates suchen</8>
+<8></8>
 <9>Englisch (English)</9>
 <10>Japanisch (日本語)</10>
 <11>Nachtmodus</11>
@@ -33,17 +33,17 @@
 <32>Überprüfung fehlgeschlagen.</32>
 <33>Auf dem neuesten Stand.</33>
 <34>Neue Version verfügbar.</34>
-<35>Zurück (B)</35>
-<36>Zur Auswahl von Builds (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>Die Datei wird gespeichert unter </39>
 <40>Wird heruntergeladen...</40>
 <41>Installieren...</41>
-<42>Erfolgreich</42>
+<42>Erfolgreich! Bitte starte die App neu,
+um das Update anzuwenden.</42>
 <43>Fehlgeschlagen</43>
-<44>Bitte starte die App neu,
-um das Update anzuwenden.</44>
+<44></44>
 <45>Herunterladen & installieren (X)</45>
 <46>App schließen</46>
 <47>WLAN</47>

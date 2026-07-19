@@ -6,7 +6,7 @@
 <5>Wireless</5>
 <6>Advanced settings</6>
 <7>Battery</7>
-<8>Check for updates</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Night mode</11>
@@ -32,17 +32,18 @@
 <31>Checking...</31>
 <32>Check failed.</32>
 <33>Up to date.</33>
-<34>New version available.</34>
-<35>Go back (B)</35>
-<36>Go to editions select (A)</36>
+<34>A new version is available.</34>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>File will be saved to </39>
 <40>Downloading...</40>
 <41>Installing...</41>
-<42>Success</42>
+<42>Success!
+Please restart the app to apply updates.</42>
 <43>Failed</43>
-<44>Please restart the app to apply updates.</44>
+<44></44>
 <45>Download & install (X)</45>
 <46>Close app</46>
 <47>Wifi</47>

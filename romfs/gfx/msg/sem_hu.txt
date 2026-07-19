@@ -6,7 +6,7 @@
 <5>Wi-Fi</5>
 <6>Speciális beállítások</6>
 <7>Akkumulátor</7>
-<8>Frissítések ellenörzése</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Éjszakai mód</11>
@@ -33,16 +33,17 @@
 <32>Ellenörzés sikertelen.</32>
 <33>Aktuális verzió.</33>
 <34>Új verzió elérhetö.</34>
-<35>Vissza (B)</35>
-<36>Kiadások választása (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>A fájl lementésre kerül ide: </39>
 <40>Letöltés...</40>
 <41>Telepítés...</41>
-<42>Sikeres</42>
+<42>Sikeres! Indítsd újra az appot
+a frissítések érvénybe lépéséhez.</42>
 <43>Sikertelen</43>
-<44>Indítsd újra az appot a frissítések érvénybe lépéséhez.</44>
+<44></44>
 <45>Letöltés & telepítés (X)</45>
 <46>App bezárása</46>
 <47>Wifi</47>

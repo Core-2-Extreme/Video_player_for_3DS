@@ -6,7 +6,7 @@
 <5>WI-FI</5>
 <6>Ustawienia Zaawansowane</6>
 <7>Bateria</7>
-<8>Sprawdź Aktualizacje</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Tryb Nocny</11>
@@ -33,16 +33,17 @@
 <32>Sprawdzenie nieudane.</32>
 <33>Wersja Aktualna.</33>
 <34>Dostępna nowa wersja!.</34>
-<35>Wróć (B)</35>
-<36>Wejdź do ustawień zmian (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>Plik będzie zapisany w: </39>
 <40>Pobieranie...</40>
 <41>Instalowanie...</41>
-<42>Sukces</42>
+<42>Sukces! Zrestartuj aplikacje
+by zainstalować aktualizacje.</42>
 <43>Nieudane</43>
-<44>Zrestartuj aplikacje by zainstalować aktualizacje.</44>
+<44></44>
 <45>Pobierz i Zainstaluj (X)</45>
 <46>Zamknij aplikacje</46>
 <47>Wifi</47>

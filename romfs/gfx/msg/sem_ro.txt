@@ -6,7 +6,7 @@
 <5>Wireless</5>
 <6>Setări avansate</6>
 <7>Baterie</7>
-<8>Caută actualizări</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Mod nocturn</11>
@@ -33,17 +33,17 @@
 <32>Căutare eșuată.</32>
 <33>La zi.</33>
 <34>Versiune nouă valabilă.</34>
-<35>Mergi înapoi (B)</35>
-<36>Mergi la selectorul de ediții (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>Fișierul va fi salvat în </39>
 <40>Se descarcă...</40>
 <41>Se instalează...</41>
-<42>Succes</42>
+<42>Succes! Vă rugăm repornirți aplicația
+pentru a aplica actualizările.</42>
 <43>Eșuat</43>
-<44>Vă rugăm repornirți aplicația
-pentru a aplica actualizările.</44>
+<44></44>
 <45>Descărcați și instalați (X)</45>
 <46>Închideți aplicație</46>
 <47>Wifi</47>

@@ -6,7 +6,7 @@
 <5>Wireless</5>
 <6>Impostazioni avanzate</6>
 <7>Batteria</7>
-<8>Cercando aggiornamenti</8>
+<8></8>
 <9>English</9>
 <10>日本語</10>
 <11>Modalità notte</11>
@@ -33,16 +33,17 @@
 <32>Fallito.</32>
 <33>Aggiornato.</33>
 <34>Nuova versione disponibile.</34>
-<35>Indietro (B)</35>
-<36>Selettore versioni (A)</36>
+<35></35>
+<36></36>
 <37>.3dsx</37>
 <38>.cia</38>
 <39>Il file sarà salvato in </39>
 <40>Scaricando...</40>
 <41>Installando...</41>
-<42>Successo</42>
+<42>Successo! Riavvia il software
+per applicare gi aggiornamenti.</42>
 <43>Fallito</43>
-<44>Riavvia il software per applicare gi aggiornamenti.</44>
+<44></44>
 <45>Scarica e installa (X)</45>
 <46>Chiudi app</46>
 <47>Wifi</47>

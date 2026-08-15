@@ -53,9 +53,9 @@ reinicia la aplicación para actualizar.</42>
 <51>Iniciar grabación (Pantalla superior)</51>
 <52>Iniciar grabación (Pantalla inferior)</52>
 <53>Detener grabación</53>
-<54>Modo de pantalla(Pantalla superior)</54>
+<54>Modo de pantalla (Pantalla superior)</54>
 <55>To record screen, you must
-turn off the '800px(auto) mode'
+turn off the '800px (auto) mode'
 (Settings->LCD->Screen mode).</55>
 <56>800px</56>
 <57>3D</57>
@@ -78,3 +78,9 @@ algunas funciones no estarán disponibles)</62>
 <73>Network usage monitor (may not accurate)</73>
 <74>Storage usage monitor (may not accurate)</74>
 <75>RAM usage monitor (may not accurate)</75>
+<76>ENCENDIDO (OLD 3DS)</76>
+<77>ENCENDIDO (OLD 3DS XL)</77>
+<78>ENCENDIDO (OLD 2DS)</78>
+<79>ENCENDIDO (NEW 3DS)</79>
+<80>ENCENDIDO (NEW 3DS XL)</80>
+<81>ENCENDIDO (NEW 2DS XL)</81>

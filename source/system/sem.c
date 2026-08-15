@@ -374,12 +374,25 @@
 #define BATTERY_Y							(double)(30)	//Y offset for battery in px.
 #define BATTERY_SPACE_Y						(double)(5)		//Element spacing for battery (for Y direction) in px.
 
+#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+#define RECORDING_X_START					(double)(0)		//X start offset for recording in px.
+#define RECORDING_Y_START					(double)(0)		//Y start offset for recording in px.
+#define RECORDING_X_END						(double)(320)	//X end offset for recording in px.
+#define RECORDING_Y_END						(double)(225)	//Y end offset for recording in px.
+#define RECORDING_X							(double)(10)	//X offset for recording in px.
+#define RECORDING_Y							(double)(30)	//Y offset for recording in px.
+#define RECORDING_SPACE_Y					(double)(5)		//Element spacing for recording (for Y direction) in px.
+	// #define RECORDING_UNAVAILABLE_WIDTH		(double)(300)	//Element width for unavailable notice in px.
+	#define RECORDING_UNAVAILABLE_HEIGHT	(double)(45)	//Element height for unavailable notice in px.
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+
 #define SUB_TITLE_WIDTH						(double)(300)	//Element width for sub title in px.
 #define SUB_TITLE_HEIGHT					(double)(10)	//Element height for sub title in px.
 
-#define SELECT_WIDTH						(double)(140)	//Element width for select button in px.
 #define SELECT_HEIGHT						(double)(20)	//Element height for select button in px.
-#define SELECT_SPACE_X						(double)(20)	//Element spacing for select button (for X direction) in px.
+#define SELECT_1_WIDTH						(double)(300)	//Element width for select button 1 in px.
+#define SELECT_2_WIDTH						(double)(140)	//Element width for select button 2 in px.
+#define SELECT_2_SPACE_X					(double)(20)	//Element spacing for select button (for X direction) in px.
 
 #define FONT_SIZE_SELECT					(float)(16.50)	//Font size for select buttons.
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
@@ -402,18 +415,13 @@
 #define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(19.50)	//Font size for chinese button in German (temporal workaround).
 //LCD.
 #define FONT_SIZE_LCD_MODE					(float)(19.50)	//Font size for LCD mode.
-#define FONT_SIZE_LCD_FLASH					(float)(24.00)	//Font size for flash mode.
 //Font.
 #define FONT_SIZE_FONT_NAME					(float)(13.50)	//Font size for font names.
 #define FONT_SIZE_FONT_ALL					(float)(19.50)	//Font size for (un)load all buttons.
 //Wireless.
 #define FONT_SIZE_WIRELESS_SSID				(float)(12.75)	//Font size for connected SSID.
-//Advanced.
-#define FONT_SIZE_ADVANCED_FAKE_MODEL		(float)(19.50)	//Font size for fake model button.
-#define FONT_SIZE_ADVANCED_DUMP				(float)(15.00)	//Font size for log dump button.
 //Screen recording.
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-#define FONT_SIZE_REC						(float)(14.25)	//Font size for recording buttons.
 #define FONT_SIZE_REC_UNAVAILABLE			(float)(15.00)	//Font size for recording unavailable messages.
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
@@ -496,6 +504,12 @@ typedef enum
 	MSG_NET_USAGE_MONITOR,
 	MSG_NVS_USAGE_MONITOR,
 	MSG_RAM_USAGE_MONITOR,
+	MSG_FAKE_MODEL_OLD_3DS,
+	MSG_FAKE_MODEL_OLD_3DS_XL,
+	MSG_FAKE_MODEL_OLD_2DS,
+	MSG_FAKE_MODEL_NEW_3DS,
+	MSG_FAKE_MODEL_NEW_3DS_XL,
+	MSG_FAKE_MODEL_NEW_2DS_XL,
 
 	MSG_MAX,
 } Sem_msg;
@@ -595,6 +609,14 @@ typedef struct
 
 typedef struct
 {
+	uint32_t button_color;			//Button color when it's NOT selected.
+	uint32_t button_selected_color;	//Button color when it's selected.
+	Sem_msg msg;					//Message ID for the button.
+	Draw_image_data* button;		//Button to use.
+} Sem_select_1;
+
+typedef struct
+{
 	Sem_msg msg_left;				//Message ID for left button.
 	Sem_msg msg_right;				//Message ID for right button.
 	Draw_image_data* button_left;	//Left button to use.
@@ -614,6 +636,8 @@ static void Sem_updater_patch_note(const Str_data* patch_note, double x, double 
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
 static void Sem_sub_title(const Str_data* msg, double x, double y, uint32_t color, double x_start, double x_end, double y_start, double y_end);
+static void Sem_select_button_1(const Sem_select_1* select, bool is_active, double x, double y, uint32_t color,
+uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_2(const Sem_select_2* select, bool is_left_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_get_system_info(void);
@@ -780,6 +804,10 @@ static const Sem_select_2 sem_select_night_mode =
 	.msg_left = MSG_ON,		.button_left = &sem_night_mode_on_button,
 	.msg_right = MSG_OFF,	.button_right = &sem_night_mode_off_button,
 };
+static const Sem_select_1 sem_select_flash_mode =
+{
+	.button_color = DEF_DRAW_WEAK_RED,	.button_selected_color = DEF_DRAW_RED,	.msg = MSG_FLASH,		.button = &sem_flash_mode_button,
+};
 static const Sem_select_2 sem_select_wifi_mode =
 {
 	.msg_left = MSG_ON,		.button_left = &sem_wifi_on_button,
@@ -794,6 +822,20 @@ static const Sem_select_2 sem_select_debug_mode =
 {
 	.msg_left = MSG_ON,		.button_left = &sem_debug_mode_on_button,
 	.msg_right = MSG_OFF,	.button_right = &sem_debug_mode_off_button,
+};
+static const Sem_select_1 sem_select_fake_mode[7] =
+{
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS,		.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_2DS,		.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_3DS,		.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_3DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_2DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,						.button = &sem_use_fake_model_button,	},
+};
+static const Sem_select_1 sem_select_log_dump =
+{
+	.button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_DUMP_LOGS,	.button = &sem_dump_log_button,
 };
 
 #if DEF_CPU_USAGE_API_ENABLE
@@ -841,6 +883,24 @@ static const Sem_select_2 sem_select_eco_mode =
 	.msg_left = MSG_ON,		.button_left = &sem_eco_mode_on_button,
 	.msg_right = MSG_OFF,	.button_right = &sem_eco_mode_off_button,
 };
+
+#if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+static const Sem_select_1 sem_select_record_both[2] =
+{
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTH_LCD,		.button = &sem_record_both_lcd_button,		},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_both_lcd_button,		},
+};
+static const Sem_select_1 sem_select_record_top[2] =
+{
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_TOP_LCD,		.button = &sem_record_top_lcd_button,		},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_top_lcd_button,		},
+};
+static const Sem_select_1 sem_select_record_bottom[2] =
+{
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTTOM_LCD,	.button = &sem_record_bottom_lcd_button,	},
+	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_bottom_lcd_button,	},
+};
+#endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 //Code.
 bool Sem_query_init_flag(void)
@@ -1079,7 +1139,7 @@ void Sem_init(void)
 		read_cache = NULL;
 	}
 	else
-		sem_internal_state.fake_model = 255;
+		sem_internal_state.fake_model = DEF_SEM_MODEL_MAX;//OFF.
 
 	if(!DEF_SEM_MODEL_IS_NEW(state.console_model))
 		osSetSpeedupEnable(false);
@@ -1894,9 +1954,9 @@ void Sem_main(void)
 			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
 
 			//Flash.
-			Draw_with_background(&sem_msg[MSG_FLASH], 10, draw_y, FONT_SIZE_LCD_FLASH, (sem_config.is_flash ? DEF_DRAW_RED : color), DRAW_X_ALIGN_CENTER,
-			DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_flash_mode_button, (sem_flash_mode_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED));
-			draw_y += 30;
+			Sem_select_button_1(&sem_select_flash_mode, sem_config.is_flash, draw_x, draw_y,
+			color, DEF_DRAW_RED, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
 
 			//Screen brightness.
 			Util_str_format(&format_str, "%s%" PRIu8, DEF_STR_NEVER_NULL(&sem_msg[MSG_BRIGHTNESS]), brightness);
@@ -2067,6 +2127,8 @@ void Sem_main(void)
 		}
 		else if (sem_selected_menu_mode == MENU_ADVANCED)
 		{
+			uint8_t fake_model_index = (sem_internal_state.fake_model < DEF_SEM_MODEL_MAX ? sem_internal_state.fake_model : DEF_SEM_MODEL_MAX);
+
 			draw_x = ADVANCED_X;
 			draw_y = (sem_y_offset + ADVANCED_Y);
 
@@ -2090,22 +2152,13 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_FAKE_MODEL], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_FAKE_MODEL_SPACE_Y);
 
-			if(sem_internal_state.fake_model < DEF_SEM_MODEL_MAX)
-			{
-				Util_str_format(&format_str, "%s (%s)", DEF_STR_NEVER_NULL(&sem_msg[MSG_ON]), sem_model_name[sem_internal_state.fake_model]);
-				Draw_with_background(&format_str, 10, draw_y, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, (sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			}
-			else
-			{
-				Draw_with_background(&sem_msg[MSG_OFF], 10, draw_y, FONT_SIZE_ADVANCED_FAKE_MODEL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_use_fake_model_button, (sem_use_fake_model_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			}
-			draw_y += 30;
+			Sem_select_button_1(&sem_select_fake_mode[fake_model_index], false, draw_x, draw_y,
+			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 
-			Draw_with_background(&sem_msg[MSG_DUMP_LOGS], 10, draw_y, FONT_SIZE_ADVANCED_DUMP, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-			190, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_dump_log_button, (sem_dump_log_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			draw_y += 30;
+			Sem_select_button_1(&sem_select_log_dump, sem_dump_log_request, draw_x, draw_y,
+			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 
 #if DEF_CPU_USAGE_API_ENABLE
 			//CPU usage monitor.
@@ -2180,26 +2233,35 @@ void Sem_main(void)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
 
+			draw_x = RECORDING_X;
+			draw_y = (sem_y_offset + RECORDING_Y);
+
 			if(!can_record)
-				cache_color[0] = (config.is_night ? DEF_DRAW_WEAK_WHITE : DEF_DRAW_WEAK_BLACK);
+				color = (config.is_night ? DEF_DRAW_WEAK_WHITE : DEF_DRAW_WEAK_BLACK);
 
 			//Record both screen.
-			Draw_with_background(&sem_msg[(sem_record_request ? MSG_STOP_RECORDING : MSG_RECORD_BOTH_LCD)], 10, 25, FONT_SIZE_REC, cache_color[0], DRAW_X_ALIGN_CENTER,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_both_lcd_button, (sem_record_both_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			Sem_select_button_1(&sem_select_record_both[sem_record_request], false, draw_x, draw_y,
+			color, color, RECORDING_X_START, RECORDING_X_END, RECORDING_Y_START, RECORDING_Y_END);
+			draw_y += (SELECT_HEIGHT + RECORDING_SPACE_Y);
 
 			//Record top screen.
-			Draw_with_background(&sem_msg[(sem_record_request ? MSG_STOP_RECORDING : MSG_RECORD_TOP_LCD)], 10, 60, FONT_SIZE_REC, cache_color[0], DRAW_X_ALIGN_CENTER,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_top_lcd_button, (sem_record_top_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			Sem_select_button_1(&sem_select_record_top[sem_record_request], false, draw_x, draw_y,
+			color, color, RECORDING_X_START, RECORDING_X_END, RECORDING_Y_START, RECORDING_Y_END);
+			draw_y += (SELECT_HEIGHT + RECORDING_SPACE_Y);
 
 			//Record bottom screen.
-			Draw_with_background(&sem_msg[(sem_record_request ? MSG_STOP_RECORDING : MSG_RECORD_BOTTOM_LCD)], 10, 95, FONT_SIZE_REC, cache_color[0], DRAW_X_ALIGN_CENTER,
-			DRAW_Y_ALIGN_CENTER, 240, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_record_bottom_lcd_button, (sem_record_bottom_lcd_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+			Sem_select_button_1(&sem_select_record_bottom[sem_record_request], false, draw_x, draw_y,
+			color, color, RECORDING_X_START, RECORDING_X_END, RECORDING_Y_START, RECORDING_Y_END);
+			draw_y += (SELECT_HEIGHT + RECORDING_SPACE_Y);
 
 			if(!can_record)
-				Draw(&sem_msg[MSG_CANNOT_RECORD], 10, 120, FONT_SIZE_REC_UNAVAILABLE, DEF_DRAW_RED);
+			{
+				Draw(&sem_msg[MSG_CANNOT_RECORD], draw_x, draw_y, FONT_SIZE_REC_UNAVAILABLE, DEF_DRAW_RED);
+				draw_y += (RECORDING_UNAVAILABLE_HEIGHT + RECORDING_SPACE_Y);
+			}
 
 			//Update scroll limit.
-			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - RECORDING_Y_END), 0);
 #else
 			Draw_c("☢Screen recorder is disabled\non this app.☢", 10, 25, FONT_SIZE_DISABLED_MSG, DEF_DRAW_RED);
 			sem_y_min = 0;
@@ -2726,10 +2788,10 @@ void Sem_hid(const Hid_info* key)
 					}
 					else if (HID_ADVANCED_FAKE_MODEL_CFM(*key))
 					{
-						if(sem_internal_state.fake_model == 255)
-							sem_internal_state.fake_model = 0;
+						if(sem_internal_state.fake_model == DEF_SEM_MODEL_MAX)
+							sem_internal_state.fake_model = DEF_SEM_MODEL_OLD3DS;
 						else if((sem_internal_state.fake_model + 1) >= DEF_SEM_MODEL_MAX)
-							sem_internal_state.fake_model = 255;//OFF.
+							sem_internal_state.fake_model = DEF_SEM_MODEL_MAX;//OFF.
 						else
 							sem_internal_state.fake_model++;
 
@@ -3176,10 +3238,27 @@ static void Sem_sub_title(const Str_data* msg, double x, double y, uint32_t colo
 		Draw(msg, x, y, FONT_SIZE_SUB_TITLE, color);
 }
 
+static void Sem_select_button_1(const Sem_select_1* select, bool is_active, double x, double y, uint32_t color,
+uint32_t selected_color, double x_start, double x_end, double y_start, double y_end)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, SELECT_1_WIDTH, x_start, x_end, y, SELECT_HEIGHT, y_start, y_end);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (select->button->selected ? select->button_selected_color : select->button_color);
+		uint32_t text_color = (is_active ? selected_color : color);
+		Str_data* msg = &sem_msg[select->msg];
+		Draw_image_data* button = select->button;
+
+		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		SELECT_1_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+	}
+}
+
 static void Sem_select_button_2(const Sem_select_2* select, bool is_left_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end)
 {
-	Draw_visibility visibility = Draw_visibility_check(x, SELECT_WIDTH, x_start, x_end, y, SELECT_HEIGHT, y_start, y_end);
+	Draw_visibility visibility = Draw_visibility_check(x, SELECT_2_WIDTH, x_start, x_end, y, SELECT_HEIGHT, y_start, y_end);
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
@@ -3189,16 +3268,16 @@ uint32_t selected_color, double x_start, double x_end, double y_start, double y_
 		Draw_image_data* button = select->button_left;
 
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-		SELECT_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+		SELECT_2_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 
 		button_color = (select->button_right->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
 		text_color = (is_left_active ? color : selected_color);
 		msg = &sem_msg[select->msg_right];
 		button = select->button_right;
 
-		x += (SELECT_WIDTH + SELECT_SPACE_X);
+		x += (SELECT_2_WIDTH + SELECT_2_SPACE_X);
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-		SELECT_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+		SELECT_2_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 	}
 }
 

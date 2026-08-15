@@ -53,9 +53,9 @@ Please restart the app to apply updates.</42>
 <51>Start recording (top screen)</51>
 <52>Start recording (bottom screen)</52>
 <53>Stop recording</53>
-<54>Screen mode(top screen)</54>
+<54>Screen mode (top screen)</54>
 <55>To record screen, you must
-turn off the '800px(auto) mode'
+turn off the '800px (auto) mode'
 (Settings->LCD->Screen mode).</55>
 <56>800px</56>
 <57>3D</57>
@@ -78,3 +78,9 @@ some function may not work)</62>
 <73>Network usage monitor (may not accurate)</73>
 <74>Storage usage monitor (may not accurate)</74>
 <75>RAM usage monitor (may not accurate)</75>
+<76>ON (OLD 3DS)</76>
+<77>ON (OLD 3DS XL)</77>
+<78>ON (OLD 2DS)</78>
+<79>ON (NEW 3DS)</79>
+<80>ON (NEW 3DS XL)</80>
+<81>ON (NEW 2DS XL)</81>

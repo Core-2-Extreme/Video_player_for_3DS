@@ -55,8 +55,8 @@ um das Update anzuwenden.</42>
 <53>Aufzeichnung beenden</53>
 <54>Bildschirmmodus (oberer Bildschirm)</54>
 <55>Um den Bildschirm aufzunehmen, müssen Sie
-den „800px(auto)-Modus”
-(Einstellungen->LCD->Bildschirmmodus) deaktivieren. </55>
+den „800px (auto)-Modus” (Einstellungen
+->LCD->Bildschirmmodus) deaktivieren. </55>
 <56>800px</56>
 <57>3D</57>
 <58>Nichts</58>
@@ -78,3 +78,9 @@ einige Funktionen sind eingeschränkt)</62>
 <73>Network usage monitor (may not accurate)</73>
 <74>Storage usage monitor (may not accurate)</74>
 <75>RAM usage monitor (may not accurate)</75>
+<76>Ein (OLD 3DS)</76>
+<77>Ein (OLD 3DS XL)</77>
+<78>Ein (OLD 2DS)</78>
+<79>Ein (NEW 3DS)</79>
+<80>Ein (NEW 3DS XL)</80>
+<81>Ein (NEW 2DS XL)</81>

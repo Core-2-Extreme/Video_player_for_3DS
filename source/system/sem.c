@@ -392,7 +392,9 @@
 #define SELECT_HEIGHT						(double)(20)	//Element height for select button in px.
 #define SELECT_1_WIDTH						(double)(300)	//Element width for select button 1 in px.
 #define SELECT_2_WIDTH						(double)(140)	//Element width for select button 2 in px.
-#define SELECT_2_SPACE_X					(double)(20)	//Element spacing for select button (for X direction) in px.
+#define SELECT_2_SPACE_X					(double)(20)	//Element spacing for select button 2 (for X direction) in px.
+#define SELECT_4_WIDTH						(double)(70)	//Element width for select button 4 in px.
+#define SELECT_4_SPACE_X					(double)(6.7)	//Element spacing for select button 4 (for X direction) in px.
 
 #define FONT_SIZE_SELECT					(float)(16.50)	//Font size for select buttons.
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
@@ -413,8 +415,6 @@
 //Languages.
 #define FONT_SIZE_LANG						(float)(22.50)	//Font size for each language button.
 #define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(19.50)	//Font size for chinese button in German (temporal workaround).
-//LCD.
-#define FONT_SIZE_LCD_MODE					(float)(19.50)	//Font size for LCD mode.
 //Font.
 #define FONT_SIZE_FONT_NAME					(float)(13.50)	//Font size for font names.
 #define FONT_SIZE_FONT_ALL					(float)(19.50)	//Font size for (un)load all buttons.
@@ -621,6 +621,14 @@ typedef struct
 	Sem_select_1 right;				//Right element.
 } Sem_select_2;
 
+typedef struct
+{
+	Sem_select_1 left;				//Left element.
+	Sem_select_1 center_left;		//Center left element.
+	Sem_select_1 center_right;		//Center right element.
+	Sem_select_1 right;				//Right element.
+} Sem_select_4;
+
 //Prototypes.
 static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos);
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
@@ -638,6 +646,8 @@ static void Sem_select_button_1(const Sem_select_1* select, bool is_active, doub
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_2(const Sem_select_2* select, bool is_left_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
+static void Sem_select_button_4(const Sem_select_4* select, uint8_t active_index, double x, double y, const uint32_t color[4],
+const uint32_t selected_color[4], double x_start, double x_end, double y_start, double y_end);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
@@ -805,6 +815,13 @@ static const Sem_select_2 sem_select_night_mode =
 static const Sem_select_1 sem_select_flash_mode =
 {
 	.button_color = DEF_DRAW_WEAK_RED,	.button_selected_color = DEF_DRAW_RED,	.msg = MSG_FLASH,		.button = &sem_flash_mode_button,
+};
+static const Sem_select_4 sem_select_top_mode =
+{
+	.left =				{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_800PX,	.button = &sem_800px_mode_button,	},
+	.center_left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_3D,		.button = &sem_3d_mode_button,		},
+	.center_right =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_400PX,	.button = &sem_400px_mode_button,	},
+	.right =			{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_AUTO,	.button = &sem_auto_mode_button,	},
 };
 static const Sem_select_2 sem_select_wifi_mode =
 {
@@ -1907,38 +1924,47 @@ void Sem_main(void)
 		else if (sem_selected_menu_mode == MENU_LCD)
 		{
 			uint8_t brightness = Util_max(config.top_lcd_brightness, config.bottom_lcd_brightness);
+			uint8_t top_mode_index = UINT8_MAX;
+			uint32_t top_mode_color[4] = { color, color, color, color, };
+			uint32_t top_mode_selected_color[4] = { DEF_DRAW_RED, DEF_DRAW_RED, DEF_DRAW_RED, DEF_DRAW_RED, };
 			double bar_pos = 0;
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			if(sem_record_request && config.is_night)
 			{
-				cache_color[0] = DEF_DRAW_WEAK_WHITE;
-				cache_color[1] = DEF_DRAW_WEAK_WHITE;
-				cache_color[2] = DEF_DRAW_WEAK_WHITE;
+				for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(top_mode_color); i++)
+					top_mode_color[i] = DEF_DRAW_WEAK_WHITE;
 			}
 			else if(sem_record_request)
 			{
-				cache_color[0] = DEF_DRAW_WEAK_BLACK;
-				cache_color[1] = DEF_DRAW_WEAK_BLACK;
-				cache_color[2] = DEF_DRAW_WEAK_BLACK;
+				for(uint8_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(top_mode_color); i++)
+					top_mode_color[i] = DEF_DRAW_WEAK_BLACK;
 			}
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
 			if(state.console_model == DEF_SEM_MODEL_OLD2DS && config.is_night)
 			{
-				cache_color[0] = DEF_DRAW_WEAK_WHITE;
-				cache_color[1] = DEF_DRAW_WEAK_WHITE;
+				top_mode_color[0] = DEF_DRAW_WEAK_WHITE;
+				top_mode_color[1] = DEF_DRAW_WEAK_WHITE;
 			}
 			else if(state.console_model == DEF_SEM_MODEL_OLD2DS)
 			{
-				cache_color[0] = DEF_DRAW_WEAK_BLACK;
-				cache_color[1] = DEF_DRAW_WEAK_BLACK;
+				top_mode_color[0] = DEF_DRAW_WEAK_BLACK;
+				top_mode_color[1] = DEF_DRAW_WEAK_BLACK;
 			}
 
 			if(state.console_model == DEF_SEM_MODEL_NEW2DSXL && config.is_night)
-				cache_color[1] = DEF_DRAW_WEAK_WHITE;
+				top_mode_color[1] = DEF_DRAW_WEAK_WHITE;
 			else if(state.console_model == DEF_SEM_MODEL_NEW2DSXL)
-				cache_color[1] = DEF_DRAW_WEAK_BLACK;
+				top_mode_color[1] = DEF_DRAW_WEAK_BLACK;
+
+			switch(config.screen_mode)
+			{
+				case DEF_SEM_SCREEN_MODE_800PX:	{ top_mode_index = 0; break; }
+				case DEF_SEM_SCREEN_MODE_3D:	{ top_mode_index = 1; break; }
+				case DEF_SEM_SCREEN_MODE_400PX:	{ top_mode_index = 2; break; }
+				case DEF_SEM_SCREEN_MODE_AUTO:	{ top_mode_index = 3; break; }
+			}
 
 			draw_x = LCD_X;
 			draw_y = (sem_y_offset + LCD_Y);
@@ -2015,20 +2041,9 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_LCD_MODE], draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + LCD_SPACE_Y);
 
-			//800px.
-			Draw_with_background(&sem_msg[MSG_800PX], 10, draw_y, FONT_SIZE_LCD_MODE, ((config.screen_mode == DEF_SEM_SCREEN_MODE_800PX) ? DEF_DRAW_RED : cache_color[0]),
-			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_800px_mode_button, (sem_800px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			//3D.
-			Draw_with_background(&sem_msg[MSG_3D], 85, draw_y, FONT_SIZE_LCD_MODE, ((config.screen_mode == DEF_SEM_SCREEN_MODE_3D) ? DEF_DRAW_RED : cache_color[1]),
-			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_3d_mode_button, (sem_3d_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			//Nothing.
-			Draw_with_background(&sem_msg[MSG_400PX], 160, draw_y, FONT_SIZE_LCD_MODE, ((config.screen_mode == DEF_SEM_SCREEN_MODE_400PX) ? DEF_DRAW_RED : cache_color[2]),
-			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_400px_mode_button, (sem_400px_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-			//Auto.
-			Draw_with_background(&sem_msg[MSG_AUTO], 235, draw_y, FONT_SIZE_LCD_MODE, ((config.screen_mode == DEF_SEM_SCREEN_MODE_AUTO) ? DEF_DRAW_RED : cache_color[2]),
-			DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 65, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_auto_mode_button, (sem_auto_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
-
-			draw_y += 25;
+			Sem_select_button_4(&sem_select_top_mode, top_mode_index, draw_x, draw_y,
+			top_mode_color, top_mode_selected_color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
 
 			//Update scroll limit.
 			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - LCD_Y_END), 0);
@@ -3276,6 +3291,50 @@ uint32_t selected_color, double x_start, double x_end, double y_start, double y_
 		x += (SELECT_2_WIDTH + SELECT_2_SPACE_X);
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 		SELECT_2_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+	}
+}
+
+static void Sem_select_button_4(const Sem_select_4* select, uint8_t active_index, double x, double y, const uint32_t color[4],
+const uint32_t selected_color[4], double x_start, double x_end, double y_start, double y_end)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, SELECT_4_WIDTH, x_start, x_end, y, SELECT_HEIGHT, y_start, y_end);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (select->left.button->selected ? select->left.button_selected_color : select->left.button_color);
+		uint32_t text_color = ((active_index == 0) ? selected_color[0] : color[0]);
+		Str_data* msg = &sem_msg[select->left.msg];
+		Draw_image_data* button = select->left.button;
+
+		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		SELECT_4_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+
+		button_color = (select->center_left.button->selected ? select->center_left.button_selected_color : select->center_left.button_color);
+		text_color = ((active_index == 1) ? selected_color[1] : color[1]);
+		msg = &sem_msg[select->center_left.msg];
+		button = select->center_left.button;
+
+		x += (SELECT_4_WIDTH + SELECT_4_SPACE_X);
+		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		SELECT_4_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+
+		button_color = (select->center_right.button->selected ? select->center_right.button_selected_color : select->center_right.button_color);
+		text_color = ((active_index == 2) ? selected_color[2] : color[2]);
+		msg = &sem_msg[select->center_right.msg];
+		button = select->center_right.button;
+
+		x += (SELECT_4_WIDTH + SELECT_4_SPACE_X);
+		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		SELECT_4_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+
+		button_color = (select->right.button->selected ? select->right.button_selected_color : select->right.button_color);
+		text_color = ((active_index == 3) ? selected_color[3] : color[3]);
+		msg = &sem_msg[select->right.msg];
+		button = select->right.button;
+
+		x += (SELECT_4_WIDTH + SELECT_4_SPACE_X);
+		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
+		SELECT_4_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 	}
 }
 

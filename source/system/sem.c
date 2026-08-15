@@ -644,8 +644,8 @@ static void Sem_language_button(const Sem_language* language, const char* curren
 static void Sem_sub_title(const Str_data* msg, double x, double y, uint32_t color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_1(const Sem_select_1* select, bool is_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
-static void Sem_select_button_2(const Sem_select_2* select, bool is_left_active, double x, double y, uint32_t color,
-uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
+static void Sem_select_button_2(const Sem_select_2* select, uint8_t active_index, double x, double y, const uint32_t color[2],
+const uint32_t selected_color[2], double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_4(const Sem_select_4* select, uint8_t active_index, double x, double y, const uint32_t color[4],
 const uint32_t selected_color[4], double x_start, double x_end, double y_start, double y_end);
 static void Sem_get_system_info(void);
@@ -1735,6 +1735,8 @@ void Sem_exit(void)
 void Sem_main(void)
 {
 	uint32_t color = DEF_DRAW_BLACK;
+	uint32_t color_x2[2] = { 0, };
+	uint32_t red_x2[2] = { DEF_DRAW_RED, DEF_DRAW_RED, };
 	uint32_t weak_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
 	uint32_t cache_color[DEF_EXFONT_NUM_OF_FONT_NAME];
@@ -1756,6 +1758,9 @@ void Sem_main(void)
 		weak_color = DEF_DRAW_WEAK_WHITE;
 		back_color = DEF_DRAW_BLACK;
 	}
+
+	color_x2[0] = color;
+	color_x2[1] = color;
 
 	for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		cache_color[i] = color;
@@ -1973,8 +1978,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_NIGHT_MODE], draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + LCD_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_night_mode, config.is_night, draw_x, draw_y,
-			color, DEF_DRAW_RED, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			Sem_select_button_2(&sem_select_night_mode, !config.is_night, draw_x, draw_y,
+			color_x2, red_x2, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
 
 			//Flash.
@@ -2127,8 +2132,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_WIFI_MODE], draw_x, draw_y, color, WIFI_X_START, WIFI_X_END, WIFI_Y_START, WIFI_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + WIFI_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_wifi_mode, config.is_wifi_on, draw_x, draw_y,
-			color, DEF_DRAW_RED, WIFI_X_START, WIFI_X_END, WIFI_Y_START, WIFI_Y_END);
+			Sem_select_button_2(&sem_select_wifi_mode, !config.is_wifi_on, draw_x, draw_y,
+			color_x2, red_x2, WIFI_X_START, WIFI_X_END, WIFI_Y_START, WIFI_Y_END);
 			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
 
 			//Connected SSID.
@@ -2149,16 +2154,16 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_SEND_INFO_MODE], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_send_info_mode, config.is_send_info_allowed, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_send_info_mode, !config.is_send_info_allowed, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 
 			//Debug mode.
 			Sem_sub_title(&sem_msg[MSG_DEBUG_MODE], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_debug_mode, config.is_debug, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_debug_mode, !config.is_debug, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 
 			//Fake model.
@@ -2178,8 +2183,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_CPU_USAGE_MONITOR], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_cpu_monitor_mode, sem_is_cpu_usage_monitor_running, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_cpu_monitor_mode, !sem_is_cpu_usage_monitor_running, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 #endif //DEF_CPU_USAGE_API_ENABLE
 
@@ -2188,8 +2193,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_GPU_USAGE_MONITOR], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_gpu_monitor_mode, sem_is_gpu_usage_monitor_running, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_gpu_monitor_mode, !sem_is_gpu_usage_monitor_running, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 #endif //DEF_GPU_USAGE_API_ENABLE
 
@@ -2198,8 +2203,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_NET_USAGE_MONITOR], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_net_monitor_mode, sem_is_net_usage_monitor_running, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_net_monitor_mode, !sem_is_net_usage_monitor_running, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 #endif //DEF_NET_USAGE_API_ENABLE
 
@@ -2208,8 +2213,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_NVS_USAGE_MONITOR], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_nvs_monitor_mode, sem_is_nvs_usage_monitor_running, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_nvs_monitor_mode, !sem_is_nvs_usage_monitor_running, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 #endif //DEF_NVS_USAGE_API_ENABLE
 
@@ -2218,8 +2223,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_RAM_USAGE_MONITOR], draw_x, draw_y, color, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + ADVANCED_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_ram_monitor_mode, sem_is_ram_usage_monitor_running, draw_x, draw_y,
-			color, DEF_DRAW_RED, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
+			Sem_select_button_2(&sem_select_ram_monitor_mode, !sem_is_ram_usage_monitor_running, draw_x, draw_y,
+			color_x2, red_x2, ADVANCED_X_START, ADVANCED_X_END, ADVANCED_Y_START, ADVANCED_Y_END);
 			draw_y += (SELECT_HEIGHT + ADVANCED_SPACE_Y);
 #endif //DEF_RAM_USAGE_API_ENABLE
 
@@ -2234,8 +2239,8 @@ void Sem_main(void)
 			Sem_sub_title(&sem_msg[MSG_ECO_MODE], draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
 
-			Sem_select_button_2(&sem_select_eco_mode, config.is_eco, draw_x, draw_y,
-			color, DEF_DRAW_RED, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			Sem_select_button_2(&sem_select_eco_mode, !config.is_eco, draw_x, draw_y,
+			color_x2, red_x2, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
 			draw_y += (SELECT_HEIGHT + BATTERY_SPACE_Y);
 
 			//Update scroll limit.
@@ -3268,15 +3273,15 @@ uint32_t selected_color, double x_start, double x_end, double y_start, double y_
 	}
 }
 
-static void Sem_select_button_2(const Sem_select_2* select, bool is_left_active, double x, double y, uint32_t color,
-uint32_t selected_color, double x_start, double x_end, double y_start, double y_end)
+static void Sem_select_button_2(const Sem_select_2* select, uint8_t active_index, double x, double y, const uint32_t color[2],
+const uint32_t selected_color[2], double x_start, double x_end, double y_start, double y_end)
 {
 	Draw_visibility visibility = Draw_visibility_check(x, SELECT_2_WIDTH, x_start, x_end, y, SELECT_HEIGHT, y_start, y_end);
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
 		uint32_t button_color = (select->left.button->selected ? select->left.button_selected_color : select->left.button_color);
-		uint32_t text_color = (is_left_active ? selected_color : color);
+		uint32_t text_color = ((active_index == 0) ? selected_color[0] : color[0]);
 		Str_data* msg = &sem_msg[select->left.msg];
 		Draw_image_data* button = select->left.button;
 
@@ -3284,7 +3289,7 @@ uint32_t selected_color, double x_start, double x_end, double y_start, double y_
 		SELECT_2_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 
 		button_color = (select->right.button->selected ? select->right.button_selected_color : select->right.button_color);
-		text_color = (is_left_active ? color : selected_color);
+		text_color = ((active_index == 1) ? selected_color[1] : color[1]);
 		msg = &sem_msg[select->right.msg];
 		button = select->right.button;
 

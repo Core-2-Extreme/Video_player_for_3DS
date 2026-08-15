@@ -396,6 +396,13 @@
 #define SELECT_4_WIDTH						(double)(70)	//Element width for select button 4 in px.
 #define SELECT_4_SPACE_X					(double)(6.7)	//Element spacing for select button 4 (for X direction) in px.
 
+#define SLIDER_BAR_WIDTH					(double)(300)	//Element width for slider bar in px.
+#define SLIDER_BAR_HEIGHT					(double)(20)	//Element height for slider bar in px.
+	#define SLIDER_WIDTH					(double)(300)	//Element width for slider (excluding bar) in px.
+	#define SLIDER_HEIGHT					(double)(7)		//Element height for slider (excluding bar) in px.
+	#define BAR_WIDTH						(double)(10)	//Element width for bar (excluding slider) in px.
+	#define BAR_HEIGHT						(double)(20)	//Element height for bar (excluding slider) in px.
+
 #define FONT_SIZE_SELECT					(float)(16.50)	//Font size for select buttons.
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
 #define FONT_SIZE_SUB_MENU					(float)(22.50)	//Font size for sub menu messages.
@@ -629,6 +636,15 @@ typedef struct
 	Sem_select_1 right;			//Right element.
 } Sem_select_4;
 
+typedef struct
+{
+	uint32_t color;				//Slider bar color when it's NOT selected.
+	uint32_t selected_color;	//Slider bar color when it's selected.
+	uint32_t slider_color;		//Slider color.
+	Draw_image_data* bar;		//Slider bar to use.
+	Draw_image_data* slider;	//Slider to use.
+} Sem_slider;
+
 //Prototypes.
 static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos);
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
@@ -648,6 +664,8 @@ static void Sem_select_button_2(const Sem_select_2* select, uint8_t active_index
 const uint32_t selected_color[2], double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_4(const Sem_select_4* select, uint8_t active_index, double x, double y, const uint32_t color[4],
 const uint32_t selected_color[4], double x_start, double x_end, double y_start, double y_end);
+static void Sem_slider_bar(const Sem_slider* slider, double min, double max, double current,
+double x, double y, double x_start, double x_end, double y_start, double y_end);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
@@ -816,12 +834,32 @@ static const Sem_select_1 sem_select_flash_mode =
 {
 	.color = DEF_DRAW_WEAK_RED,	.selected_color = DEF_DRAW_RED,	.msg = MSG_FLASH,		.button = &sem_flash_mode_button,
 };
+static const Sem_slider sem_slider_brightness =
+{
+	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.bar = &sem_screen_brightness_bar,	.slider = &sem_screen_brightness_slider,
+};
+static const Sem_slider sem_slider_lcd_off_time =
+{
+	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.bar = &sem_screen_off_time_bar,	.slider = &sem_screen_off_time_slider,
+};
+static const Sem_slider sem_slider_sleep_time =
+{
+	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.bar = &sem_sleep_time_bar,			.slider = &sem_sleep_time_slider,
+};
 static const Sem_select_4 sem_select_top_mode =
 {
 	.left =				{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_800PX,	.button = &sem_800px_mode_button,	},
 	.center_left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_3D,		.button = &sem_3d_mode_button,		},
 	.center_right =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_400PX,	.button = &sem_400px_mode_button,	},
 	.right =			{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_AUTO,	.button = &sem_auto_mode_button,	},
+};
+static const Sem_slider sem_slider_scroll_speed =
+{
+	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.bar = &sem_scroll_speed_bar,		.slider = &sem_scroll_speed_slider,
 };
 static const Sem_select_2 sem_select_wifi_mode =
 {
@@ -1932,7 +1970,7 @@ void Sem_main(void)
 			uint8_t top_mode_index = UINT8_MAX;
 			uint32_t top_mode_color[4] = { color, color, color, color, };
 			uint32_t top_mode_selected_color[4] = { DEF_DRAW_RED, DEF_DRAW_RED, DEF_DRAW_RED, DEF_DRAW_RED, };
-			double bar_pos = 0;
+			double bar_value = 0;
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 			if(sem_record_request && config.is_night)
@@ -1991,56 +2029,49 @@ void Sem_main(void)
 			Util_str_format(&format_str, "%s%" PRIu8, DEF_STR_NEVER_NULL(&sem_msg[MSG_BRIGHTNESS]), brightness);
 			Sem_sub_title(&format_str, draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + LCD_SPACE_Y);
-
-			//Bar.
-			bar_pos = 10 + (290 * (brightness / 180.0));
-			Draw_texture(&sem_screen_brightness_slider, DEF_DRAW_WEAK_RED, 10, (draw_y + 6.5), 300, 7);
-			Draw_texture(&sem_screen_brightness_bar, sem_screen_brightness_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, draw_y, 10, 20);
+			//Slider bar.
+			Sem_slider_bar(&sem_slider_brightness, 0, 180, brightness, draw_x, draw_y, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SLIDER_BAR_HEIGHT + LCD_SPACE_Y);
 
 			//Time to turn off LCDs.
-			draw_y += 25;
 			if(config.time_to_turn_off_lcd > 0)
 			{
-				bar_pos = 10 + (290 * ((config.time_to_turn_off_lcd - 20) / 580.0));
+				bar_value = config.time_to_turn_off_lcd;
 				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[MSG_LCD_OFF_TIME_0]), config.time_to_turn_off_lcd);
 				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_LCD_OFF_TIME_1]));
 			}
 			else
 			{
 				//Never turn off LCD automatically.
-				bar_pos = 300;
+				bar_value = 600;
 				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_LCD_OFF_TIME_0]));
 				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_OFF]));
 			}
 			Sem_sub_title(&format_str, draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + LCD_SPACE_Y);
-
-			//Bar.
-			Draw_texture(&sem_screen_off_time_slider, DEF_DRAW_WEAK_RED, 10, (draw_y + 6.5), 300, 7);
-			Draw_texture(&sem_screen_off_time_bar, sem_screen_off_time_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, draw_y, 10, 20);
+			//Slider bar.
+			Sem_slider_bar(&sem_slider_lcd_off_time, 20, 600, bar_value, draw_x, draw_y, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SLIDER_BAR_HEIGHT + LCD_SPACE_Y);
 
 			//Time to enter sleep.
-			draw_y += 25;
 			if(config.time_to_enter_sleep > 0)
 			{
-				bar_pos = 10 + (290 * ((config.time_to_enter_sleep - 20) / 580.0));
+				bar_value = config.time_to_enter_sleep;
 				Util_str_format(&format_str, "%s%" PRIu16, DEF_STR_NEVER_NULL(&sem_msg[MSG_SLEEP_TIME]), config.time_to_enter_sleep);
 				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_LCD_OFF_TIME_1]));//MSG_LCD_OFF_TIME_1 is intentional.
 			}
 			else
 			{
 				//Never enter sleep automatically.
-				bar_pos = 300;
+				bar_value = 600;
 				Util_str_format(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_SLEEP_TIME]));
 				Util_str_format_append(&format_str, "%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_OFF]));
 			}
 			Sem_sub_title(&format_str, draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + LCD_SPACE_Y);
-
-			//Bar.
-			Draw_texture(&sem_sleep_time_slider, DEF_DRAW_WEAK_RED, 10, (draw_y + 6.5), 300, 7);
-			Draw_texture(&sem_sleep_time_bar, sem_sleep_time_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, draw_y, 10, 20);
-			draw_y += 25;
+			//Slider bar.
+			Sem_slider_bar(&sem_slider_sleep_time, 20, 600, bar_value, draw_x, draw_y, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SLIDER_BAR_HEIGHT + LCD_SPACE_Y);
 
 			//Screen mode.
 			Sem_sub_title(&sem_msg[MSG_LCD_MODE], draw_x, draw_y, color, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
@@ -2055,8 +2086,6 @@ void Sem_main(void)
 		}
 		else if (sem_selected_menu_mode == MENU_CONTROL)
 		{
-			double bar_pos = 10 + (290 * ((config.scroll_speed - 0.05) / 1.95));
-
 			draw_x = CONTROL_X;
 			draw_y = (sem_y_offset + CONTROL_Y);
 
@@ -2064,10 +2093,9 @@ void Sem_main(void)
 			Util_str_format(&format_str, "%s%f", DEF_STR_NEVER_NULL(&sem_msg[MSG_SCROLL_SPEED]), config.scroll_speed);
 			Sem_sub_title(&format_str, draw_x, draw_y, color, CONTROL_X_START, CONTROL_X_END, CONTROL_Y_START, CONTROL_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + CONTROL_SPACE_Y);
-
-			//Bar.
-			Draw_texture(&sem_scroll_speed_slider, DEF_DRAW_WEAK_RED, 10, (draw_y + 6.5), 300, 7);
-			Draw_texture(&sem_scroll_speed_bar, sem_scroll_speed_bar.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN, bar_pos, draw_y, 10, 20);
+			//Slider bar.
+			Sem_slider_bar(&sem_slider_scroll_speed, 0.05, 2.00, config.scroll_speed, draw_x, draw_y, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
+			draw_y += (SLIDER_BAR_HEIGHT + LCD_SPACE_Y);
 
 			//Update scroll limit.
 			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - CONTROL_Y_END), 0);
@@ -3340,6 +3368,35 @@ const uint32_t selected_color[4], double x_start, double x_end, double y_start, 
 		x += (SELECT_4_WIDTH + SELECT_4_SPACE_X);
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 		SELECT_4_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+	}
+}
+
+static void Sem_slider_bar(const Sem_slider* slider, double min, double max, double current,
+double x, double y, double x_start, double x_end, double y_start, double y_end)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, SLIDER_BAR_WIDTH, x_start, x_end, y, SLIDER_BAR_HEIGHT, y_start, y_end);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		double bar_x = 0;
+		double slider_y = (y + ((BAR_HEIGHT - SLIDER_HEIGHT) / 2));
+		uint32_t bar_color = (slider->bar->selected ? slider->selected_color : slider->color);
+		uint32_t color = slider->slider_color;
+		Draw_image_data* bar = slider->bar;
+		Draw_image_data* slider_ = slider->slider;
+
+		if(current <= min)
+			bar_x = x;
+		else if(current >= max)
+			bar_x = (x + (SLIDER_WIDTH - BAR_WIDTH));
+		else
+		{
+			current -= min;//Convert to range.
+			bar_x = (x + ((SLIDER_WIDTH - BAR_WIDTH) * (current / (max - min))));
+		}
+
+		Draw_texture(slider_, color, x, slider_y, SLIDER_WIDTH, SLIDER_HEIGHT);
+		Draw_texture(bar, bar_color, bar_x, y, BAR_WIDTH, BAR_HEIGHT);
 	}
 }
 

@@ -617,10 +617,8 @@ typedef struct
 
 typedef struct
 {
-	Sem_msg msg_left;				//Message ID for left button.
-	Sem_msg msg_right;				//Message ID for right button.
-	Draw_image_data* button_left;	//Left button to use.
-	Draw_image_data* button_right;	//Right button to use.
+	Sem_select_1 left;				//Left element.
+	Sem_select_1 right;				//Right element.
 } Sem_select_2;
 
 //Prototypes.
@@ -801,8 +799,8 @@ static const Sem_language sem_languages[] =
 };
 static const Sem_select_2 sem_select_night_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_night_mode_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_night_mode_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_night_mode_on_button,	},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_night_mode_off_button,	},
 };
 static const Sem_select_1 sem_select_flash_mode =
 {
@@ -810,18 +808,18 @@ static const Sem_select_1 sem_select_flash_mode =
 };
 static const Sem_select_2 sem_select_wifi_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_wifi_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_wifi_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_wifi_on_button,			},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_wifi_off_button,			},
 };
 static const Sem_select_2 sem_select_send_info_mode =
 {
-	.msg_left = MSG_ALLOW,	.button_left = &sem_allow_send_info_button,
-	.msg_right = MSG_DENY,	.button_right = &sem_deny_send_info_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ALLOW,	.button = &sem_allow_send_info_button,	},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_DENY,	.button = &sem_deny_send_info_button,	},
 };
 static const Sem_select_2 sem_select_debug_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_debug_mode_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_debug_mode_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_debug_mode_on_button,	},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_debug_mode_off_button,	},
 };
 static const Sem_select_1 sem_select_fake_mode[7] =
 {
@@ -841,47 +839,47 @@ static const Sem_select_1 sem_select_log_dump =
 #if DEF_CPU_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_cpu_monitor_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_monitor_cpu_usage_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_monitor_cpu_usage_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_cpu_usage_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_cpu_usage_off_button,	},
 };
 #endif //DEF_CPU_USAGE_API_ENABLE
 
 #if DEF_GPU_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_gpu_monitor_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_monitor_gpu_usage_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_monitor_gpu_usage_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_gpu_usage_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_gpu_usage_off_button,	},
 };
 #endif //DEF_GPU_USAGE_API_ENABLE
 
 #if DEF_NET_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_net_monitor_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_monitor_net_usage_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_monitor_net_usage_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_net_usage_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_net_usage_off_button,	},
 };
 #endif //DEF_NET_USAGE_API_ENABLE
 
 #if DEF_NVS_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_nvs_monitor_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_monitor_nvs_usage_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_monitor_nvs_usage_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_nvs_usage_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_nvs_usage_off_button,	},
 };
 #endif //DEF_NVS_USAGE_API_ENABLE
 
 #if DEF_RAM_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_ram_monitor_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_monitor_ram_usage_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_monitor_ram_usage_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_ram_usage_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_ram_usage_off_button,	},
 };
 #endif //DEF_RAM_USAGE_API_ENABLE
 
 static const Sem_select_2 sem_select_eco_mode =
 {
-	.msg_left = MSG_ON,		.button_left = &sem_eco_mode_on_button,
-	.msg_right = MSG_OFF,	.button_right = &sem_eco_mode_off_button,
+	.left =		{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_eco_mode_on_button,		},
+	.right =	{ .button_color = DEF_DRAW_WEAK_AQUA,	.button_selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_eco_mode_off_button,		},
 };
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
@@ -3262,18 +3260,18 @@ uint32_t selected_color, double x_start, double x_end, double y_start, double y_
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (select->button_left->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		uint32_t button_color = (select->left.button->selected ? select->left.button_selected_color : select->left.button_color);
 		uint32_t text_color = (is_left_active ? selected_color : color);
-		Str_data* msg = &sem_msg[select->msg_left];
-		Draw_image_data* button = select->button_left;
+		Str_data* msg = &sem_msg[select->left.msg];
+		Draw_image_data* button = select->left.button;
 
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
 		SELECT_2_WIDTH, SELECT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 
-		button_color = (select->button_right->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		button_color = (select->right.button->selected ? select->right.button_selected_color : select->right.button_color);
 		text_color = (is_left_active ? color : selected_color);
-		msg = &sem_msg[select->msg_right];
-		button = select->button_right;
+		msg = &sem_msg[select->right.msg];
+		button = select->right.button;
 
 		x += (SELECT_2_WIDTH + SELECT_2_SPACE_X);
 		Draw_with_background(msg, x, y, FONT_SIZE_SELECT, text_color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,

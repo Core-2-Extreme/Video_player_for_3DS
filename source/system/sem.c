@@ -349,6 +349,16 @@
 #define CONTROL_Y							(double)(30)	//Y offset for control in px.
 #define CONTROL_SPACE_Y						(double)(5)		//Element spacing for control (for Y direction) in px.
 
+#define FONT_X_START						(double)(0)		//X start offset for font in px.
+#define FONT_Y_START						(double)(0)		//Y start offset for font in px.
+#define FONT_X_END							(double)(320)	//X end offset for font in px.
+#define FONT_Y_END							(double)(225)	//Y end offset for font in px.
+#define FONT_X								(double)(10)	//X offset for font in px.
+#define FONT_Y								(double)(30)	//Y offset for font in px.
+#define FONT_SPACE_Y						(double)(0)		//Element spacing for font (for Y direction) in px.
+#define FONT_WIDTH							(double)(300)	//Element width for font in px.
+#define FONT_HEIGHT							(double)(20)	//Element height for font in px.
+
 #define WIFI_X_START						(double)(0)		//X start offset for Wi-Fi in px.
 #define WIFI_Y_START						(double)(0)		//Y start offset for Wi-Fi in px.
 #define WIFI_X_END							(double)(320)	//X end offset for Wi-Fi in px.
@@ -424,7 +434,6 @@
 #define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(19.50)	//Font size for chinese button in German (temporal workaround).
 //Font.
 #define FONT_SIZE_FONT_NAME					(float)(13.50)	//Font size for font names.
-#define FONT_SIZE_FONT_ALL					(float)(19.50)	//Font size for (un)load all buttons.
 //Wireless.
 #define FONT_SIZE_WIRELESS_SSID				(float)(12.75)	//Font size for connected SSID.
 //Screen recording.
@@ -657,6 +666,7 @@ static void Sem_updater_install_button(Draw_image_data* button, Sem_msg msg_id, 
 static void Sem_updater_patch_note(const Str_data* patch_note, double x, double y, uint32_t color);
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
+static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t color, double x, double y);
 static void Sem_sub_title(const Str_data* msg, double x, double y, uint32_t color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_1(const Sem_select_1* select, bool is_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
@@ -861,6 +871,11 @@ static const Sem_slider sem_slider_scroll_speed =
 	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
 	.bar = &sem_scroll_speed_bar,		.slider = &sem_scroll_speed_slider,
 };
+static const Sem_select_2 sem_select_font_load =
+{
+	.left =		{ .color = DEF_DRAW_WEAK_RED,		.selected_color = DEF_DRAW_RED,		.msg = MSG_LOAD_ALL_FONT,		.button = &sem_load_all_ex_font_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_YELLOW,	.selected_color = DEF_DRAW_YELLOW,	.msg = MSG_UNLOAD_ALL_FONT,		.button = &sem_unload_all_ex_font_button,	},
+};
 static const Sem_select_2 sem_select_wifi_mode =
 {
 	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_wifi_on_button,			},
@@ -876,7 +891,7 @@ static const Sem_select_2 sem_select_debug_mode =
 	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_debug_mode_on_button,	},
 	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_debug_mode_off_button,	},
 };
-static const Sem_select_1 sem_select_fake_mode[7] =
+static const Sem_select_1 sem_select_fake_mode[] =
 {
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS,		.button = &sem_use_fake_model_button,	},
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS_XL,	.button = &sem_use_fake_model_button,	},
@@ -938,17 +953,17 @@ static const Sem_select_2 sem_select_eco_mode =
 };
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
-static const Sem_select_1 sem_select_record_both[2] =
+static const Sem_select_1 sem_select_record_both[] =
 {
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTH_LCD,		.button = &sem_record_both_lcd_button,		},
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_both_lcd_button,		},
 };
-static const Sem_select_1 sem_select_record_top[2] =
+static const Sem_select_1 sem_select_record_top[] =
 {
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_TOP_LCD,		.button = &sem_record_top_lcd_button,		},
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_top_lcd_button,		},
 };
-static const Sem_select_1 sem_select_record_bottom[2] =
+static const Sem_select_1 sem_select_record_bottom[] =
 {
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTTOM_LCD,	.button = &sem_record_bottom_lcd_button,	},
 	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_bottom_lcd_button,	},
@@ -1777,7 +1792,6 @@ void Sem_main(void)
 	uint32_t red_x2[2] = { DEF_DRAW_RED, DEF_DRAW_RED, };
 	uint32_t weak_color = DEF_DRAW_WEAK_BLACK;
 	uint32_t back_color = DEF_DRAW_WHITE;
-	uint32_t cache_color[DEF_EXFONT_NUM_OF_FONT_NAME];
 	Watch_handle_bit watch_handle_bit = (DEF_WATCH_HANDLE_BIT_GLOBAL | DEF_WATCH_HANDLE_BIT_SETTINGS_MENU);
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
@@ -1799,9 +1813,6 @@ void Sem_main(void)
 
 	color_x2[0] = color;
 	color_x2[1] = color;
-
-	for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-		cache_color[i] = color;
 
 	//Check if we should update the screen.
 	if(Util_watch_is_changed(watch_handle_bit) || Draw_is_refresh_needed() || !config.is_eco)
@@ -2094,62 +2105,50 @@ void Sem_main(void)
 			Sem_sub_title(&format_str, draw_x, draw_y, color, CONTROL_X_START, CONTROL_X_END, CONTROL_Y_START, CONTROL_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + CONTROL_SPACE_Y);
 			//Slider bar.
-			Sem_slider_bar(&sem_slider_scroll_speed, 0.05, 2.00, config.scroll_speed, draw_x, draw_y, LCD_X_START, LCD_X_END, LCD_Y_START, LCD_Y_END);
-			draw_y += (SLIDER_BAR_HEIGHT + LCD_SPACE_Y);
+			Sem_slider_bar(&sem_slider_scroll_speed, 0.05, 2.00, config.scroll_speed, draw_x, draw_y, CONTROL_X_START, CONTROL_X_END, CONTROL_Y_START, CONTROL_Y_END);
+			draw_y += (SLIDER_BAR_HEIGHT + CONTROL_SPACE_Y);
 
 			//Update scroll limit.
 			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - CONTROL_Y_END), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_FONT)
 		{
-			draw_y = (sem_y_offset + 30);
-			//Font.
-			if (draw_y >= -30 && draw_y <= 240)
+			uint32_t load_color[2] = { color, color, };
+
+			draw_x = FONT_X;
+			draw_y = (sem_y_offset + FONT_Y);
+
+			if(Exfont_is_unloading_external_font() || Exfont_is_loading_external_font())
 			{
-				cache_color[0] = color;
-				if ((Exfont_is_unloading_external_font() || Exfont_is_loading_external_font()) && config.is_night)
-					cache_color[0] = DEF_DRAW_WEAK_WHITE;
-				else if (Exfont_is_unloading_external_font() || Exfont_is_loading_external_font())
-					cache_color[0] = DEF_DRAW_WEAK_BLACK;
-
-				//Load all.
-				Draw_with_background(&sem_msg[MSG_LOAD_ALL_FONT], 10, draw_y, FONT_SIZE_FONT_ALL, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				150, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_load_all_ex_font_button, (sem_load_all_ex_font_button.selected ? DEF_DRAW_RED : DEF_DRAW_WEAK_RED));
-
-				//Unload all.
-				Draw_with_background(&sem_msg[MSG_UNLOAD_ALL_FONT], 160, draw_y, FONT_SIZE_FONT_ALL, cache_color[0], DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-				150, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_unload_all_ex_font_button, (sem_unload_all_ex_font_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW));
+				load_color[0] = weak_color;
+				load_color[1] = weak_color;
 			}
 
-			draw_x = 10.0;
-			draw_y += 20.0;
-			for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
-				cache_color[i] = color;
+			//Font loading.
+			Sem_select_button_2(&sem_select_font_load, false, draw_x, draw_y,
+			load_color, load_color, FONT_X_START, FONT_X_END, FONT_Y_START, FONT_Y_END);
+			draw_y += (SELECT_HEIGHT + FONT_SPACE_Y);
 
 			for (uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 			{
-				if (Exfont_is_loaded_external_font(i))
-				{
-					if(Exfont_is_unloading_external_font() || Exfont_is_loading_external_font())
-						cache_color[i] = DEF_DRAW_WEAK_RED;
-					else
-						cache_color[i] = DEF_DRAW_RED;
-				}
-				else if ((Exfont_is_unloading_external_font() || Exfont_is_loading_external_font()) && config.is_night)
-					cache_color[i] = DEF_DRAW_WEAK_WHITE;
-				else if (Exfont_is_unloading_external_font() || Exfont_is_loading_external_font())
-					cache_color[i] = DEF_DRAW_WEAK_BLACK;
+				uint32_t font_color = color;
 
-				if (draw_y >= -30 && draw_y <= 240)
+				if (Exfont_is_unloading_external_font() || Exfont_is_loading_external_font())
 				{
-					Draw_with_background_c(Exfont_query_external_font_name(i), draw_x, draw_y, FONT_SIZE_FONT_NAME, cache_color[i], DRAW_X_ALIGN_LEFT,
-					DRAW_Y_ALIGN_CENTER, 300, 20, DRAW_BACKGROUND_ENTIRE_BOX, &sem_ex_font_button[i], (sem_ex_font_button[i].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA));
+					if (Exfont_is_loaded_external_font(i))
+						font_color = DEF_DRAW_WEAK_RED;
+					else
+						font_color = weak_color;
 				}
-				draw_y += 20.0;
+				else if (Exfont_is_loaded_external_font(i))
+					font_color = DEF_DRAW_RED;
+
+				Sem_font_button(&sem_ex_font_button[i], i, font_color, draw_x, draw_y);
+				draw_y += (FONT_HEIGHT + FONT_SPACE_Y);
 			}
 
 			//Update scroll limit.
-			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - 225), 0);
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - FONT_Y_END), 0);
 		}
 		else if (sem_selected_menu_mode == MENU_WIFI)
 		{
@@ -2162,7 +2161,7 @@ void Sem_main(void)
 
 			Sem_select_button_2(&sem_select_wifi_mode, !config.is_wifi_on, draw_x, draw_y,
 			color_x2, red_x2, WIFI_X_START, WIFI_X_END, WIFI_Y_START, WIFI_Y_END);
-			draw_y += (SELECT_HEIGHT + LCD_SPACE_Y);
+			draw_y += (SELECT_HEIGHT + WIFI_SPACE_Y);
 
 			//Connected SSID.
 			Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_CONNECTED_SSID]), state.connected_wifi);
@@ -3272,6 +3271,22 @@ static void Sem_language_button(const Sem_language* language, const char* curren
 
 		Draw_with_background(msg, x, y, font_size, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 		LANG_WIDTH, LANG_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, language->button, button_color);
+	}
+}
+
+static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t color, double x, double y)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, FONT_WIDTH,
+	FONT_X_START, FONT_X_END, y, FONT_HEIGHT, FONT_Y_START, FONT_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (button->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		float font_size = FONT_SIZE_FONT_NAME;
+		const char* text = Exfont_query_external_font_name(index);
+
+		Draw_with_background_c(text, x, y, font_size, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		FONT_WIDTH, FONT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
 	}
 }
 

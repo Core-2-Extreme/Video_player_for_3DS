@@ -76,11 +76,11 @@ typedef struct
 typedef struct
 {
 	bool is_charging;				//Whether charger is active.
-	uint8_t battery_level;			//Battery level in %.
 	uint8_t battery_temp;			//Battery temperature in degrees celsius (℃).
 	uint32_t free_ram;				//Free heap in bytes.
 	uint32_t free_linear_ram;		//Free linear RAM in bytes.
 	uint32_t num_of_launch;			//Number of application launches.
+	double battery_level;			//Battery level in %.
 	double battery_voltage;			//Battery voltage in volts.
 	char connected_wifi[33];		//Connected network (access point) name (empty string if not connected).
 	char msg[128];					//Preformatted status message.

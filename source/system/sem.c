@@ -1147,10 +1147,10 @@ void Sem_init(void)
 	sem_config = config;
 
 	state.is_charging = false;
-	state.battery_level = 0;
 	state.battery_temp = 0;
 	state.free_ram = 0;
 	state.free_linear_ram = 0;
+	state.battery_level = 0;
 	state.battery_voltage = 0;
 	state.num_of_launch = 0;
 	state.wifi_signal = DEF_SEM_WIFI_SIGNAL_DISABLED;
@@ -2165,7 +2165,7 @@ void Sem_main(void)
 
 			//Connected SSID.
 			Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&sem_msg[MSG_CONNECTED_SSID]), state.connected_wifi);
-			Draw(&format_str, 0, 65, FONT_SIZE_WIRELESS_SSID, color);
+			Draw(&format_str, draw_x, draw_y, FONT_SIZE_WIRELESS_SSID, color);
 
 			//Update scroll limit.
 			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - WIFI_Y_END), 0);
@@ -2263,6 +2263,7 @@ void Sem_main(void)
 			draw_x = BATTERY_X;
 			draw_y = (sem_y_offset + BATTERY_Y);
 
+			//Eco mode.
 			Sem_sub_title(&sem_msg[MSG_ECO_MODE], draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
 			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
 
@@ -3418,6 +3419,7 @@ double x, double y, double x_start, double x_end, double y_start, double y_end)
 static void Sem_get_system_info(void)
 {
 	uint8_t is_charging = 0;
+    uint8_t temp[4] = { 0, };
 	uint32_t result = DEF_ERR_OTHER;
 	char ssid[33] = { 0, };
 	time_t unix_time = time(NULL);
@@ -3428,35 +3430,39 @@ static void Sem_get_system_info(void)
 	Sem_get_config(&config);
 	Sem_get_state(&state);
 
-	PTMU_GetBatteryChargeState(&is_charging);//Battery charge.
-	state.is_charging = (bool)is_charging;
-
-	result = MCUHWC_GetBatteryLevel(&state.battery_level);//Battery level(%).
+	result = PTMU_GetBatteryChargeState(&is_charging);//Charger state.
 	if(result == DEF_SUCCESS)
-	{
-		uint8_t battery_voltage = 0;
+		state.is_charging = (bool)is_charging;
 
-		MCUHWC_GetBatteryVoltage(&battery_voltage);
-		MCUHWC_ReadRegister(0x0A, &state.battery_temp, 1);
-		state.battery_voltage = (5.0 * (battery_voltage / 256.0));
-	}
+	//Original: https://github.com/LumaTeam/Luma3DS/blob/v13.4/sysmodules/rosalina/source/menu.c#L224-L237
+    result = MCUHWC_ReadRegister(0x0A, temp, sizeof(temp));
+	if(result == DEF_SUCCESS)
+    {
+        state.battery_temp = temp[0];
+        state.battery_level = ((temp[1] + (temp[2] / 256.0)) + 0.05);
+		state.battery_level = (state.battery_level >= 100 ? 100 : state.battery_level);
+        state.battery_voltage = ((0.02 * temp[3]) + 0.005);
+    }
 	else
 	{
 		uint8_t ptmu_battery_level = 0;
 
 		PTMU_GetBatteryLevel(&ptmu_battery_level);
-		if (ptmu_battery_level == 0)
-			state.battery_level = 0;
-		else if (ptmu_battery_level == 1)
-			state.battery_level = 5;
-		else if (ptmu_battery_level == 2)
-			state.battery_level = 10;
-		else if (ptmu_battery_level == 3)
-			state.battery_level = 30;
-		else if (ptmu_battery_level == 4)
-			state.battery_level = 60;
-		else if (ptmu_battery_level == 5)
-			state.battery_level = 100;
+		if(result == DEF_SUCCESS)
+		{
+			if (ptmu_battery_level == 0)
+				state.battery_level = 0;
+			else if (ptmu_battery_level == 1)
+				state.battery_level = 5;
+			else if (ptmu_battery_level == 2)
+				state.battery_level = 10;
+			else if (ptmu_battery_level == 3)
+				state.battery_level = 30;
+			else if (ptmu_battery_level == 4)
+				state.battery_level = 60;
+			else if (ptmu_battery_level == 5)
+				state.battery_level = 100;
+		}
 	}
 
 	//Connected SSID.

@@ -354,7 +354,7 @@ void Draw_free_texture(uint32_t sheet_map_num);
  * @warning Thread dangerous (untested).
  * @warning Call it only from rendering thread.
 */
-void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message);
+void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, double battery_level, const char* message);
 
 /**
  * @brief Draw bottom UI.

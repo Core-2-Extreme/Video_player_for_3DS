@@ -29,6 +29,10 @@
 #define TOP_STATUS_WIDTH			(double)(295)	//Element width for top UI status (for X direction) in px.
 #define TOP_BATTERY_CHARGE_WIDTH	(double)(20)	//Element width for top UI battery charging icon in px.
 #define TOP_BATTERY_WIDTH			(double)(30)	//Element width for top UI battery icon in px.
+	#define TOP_BATTERY_LEVEL_WIDTH		(double)(20)//Element width for top UI battery level drawing area in px.
+	#define TOP_BATTERY_LEVEL_HEIGHT	(double)(9)	//Element height for top UI battery level drawing area in px.
+	#define TOP_BATTERY_LEVEL_OFFSET_X	(double)(7)	//Offset relatice to batter icon (for X direction) in px.
+	#define TOP_BATTERY_LEVEL_OFFSET_Y	(double)(3)	//Offset relatice to batter icon (for Y direction) in px.
 #define TOP_ICON_WIDTH				(double)(15)	//Element width for other top UI icons in px.
 
 #define BOT_BOX_X					(double)(0)		//Box X offset for bottom UI in px.
@@ -1096,13 +1100,15 @@ void Draw_free_texture(uint32_t sheet_map_num)
 	}
 }
 
-void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t battery_level, const char* message)
+void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, double battery_level, const char* message)
 {
 	uint8_t max_wifi_signal = 0;
 	uint8_t max_battery_texture = 0;
 	uint8_t battery_texture = 0;
 	double draw_x = 0;
 	double draw_y = 0;
+	double battery_level_x = 0;
+	double battery_level_y = 0;
 	Draw_image_data background = Draw_get_empty_image();
 	Str_data temp = { 0, };
 
@@ -1113,10 +1119,7 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 	if(wifi_signal >= max_wifi_signal)
 		wifi_signal = max_wifi_signal;
 
-	if(battery_level > BATTERY_LEVEL_MAX)
-		battery_level = BATTERY_LEVEL_MAX;
-
-	battery_texture = (battery_level / BATTERY_LEVEL_STEP);
+	battery_texture = ((uint8_t)battery_level / BATTERY_LEVEL_STEP);
 	max_battery_texture = (DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(util_draw_battery_level_icon_image) - 1);
 	if(battery_texture >= max_battery_texture)
 		battery_texture = max_battery_texture;
@@ -1135,9 +1138,17 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, uint8_t bat
 		Draw_texture(&util_draw_battery_charge_icon_image[0], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_BATTERY_CHARGE_WIDTH, TOP_ITEM_HEIGHT);
 
 	draw_x += (TOP_BATTERY_CHARGE_WIDTH + TOP_ITEM_SPACE_X);
-	Util_str_format(&temp, "%" PRIi8, battery_level);
-	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_BATTERY_LEVEL, DEF_DRAW_BLACK, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
-	TOP_BATTERY_WIDTH, TOP_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_draw_battery_level_icon_image[battery_texture], DEF_DRAW_NO_COLOR);
+	Draw_texture(&util_draw_battery_level_icon_image[battery_texture], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_BATTERY_WIDTH, TOP_ITEM_HEIGHT);
+
+	battery_level_x = (draw_x + TOP_BATTERY_LEVEL_OFFSET_X);
+	battery_level_y = (draw_y + TOP_BATTERY_LEVEL_OFFSET_Y);
+	if(battery_level >= BATTERY_LEVEL_MAX)
+		Util_str_format(&temp, "%" PRIu8, BATTERY_LEVEL_MAX);
+	else
+		Util_str_format(&temp, "%.1f", battery_level);
+
+	Draw_align(&temp, battery_level_x, battery_level_y, FONT_SIZE_BATTERY_LEVEL, DEF_DRAW_BLACK,
+	DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, TOP_BATTERY_LEVEL_WIDTH, TOP_BATTERY_LEVEL_HEIGHT);
 
 	draw_x += (TOP_BATTERY_WIDTH + TOP_ITEM_SPACE_X);
 	Draw_texture(&util_draw_eco_image[is_eco], DEF_DRAW_NO_COLOR, draw_x, draw_y, TOP_ICON_WIDTH, TOP_ITEM_HEIGHT);

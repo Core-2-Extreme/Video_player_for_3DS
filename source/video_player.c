@@ -46,6 +46,8 @@
 #define FORCE_WAIT_THRESHOLD(frametime)				(double)(Util_max_d(20, frametime) * -2.5)
 #define DELAY_SAMPLES								(uint8_t)(60)
 
+#define MSG_BACKGROUND_COLOR						(uint32_t)(0xA0000000)
+
 #define AUDIO_OUT_OF_BUFFER_THRESHOLD_MS			(uint32_t)(500)							//Audio buffer threshold to trigger buffering mode in ms.
 
 #define SEEK_IGNORE_PACKETS							(uint8_t)(5)							//Number of packets to be ignored just after seeking to make sure no leftover remaining in cache.
@@ -2147,7 +2149,7 @@ void Vid_main(void)
 					if(vid_player.subtitle_data[subtitle_index].text)
 					{
 						Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_LEFT], text_subtitle_y_offset[SCREEN_POS_TOP_LEFT],
-						text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+						text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 					}
 				}
 			}
@@ -2211,19 +2213,19 @@ void Vid_main(void)
 			if(Util_str_has_data(&top_center_msg))
 			{
 				Draw_with_background(&top_center_msg, 0, 20, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
-				DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 			}
 
 			if(Util_str_has_data(&bottom_left_msg))
 			{
 				Draw_with_background(&bottom_left_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT,
-				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 			}
 
 			if(Util_str_has_data(&bottom_center_msg))
 			{
 				Draw_with_background(&bottom_center_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
-				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+				DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 			}
 
 			if(Util_log_query_show_flag())
@@ -2282,7 +2284,7 @@ void Vid_main(void)
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
 							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_TOP_RIGHT], text_subtitle_y_offset[SCREEN_POS_TOP_RIGHT],
-							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 						}
 					}
 				}
@@ -2300,19 +2302,19 @@ void Vid_main(void)
 				if(Util_str_has_data(&top_center_msg))
 				{
 					Draw_with_background(&top_center_msg, 0, 20, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
-					DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					DRAW_Y_ALIGN_CENTER, 400, 30, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 				}
 
 				if(Util_str_has_data(&bottom_left_msg))
 				{
 					Draw_with_background(&bottom_left_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_LEFT,
-					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 				}
 
 				if(Util_str_has_data(&bottom_center_msg))
 				{
 					Draw_with_background(&bottom_center_msg, 0, 200, FONT_SIZE_OSD, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER,
-					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+					DRAW_Y_ALIGN_BOTTOM, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 				}
 
 				if(Util_log_query_show_flag())
@@ -2351,7 +2353,7 @@ void Vid_main(void)
 				double current_bar_pos = 0;
 
 				Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
-				Draw_c(DEF_VID_VER, 0, 0, FONT_SIZE_VER, DEF_DRAW_GREEN);
+				Draw_c(DEF_VID_VER, 0, 0, FONT_SIZE_VER, DEF_DRAW_LIME);
 
 				//Draw audio, video and subtitle codec info.
 				Util_str_format(&format_str, "A: %s", vid_player.audio_info[vid_player.selected_audio_track].format_name);
@@ -2428,13 +2430,13 @@ void Vid_main(void)
 						if(vid_player.subtitle_data[subtitle_index].text)
 						{
 							Draw_with_background_c(vid_player.subtitle_data[subtitle_index].text, text_subtitle_x_offset[SCREEN_POS_BOTTOM], text_subtitle_y_offset[SCREEN_POS_BOTTOM],
-							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, 0xA0000000);
+							text_subtitle_size, DEF_DRAW_WHITE, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 40, DRAW_BACKGROUND_UNDER_TEXT, &background, MSG_BACKGROUND_COLOR);
 						}
 					}
 				}
 
 				if(vid_player.menu_mode != MENU_CONTROLS)
-					Draw_texture(&background, DEF_DRAW_WEAK_GREEN, MENU_BOX_X, MENU_BOX_Y, MENU_BOX_WIDTH, MENU_BOX_HEIGHT);
+					Draw_texture(&background, DEF_DRAW_WEAK_LIME, MENU_BOX_X, MENU_BOX_Y, MENU_BOX_WIDTH, MENU_BOX_HEIGHT);
 
 				if(vid_player.menu_mode == MENU_SETTINGS_0)
 				{
@@ -2446,7 +2448,7 @@ void Vid_main(void)
 					//Playback mode.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.playback_mode_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.playback_mode_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 						Vid_playback current_playback_mode = (Vid_playback)(MSG_NO_REPEAT + vid_player.playback_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_PLAY_METHOD]), DEF_STR_NEVER_NULL(&vid_msg[current_playback_mode]));
@@ -2464,7 +2466,7 @@ void Vid_main(void)
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = ((vid_player.sub_state & PLAYER_SUB_STATE_TOO_BIG) ? DEF_DRAW_RED : color);
-						uint32_t temp_back_color = (vid_player.volume_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.volume_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%" PRIu32 "%%", DEF_STR_NEVER_NULL(&vid_msg[MSG_VOLUME]), vid_player.volume);
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2480,7 +2482,7 @@ void Vid_main(void)
 					//Select audio track.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.select_audio_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.select_audio_track_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Draw_with_background(&vid_msg[MSG_AUDIO_TRACK], x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_audio_track_button, temp_back_color);
@@ -2495,7 +2497,7 @@ void Vid_main(void)
 					//Select subtitle track.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.select_subtitle_track_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.select_subtitle_track_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Draw_with_background(&vid_msg[MSG_SUBTITLE_TRACK], x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 						MENU_SETTING_0_ITEM_WIDTH, MENU_SETTING_0_ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &vid_player.select_subtitle_track_button, temp_back_color);
@@ -2510,7 +2512,7 @@ void Vid_main(void)
 					//Seek duration.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.seek_duration_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.seek_duration_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%" PRIu32 "s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SEEK]), vid_player.seek_duration);
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2526,7 +2528,7 @@ void Vid_main(void)
 					//Remember video pos.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.remember_video_pos_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.remember_video_pos_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_REMEMBER_POS]), (vid_player.remember_video_pos ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2542,7 +2544,7 @@ void Vid_main(void)
 					//Texture filter.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.texture_filter_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.texture_filter_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_TEX_FILTER]), (vid_player.use_linear_texture_filter ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2558,7 +2560,7 @@ void Vid_main(void)
 					//Correct aspect ratio.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.correct_aspect_ratio_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_ASPECT_RATIO]), (vid_player.correct_aspect_ratio ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2574,7 +2576,7 @@ void Vid_main(void)
 					//Move content mode.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.move_content_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.move_content_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 						Vid_move current_move_content_mode = (Vid_move)(MSG_MOVE_MODE_DIABLE + vid_player.move_content_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MOVE_MODE]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
@@ -2601,7 +2603,7 @@ void Vid_main(void)
 					//Allow skip frames.
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_back_color = (vid_player.allow_skip_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.allow_skip_frames_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_FRAME]), (vid_player.allow_skip_frames ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2618,7 +2620,7 @@ void Vid_main(void)
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.allow_skip_frames ? color : disabled_color);
-						uint32_t temp_back_color = (vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.allow_skip_key_frames_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_SKIP_KEY_FRAME]), (vid_player.allow_skip_key_frames ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_0, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2649,9 +2651,9 @@ void Vid_main(void)
 						vid_player.restart_playback_threshold_bar.y_size = -1;
 					}
 
-					Draw_texture(&background, DEF_DRAW_YELLOW, 0, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_1], vid_player.menu_button[MENU_SETTINGS_1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[MENU_INFO], vid_player.menu_button[MENU_INFO].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+					Draw_texture(&background, DEF_DRAW_ORANGE, 0, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_1], vid_player.menu_button[MENU_SETTINGS_1].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 110, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_INFO], vid_player.menu_button[MENU_INFO].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 220, 180, 100, 8);
 				}
 				else if(vid_player.menu_mode == MENU_SETTINGS_1)
 				{
@@ -2664,7 +2666,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.disable_audio_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.disable_audio_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_AUDIO]), (vid_player.disable_audio ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2681,7 +2683,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.disable_video_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.disable_video_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_VIDEO]), (vid_player.disable_video ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2698,7 +2700,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.disable_subtitle_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.disable_subtitle_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_DISABLE_SUBTITLE]), (vid_player.disable_subtitle ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2715,7 +2717,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.use_hw_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.use_hw_decoding_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_DECODER]), (vid_player.use_hw_decoding ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2732,7 +2734,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = ((!DEF_SEM_MODEL_IS_NEW(state.console_model) || vid_player.state != PLAYER_STATE_IDLE) ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.use_hw_color_conversion_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_HW_CONVERTER]), (vid_player.use_hw_color_conversion ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2749,7 +2751,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.use_multi_threaded_decoding_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MULTI_THREAD]), (vid_player.use_multi_threaded_decoding ? "ON" : "OFF"));
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2766,7 +2768,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color = (vid_player.lower_resolution_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color = (vid_player.lower_resolution_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_LOWER_RESOLUTION]), lower_resolution_mode[vid_player.lower_resolution]);
 						Draw_with_background(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
@@ -2783,8 +2785,8 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_SETTING_1_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_1_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.state != PLAYER_STATE_IDLE ? disabled_color : color);
-						uint32_t temp_back_color_decrement = (vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
-						uint32_t temp_back_color_increment = (vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+						uint32_t temp_back_color_decrement = (vid_player.decrement_num_of_threads_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
+						uint32_t temp_back_color_increment = (vid_player.increment_num_of_threads_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 
 						Util_str_format(&format_str, DEF_STR_NEVER_NULL(&vid_msg[MSG_NUM_OF_THREADS]), vid_player.num_of_threads);
 						Draw(&format_str, x_offset, y_offset, FONT_SIZE_SETTING_1, temp_color);
@@ -2804,9 +2806,9 @@ void Vid_main(void)
 						vid_player.increment_num_of_threads_button.y_size = -1;
 					}
 
-					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
-					Draw_texture(&background, DEF_DRAW_YELLOW, 110, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[MENU_INFO], vid_player.menu_button[MENU_INFO].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 220, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 0, 180, 100, 8);
+					Draw_texture(&background, DEF_DRAW_ORANGE, 110, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_INFO], vid_player.menu_button[MENU_INFO].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 220, 180, 100, 8);
 				}
 				else if(vid_player.menu_mode == MENU_INFO)
 				{
@@ -2836,29 +2838,29 @@ void Vid_main(void)
 					if(vid_player.show_packet_buffer_graph)
 					{
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, (y_offset - (vid_player.packet_buffer_list[i] / 3.0)), 0xFFFF00FF, (i + 1), (y_offset - (vid_player.packet_buffer_list[i + 1] / 3.0)), 0xFFFF00FF, 1);
+							Draw_line(i, (y_offset - (vid_player.packet_buffer_list[i] / 3.0)), DEF_DRAW_MAGENTA, (i + 1), (y_offset - (vid_player.packet_buffer_list[i + 1] / 3.0)), DEF_DRAW_MAGENTA, 1);
 					}
 					//Raw video buffer.
 					if(vid_player.show_raw_video_buffer_graph)
 					{
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, (y_offset - (vid_player.raw_video_buffer_list[EYE_LEFT][i] / 1.5)), 0xFF2060FF, (i + 1), (y_offset - (vid_player.raw_video_buffer_list[EYE_LEFT][i + 1] / 1.5)), 0xFF2060FF, 1);
+							Draw_line(i, (y_offset - (vid_player.raw_video_buffer_list[EYE_LEFT][i] / 1.5)), DEF_DRAW_ORANGE, (i + 1), (y_offset - (vid_player.raw_video_buffer_list[EYE_LEFT][i + 1] / 1.5)), DEF_DRAW_ORANGE, 1);
 
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, (y_offset - (vid_player.raw_video_buffer_list[EYE_RIGHT][i] / 1.5)), 0xFF00DDFF, (i + 1), (y_offset - (vid_player.raw_video_buffer_list[EYE_RIGHT][i + 1] / 1.5)), 0xFF00DDFF, 1);
+							Draw_line(i, (y_offset - (vid_player.raw_video_buffer_list[EYE_RIGHT][i] / 1.5)), DEF_DRAW_YELLOW, (i + 1), (y_offset - (vid_player.raw_video_buffer_list[EYE_RIGHT][i + 1] / 1.5)), DEF_DRAW_YELLOW, 1);
 					}
 					//Raw audio buffer.
 					if(vid_player.show_raw_audio_buffer_graph)
 					{
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
-							Draw_line(i, (y_offset - (vid_player.raw_audio_buffer_list[i] / 6.0)), 0xFF00A000, (i + 1), (y_offset - (vid_player.raw_audio_buffer_list[i + 1] / 6.0)), 0xFF00A000, 1);
+							Draw_line(i, (y_offset - (vid_player.raw_audio_buffer_list[i] / 6.0)), DEF_DRAW_GREEN, (i + 1), (y_offset - (vid_player.raw_audio_buffer_list[i + 1] / 6.0)), DEF_DRAW_GREEN, 1);
 					}
 
 					//Bottom line.
 					Draw_line(0, y_offset, color, MENU_INFO_ITEM_WIDTH, y_offset, color, 1);
 					//Deadline.
 					//Only display EYE_LEFT info.
-					Draw_line(0, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, MENU_INFO_ITEM_WIDTH, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), 0xFF606060, 1);
+					Draw_line(0, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), DEF_DRAW_GRAY, MENU_INFO_ITEM_WIDTH, (y_offset - (vid_player.video_frametime[EYE_LEFT] / 2)), DEF_DRAW_GRAY, 1);
 
 					//Keyframe.
 					if(vid_player.show_decoding_graph)
@@ -2873,8 +2875,8 @@ void Vid_main(void)
 					//Compressed buffer button.
 					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_color = (vid_player.show_packet_buffer_graph ? 0xFFFF00FF : color);
-						uint32_t temp_back_color = (vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+						uint32_t temp_color = (vid_player.show_packet_buffer_graph ? DEF_DRAW_MAGENTA : color);
+						uint32_t temp_back_color = (vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						Util_str_format(&format_str, "Compressed buffer: %" PRIu16, Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID));
 						Draw_texture(&vid_player.show_packet_buffer_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
@@ -2892,8 +2894,8 @@ void Vid_main(void)
 					{
 						uint16_t buffer_health = 0;
 						uint32_t buffer_health_ms = 0;
-						uint32_t temp_color = (vid_player.show_raw_video_buffer_graph ? 0xFF2060FF : color);
-						uint32_t temp_back_color = (vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+						uint32_t temp_color = (vid_player.show_raw_video_buffer_graph ? DEF_DRAW_ORANGE : color);
+						uint32_t temp_back_color = (vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 							buffer_health = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
@@ -2923,8 +2925,8 @@ void Vid_main(void)
 						uint16_t buffer_health = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
 						uint32_t buffer_health_ms = (Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID) / 2);
 						uint32_t samplerate = vid_player.audio_info[vid_player.selected_audio_track].sample_rate;
-						uint32_t temp_color = (vid_player.show_raw_audio_buffer_graph ? 0xFF00A000 : color);
-						uint32_t temp_back_color = (vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+						uint32_t temp_color = (vid_player.show_raw_audio_buffer_graph ? DEF_DRAW_GREEN : color);
+						uint32_t temp_back_color = (vid_player.show_raw_audio_buffer_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						if(playing_audio_ch != 0 && samplerate != 0)
 							buffer_health_ms = DEF_UTIL_S_TO_MS_D((double)buffer_health_ms / playing_audio_ch / samplerate);
@@ -2948,7 +2950,7 @@ void Vid_main(void)
 					{
 						//Only display EYE_LEFT info.
 						Util_str_format(&format_str, "Deadline: %.2fms", vid_player.video_frametime[EYE_LEFT]);
-						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, 0xFF606060);
+						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, DEF_DRAW_GRAY);
 					}
 
 					y_offset += (MENU_INFO_ITEM_HEIGHT + MENU_INFO_ITEM_SPACE_Y);
@@ -2956,7 +2958,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.show_decoding_graph ? DEF_DRAW_RED : color);
-						uint32_t temp_back_color = (vid_player.show_decode_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+						uint32_t temp_back_color = (vid_player.show_decode_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						Draw_texture(&vid_player.show_decode_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
 
@@ -2973,7 +2975,7 @@ void Vid_main(void)
 					//Audio decoding time.
 					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
-						uint32_t temp_color = (vid_player.show_decoding_graph ? 0xFF800080 : color);
+						uint32_t temp_color = (vid_player.show_decoding_graph ? DEF_DRAW_PURPLE : color);
 
 						Util_str_format(&format_str, "Audio decoding (avg): %.3fms", vid_player.audio_decoding_avg_time);
 						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
@@ -2984,7 +2986,7 @@ void Vid_main(void)
 					if(IS_Y_IN_BOX(x_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_INFO_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_color = (vid_player.show_color_conversion_graph ? DEF_DRAW_BLUE : color);
-						uint32_t temp_back_color = (vid_player.show_color_conversion_graph_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+						uint32_t temp_back_color = (vid_player.show_color_conversion_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						Draw_texture(&vid_player.show_color_conversion_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
 
@@ -3114,9 +3116,9 @@ void Vid_main(void)
 						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, color);
 					}
 
-					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 180, 100, 8);
-					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_1], vid_player.menu_button[MENU_SETTINGS_1].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 180, 100, 8);
-					Draw_texture(&background, DEF_DRAW_YELLOW, 220, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_0], vid_player.menu_button[MENU_SETTINGS_0].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 0, 180, 100, 8);
+					Draw_texture(&vid_player.menu_button[MENU_SETTINGS_1], vid_player.menu_button[MENU_SETTINGS_1].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 110, 180, 100, 8);
+					Draw_texture(&background, DEF_DRAW_ORANGE, 220, 180, 100, 8);
 				}
 
 				//Draw time bar.
@@ -3133,19 +3135,19 @@ void Vid_main(void)
 				Util_str_format(&format_str, "%s/%s", DEF_STR_NEVER_NULL(&time_str[0]), DEF_STR_NEVER_NULL(&time_str[1]));
 				Draw(&format_str, 10, 192.5, FONT_SIZE_MEDIA_POS, color);
 
-				Draw_texture(&vid_player.seek_bar, DEF_DRAW_GREEN, 5, 210, 310, 10);
+				Draw_texture(&vid_player.seek_bar, DEF_DRAW_LIME, 5, 210, 310, 10);
 				if(vid_player.media_duration != 0)
-					Draw_texture(&background, 0xFF800080, 5, 210, (310 * (current_bar_pos / DEF_UTIL_MS_TO_S_D(vid_player.media_duration))), 10);
+					Draw_texture(&background, DEF_DRAW_PURPLE, 5, 210, (310 * (current_bar_pos / DEF_UTIL_MS_TO_S_D(vid_player.media_duration))), 10);
 
 				if(vid_player.is_selecting_audio_track)
 				{
-					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
+					Draw_texture(&background, DEF_DRAW_LIME, 40, 20, 240, 140);
 					Draw(&vid_msg[MSG_AUDIO_TRACK_DESCRIPTION], 42.5, 25, FONT_SIZE_TRACK_SELECTION_TITLE, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_audio_tracks; i++)
 					{
 						Util_str_format(&format_str, "Track %" PRIu8 "(Lang:%s)", i, vid_player.audio_info[i].track_lang);
-						Draw_texture(&vid_player.audio_track_button[i], vid_player.audio_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
+						Draw_texture(&vid_player.audio_track_button[i], vid_player.audio_track_button[i].selected ? DEF_DRAW_ORANGE : DEF_DRAW_WEAK_ORANGE, 40, 40 + (i * 12), 240, 12);
 						Draw(&format_str, 42.5, (40 + (i * 12)), FONT_SIZE_TRACK_SELECTION, (i == vid_player.selected_audio_track_cache ? DEF_DRAW_RED : color));
 					}
 
@@ -3155,13 +3157,13 @@ void Vid_main(void)
 
 				if(vid_player.is_selecting_subtitle_track)
 				{
-					Draw_texture(&background, DEF_DRAW_GREEN, 40, 20, 240, 140);
+					Draw_texture(&background, DEF_DRAW_LIME, 40, 20, 240, 140);
 					Draw(&vid_msg[MSG_SUBTITLE_TRACK_DESCRIPTION], 42.5, 25, FONT_SIZE_TRACK_SELECTION_TITLE, DEF_DRAW_BLACK);
 
 					for(uint8_t i = 0; i < vid_player.num_of_subtitle_tracks; i++)
 					{
 						Util_str_format(&format_str, "Track %" PRIu8 "(Lang:%s)", i, vid_player.subtitle_info[i].track_lang);
-						Draw_texture(&vid_player.subtitle_track_button[i], vid_player.subtitle_track_button[i].selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW, 40, 40 + (i * 12), 240, 12);
+						Draw_texture(&vid_player.subtitle_track_button[i], vid_player.subtitle_track_button[i].selected ? DEF_DRAW_ORANGE : DEF_DRAW_WEAK_ORANGE, 40, 40 + (i * 12), 240, 12);
 						Draw(&format_str, 42.5, (40 + (i * 12)), FONT_SIZE_TRACK_SELECTION, (i == vid_player.selected_subtitle_track_cache ? DEF_DRAW_RED : color));
 					}
 

@@ -287,15 +287,15 @@ void Util_err_draw(void)
 	if(!util_err_init)
 	{
 		Draw_with_background_c("Error API is not initialized.\nPress A to close.", BOX_X, BOX_Y, FONT_SIZE_ERROR, DEF_DRAW_RED,
-		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_AQUA);
+		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_CYAN);
 		return;
 	}
 
 	button_text_color = (util_err_save_request ? DEF_DRAW_WEAK_BLACK : DEF_DRAW_BLACK);
-	ok_button_color = (util_err_ok_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
-	save_button_color = (util_err_save_button.selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
+	ok_button_color = (util_err_ok_button.selected ? DEF_DRAW_ORANGE : DEF_DRAW_WEAK_ORANGE);
+	save_button_color = (util_err_save_button.selected ? DEF_DRAW_ORANGE : DEF_DRAW_WEAK_ORANGE);
 
-	Draw_texture(&background, DEF_DRAW_AQUA, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
+	Draw_texture(&background, DEF_DRAW_CYAN, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
 
 	draw_x = (BOX_X + ITEM_SPACE_X);
 	draw_y = (BOX_Y + ITEM_SPACE_Y);

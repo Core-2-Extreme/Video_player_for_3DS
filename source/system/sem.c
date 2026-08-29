@@ -837,8 +837,8 @@ static const Sem_language sem_languages[] =
 };
 static const Sem_select_2 sem_select_night_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_night_mode_on_button,	},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_night_mode_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_night_mode_on_button,	},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_night_mode_off_button,	},
 };
 static const Sem_select_1 sem_select_flash_mode =
 {
@@ -846,127 +846,127 @@ static const Sem_select_1 sem_select_flash_mode =
 };
 static const Sem_slider sem_slider_brightness =
 {
-	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.color = DEF_DRAW_WEAK_LIME,		.selected_color = DEF_DRAW_LIME,			.slider_color = DEF_DRAW_WEAK_RED,
 	.bar = &sem_screen_brightness_bar,	.slider = &sem_screen_brightness_slider,
 };
 static const Sem_slider sem_slider_lcd_off_time =
 {
-	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.color = DEF_DRAW_WEAK_LIME,		.selected_color = DEF_DRAW_LIME,			.slider_color = DEF_DRAW_WEAK_RED,
 	.bar = &sem_screen_off_time_bar,	.slider = &sem_screen_off_time_slider,
 };
 static const Sem_slider sem_slider_sleep_time =
 {
-	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.color = DEF_DRAW_WEAK_LIME,		.selected_color = DEF_DRAW_LIME,			.slider_color = DEF_DRAW_WEAK_RED,
 	.bar = &sem_sleep_time_bar,			.slider = &sem_sleep_time_slider,
 };
 static const Sem_select_4 sem_select_top_mode =
 {
-	.left =				{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_800PX,	.button = &sem_800px_mode_button,	},
-	.center_left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_3D,		.button = &sem_3d_mode_button,		},
-	.center_right =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_400PX,	.button = &sem_400px_mode_button,	},
-	.right =			{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_AUTO,	.button = &sem_auto_mode_button,	},
+	.left =				{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_800PX,	.button = &sem_800px_mode_button,	},
+	.center_left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_3D,		.button = &sem_3d_mode_button,		},
+	.center_right =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_400PX,	.button = &sem_400px_mode_button,	},
+	.right =			{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_AUTO,	.button = &sem_auto_mode_button,	},
 };
 static const Sem_slider sem_slider_scroll_speed =
 {
-	.color = DEF_DRAW_WEAK_GREEN,		.selected_color = DEF_DRAW_GREEN,			.slider_color = DEF_DRAW_WEAK_RED,
+	.color = DEF_DRAW_WEAK_LIME,		.selected_color = DEF_DRAW_LIME,			.slider_color = DEF_DRAW_WEAK_RED,
 	.bar = &sem_scroll_speed_bar,		.slider = &sem_scroll_speed_slider,
 };
 static const Sem_select_2 sem_select_font_load =
 {
 	.left =		{ .color = DEF_DRAW_WEAK_RED,		.selected_color = DEF_DRAW_RED,		.msg = MSG_LOAD_ALL_FONT,		.button = &sem_load_all_ex_font_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_YELLOW,	.selected_color = DEF_DRAW_YELLOW,	.msg = MSG_UNLOAD_ALL_FONT,		.button = &sem_unload_all_ex_font_button,	},
+	.right =	{ .color = DEF_DRAW_WEAK_ORANGE,	.selected_color = DEF_DRAW_ORANGE,	.msg = MSG_UNLOAD_ALL_FONT,		.button = &sem_unload_all_ex_font_button,	},
 };
 static const Sem_select_2 sem_select_wifi_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_wifi_on_button,			},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_wifi_off_button,			},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_wifi_on_button,			},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_wifi_off_button,			},
 };
 static const Sem_select_2 sem_select_send_info_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ALLOW,	.button = &sem_allow_send_info_button,	},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_DENY,	.button = &sem_deny_send_info_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ALLOW,	.button = &sem_allow_send_info_button,	},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_DENY,	.button = &sem_deny_send_info_button,	},
 };
 static const Sem_select_2 sem_select_debug_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_debug_mode_on_button,	},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_debug_mode_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_debug_mode_on_button,	},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_debug_mode_off_button,	},
 };
 static const Sem_select_1 sem_select_fake_mode[] =
 {
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS,		.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_3DS_XL,	.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_OLD_2DS,		.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_3DS,		.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_3DS_XL,	.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_FAKE_MODEL_NEW_2DS_XL,	.button = &sem_use_fake_model_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,						.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_OLD_3DS,		.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_OLD_3DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_OLD_2DS,		.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_NEW_3DS,		.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_NEW_3DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_FAKE_MODEL_NEW_2DS_XL,	.button = &sem_use_fake_model_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,						.button = &sem_use_fake_model_button,	},
 };
 static const Sem_select_1 sem_select_log_dump =
 {
-	.color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_DUMP_LOGS,	.button = &sem_dump_log_button,
+	.color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_DUMP_LOGS,	.button = &sem_dump_log_button,
 };
 
 #if DEF_CPU_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_cpu_monitor_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_cpu_usage_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_cpu_usage_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_monitor_cpu_usage_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_monitor_cpu_usage_off_button,	},
 };
 #endif //DEF_CPU_USAGE_API_ENABLE
 
 #if DEF_GPU_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_gpu_monitor_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_gpu_usage_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_gpu_usage_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_monitor_gpu_usage_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_monitor_gpu_usage_off_button,	},
 };
 #endif //DEF_GPU_USAGE_API_ENABLE
 
 #if DEF_NET_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_net_monitor_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_net_usage_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_net_usage_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_monitor_net_usage_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_monitor_net_usage_off_button,	},
 };
 #endif //DEF_NET_USAGE_API_ENABLE
 
 #if DEF_NVS_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_nvs_monitor_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_nvs_usage_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_nvs_usage_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_monitor_nvs_usage_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_monitor_nvs_usage_off_button,	},
 };
 #endif //DEF_NVS_USAGE_API_ENABLE
 
 #if DEF_RAM_USAGE_API_ENABLE
 static const Sem_select_2 sem_select_ram_monitor_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_monitor_ram_usage_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_monitor_ram_usage_off_button,	},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_monitor_ram_usage_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_monitor_ram_usage_off_button,	},
 };
 #endif //DEF_RAM_USAGE_API_ENABLE
 
 static const Sem_select_2 sem_select_eco_mode =
 {
-	.left =		{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_ON,		.button = &sem_eco_mode_on_button,		},
-	.right =	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_OFF,		.button = &sem_eco_mode_off_button,		},
+	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_eco_mode_on_button,		},
+	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_eco_mode_off_button,		},
 };
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 static const Sem_select_1 sem_select_record_both[] =
 {
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTH_LCD,		.button = &sem_record_both_lcd_button,		},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_both_lcd_button,		},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_RECORD_BOTH_LCD,		.button = &sem_record_both_lcd_button,		},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_both_lcd_button,		},
 };
 static const Sem_select_1 sem_select_record_top[] =
 {
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_TOP_LCD,		.button = &sem_record_top_lcd_button,		},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_top_lcd_button,		},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_RECORD_TOP_LCD,		.button = &sem_record_top_lcd_button,		},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_top_lcd_button,		},
 };
 static const Sem_select_1 sem_select_record_bottom[] =
 {
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_RECORD_BOTTOM_LCD,	.button = &sem_record_bottom_lcd_button,	},
-	{ .color = DEF_DRAW_WEAK_AQUA,	.selected_color = DEF_DRAW_AQUA,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_bottom_lcd_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_RECORD_BOTTOM_LCD,	.button = &sem_record_bottom_lcd_button,	},
+	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_STOP_RECORDING,		.button = &sem_record_bottom_lcd_button,	},
 };
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
@@ -3123,7 +3123,7 @@ static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (sem_menu_button[sub_menu->menu_id].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		uint32_t button_color = (sem_menu_button[sub_menu->menu_id].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 		Draw_image_data* button = &sem_menu_button[sub_menu->menu_id];
 		Str_data* msg = &sem_msg[sub_menu->msg];
 
@@ -3180,7 +3180,7 @@ static void Sem_updater_close_button(Draw_image_data* button, Sem_msg msg_id, do
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (button->selected ? DEF_DRAW_YELLOW : DEF_DRAW_WEAK_YELLOW);
+		uint32_t button_color = (button->selected ? DEF_DRAW_ORANGE : DEF_DRAW_WEAK_ORANGE);
 		Str_data* msg = &sem_msg[msg_id];
 
 		Draw_with_background(msg, x, y, FONT_SIZE_UPDATER_CLOSE, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
@@ -3230,7 +3230,7 @@ static void Sem_updater_install_button(Draw_image_data* button, Sem_msg msg_id, 
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (button->selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+		uint32_t button_color = (button->selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 		Str_data* msg = &sem_msg[msg_id];
 
 		Draw_with_background(msg, x, y, FONT_SIZE_UPDATER_INSTALL, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER,
@@ -3249,7 +3249,7 @@ static void Sem_updater_patch_note(const Str_data* patch_note, double x, double 
 
 		Draw_with_scale(patch_note, x, y, FONT_SIZE_UPDATER_PATCH_NOTE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT,
 		color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_TOP, UPDATER_PATCH_NOTE_WIDTH, UPDATER_PATCH_NOTE_HEIGHT,
-		DRAW_BACKGROUND_ENTIRE_BOX_CROP, &background, DEF_DRAW_WEAK_GREEN);
+		DRAW_BACKGROUND_ENTIRE_BOX_CROP, &background, DEF_DRAW_WEAK_LIME);
 	}
 }
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
@@ -3261,7 +3261,7 @@ static void Sem_language_button(const Sem_language* language, const char* curren
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (language->button->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		uint32_t button_color = (language->button->selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 		float font_size = FONT_SIZE_LANG;
 		Str_data* msg = &sem_msg[language->msg];
 
@@ -3282,7 +3282,7 @@ static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t col
 
 	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
 	{
-		uint32_t button_color = (button->selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA);
+		uint32_t button_color = (button->selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
 		float font_size = FONT_SIZE_FONT_NAME;
 		const char* text = Exfont_query_external_font_name(index);
 

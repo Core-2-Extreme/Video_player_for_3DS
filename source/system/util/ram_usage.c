@@ -220,7 +220,7 @@ void Util_ram_usage_draw(void)
 	Util_str_free(&total_size_string);
 
 	Draw_with_scale_c(msg_cache, RAM_USAGE_X, RAM_USAGE_Y, FONT_SIZE_RAM_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
-	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, RAM_USAGE_WIDTH, RAM_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, RAM_USAGE_WIDTH, RAM_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_WHITE);
 }
 
 void Util_ram_usage_calculate_thread(void* arg)

@@ -236,7 +236,7 @@ void Util_nvs_usage_draw(void)
 	Util_str_free(&write_size_string);
 
 	Draw_with_scale_c(msg_cache, NVS_USAGE_X, NVS_USAGE_Y, FONT_SIZE_NVS_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
-	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NVS_USAGE_WIDTH, NVS_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NVS_USAGE_WIDTH, NVS_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_WHITE);
 }
 
 Result __wrap_FSUSER_CreateFile(FS_Archive archive, FS_Path path, u32 attributes, u64 fileSize)

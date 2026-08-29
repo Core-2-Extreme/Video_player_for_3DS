@@ -377,11 +377,11 @@ void Util_expl_draw(void)
 	if(!util_expl_init)
 	{
 		Draw_with_background_c("Explorer API is not initialized.\nPress A to close.", BOX_X, BOX_Y, FONT_SIZE_ERROR, DEF_DRAW_RED,
-		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_AQUA);
+		DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, BOX_WIDTH, BOX_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &background, DEF_DRAW_CYAN);
 		return;
 	}
 
-	Draw_texture(&background, DEF_DRAW_AQUA, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
+	Draw_texture(&background, DEF_DRAW_CYAN, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
 
 	draw_x = (BOX_X + ITEM_SPACE_X);
 	draw_y = (BOX_Y + ITEM_SPACE_Y);
@@ -418,7 +418,7 @@ void Util_expl_draw(void)
 		Util_str_free(&type);
 
 		text_color = (i == util_expl_active_index ? DEF_DRAW_RED : color);
-		texture_color = (util_expl_file_button[i].selected ? DEF_DRAW_GREEN : DEF_DRAW_AQUA);
+		texture_color = (util_expl_file_button[i].selected ? DEF_DRAW_LIME : DEF_DRAW_CYAN);
 
 		Draw_with_background(&message, draw_x, draw_y, FONT_SIZE_CONTENT, text_color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 		ITEM_WIDTH, ITEM_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, &util_expl_file_button[i], texture_color);

@@ -754,7 +754,7 @@ void Ftpd_main(void)
 		{
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-			Draw_c(DEF_FTPD_VER, 0, 0, FONT_SIZE_VER, DEF_DRAW_GREEN);
+			Draw_c(DEF_FTPD_VER, 0, 0, FONT_SIZE_VER, DEF_DRAW_LIME);
 
 			//Server info.
 			{
@@ -801,7 +801,7 @@ void Ftpd_main(void)
 
 			//Sleep policy.
 			{
-				uint32_t temp_back_color = (ftpd.sleep_policy_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+				uint32_t temp_back_color = (ftpd.sleep_policy_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 				Ftpd_msg message_id = MSG_CONFIG_DISALLOW;
 
 				if(ftpd.config_copy_draw.sleep_policy == SLEEP_POLICY_ALLOW)
@@ -820,7 +820,7 @@ void Ftpd_main(void)
 
 			//Read policy.
 			{
-				uint32_t temp_back_color = (ftpd.read_policy_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+				uint32_t temp_back_color = (ftpd.read_policy_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 				Ftpd_msg message_id = MSG_CONFIG_DISALLOW;
 
 				if(ftpd.config_copy_draw.read_policy == ACCESS_POLICY_ALLOW)
@@ -834,7 +834,7 @@ void Ftpd_main(void)
 
 			//Write policy.
 			{
-				uint32_t temp_back_color = (ftpd.write_policy_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+				uint32_t temp_back_color = (ftpd.write_policy_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 				Ftpd_msg message_id = MSG_CONFIG_DISALLOW;
 
 				if(ftpd.config_copy_draw.write_policy == ACCESS_POLICY_ALLOW)
@@ -848,7 +848,7 @@ void Ftpd_main(void)
 
 			//Rename policy.
 			{
-				uint32_t temp_back_color = (ftpd.rename_policy_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+				uint32_t temp_back_color = (ftpd.rename_policy_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 				Ftpd_msg message_id = MSG_CONFIG_DISALLOW;
 
 				if(ftpd.config_copy_draw.rename_policy == ACCESS_POLICY_ALLOW)
@@ -862,7 +862,7 @@ void Ftpd_main(void)
 
 			//Delete policy.
 			{
-				uint32_t temp_back_color = (ftpd.delete_policy_button.selected ? DEF_DRAW_GREEN : DEF_DRAW_WEAK_GREEN);
+				uint32_t temp_back_color = (ftpd.delete_policy_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 				Ftpd_msg message_id = MSG_CONFIG_DISALLOW;
 
 				if(ftpd.config_copy_draw.delete_policy == ACCESS_POLICY_ALLOW)

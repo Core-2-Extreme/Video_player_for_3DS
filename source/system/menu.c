@@ -591,7 +591,7 @@ void Menu_main(void)
 			if(menu_check_exit_request)
 			{
 				Draw_align(&menu_msg[MSG_EXIST], 0, 105, FONT_SIZE_EXIT_CHECK, color, DRAW_X_ALIGN_CENTER, DRAW_Y_ALIGN_CENTER, 400, 20);
-				Draw_align(&menu_msg[MSG_CONFIRM], 10, 140, FONT_SIZE_EXIT_CHECK, DEF_DRAW_GREEN, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
+				Draw_align(&menu_msg[MSG_CONFIRM], 10, 140, FONT_SIZE_EXIT_CHECK, DEF_DRAW_LIME, DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_CENTER, 190, 20);
 				Draw_align(&menu_msg[MSG_CANCEL], 210, 140, FONT_SIZE_EXIT_CHECK, DEF_DRAW_RED, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER, 190, 20);
 			}
 			else if(menu_update_available)
@@ -626,7 +626,7 @@ void Menu_main(void)
 			Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
 #ifdef DEF_VID_ENABLE
-			Draw_texture(&menu_sapp_button[APP_VID], menu_sapp_button[APP_VID].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 110, 60, 100, 100);
+			Draw_texture(&menu_sapp_button[APP_VID], menu_sapp_button[APP_VID].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 110, 60, 100, 100);
 
 #ifdef DEF_VID_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_VID], DEF_DRAW_NO_COLOR, 110, 60, 100, 100);
@@ -643,7 +643,7 @@ void Menu_main(void)
 #endif //DEF_VID_ENABLE
 
 #ifdef DEF_FTPD_ENABLE
-			Draw_texture(&menu_sapp_button[APP_FTPD], menu_sapp_button[APP_FTPD].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 0, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_FTPD], menu_sapp_button[APP_FTPD].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 0, 0, 60, 60);
 
 #ifdef DEF_FTPD_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_FTPD], DEF_DRAW_NO_COLOR, 0, 0, 60, 60);
@@ -660,7 +660,7 @@ void Menu_main(void)
 #endif //DEF_FTPD_ENABLE
 
 #ifdef DEF_SAPP2_ENABLE
-			Draw_texture(&menu_sapp_button[APP_2], menu_sapp_button[APP_2].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160, 0, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_2], menu_sapp_button[APP_2].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 160, 0, 60, 60);
 
 #ifdef DEF_SAPP2_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_2], DEF_DRAW_NO_COLOR, 160, 0, 60, 60);
@@ -677,7 +677,7 @@ void Menu_main(void)
 #endif //DEF_SAPP2_ENABLE
 
 #ifdef DEF_SAPP3_ENABLE
-			Draw_texture(&menu_sapp_button[APP_3], menu_sapp_button[APP_3].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240, 0, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_3], menu_sapp_button[APP_3].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 240, 0, 60, 60);
 
 #ifdef DEF_SAPP3_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_3], DEF_DRAW_NO_COLOR, 240, 0, 60, 60);
@@ -694,7 +694,7 @@ void Menu_main(void)
 #endif //DEF_SAPP3_ENABLE
 
 #ifdef DEF_SAPP4_ENABLE
-			Draw_texture(&menu_sapp_button[APP_4], menu_sapp_button[APP_4].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 0, 80, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_4], menu_sapp_button[APP_4].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 0, 80, 60, 60);
 
 #ifdef DEF_SAPP4_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_4], DEF_DRAW_NO_COLOR, 0, 80, 60, 60);
@@ -711,7 +711,7 @@ void Menu_main(void)
 #endif //DEF_SAPP4_ENABLE
 
 #ifdef DEF_SAPP5_ENABLE
-			Draw_texture(&menu_sapp_button[APP_5], menu_sapp_button[APP_5].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 80, 80, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_5], menu_sapp_button[APP_5].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 80, 80, 60, 60);
 
 #ifdef DEF_SAPP5_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_5], DEF_DRAW_NO_COLOR, 80, 80, 60, 60);
@@ -728,7 +728,7 @@ void Menu_main(void)
 #endif //DEF_SAPP5_ENABLE
 
 #ifdef DEF_SAPP6_ENABLE
-			Draw_texture(&menu_sapp_button[APP_6], menu_sapp_button[APP_6].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 160, 80, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_6], menu_sapp_button[APP_6].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 160, 80, 60, 60);
 
 #ifdef DEF_SAPP6_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_6], DEF_DRAW_NO_COLOR, 160, 80, 60, 60);
@@ -745,7 +745,7 @@ void Menu_main(void)
 #endif //DEF_SAPP6_ENABLE
 
 #ifdef DEF_SAPP7_ENABLE
-			Draw_texture(&menu_sapp_button[APP_7], menu_sapp_button[APP_7].selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 240, 80, 60, 60);
+			Draw_texture(&menu_sapp_button[APP_7], menu_sapp_button[APP_7].selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 240, 80, 60, 60);
 
 #ifdef DEF_SAPP7_ENABLE_ICON
 			Draw_texture(&menu_icon_image[APP_7], DEF_DRAW_NO_COLOR, 240, 80, 60, 60);
@@ -761,7 +761,7 @@ void Menu_main(void)
 			}
 #endif //DEF_SAPP7_ENABLE_ICON
 
-			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_AQUA : DEF_DRAW_WEAK_AQUA, 260, 170, 60, 60);
+			Draw_texture(&menu_sem_button, menu_sem_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN, 260, 170, 60, 60);
 
 #ifdef DEF_SEM_ENABLE_ICON
 			Draw_texture(&menu_sem_icon_image[config.is_night], DEF_DRAW_NO_COLOR, 260, 170, 60, 60);

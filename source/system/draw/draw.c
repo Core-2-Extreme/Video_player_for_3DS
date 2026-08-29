@@ -1131,7 +1131,7 @@ void Draw_top_ui(bool is_eco, bool is_charging, uint8_t wifi_signal, double batt
 	draw_x = (TOP_BOX_X + TOP_ITEM_SPACE_X);
 	draw_y = (TOP_BOX_Y + TOP_ITEM_SPACE_Y);
 	if(message)
-		Draw_c(message, draw_x, draw_y, FONT_SIZE_STATUS, DEF_DRAW_GREEN);
+		Draw_c(message, draw_x, draw_y, FONT_SIZE_STATUS, DEF_DRAW_LIME);
 
 	draw_x += (TOP_STATUS_WIDTH + TOP_ITEM_SPACE_X);
 	if (is_charging)
@@ -1192,100 +1192,100 @@ void Draw_debug_info(bool is_night, uint32_t free_ram, uint32_t free_linear_ram)
 	Util_str_format(&temp, "A:%s (%" PRIu16 ", %" PRIu32 "ms) B:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.a.state),
 	key.a.click_count, key.a.held_ms, Short_hid_state_get_name((Short_hid_state)key.b.state), key.b.click_count, key.b.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "X:%s (%" PRIu16 ", %" PRIu32 "ms) Y:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.x.state),
 	key.x.click_count, key.x.held_ms, Short_hid_state_get_name((Short_hid_state)key.y.state), key.y.click_count, key.y.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "L:%s (%" PRIu16 ", %" PRIu32 "ms) R:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.l.state),
 	key.l.click_count, key.l.held_ms, Short_hid_state_get_name((Short_hid_state)key.r.state), key.r.click_count, key.r.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "ZL:%s (%" PRIu16 ", %" PRIu32 "ms) ZR:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.zl.state),
 	key.zl.click_count, key.zl.held_ms, Short_hid_state_get_name((Short_hid_state)key.zr.state), key.zr.click_count, key.zr.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "C↓:%s (%" PRIu16 ", %" PRIu32 "ms) C→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_down.state),
 	key.c_down.click_count, key.c_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_right.state), key.c_right.click_count, key.c_right.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "C↑:%s (%" PRIu16 ", %" PRIu32 "ms) C←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.c_up.state),
 	key.c_up.click_count, key.c_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.c_left.state), key.c_left.click_count, key.c_left.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "D↓:%s (%" PRIu16 ", %" PRIu32 "ms) D→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_down.state),
 	key.d_down.click_count, key.d_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_right.state), key.d_right.click_count, key.d_right.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "D↑:%s (%" PRIu16 ", %" PRIu32 "ms) D←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.d_up.state),
 	key.d_up.click_count, key.d_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.d_left.state), key.d_left.click_count, key.d_left.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "CS↓:%s (%" PRIu16 ", %" PRIu32 "ms) CS→:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_down.state),
 	key.cs_down.click_count, key.cs_down.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_right.state), key.cs_right.click_count, key.cs_right.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "CS↑:%s (%" PRIu16 ", %" PRIu32 "ms) CS←:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.cs_up.state),
 	key.cs_up.click_count, key.cs_up.held_ms, Short_hid_state_get_name((Short_hid_state)key.cs_left.state), key.cs_left.click_count, key.cs_left.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "START:%s (%" PRIu16 ", %" PRIu32 "ms) SELECT:%s (%" PRIu16 ", %" PRIu32 "ms)", Short_hid_state_get_name((Short_hid_state)key.start.state),
 	key.start.click_count, key.start.held_ms, Short_hid_state_get_name((Short_hid_state)key.select.state), key.select.click_count, key.select.held_ms);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "TOUCH:%s (%" PRIu16 ", %" PRIu32 "ms) XY:%" PRIi16 ", %" PRIi16, Short_hid_state_get_name((Short_hid_state)key.touch.state),
 	key.touch.click_count, key.touch.held_ms, key.touch_x, key.touch_y);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	//%f expects double.
 	Util_str_format(&temp, "CPU:%.3fms GPU:%.3fms", (double)C3D_GetProcessingTime(), (double)C3D_GetDrawingTime());
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "Frametime:%.4fms", util_draw_frametime);
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "RAM:%.3fMB", (free_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "Linear RAM:%.3fMB", (free_linear_ram / 1000.0 / 1000.0));
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	draw_y += (DEBUG_ITEM_HEIGHT + DEBUG_ITEM_SPACE_Y);
 	Util_str_format(&temp, "Watch:%" PRIu32 "/%" PRIu32 "(%.1f%%)", Util_watch_get_total_usage(),
 	DEF_WATCH_MAX_VARIABLES, ((double)Util_watch_get_total_usage() / DEF_WATCH_MAX_VARIABLES * 100));
 	Draw_with_background(&temp, draw_x, draw_y, FONT_SIZE_DEBUG_INFO, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
-	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_GREEN);
+	DEBUG_ITEM_WIDTH, DEBUG_ITEM_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_LIME);
 
 	Util_str_free(&temp);
 }

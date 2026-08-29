@@ -172,7 +172,7 @@ void Util_net_usage_draw(void)
 	Util_str_free(&upload_size_string);
 
 	Draw_with_scale_c(msg_cache, NET_USAGE_X, NET_USAGE_Y, FONT_SIZE_NET_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
-	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NET_USAGE_WIDTH, NET_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, NET_USAGE_WIDTH, NET_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_WHITE);
 }
 
 ssize_t __wrap_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen)

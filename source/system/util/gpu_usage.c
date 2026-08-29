@@ -149,7 +149,7 @@ void Util_gpu_usage_draw(void)
 	snprintf(msg_cache, sizeof(msg_cache), "GPU: %.1f%%", (double)Util_gpu_usage_get_gpu_usage());
 
 	Draw_with_scale_c(msg_cache, GPU_USAGE_X, GPU_USAGE_Y, FONT_SIZE_GPU_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
-	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, GPU_USAGE_WIDTH, GPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, 0x80FFFFFF);
+	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, GPU_USAGE_WIDTH, GPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_WHITE);
 }
 
 void __wrap_C3D_FrameEnd(u8 flags)

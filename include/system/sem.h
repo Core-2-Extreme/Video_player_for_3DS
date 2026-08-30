@@ -80,6 +80,7 @@ typedef struct
 	uint32_t free_ram;				//Free heap in bytes.
 	uint32_t free_linear_ram;		//Free linear RAM in bytes.
 	uint32_t num_of_launch;			//Number of application launches.
+	double battery_remaining;		//Estimated remaining charge/discharge time in minutes (negative value if calculation is in progress).
 	double battery_level;			//Battery level in %.
 	double battery_voltage;			//Battery voltage in volts.
 	char connected_wifi[33];		//Connected network (access point) name (empty string if not connected).

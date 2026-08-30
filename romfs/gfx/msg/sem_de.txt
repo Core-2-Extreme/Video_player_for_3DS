@@ -84,3 +84,10 @@ einige Funktionen sind eingeschränkt)</62>
 <79>Ein (NEW 3DS)</79>
 <80>Ein (NEW 3DS XL)</80>
 <81>Ein (NEW 2DS XL)</81>
+<82>Battery level: </82>
+<83>Battery voltage: </83>
+<84>Battery temperature: </84>
+<85>Remaining time (charging): </85>
+<86>Remaining time (discharging): </86>
+<87>Fully charged</87>
+<88>Calculating remaining time...</88>

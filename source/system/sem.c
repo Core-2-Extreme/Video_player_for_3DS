@@ -46,6 +46,8 @@
 #define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
 #define UPDATE_DRAW_INTERVAL_MS				(uint64_t)(1000)	//Interval for draw update (to update time on screen).
 
+#define BATTERY_ESTIMATE_MIN_DIFF			(double)(0.25)		//Minimum battery level difference to perform remaining time estimation.
+
 //System UI.
 #define HID_SYSTEM_UI_SEL(k)				(bool)((DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*Draw_get_bot_ui_button()), (k))) || DEF_HID_PHY_PR((k).start))
 #define HID_SYSTEM_UI_CFM(k)				(bool)(((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*Draw_get_bot_ui_button()), (k))) || (DEF_HID_PR_EM((k).start, 1) || DEF_HID_HD((k).start)))
@@ -413,6 +415,9 @@
 	#define BAR_WIDTH						(double)(10)	//Element width for bar (excluding slider) in px.
 	#define BAR_HEIGHT						(double)(20)	//Element height for bar (excluding slider) in px.
 
+#define INFO_BAR_WIDTH						(double)(300)	//Element width for info bar in px.
+#define INFO_BAR_HEIGHT						(double)(5)		//Element height for info bar in px.
+
 #define FONT_SIZE_SELECT					(float)(16.50)	//Font size for select buttons.
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
 #define FONT_SIZE_SUB_MENU					(float)(22.50)	//Font size for sub menu messages.
@@ -526,6 +531,13 @@ typedef enum
 	MSG_FAKE_MODEL_NEW_3DS,
 	MSG_FAKE_MODEL_NEW_3DS_XL,
 	MSG_FAKE_MODEL_NEW_2DS_XL,
+	MSG_BATTERY_LEVEL,
+	MSG_BATTERY_VOLTAGE,
+	MSG_BATTERY_TEMPERATURE,
+	MSG_BATTERY_REMAINING_CHARGE,
+	MSG_BATTERY_REMAINING_DISCHARGE,
+	MSG_BATTERY_FULL,
+	MSG_BATTERY_REMAINING_CALCULATING,
 
 	MSG_MAX,
 } Sem_msg;
@@ -654,6 +666,28 @@ typedef struct
 	Draw_image_data* slider;	//Slider to use.
 } Sem_slider;
 
+typedef struct
+{
+	uint32_t color;					//Background bar color.
+	uint32_t active_color_left;		//Left side foreground bar color.
+	uint32_t active_color_right;	//Right side foreground bar color.
+} Sem_bar;
+
+typedef struct
+{
+	bool is_charging;			//Whether charging.
+	double level;				//Battery level in %.
+} Sem_battery_history;
+
+typedef struct
+{
+	uint32_t index;				//Next index.
+	uint32_t count;				//Valid data count.
+	uint64_t timestamp;			//Last timestamp.
+	double estimated_time;		//Estimated remaining charge/discharge time in minutes.
+	Sem_battery_history history[30];	//History data.
+} Sem_battery_data;
+
 //Prototypes.
 static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos);
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
@@ -676,6 +710,9 @@ static void Sem_select_button_4(const Sem_select_4* select, uint8_t active_index
 const uint32_t selected_color[4], double x_start, double x_end, double y_start, double y_end);
 static void Sem_slider_bar(const Sem_slider* slider, double min, double max, double current,
 double x, double y, double x_start, double x_end, double y_start, double y_end);
+static void Sem_info_bar(const Sem_bar* bar, double min, double max, double current,
+double x, double y, double x_start, double x_end, double y_start, double y_end);
+static double Sem_estimate_battery_time(bool was_charging, bool is_charging, double battery_level);
 static void Sem_get_system_info(void);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
@@ -726,6 +763,7 @@ static Sem_menu sem_selected_menu_mode = MENU_TOP;
 static Sem_internal_state sem_internal_state = { 0, };
 static Sem_state sem_state = { 0, };
 static Sem_config sem_config = { 0, };
+static Sem_battery_data sem_battery_data = { 0, };
 
 #if DEF_CPU_USAGE_API_ENABLE
 static bool sem_is_cpu_usage_monitor_running = false;
@@ -951,6 +989,18 @@ static const Sem_select_2 sem_select_eco_mode =
 	.left =		{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_ON,		.button = &sem_eco_mode_on_button,		},
 	.right =	{ .color = DEF_DRAW_WEAK_CYAN,	.selected_color = DEF_DRAW_CYAN,	.msg = MSG_OFF,		.button = &sem_eco_mode_off_button,		},
 };
+static const Sem_bar sem_bar_battery_level =
+{
+	.color = DEF_DRAW_GRAY,		.active_color_left = DEF_DRAW_RED,		.active_color_right = DEF_DRAW_BLUE,
+};
+static const Sem_bar sem_bar_battery_voltage =
+{
+	.color = DEF_DRAW_GRAY,		.active_color_left = DEF_DRAW_OLIVE,	.active_color_right = DEF_DRAW_ORANGE,
+};
+static const Sem_bar sem_bar_battery_temperature =
+{
+	.color = DEF_DRAW_GRAY,		.active_color_left = DEF_DRAW_CYAN,		.active_color_right = DEF_DRAW_RED,
+};
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 static const Sem_select_1 sem_select_record_both[] =
@@ -1164,6 +1214,13 @@ void Sem_init(void)
 	memset(state.connected_wifi, 0x00, sizeof(state.connected_wifi));
 	memset(state.msg, 0x00, sizeof(state.msg));
 	sem_state = state;
+
+	sem_battery_data.index = 0;
+	sem_battery_data.count = 0;
+	sem_battery_data.timestamp = (osGetTime() - DEF_UTIL_S_TO_MS(60));
+	sem_battery_data.estimated_time = -1;
+	for(uint16_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history); i++)
+		sem_battery_data.history[i].level = -1;
 
 	result = Util_sync_create(&sem_config_state_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
 	if(result != DEF_SUCCESS)
@@ -2260,6 +2317,8 @@ void Sem_main(void)
 		}
 		else if (sem_selected_menu_mode == MENU_BATTERY)
 		{
+			uint8_t temp_f = ((state.battery_temp * 1.8) + 32);
+
 			draw_x = BATTERY_X;
 			draw_y = (sem_y_offset + BATTERY_Y);
 
@@ -2270,6 +2329,51 @@ void Sem_main(void)
 			Sem_select_button_2(&sem_select_eco_mode, !config.is_eco, draw_x, draw_y,
 			color_x2, red_x2, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
 			draw_y += (SELECT_HEIGHT + BATTERY_SPACE_Y);
+
+			//Battery level.
+			Util_str_format(&format_str, "%s%.2f%%", DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_LEVEL]), state.battery_level);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
+
+			Sem_info_bar(&sem_bar_battery_level, 0, 100, state.battery_level, draw_x, draw_y, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (INFO_BAR_HEIGHT + BATTERY_SPACE_Y);
+
+			//Battery voltage.
+			Util_str_format(&format_str, "%s%.2fV", DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_VOLTAGE]), state.battery_voltage);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
+
+			Sem_info_bar(&sem_bar_battery_voltage, 3.1, 4.2, state.battery_voltage, draw_x, draw_y, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (INFO_BAR_HEIGHT + BATTERY_SPACE_Y);
+
+			//Battery temperature.
+			Util_str_format(&format_str, "%s%" PRIu8 "°C/%" PRIu8 "°F",
+			DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_TEMPERATURE]), state.battery_temp, temp_f);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
+
+			Sem_info_bar(&sem_bar_battery_temperature, 0, 50, state.battery_temp, draw_x, draw_y, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (INFO_BAR_HEIGHT + BATTERY_SPACE_Y);
+
+			//Remaining time.
+			if(state.battery_level >= 100)
+				Util_str_set(&format_str, DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_FULL]));
+			else if(state.battery_remaining < 0)
+				Util_str_set(&format_str, DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_REMAINING_CALCULATING]));
+			else
+			{
+				uint8_t hours = (state.battery_remaining / 60);
+				uint8_t minutes = ((uint32_t)state.battery_remaining % 60);
+
+				if(state.is_charging)
+					Util_str_set(&format_str, DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_REMAINING_CHARGE]));
+				else
+					Util_str_set(&format_str, DEF_STR_NEVER_NULL(&sem_msg[MSG_BATTERY_REMAINING_DISCHARGE]));
+
+				Util_str_format_append(&format_str, "%02" PRIu16 ":%02" PRIu16, hours, minutes);
+			}
+			Sem_sub_title(&format_str, draw_x, draw_y, color, BATTERY_X_START, BATTERY_X_END, BATTERY_Y_START, BATTERY_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + BATTERY_SPACE_Y);
 
 			//Update scroll limit.
 			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - BATTERY_Y_END), 0);
@@ -3416,8 +3520,119 @@ double x, double y, double x_start, double x_end, double y_start, double y_end)
 	}
 }
 
+static void Sem_info_bar(const Sem_bar* bar, double min, double max, double current,
+double x, double y, double x_start, double x_end, double y_start, double y_end)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, INFO_BAR_WIDTH, x_start, x_end, y, INFO_BAR_HEIGHT, y_start, y_end);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		double x_inactive_start = x;
+		double x_inactive_end = (x + INFO_BAR_WIDTH);
+		double x_active_start = x;
+		double x_active_end = (x + INFO_BAR_WIDTH);
+
+		if(current <= min)
+			x_inactive_start += 0;
+		else if(current >= max)
+			x_inactive_start += INFO_BAR_WIDTH;
+		else
+		{
+			current -= min;//Convert to range.
+			x_inactive_start += (INFO_BAR_WIDTH * (current / (max - min)));
+		}
+		y += (INFO_BAR_HEIGHT / 2);
+
+		Draw_line(x_active_start, y, bar->active_color_left, x_active_end, y, bar->active_color_right, INFO_BAR_HEIGHT);
+		Draw_line(x_inactive_start, y, bar->color, x_inactive_end, y, bar->color, INFO_BAR_HEIGHT);
+	}
+}
+
+static double Sem_estimate_battery_time(bool was_charging, bool is_charging, double battery_level)
+{
+	uint64_t current_ts = osGetTime();
+
+	if(was_charging != is_charging)
+	{
+		uint16_t data_index = sem_battery_data.index;
+
+		if(data_index == 0)
+			data_index = DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history);
+		else
+			data_index--;
+
+		//Charger state has changed, invalidate estimated time.
+		sem_battery_data.estimated_time = -1;
+		sem_battery_data.history[data_index].level = -1;
+	}
+
+	if(current_ts >= (sem_battery_data.timestamp + DEF_UTIL_S_TO_MS(60)))
+	{
+		uint16_t valid_count = 0;
+		uint16_t data_index = 0;
+		double start_level = -1;
+		double end_level = -1;
+
+		//Update history.
+		sem_battery_data.history[sem_battery_data.index].is_charging = is_charging;
+		sem_battery_data.history[sem_battery_data.index].level = battery_level;
+
+		sem_battery_data.timestamp += DEF_UTIL_S_TO_MS(60);
+		if((sem_battery_data.index + 1) >= DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history))
+			sem_battery_data.index = 0;
+		else
+			sem_battery_data.index++;
+
+		if(sem_battery_data.count < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history))
+			sem_battery_data.count++;
+
+		//Estimate remaining time.
+		data_index = sem_battery_data.index;
+		for(uint16_t i = 0; i < sem_battery_data.count; i++)
+		{
+			if(data_index == 0)
+				data_index = DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history);
+			else
+				data_index--;
+
+			if(is_charging != sem_battery_data.history[data_index].is_charging || sem_battery_data.history[data_index].level < 0)
+				break;
+
+			if(start_level < 0)
+				start_level = sem_battery_data.history[data_index].level;
+
+			end_level = sem_battery_data.history[data_index].level;
+			valid_count++;
+		}
+
+		sem_battery_data.estimated_time = -1;
+		if(valid_count > 1)
+		{
+			double diff = 0;
+			double remaining = 0;
+
+			if(start_level >= end_level)//Charging.
+			{
+				diff = (start_level - end_level);
+				remaining = (100 - battery_level);
+			}
+			else//Discharging.
+			{
+				diff = (end_level - start_level);
+				remaining = battery_level;
+			}
+
+			if(diff >= BATTERY_ESTIMATE_MIN_DIFF)
+				sem_battery_data.estimated_time = (remaining / (diff / valid_count));
+		}
+	}
+
+	return sem_battery_data.estimated_time;
+}
+
 static void Sem_get_system_info(void)
 {
+	bool was_charging = false;
 	uint8_t is_charging = 0;
     uint8_t temp[4] = { 0, };
 	uint32_t result = DEF_ERR_OTHER;
@@ -3430,6 +3645,7 @@ static void Sem_get_system_info(void)
 	Sem_get_config(&config);
 	Sem_get_state(&state);
 
+	was_charging = state.is_charging;
 	result = PTMU_GetBatteryChargeState(&is_charging);//Charger state.
 	if(result == DEF_SUCCESS)
 		state.is_charging = (bool)is_charging;
@@ -3464,6 +3680,7 @@ static void Sem_get_system_info(void)
 				state.battery_level = 100;
 		}
 	}
+	state.battery_remaining = Sem_estimate_battery_time(was_charging, state.is_charging, state.battery_level);
 
 	//Connected SSID.
 	memset(state.connected_wifi, 0x00, sizeof(state.connected_wifi));
@@ -3491,8 +3708,8 @@ static void Sem_get_system_info(void)
 	}
 
 	//Get time.
-	state.time.years = time->tm_year + 1900;
-	state.time.months = time->tm_mon + 1;
+	state.time.years = (time->tm_year + 1900);
+	state.time.months = (time->tm_mon + 1);
 	state.time.days = time->tm_mday;
 	state.time.hours = time->tm_hour;
 	state.time.minutes = time->tm_min;

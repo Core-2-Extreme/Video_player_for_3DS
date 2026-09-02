@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/str_types.h"
+#include "system/util/util_type.h"
 
 #define DEF_UTIL_LOW_HEAP_THRESHOLD			(uint32_t)(1000 * 1000 * 2.5)
 #define DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(x)	(uint32_t)(sizeof(x) / sizeof((x)[0]))
@@ -209,5 +210,12 @@ double Util_max_d(double value_0, double value_1);
  * @note Thread safe.
 */
 uint64_t Util_get_diff(uint64_t new_value, uint64_t old_value, uint64_t max_value);
+
+/**
+ * @brief Get library information.
+ * @return Library information.
+ * @note Thread safe.
+*/
+const Util_lib_info* Util_get_lib_info(void);
 
 #endif //!defined(DEF_UTIL_H)

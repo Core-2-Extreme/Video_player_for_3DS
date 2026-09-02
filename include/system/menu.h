@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #define DEF_MENU_MAIN_DIR				/*(const char*)(*/"/3ds/Video_player/"/*)*/
+#define DEF_MENU_CURRENT_APP_NAME_PLAIN	/*(const char*)(*/"Video player for 3DS"/*)*/
 #define DEF_MENU_CURRENT_APP_VER		/*(const char*)(*/"1.7.0 (nightly build)"/*)*/
 #define DEF_MENU_CURRENT_APP_VER_INT	(uint32_t)(1)
 

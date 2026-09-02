@@ -90,3 +90,4 @@ turn off the '800px (auto) mode'
 <86>Remaining time (discharging): </86>
 <87>Fully charged</87>
 <88>Calculating remaining time...</88>
+<89>License</89>

@@ -284,6 +284,14 @@
 #define HID_REC_BOT_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_record_bottom_lcd_button, (k)))
 #define HID_REC_BOT_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+//License: Full license (app).
+#define HID_LICENSE_FULL_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*sem_license_this_app.button), (k)))
+#define HID_LICENSE_FULL_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*sem_license_this_app.button), (k)))
+#define HID_LICENSE_FULL_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
+//License: Full license (lib).
+#define HID_LICENSE_LIB_FULL_SEL(k, id)		(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN((*sem_licenses[id].button), (k)))
+#define HID_LICENSE_LIB_FULL_CFM(k, id)		(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN((*sem_licenses[id].button), (k)))
+#define HID_LICENSE_LIB_FULL_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
 
 #define SCROLL_BAR_Y_END					(double)(225)	//Y end offset for scroll bar in px.
 #define SCROLL_BAR_X						(double)(312.5)	//X offset for scroll bar in px.
@@ -398,6 +406,17 @@
 	#define RECORDING_UNAVAILABLE_HEIGHT	(double)(45)	//Element height for unavailable notice in px.
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
+#define LICENSE_X_START						(double)(0)		//X start offset for license in px.
+#define LICENSE_Y_START						(double)(0)		//Y start offset for license in px.
+#define LICENSE_X_END						(double)(320)	//X end offset for license in px.
+#define LICENSE_Y_END						(double)(225)	//Y end offset for license in px.
+#define LICENSE_X							(double)(10)	//X offset for license in px.
+#define LICENSE_Y							(double)(30)	//Y offset for license in px.
+#define LICENSE_SPACE_Y						(double)(5)		//Element spacing for license (for Y direction) in px.
+#define LICENSE_WIDTH						(double)(300)	//Element width for lang in px.
+#define LICENSE_HEIGHT						(double)(15)	//Element height for lang in px.
+	#define LICENSE_SUB_APP_SPACE_X			(double)(5)		//Element spacing for sub app name (for X direction) in px.
+
 #define SUB_TITLE_WIDTH						(double)(300)	//Element width for sub title in px.
 #define SUB_TITLE_HEIGHT					(double)(10)	//Element height for sub title in px.
 
@@ -445,6 +464,7 @@
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 #define FONT_SIZE_REC_UNAVAILABLE			(float)(15.00)	//Font size for recording unavailable messages.
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+#define FONT_SIZE_LICENSE					(float)(15.00)	//Font size for license name.
 
 //Typedefs.
 typedef enum
@@ -538,6 +558,7 @@ typedef enum
 	MSG_BATTERY_REMAINING_DISCHARGE,
 	MSG_BATTERY_FULL,
 	MSG_BATTERY_REMAINING_CALCULATING,
+	MSG_LICENSE,
 
 	MSG_MAX,
 } Sem_msg;
@@ -555,6 +576,7 @@ typedef enum
 	MENU_ADVANCED,		//Advanced menu is displayed.
 	MENU_BATTERY,		//Battery menu is displayed.
 	MENU_RECORDING,		//Screen recording menu is displayed.
+	MENU_LICENSE,		//License menu is displayed.
 
 	MENU_MAX,
 } Sem_menu;
@@ -637,6 +659,12 @@ typedef struct
 
 typedef struct
 {
+	const Util_lib_info* lib_info;	//Library information.
+	Draw_image_data* button;		//Button to use.
+} Sem_license;
+
+typedef struct
+{
 	uint32_t color;				//Button color when it's NOT selected.
 	uint32_t selected_color;	//Button color when it's selected.
 	Sem_msg msg;				//Message ID for the button.
@@ -701,6 +729,7 @@ static void Sem_updater_patch_note(const Str_data* patch_note, double x, double 
 #endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
 static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t color, double x, double y);
+static void Sem_license_button(const Sem_license* license, double x, double y, uint32_t color);
 static void Sem_sub_title(const Str_data* msg, double x, double y, uint32_t color, double x_start, double x_end, double y_start, double y_end);
 static void Sem_select_button_1(const Sem_select_1* select, bool is_active, double x, double y, uint32_t color,
 uint32_t selected_color, double x_start, double x_end, double y_start, double y_end);
@@ -714,6 +743,7 @@ static void Sem_info_bar(const Sem_bar* bar, double min, double max, double curr
 double x, double y, double x_start, double x_end, double y_start, double y_end);
 static double Sem_estimate_battery_time(bool was_charging, bool is_charging, double battery_level);
 static void Sem_get_system_info(void);
+static void Sem_open_web(const char* url);
 static void Sem_worker_callback(void);
 void Sem_hw_config_thread(void* arg);
 
@@ -758,12 +788,14 @@ sem_auto_mode_button = { 0, }, sem_scroll_speed_slider = { 0, }, sem_scroll_spee
 sem_unload_all_ex_font_button = { 0, }, sem_ex_font_button[DEF_EXFONT_NUM_OF_FONT_NAME] = { 0, }, sem_wifi_on_button = { 0, },
 sem_wifi_off_button = { 0, }, sem_allow_send_info_button = { 0, }, sem_deny_send_info_button = { 0, }, sem_debug_mode_on_button = { 0, },
 sem_debug_mode_off_button = { 0, }, sem_eco_mode_on_button = { 0, }, sem_eco_mode_off_button = { 0, }, sem_record_both_lcd_button = { 0, },
-sem_record_top_lcd_button = { 0, }, sem_record_bottom_lcd_button = { 0, }, sem_use_fake_model_button = { 0, }, sem_dump_log_button = { 0, };
+sem_record_top_lcd_button = { 0, }, sem_record_bottom_lcd_button = { 0, }, sem_use_fake_model_button = { 0, }, sem_dump_log_button = { 0, },
+sem_license_this_app_button = { 0, }, sem_license_buttons[DEF_UTIL_LIB_INFO_COUNT] = { 0, };
 static Sem_menu sem_selected_menu_mode = MENU_TOP;
 static Sem_internal_state sem_internal_state = { 0, };
 static Sem_state sem_state = { 0, };
 static Sem_config sem_config = { 0, };
 static Sem_battery_data sem_battery_data = { 0, };
+static Sem_license sem_licenses[DEF_UTIL_LIB_INFO_COUNT] = { 0, };
 
 #if DEF_CPU_USAGE_API_ENABLE
 static bool sem_is_cpu_usage_monitor_running = false;
@@ -852,6 +884,7 @@ static const Sem_sub_menu sem_sub_menus[] =
 	{ .msg = MSG_ADVANCED,	.menu_id = MENU_ADVANCED,	},
 	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
 	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
+	{ .msg = MSG_LICENSE,	.menu_id = MENU_LICENSE,	},
 };
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static const Sem_updater_edition sem_updater_editions[] =
@@ -1020,6 +1053,15 @@ static const Sem_select_1 sem_select_record_bottom[] =
 };
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 
+static const Sem_license sem_license_this_app =
+{
+	.lib_info = (Util_lib_info[])
+	{
+		{ .name = "", .ver = "", .license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/refs/heads/main/LICENSE", },
+	},
+	.button = &sem_license_this_app_button,
+};
+
 //Code.
 bool Sem_query_init_flag(void)
 {
@@ -1177,6 +1219,7 @@ void Sem_init(void)
 	Str_data data[13] = { 0, };
 	Sem_config config = { 0, };
 	Sem_state state = { 0, };
+	const Util_lib_info* lib_info = Util_get_lib_info();
 
 	//Default values.
 	config.is_debug = false;
@@ -1221,6 +1264,12 @@ void Sem_init(void)
 	sem_battery_data.estimated_time = -1;
 	for(uint16_t i = 0; i < DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history); i++)
 		sem_battery_data.history[i].level = -1;
+
+	for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+	{
+		sem_licenses[i].button = &sem_license_buttons[i];
+		sem_licenses[i].lib_info = &lib_info[i];
+	}
 
 	result = Util_sync_create(&sem_config_state_mutex, SYNC_TYPE_NON_RECURSIVE_MUTEX);
 	if(result != DEF_SUCCESS)
@@ -1526,6 +1575,11 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected, sizeof(sem_record_top_lcd_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected, sizeof(sem_record_bottom_lcd_button.selected));
 
+	//License.
+	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_license_this_app_button, sizeof(sem_license_this_app_button));
+	for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+		Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_license_buttons[i].selected, sizeof(sem_license_buttons[i].selected));
+
 	DEF_LOG_RESULT_SMART(result, Menu_add_worker_thread_callback(Sem_worker_callback), result, result);
 
 	Sem_resume();
@@ -1581,6 +1635,7 @@ void Sem_draw_init(void)
 	sem_record_bottom_lcd_button = Draw_get_empty_image();
 	sem_use_fake_model_button = Draw_get_empty_image();
 	sem_dump_log_button = Draw_get_empty_image();
+	sem_license_this_app_button = Draw_get_empty_image();
 
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 	sem_3dsx_button = Draw_get_empty_image();
@@ -1618,6 +1673,8 @@ void Sem_draw_init(void)
 		sem_menu_button[i] = Draw_get_empty_image();
 	for(uint16_t i = 0; i < DEF_EXFONT_NUM_OF_FONT_NAME; i++)
 		sem_ex_font_button[i] = Draw_get_empty_image();
+	for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+		sem_license_buttons[i] = Draw_get_empty_image();
 }
 
 void Sem_exit(void)
@@ -1837,6 +1894,11 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_top_lcd_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_record_bottom_lcd_button.selected);
 
+	//License.
+	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_license_this_app_button.selected);
+	for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+		Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_license_buttons[i].selected);
+
 	Util_sync_destroy(&sem_config_state_mutex);
 
 	DEF_LOG_STRING("Exited.");
@@ -1908,7 +1970,7 @@ void Sem_main(void)
 
 		Draw_screen_ready(DRAW_SCREEN_BOTTOM, back_color);
 
-		if (sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
+		if (sem_selected_menu_mode > MENU_TOP && sem_selected_menu_mode < MENU_MAX)
 		{
 			draw_y = sem_y_offset;
 			if (draw_y >= -30 && draw_y <= 240)
@@ -2417,6 +2479,45 @@ void Sem_main(void)
 			sem_y_min = 0;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		}
+		else if (sem_selected_menu_mode == MENU_LICENSE)
+		{
+			draw_x = LICENSE_X;
+			draw_y = (sem_y_offset + LICENSE_Y);
+
+			//This app.
+			Util_str_format(&format_str, "%s v%s", DEF_MENU_CURRENT_APP_NAME_PLAIN, DEF_MENU_CURRENT_APP_VER);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, LICENSE_X_START, LICENSE_X_END, LICENSE_Y_START, LICENSE_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + LICENSE_SPACE_Y);
+			draw_x += LICENSE_SUB_APP_SPACE_X;
+
+			//Sub app.
+			Util_str_format(&format_str, "+ %s %s", DEF_VID_NAME_PLAIN, DEF_VID_VER);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, LICENSE_X_START, LICENSE_X_END, LICENSE_Y_START, LICENSE_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + LICENSE_SPACE_Y);
+			Util_str_format(&format_str, "+ %s %s", DEF_FTPD_NAME_PLAIN, DEF_FTPD_VER);
+			Sem_sub_title(&format_str, draw_x, draw_y, color, LICENSE_X_START, LICENSE_X_END, LICENSE_Y_START, LICENSE_Y_END);
+			draw_y += (SUB_TITLE_HEIGHT + LICENSE_SPACE_Y);
+			draw_x -= LICENSE_SUB_APP_SPACE_X;
+
+			//License name.
+			Sem_license_button(&sem_license_this_app, draw_x, draw_y, color);
+			draw_y += (LICENSE_HEIGHT + LICENSE_SPACE_Y);
+
+			for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+			{
+				//Library info.
+				Util_str_format(&format_str, "%s v%s", sem_licenses[i].lib_info->name, sem_licenses[i].lib_info->ver);
+				Sem_sub_title(&format_str, draw_x, draw_y, color, LICENSE_X_START, LICENSE_X_END, LICENSE_Y_START, LICENSE_Y_END);
+				draw_y += (SUB_TITLE_HEIGHT + LICENSE_SPACE_Y);
+
+				//License name.
+				Sem_license_button(&sem_licenses[i], draw_x, draw_y, color);
+				draw_y += (LICENSE_HEIGHT + LICENSE_SPACE_Y);
+			}
+
+			//Update scroll limit.
+			sem_y_min = Util_min_d(-(draw_y - sem_y_offset - LICENSE_Y_END), 0);
+		}
 
 		if(Util_err_query_show_flag())
 			Util_err_draw();
@@ -2473,7 +2574,7 @@ void Sem_hid(const Hid_info* key)
 			if(HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
 		}
-		else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
+		else if(sem_selected_menu_mode > MENU_TOP && sem_selected_menu_mode < MENU_MAX)
 		{
 			if (HID_BACK_SEL(*key))
 				sem_back_button.selected = true;
@@ -2636,6 +2737,16 @@ void Sem_hid(const Hid_info* key)
 					sem_record_bottom_lcd_button.selected = true;
 			}
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+			else if (sem_selected_menu_mode == MENU_LICENSE)
+			{
+				if(HID_LICENSE_FULL_SEL(*key))
+					sem_license_this_app.button->selected = true;
+				for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+				{
+					if(HID_LICENSE_LIB_FULL_SEL(*key, i))
+						sem_licenses[i].button->selected = true;
+				}
+			}
 
 			if(HID_SCROLL_MODE_SEL(*key))
 				sem_scroll_mode = true;
@@ -2670,7 +2781,7 @@ void Sem_hid(const Hid_info* key)
 					}
 				}
 			}
-			else if(sem_selected_menu_mode >= MENU_UPDATE && sem_selected_menu_mode <= MENU_RECORDING)
+			else if(sem_selected_menu_mode > MENU_TOP && sem_selected_menu_mode < MENU_MAX)
 			{
 				if (HID_BACK_CFM(*key))
 				{
@@ -3028,6 +3139,22 @@ void Sem_hid(const Hid_info* key)
 					}
 				}
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+				else if (sem_selected_menu_mode == MENU_LICENSE)
+				{
+					if(HID_LICENSE_FULL_CFM(*key))
+						Sem_open_web(sem_license_this_app.lib_info->full_license_url);
+					else
+					{
+						for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+						{
+							if(HID_LICENSE_LIB_FULL_CFM(*key, i))
+							{
+								Sem_open_web(sem_licenses[i].lib_info->full_license_url);
+								break;
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -3203,6 +3330,13 @@ void Sem_hid(const Hid_info* key)
 		if(HID_REC_BOT_DESEL(*key) || sem_scroll_mode)
 			sem_record_bottom_lcd_button.selected = false;
 #endif //(DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
+		if(HID_LICENSE_LIB_FULL_DESEL(*key) || sem_scroll_mode)
+		{
+			for(uint8_t i = 0; i < DEF_UTIL_LIB_INFO_COUNT; i++)
+				sem_licenses[i].button->selected = false;
+		}
+		if(HID_LICENSE_FULL_DESEL(*key) || sem_scroll_mode)
+			sem_license_this_app.button->selected = false;
 	}
 
 	if(Util_log_query_show_flag())
@@ -3392,6 +3526,22 @@ static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t col
 
 		Draw_with_background_c(text, x, y, font_size, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
 		FONT_WIDTH, FONT_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX, button, button_color);
+	}
+}
+
+static void Sem_license_button(const Sem_license* license, double x, double y, uint32_t color)
+{
+	Draw_visibility visibility = Draw_visibility_check(x, LICENSE_WIDTH,
+	LICENSE_X_START, LICENSE_X_END, y, LICENSE_HEIGHT, LICENSE_Y_START, LICENSE_Y_END);
+
+	if(visibility == DRAW_VISIBILITY_FULLY_VISIBLE || visibility == DRAW_VISIBILITY_PARTIALLY_VISIBLE)
+	{
+		uint32_t button_color = (license->button->selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
+		float font_size = FONT_SIZE_LICENSE;
+		const char* msg = license->lib_info->license;
+
+		Draw_with_background_c(msg, x, y, font_size, color, DRAW_X_ALIGN_LEFT, DRAW_Y_ALIGN_CENTER,
+		LICENSE_WIDTH, LICENSE_HEIGHT, DRAW_BACKGROUND_ENTIRE_BOX_CROP, license->button, button_color);
 	}
 }
 
@@ -3728,6 +3878,26 @@ static void Sem_get_system_info(void)
 	Util_sync_lock(&sem_config_state_mutex, UINT64_MAX);
 	sem_state = state;
 	Util_sync_unlock(&sem_config_state_mutex);
+}
+
+static void Sem_open_web(const char* url)
+{
+	uint16_t size = 0;
+	uint8_t* buffer = NULL;
+
+	if(!url)
+		return;
+
+	size = (strlen(url) + 1);
+	buffer = (uint8_t*)malloc(size);
+
+	if(!buffer)
+		return;
+
+	memcpy(buffer, url, (size - 1));
+	buffer[(size - 1)] = 0x00;
+	aptLaunchSystemApplet(APPID_WEB, buffer, size, 0);
+	free(buffer);
 }
 
 static void Sem_worker_callback(void)

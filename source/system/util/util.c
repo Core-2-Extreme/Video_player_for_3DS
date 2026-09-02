@@ -10,9 +10,22 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "curl/curlver.h"
+#include "dav1d/version.h"
+#include "lame/lame.h"
+#include "libavcodec/version.h"
+#include "libavformat/version.h"
 #include "libavutil/log.h"
+#include "libavutil/version.h"
+#include "libswresample/version.h"
+#include "libswscale/version.h"
 #include "mbedtls/base64.h"
+#include "mbedtls/version.h"
+#include "nghttp2/nghttp2ver.h"
+#include "tf-psa-crypto/version.h"
 #include "3ds.h"
+#include "x264_config.h"
+#include "zlib.h"
 
 #include "system/util/err_types.h"
 #include "system/util/file.h"
@@ -27,6 +40,8 @@
 #define HEAP_LOW_CACHE_INTERVAL_MS	(uint32_t)(100)
 #define IS_LINEAR_RAM(ptr)			(bool)((ptr >= (void*)OS_FCRAM_VADDR && ptr <= (void*)(OS_FCRAM_VADDR + OS_FCRAM_SIZE)) \
 || (ptr >= (void*)OS_OLD_FCRAM_VADDR && ptr <= (void*)(OS_OLD_FCRAM_VADDR + OS_OLD_FCRAM_SIZE)))
+#define GET_STRING_INTERNAL(a)		#a
+#define GET_STRING(a)				GET_STRING_INTERNAL(a)
 
 //Typedefs.
 //N/A.
@@ -79,6 +94,81 @@ static uint32_t* util_platform_socket_buffer = NULL;
 static uint64_t util_is_heap_low_ts = 0;
 static LightLock util_linear_alloc_mutex = 1;//Initially unlocked state.
 static LightLock util_malloc_mutex = 1;//Initially unlocked state.
+static const Util_lib_info util_lib_info[DEF_UTIL_LIB_INFO_COUNT] =
+{
+	{
+		//No version API, version below is based on makefile:
+		//export CITRO2D_MAJOR := 1, export CITRO2D_MINOR := 6, export CITRO2D_PATCH := 0
+		.name = "citro2d", .ver = "1.6.0",
+		.license = "zlib", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/citro2d_custom/7c7275903602fab9f7165e20c486040b8ec0d48c/LICENSE",
+	},
+	{
+		//No version API, version below is based on makefile:
+		//export CITRO3D_MAJOR := 1, export CITRO3D_MINOR := 7, export CITRO3D_PATCH := 1
+		.name = "citro3d", .ver = "1.7.1",
+		.license = "zlib", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/citro3d_custom/464b01141f7acf2ae8564a2c0a936b9c17c13219/LICENSE",
+	},
+	{
+		.name = "curl", .ver = LIBCURL_VERSION,
+		.license = "MIT-like", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/curl_for_3DS/555f7e95e296995fb0fd1cc227ebb45912845eb5/LICENSES/curl.txt",
+	},
+	{
+		.name = "dav1d", .ver = (GET_STRING(DAV1D_API_VERSION_MAJOR) "." GET_STRING(DAV1D_API_VERSION_MINOR) "." GET_STRING(DAV1D_API_VERSION_PATCH)),
+		.license = "BSD 2-Clause", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/dav1d_for_3DS/c40d9602629d39ae63bedd50c31fd926fa5eb51e/COPYING",
+	},
+	{
+		//No version API, version below is based on commit message "lame: add vanilla lame v3.99.5".
+		.name = "LAME", .ver = "3.99.5",
+		.license = "LGPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/libmp3lame_for_3DS/f416c19b3140a8610507ebb60ac7cd06e94472b8/COPYING",
+	},
+	{
+		.name = "libavcodec", .ver = GET_STRING(LIBAVCODEC_VERSION),
+		.license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/FFmpeg_for_3DS/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3",
+	},
+	{
+		.name = "libavformat", .ver = GET_STRING(LIBAVFORMAT_VERSION),
+		.license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/FFmpeg_for_3DS/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3",
+	},
+	{
+		.name = "libavutil", .ver = GET_STRING(LIBAVUTIL_VERSION),
+		.license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/FFmpeg_for_3DS/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3",
+	},
+	{
+		//No version API, version below is based on documentation (https://libctru.devkitpro.org/,
+		//https://web.archive.org/web/20260712052612/https://libctru.devkitpro.org/)
+		//"<div id="projectname">libctru<span id="projectnumber">&#160;v2.7.0</span>".
+		.name = "libctru", .ver = "2.7.0",
+		.license = "zlib", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/libctru_custom/7e3e1c1be4217093db1baca96d6dcf0db23588f4/README.md",
+	},
+	{
+		.name = "libswresample", .ver = GET_STRING(LIBSWRESAMPLE_VERSION),
+		.license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/FFmpeg_for_3DS/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3",
+	},
+	{
+		.name = "libswscale", .ver = GET_STRING(LIBSWSCALE_VERSION),
+		.license = "GPLv3", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/FFmpeg_for_3DS/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3",
+	},
+	{
+		.name = "Mbed TLS", .ver = MBEDTLS_VERSION_STRING,
+		.license = "GPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/mbedtls_for_3DS/ecf77d19bfc2b2630cccabb033ab7227ff6b0beb/LICENSE",
+	},
+	{
+		.name = "nghttp2", .ver = NGHTTP2_VERSION,
+		.license = "MIT", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/nghttp2_for_3DS/68cb6900fde14c77f0cd7add0e094a862960eb99/COPYING",
+	},
+	{
+		.name = "TF-PSA-Crypto", .ver = TF_PSA_CRYPTO_VERSION_STRING,
+		.license = "GPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/TF-PSA-Crypto_for_3ds/961565a777395a8098342ab1e92ced8fb3ab5681/LICENSE",
+	},
+	{
+		.name = "x264", .ver = X264_POINTVER,
+		.license = "GPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/x264_for_3DS/c24e06c2e184345ceb33eb20a15d1024d9fd3497/COPYING",
+	},
+	{
+		.name = "zlib", .ver = ZLIB_VERSION,
+		.license = "zlib", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/zlib_for_3DS/da607da739fa6047df13e66a2af6b8bec7c2a498/LICENSE",
+	},
+};
 
 //Code.
 static inline bool Util_is_heap_low(void)
@@ -1174,6 +1264,11 @@ uint64_t Util_get_diff(uint64_t new_value, uint64_t old_value, uint64_t max_valu
 		return (new_value - old_value);
 	else
 		return (max_value - (old_value - new_value));
+}
+
+const Util_lib_info* Util_get_lib_info(void)
+{
+	return util_lib_info;
 }
 
 void Util_check_core_thread(void* arg)

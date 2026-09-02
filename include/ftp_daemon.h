@@ -10,6 +10,7 @@
 #define DEF_FTPD_ENABLE_NAME
 #define DEF_FTPD_ICON_PATH		/*(const char*)(*/"romfs:/"/*)*/
 #define DEF_FTPD_NAME			/*(const char*)(*/"FTP\nserver"/*)*/
+#define DEF_FTPD_NAME_PLAIN		/*(const char*)(*/"FTP server"/*)*/
 #define DEF_FTPD_VER			/*(const char*)(*/"v1.0.0"/*)*/
 
 bool Ftpd_query_init_flag(void);

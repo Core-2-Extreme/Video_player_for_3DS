@@ -875,6 +875,7 @@ static Sem_record sem_selected_recording_mode = RECORD_BOTH;
 
 static const Sem_sub_menu sem_sub_menus[] =
 {
+	{ .msg = MSG_LICENSE,	.menu_id = MENU_LICENSE,	},
 	{ .msg = MSG_UPDATE,	.menu_id = MENU_UPDATE,		},
 	{ .msg = MSG_LANGAGES,	.menu_id = MENU_LANGAGES,	},
 	{ .msg = MSG_LCD,		.menu_id = MENU_LCD,		},
@@ -884,7 +885,6 @@ static const Sem_sub_menu sem_sub_menus[] =
 	{ .msg = MSG_ADVANCED,	.menu_id = MENU_ADVANCED,	},
 	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
 	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
-	{ .msg = MSG_LICENSE,	.menu_id = MENU_LICENSE,	},
 };
 #if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
 static const Sem_updater_edition sem_updater_editions[] =

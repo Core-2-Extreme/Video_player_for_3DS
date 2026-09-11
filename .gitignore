@@ -4,3 +4,5 @@
 *.cia
 *.elf
 *.smdh
+!/updater/*.3dsx
+!/updater/*.cia

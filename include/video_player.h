@@ -11,7 +11,7 @@
 #define DEF_VID_ICON_PATH				/*(const char*)(*/"romfs:/gfx/draw/icon/vid_icon.t3x"/*)*/
 #define DEF_VID_NAME					/*(const char*)(*/"Video\nplayer"/*)*/
 #define DEF_VID_NAME_PLAIN				/*(const char*)(*/"Video player"/*)*/
-#define DEF_VID_VER						/*(const char*)(*/"v1.7.0 (nightly build)"/*)*/
+#define DEF_VID_VER						/*(const char*)(*/"v1.8.0"/*)*/
 #define DEF_VID_SPEAKER_SESSION_ID		(uint8_t)(0)
 #define DEF_VID_DECORDER_SESSION_ID		(uint8_t)(0)
 

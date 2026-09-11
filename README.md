@@ -1,8 +1,17 @@
 # Video player for 3DS
 
-![GitHub all releases](https://img.shields.io/github/downloads/Core-2-Extreme/Video_player_for_3DS/total?color=purple&style=flat-square)
-![GitHub commits since latest release (by SemVer)](https://img.shields.io/github/commits-since/Core-2-Extreme/Video_player_for_3DS/latest?color=orange&style=flat-square)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/Video_player_for_3DS?color=darkgreen&style=flat-square)
+[![Total downloads](https://img.shields.io/github/downloads/Core-2-Extreme/Video_player_for_3DS/total?color=red&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/releases)
+[![Commits since latest release](https://img.shields.io/github/commits-since/Core-2-Extreme/Video_player_for_3DS/latest?color=orange&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/commits)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/Video_player_for_3DS?color=gold&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/commits)
+[![Latest release](https://img.shields.io/github/v/release/Core-2-Extreme/Video_player_for_3DS?color=green&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/releases/latest)
+[![Contributors](https://img.shields.io/github/contributors/Core-2-Extreme/Video_player_for_3DS?color=blue&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/graphs/contributors/)
+
+[![Stars](https://img.shields.io/github/stars/Core-2-Extreme/Video_player_for_3DS?style=social)](https://github.com/Core-2-Extreme/Video_player_for_3DS/stargazers)
+[![Forks](https://img.shields.io/github/forks/Core-2-Extreme/Video_player_for_3DS?style=social)](https://github.com/Core-2-Extreme/Video_player_for_3DS/forks)
+[![Watchers](https://img.shields.io/github/watchers/Core-2-Extreme/Video_player_for_3DS?style=social)](https://github.com/Core-2-Extreme/Video_player_for_3DS/watchers)
+[![License](https://img.shields.io/badge/License-GPLv3-cyan.svg?style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/blob/main/LICENSE)
+[![Discord](https://img.shields.io/discord/589750386806620160?logo=discord&color=7289DA&style=flat-square)](https://discord.gg/MMsAXvetpR)
+[![GBAtemp](https://img.shields.io/badge/GBAtemp-community-blue)](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
 
 ## Index
 * [Screenshots](https://github.com/Core-2-Extreme/Video_player_for_3DS#screenshots)
@@ -13,7 +22,6 @@
 * [Supported languages](https://github.com/Core-2-Extreme/Video_player_for_3DS#supported-languages)
 * [Supported codecs](https://github.com/Core-2-Extreme/Video_player_for_3DS#supported-codecs)
 * [Supported containers](https://github.com/Core-2-Extreme/Video_player_for_3DS#supported-containers-extensions)
-* [Links](https://github.com/Core-2-Extreme/Video_player_for_3DS#links)
 * [Build](https://github.com/Core-2-Extreme/Video_player_for_3DS#build)
 * [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#recommended-resolution)
 * [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#benchmark)
@@ -33,8 +41,8 @@
 **And many more...**
 
 ## Features
-Hardware accelerated decoding (*0) ✅ \
-Hardware accelerated color conversion ✅ \
+HW accelerated decoding (*0) ✅ \
+HW accelerated color conversion ✅ \
 Multiple video codec support ✅ \
 Multiple audio codec support ✅ \
 Multiple subtitle codec support ✅ \
@@ -45,14 +53,17 @@ Move video ✅ \
 File explorer ✅ \
 Full-screen mode ✅
 
-⚠️ *0 New 3DS and New 2DS only \
-⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
-you need to enable 3D mode in settings(settings->LCD->Screen mode->3D)
+> [!IMPORTANT]
+> ⚠️ *0 New 3DS and New 2DS only \
+> ⚠️ *1 New 3DS and 3DS only, software decoder only, in order to see 3D video as 3D \
+you need to enable 3D mode in settings (settings->LCD->Screen mode->3D or Auto)
 
 ## Prepare videos
-If you are advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users).
+If you are an advanced user, see [Recommended resolution](https://github.com/Core-2-Extreme/Video_player_for_3DS#Recommended-resolution) and [Benchmark](https://github.com/Core-2-Extreme/Video_player_for_3DS#Benchmark) for performance then use commandline in the [Prepare videos (advanced users)](https://github.com/Core-2-Extreme/Video_player_for_3DS#prepare-videos-advanced-users).
 
-If not, you can use these tools (**these tools are third-party tools, therefore support for these tools are provided by their developers**):
+If not, you can use these tools:
+> [!IMPORTANT]
+> **These tools are third-party tools, therefore support for these tools are provided by their developers**
 * [Nintendo Video Convertor (by T0biasCZe)](https://gbatemp.net/threads/nintendo-video-convertor-video-convertor-for-3ds-and-wii.622972/)
 * [VideoPlayer3DS DS Assistant (by JustScratchCoder)](https://github.com/JustScratchCoder/VideoPlayer3DS-DS-Assistant)
 
@@ -66,7 +77,7 @@ If not, you can use these tools (**these tools are third-party tools, therefore 
     * That is SBS (side-by-side) (**recommended**)...
       * Use `ffmpeg -i {input_file_name} -c:a {audio_codec} -c:v {video_codec} -s {resolution} {q} -metadata:s:v:0 stereo_mode={sbs_type} {output_file_name}`
     * That is non-SBS...
-      * Referer this: [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
+      * Refer to this: [How to convert your 3D video for 3DS (by T0biasCZe)](https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-10#post-9575227)
 3. Copy generated videos to your 3DS (anywhere on your SD card).
 
 Where:
@@ -111,7 +122,7 @@ E.g.:
 * "I want to convert my **left:right SBS** video that is called "GNU_in_SBS.mp4" for my **NEW**3DS."
   * `ffmpeg -i "GNU_in_SBS.mp4" -c:a libvorbis -c:v libx264 -s 800x240 -crf 25 -metadata:s:v:0 stereo_mode=left_right GNU_in_SBS_for_3DS.mkv`
 
-Prp tip: If you find you frequently see "Processing video..." message during playback, try lowering `{resolution}` and/or \
+Pro tip: If you find you frequently see "Processing video..." message during playback, try lowering `{resolution}` and/or \
 framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mpeg4 -s 256x144 -q:v 8 -r 23.976 GNU_for_3DS.mkv` for `256x144@23.976fps`).
 
 ## Controls
@@ -155,6 +166,7 @@ framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mp
 * H263+
 * H264 (AVC, MPEG4 part10)
 * H265 (HEVC)
+* H266 (VVC)
 * Motion jpeg
 * MPEG1video
 * MPEG2video
@@ -178,7 +190,9 @@ framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mp
   * Movtext
   * Subrip
   * Subviewer
+  * WebVTT
 * DVDSub (VobSub)
+* PGSSub
 
 ## Supported containers (extensions)
 * .aac
@@ -196,10 +210,6 @@ framerate by adding `-r {fps}` (e.g. `ffmpeg -i "GNU.mp4" -c:a libvorbis -c:v mp
 * .wav
 * .webm
 
-## Links
-[Discord channel](https://discord.gg/MMsAXvetpR) \
-[GBAtemp thread](https://gbatemp.net/threads/release-video-player-for-3ds.586094)
-
 ## Build
 You need to set up [devkitpro](https://devkitpro.org/wiki/Getting_Started) ([install guide + (version info)](library/_devkitpro_install.md))
 
@@ -212,22 +222,22 @@ After setting up devkitpro:
 Videos that in this resolution will be played without any problems in most of the situations.
 |  Recommended resolution  | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
 | ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
-| OLD3DS Software decoding | 400x240@30 | 400x240@30 | 400x240@24 | 256x144@24 | 256x144@10 |
-| NEW3DS Software decoding | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@20 |
-| NEW3DS Hardware decoding |    none    |    none    |    none    | 800x240@60 |    none    |
-
+|    OLD3DS SW decoding    | 400x240@30 | 400x240@30 | 400x240@24 | 256x144@24 | 256x144@10 |
+|    NEW3DS SW decoding    | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@30 | 800x240@20 |
+|    NEW3DS HW decoding    |    none    |    none    |    none    | 800x240@60 |    none    |
 
 Videos that in this resolution may be played without problems if scene changes, camera panning etc.. are infrequent.
 |    Maximum resolution    | mpeg1video | mpeg2video |    H263+   |    H264    |    H265    |
 | ------------------------ | ---------- | ---------- | ---------- | ---------- | ---------- |
-| OLD3DS Software decoding | 800x240@24 | 800x240@24 | 800x240@20 | 400x240@15 | 256x144@20 |
-| NEW3DS Software decoding | 800x480@30 | 800x480@30 | 800x480@30 | 800x480@24 | 800x240@30 |
-| NEW3DS Hardware decoding |    none    |    none    |    none    |1280x720@20 |    none    |
+|    OLD3DS SW decoding    | 800x240@24 | 800x240@24 | 800x240@20 | 400x240@15 | 256x144@20 |
+|    NEW3DS SW decoding    | 800x480@30 | 800x480@30 | 800x480@30 | 800x480@24 | 800x240@30 |
+|    NEW3DS HW decoding    |    none    |    none    |    none    |1280x720@20 |    none    |
 
 **Note: Video resolution that exceeds screen resolution (400x240 on OLD2DS, 800x240 on OLD3DS, NEW2DS and NEW3DS) has little visible effect.**
 
 ## Benchmark
-⚠️ Decoding speed depends on encoder option, video type, video scene, etc...
+> [!CAUTION]
+> ⚠️ Decoding speed depends on encoder option, video type, video scene, etc...
 
 Original video file: [Big Buck Bunny](https://www.youtube.com/watch?v=YE7VzlLtp-4) \
 The test videos were generated with following commands: \
@@ -257,8 +267,9 @@ OLD3DS:
     * A. **No** ❌, playback speed is fixed to x1!!!!!
 5. Q. Can I stream videos from {Your favorite streaming service}?????
     * A. **No** ❌, streaming from Internet (including both WAN and LAN) is NOT supported (only local storage (i.e. SD card) is supported)!!!!!
+    * However, you can use builtin FTP server to transfer files via PC/phone or any FTP client without having to close the video player!!!!!
 6. Q. Where do I put my videos?????
-    * A. You can put your videos on **anyware on your SD card** ✅!!!!!
+    * A. You can put your videos on **anywhere on your SD card** ✅!!!!!
 7. Q. How do I play videos?????
     * A. **Open video player for 3DS, click on <img src="https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/main/screenshots/video_player_icon.png" width="50" height="50">, then press X to open file explorer, finally select your video to play it** ✅!!!!!
 8. Q. Is there bitrate limit?????
@@ -266,15 +277,16 @@ OLD3DS:
 9. Q. Is there length limit?????
     * A. **Yes** and **no** ⚠️, video player itself doesn't have any length limit, however if 3DS runs out of memory, you'll see "out of (linear) memory" error (in this case shorten video length and/or use .mkv)!!!!!
 10. Q. Can I add/update language translation?????
-    * A. **Yes** ✅, you can just create/update language files on `romfs/gfx/msg/` and make a pull request on GitHub or submit it on our [Discord server](https://discord.gg/MMsAXvetpR)!!!!!
+    * A. **Yes** ✅, you can just create/update language files on `romfs/gfx/msg/` and make a pull request on GitHub or submit it on our [![Discord](https://img.shields.io/discord/589750386806620160?logo=discord&color=7289DA&style=flat-square)](https://discord.gg/MMsAXvetpR)!!!!!
 11. Q. I found bugs, can I report it?????
-    * A. **Yes** ✅, you can report an issue on GitHub or on our [Discord server](https://discord.gg/MMsAXvetpR), please provide as much details as possible!!!!!
+    * A. **Yes** ✅, you can report an issue on GitHub or on our [![Discord](https://img.shields.io/discord/589750386806620160?logo=discord&color=7289DA&style=flat-square)](https://discord.gg/MMsAXvetpR), please provide as much details as possible!!!!!
 12. Q. My pull/feature request got rejected, can I fork it and make a custom version?????
     * A. **Yes** ✅, this software is licensed under GPLv3 so you can freely use, modify and distribute!!!!!
 13. Q. Can I ask what is <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50">?????
-    * A. **Yes** ✅, you should join our [Discord server](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [Discord server](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
+    * A. **Yes** ✅, you should join our [![Discord](https://img.shields.io/discord/589750386806620160?logo=discord&color=7289DA&style=flat-square)](https://discord.gg/MMsAXvetpR) for the answer; longer you are in our [![Discord](https://img.shields.io/discord/589750386806620160?logo=discord&color=7289DA&style=flat-square)](https://discord.gg/MMsAXvetpR), more you know what <img src="https://github.com/user-attachments/assets/2ad7bede-0660-4154-a9b8-d80fbf495006" width="50" height="50"> is!!!!!
 
 ## Patch note
+* [v1.8.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v180)
 * [v1.7.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v170)
 * [v1.6.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v161)
 * [v1.6.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v160)
@@ -294,6 +306,21 @@ OLD3DS:
 * [v1.1.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v110)
 * [v1.0.1](https://github.com/Core-2-Extreme/Video_player_for_3DS#v101)
 * [v1.0.0](https://github.com/Core-2-Extreme/Video_player_for_3DS#v100)
+
+### v1.8.0
+**Changes** \
+Added FTP server.
+> [!CAUTION]
+> ⚠️ Background transfer while watching videos is possible, but may affect playback performance (especially on OLD3DS).
+
+Updated devkitARM to `r68-1`. \
+WebVTT has been supported ([#71](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/71)). \
+PGSSub has been supported ([#91](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/91)). \
+H266 (VVC) has been supported.
+
+**Fixed bugs** \
+One eye freeze on dual-track 3D videos have been fixed. ([#87](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/87)). \
+Crash on HW decoder when try to play 1920px+ videos has been fixed (by disabling HW decoder on such videos).
 
 ### v1.7.0
 **Changes** \
@@ -333,7 +360,7 @@ High RAM build (only for `.cia`) has been added for release (see release page fo
 
 **Fixed bugs** \
 Many minor bugs that may cause crash have been fixed. \
-Random crash on hardware decorder has been fixed ([#69](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/69)). \
+Random crash on HW decoder has been fixed ([#69](https://github.com/Core-2-Extreme/Video_player_for_3DS/issues/69)). \
 Auto-playing video after coming back from Nintendo's home menu and keyboard even it was previously paused has been fixed. \
 AV desync on more than 2ch audio has been fixed.
 
@@ -356,7 +383,7 @@ Ignore unsupported codec so that you can play supported codec only. \
 (e.g. You can now play videos that contain unsupported subtitles/audio)
 
 **Fixed bugs** \
-Hardware decoder won't play videos that contain B-frames smoothly has been fixed. \
+HW decoder won't play videos that contain B-frames smoothly has been fixed. \
 (It means you don't have to care about B-frames when encoding to H.264 videos)
 
 ### v1.5.1
@@ -384,7 +411,6 @@ Some directories can't be entered have been fixed. \
 Some videos won't be played at correct speed has been fixed. \
 Frame desync in some 3D videos have been fixed.
 
-
 ### v1.5.0
 Subtitles have been supported. (*0) \
 Disable video, audio and subtitle have been added. \
@@ -410,8 +436,8 @@ Polish(Polski) translation has been added (by JustScratchCoder). \
 Other minor changes.
 
 ### v1.4.0
-Decoded image(raw) buffer has been added and it makes playback. \
-much much much much better (especially on OLD3DS)
+Decoded image(raw) buffer has been added and it makes playback \
+much much much much better (especially on OLD3DS). \
 Spanish(español) translation has been added (by Cookiee). \
 Romanian(Română) translation has been added (by Tescu48). \
 Other minor changes.
@@ -421,7 +447,7 @@ Other minor changes.
 Color conversion speed has been improved. \
 Simplified Chinese(简体中文) translation has been added (by LITTOMA). \
 Italian(italiano) translation has been added (by dixy52-beep). \
-*0 if video size is 800x240 and no sar value is set, it autmatically apply sar 1:2. \
+*0 if video size is 800x240 and no sar value is set, it automatically applies sar 1:2. \
 Other minor changes.
 
 ### v1.3.2
@@ -439,22 +465,22 @@ Other minor changes.
 ### v1.3.0
 The video that has more than one audio tracks has been supported (Press Y key-> select audio track to select track). \
 Multi-threaded decoding has been supported (Press Y key-> use multi-threaded decoding to toggle). \
-Hardware decoder has been merged (Press Y key-> use hw decoder to toggle). \
+HW decoder has been merged (Press Y key-> use hw decoder to toggle). \
 Full-screen mode has been supported (Press select key to toggle). \
 Other minor changes.
 
 ### v1.2.0
-Hardware decoding won't work in .cia has been fixed. \
-Hardware decoding won't work in some resolution has been fixed. \
-Added hardware color conversion for software decoder. \
-Added 3D video support(software decoder only). \
+HW decoding won't work in .cia has been fixed. \
+HW decoding won't work in some resolution has been fixed. \
+Added HW color conversion for SW decoder. \
+Added 3D video support(SW decoder only). \
 Other minor changes and optimization.
 
 ### v1.1.1
-Video will not be decoded correctly in hardware decoder has been fixed.
+Video will not be decoded correctly in HW decoder has been fixed.
 
 ### v1.1.0
-Added hardware decoder (β).
+Added HW decoder (β).
 
 ### v1.0.1
 Added allow skip frames option.
@@ -467,20 +493,22 @@ This software is licensed under GNU General Public License v3.0 or later.
 
 Third party libraries are licensed under:
 
-| Library                                                                     | License                                |
-| --------------------------------------------------------------------------- | -------------------------------------- |
-| [libctru](https://github.com/devkitPro/libctru#license)                     | zlib License                           |
-| [citro3d](https://github.com/devkitPro/citro3d/blob/master/LICENSE)         | zlib License                           |
-| [citro2d](https://github.com/devkitPro/citro2d/blob/master/LICENSE)         | zlib License                           |
-| [x264](https://github.com/mirror/x264/blob/master/COPYING)                  | GNU General Public License v2.0        |
-| [libmp3lame](https://github.com/gypified/libmp3lame/blob/master/COPYING)    | GNU Lesser General Public License v2.0 |
-| [dav1d](https://github.com/videolan/dav1d/blob/master/COPYING)              | BSD 2-Clause                           |
-| [ffmpeg](https://github.com/FFmpeg/FFmpeg/blob/master/COPYING.GPLv3)        | GNU General Public License v3.0        |
-| [zlib](https://github.com/madler/zlib/blob/master/LICENSE)                  | zlib License                           |
-| [mbedtls](https://github.com/Mbed-TLS/mbedtls/blob/development/LICENSE)     | Apache License 2.0                     |
-| [nghttp2](https://github.com/nghttp2/nghttp2/blob/master/COPYING)           | MIT License                            |
-| [curl](https://github.com/curl/curl/blob/master/COPYING)                    | The curl license                       |
-| [stb_image](https://github.com/nothings/stb/blob/master/LICENSE)            | Public Domain                          |
+| Library                                                                                                                | License                                                                                                                    | Original repository                                     |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| [citro2d](https://github.com/Core-2-Extreme/citro2d_custom/tree/7c7275903602fab9f7165e20c486040b8ec0d48c)              | [zlib](https://github.com/Core-2-Extreme/citro2d_custom/blob/7c7275903602fab9f7165e20c486040b8ec0d48c/LICENSE)             | ([original](https://github.com/devkitPro/citro2d))      |
+| [citro3d](https://github.com/Core-2-Extreme/citro3d_custom/tree/464b01141f7acf2ae8564a2c0a936b9c17c13219)              | [zlib](https://github.com/Core-2-Extreme/citro3d_custom/blob/464b01141f7acf2ae8564a2c0a936b9c17c13219/LICENSE)             | ([original](https://github.com/devkitPro/citro3d))      |
+| [curl](https://github.com/Core-2-Extreme/curl_for_3DS/tree/555f7e95e296995fb0fd1cc227ebb45912845eb5)                   | [MIT-like](https://github.com/Core-2-Extreme/curl_for_3DS/blob/555f7e95e296995fb0fd1cc227ebb45912845eb5/LICENSES/curl.txt) | ([original](https://github.com/curl/curl))              |
+| [dav1d](https://github.com/Core-2-Extreme/dav1d_for_3DS/tree/c40d9602629d39ae63bedd50c31fd926fa5eb51e)                 | [BSD 2-Clause](https://github.com/Core-2-Extreme/dav1d_for_3DS/blob/c40d9602629d39ae63bedd50c31fd926fa5eb51e/COPYING)      | ([original](https://github.com/videolan/dav1d))         |
+| [FFmpeg](https://github.com/Core-2-Extreme/FFmpeg_for_3DS/tree/dab24a843203b2b191f40e39907fb146f688ec5c)               | [GPLv3](https://github.com/Core-2-Extreme/FFmpeg_for_3DS/blob/dab24a843203b2b191f40e39907fb146f688ec5c/COPYING.GPLv3)      | ([original](https://github.com/FFmpeg/FFmpeg))          |
+| [jsmn](https://github.com/Core-2-Extreme/jsmn_for_3DS/tree/25647e692c7906b96ffd2b05ca54c097948e879c)                   | [MIT](https://github.com/Core-2-Extreme/jsmn_for_3DS/blob/25647e692c7906b96ffd2b05ca54c097948e879c/LICENSE)                | ([original](https://github.com/zserge/jsmn))            |
+| [LAME](https://github.com/Core-2-Extreme/libmp3lame_for_3DS/tree/f416c19b3140a8610507ebb60ac7cd06e94472b8)             | [LGPLv2](https://github.com/Core-2-Extreme/libmp3lame_for_3DS/blob/f416c19b3140a8610507ebb60ac7cd06e94472b8/COPYING)       | ([original](https://github.com/gypified/libmp3lame))    |
+| [libctru](https://github.com/Core-2-Extreme/libctru_custom/tree/7e3e1c1be4217093db1baca96d6dcf0db23588f4)              | [zlib](https://github.com/Core-2-Extreme/libctru_custom/blob/7e3e1c1be4217093db1baca96d6dcf0db23588f4/README.md)           | ([original](https://github.com/devkitPro/libctru))      |
+| [Mbed TLS](https://github.com/Core-2-Extreme/mbedtls_for_3DS/tree/ecf77d19bfc2b2630cccabb033ab7227ff6b0beb)            | [GPLv2](https://github.com/Core-2-Extreme/mbedtls_for_3DS/blob/ecf77d19bfc2b2630cccabb033ab7227ff6b0beb/LICENSE)           | ([original](https://github.com/Mbed-TLS/mbedtls))       |
+| [nghttp2](https://github.com/Core-2-Extreme/nghttp2_for_3DS/tree/68cb6900fde14c77f0cd7add0e094a862960eb99)             | [MIT](https://github.com/Core-2-Extreme/nghttp2_for_3DS/blob/68cb6900fde14c77f0cd7add0e094a862960eb99/COPYING)             | ([original](https://github.com/nghttp2/nghttp2))        |
+| [TF-PSA-Crypto](https://github.com/Core-2-Extreme/TF-PSA-Crypto_for_3ds/tree/961565a777395a8098342ab1e92ced8fb3ab5681) | [GPLv2](https://github.com/Core-2-Extreme/TF-PSA-Crypto_for_3ds/blob/961565a777395a8098342ab1e92ced8fb3ab5681/LICENSE)     | ([original](https://github.com/Mbed-TLS/TF-PSA-Crypto)) |
+| [stb](https://github.com/Core-2-Extreme/stb_for_3DS/tree/8c3b4f1a58aa77f9d020a3c9f53847e231e37fc5)                     | [Public Domain](https://github.com/Core-2-Extreme/stb_for_3DS/blob/8c3b4f1a58aa77f9d020a3c9f53847e231e37fc5/LICENSE)       | ([original](https://github.com/nothings/stb))           |
+| [x264](https://github.com/Core-2-Extreme/x264_for_3DS/tree/c24e06c2e184345ceb33eb20a15d1024d9fd3497)                   | [GPLv2](https://github.com/Core-2-Extreme/x264_for_3DS/blob/c24e06c2e184345ceb33eb20a15d1024d9fd3497/COPYING)              | ([original](https://github.com/mirror/x264))            |
+| [zlib](https://github.com/Core-2-Extreme/zlib_for_3DS/tree/da607da739fa6047df13e66a2af6b8bec7c2a498)                   | [zlib](https://github.com/Core-2-Extreme/zlib_for_3DS/blob/da607da739fa6047df13e66a2af6b8bec7c2a498/LICENSE)               | ([original](https://github.com/madler/zlib))            |
 
 ## Credits
 * Core 2 Extreme

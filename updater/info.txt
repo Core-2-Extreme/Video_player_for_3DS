@@ -1,7 +1,15 @@
-<newest>1</newest>
-<3dsx_available>0</3dsx_available>
-<cia_available>0</cia_available>
-<3dsx_url></3dsx_url>
-<cia_url></cia_url>
-<patch_note>...
+<newest>1152</newest>
+<3dsx_available>1</3dsx_available>
+<cia_available>1</cia_available>
+<3dsx_url>https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/refs/heads/main/updater/Video_player_for_3DS.3dsx</3dsx_url>
+<cia_url>https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/refs/heads/main/updater/Video_player_for_3DS.cia</cia_url>
+<patch_note>v1.8.0
+Added FTP server.
+Updated devkitARM to r68-1.
+WebVTT has been supported.
+PGSSub has been supported.
+H266 (VVC) has been supported.
+One eye freeze on dual-track 3D videos have been fixed.
+Crash on HW decoder when try to play 1920px+ videos
+has been fixed (by disabling HW decoder on such videos).
 </patch_note>

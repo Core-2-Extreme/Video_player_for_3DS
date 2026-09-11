@@ -1,0 +1,7 @@
+<newest>1</newest>
+<3dsx_available>0</3dsx_available>
+<cia_available>0</cia_available>
+<3dsx_url></3dsx_url>
+<cia_url></cia_url>
+<patch_note>...
+</patch_note>

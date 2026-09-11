@@ -38,9 +38,9 @@
 #define CHECK_INTERNET_SUCCESS_TEXT			(const char*)("NetworkManager is online")
 #define CHECK_INTERNET_INTERVAL_MS			(uint64_t)(10000)
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 #define UPDATE_FILE_PREFIX					/*(const char*)(*/"Vid_"/*)*/
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #define UPDATE_FLASH_INTERVAL_MS			(uint64_t)(50)		//Interval for flash mode update.
 #define UPDATE_SYSTEM_INFO_INTERVAL_MS		(uint64_t)(250)		//Interval for system info update.
@@ -67,7 +67,7 @@
 #define HID_SCROLL_BAR_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_scroll_bar, (k)))
 #define HID_SCROLL_BAR_CFM(k)				(bool)(HID_SCROLL_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_bar.selected))
 #define HID_SCROLL_BAR_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 //Updater: Edition list (.3dsx and .cia).
 #define HID_UPDATE_3DSX_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_3dsx_button, (k)))
 #define HID_UPDATE_3DSX_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_3dsx_button, (k)))
@@ -83,7 +83,7 @@
 #define HID_UPDATE_CLOSE_APP_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_close_app_button, (k)))
 #define HID_UPDATE_CLOSE_APP_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_close_app_button, (k)))
 #define HID_UPDATE_CLOSE_APP_DESEL(k)		(bool)(DEF_HID_PHY_NP((k).touch))
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 //Language: English.
 #define HID_LANG_EN_SEL(k)					(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_english_button, (k)))
 #define HID_LANG_EN_CFM(k)					(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(sem_english_button, (k)))
@@ -309,7 +309,7 @@
 #define SUB_MENU_WIDTH						(double)(300)	//Element width for sub menu in px.
 #define SUB_MENU_HEIGHT						(double)(20)	//Element height for sub menu in px.
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 #define UPDATER_X_START						(double)(0)		//X start offset for updater in px.
 #define UPDATER_Y_START						(double)(0)		//Y start offset for updater in px.
 #define UPDATER_X_END						(double)(320)	//X end offset for updater in px.
@@ -331,7 +331,7 @@
 	#define UPDATER_INSTALL_HEIGHT				(double)(20)	//Element height for install button in px.
 	#define UPDATER_PATCH_NOTE_WIDTH			(double)(300)	//Element width for patch note in px.
 	#define UPDATER_PATCH_NOTE_HEIGHT			(double)(190)	//Element height for patch note in px.
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #define LANG_X_START						(double)(0)		//X start offset for lang in px.
 #define LANG_Y_START						(double)(0)		//Y start offset for lang in px.
@@ -441,10 +441,10 @@
 #define FONT_SIZE_SUB_TITLE					(float)(15.00)	//Font size for subtitle messages.
 #define FONT_SIZE_SUB_MENU					(float)(22.50)	//Font size for sub menu messages.
 #define FONT_SIZE_BACK						(float)(16.50)	//Font size for back buttons.
-#if !(((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER) && (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER))
+#if !((DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER) && (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER))
 #define FONT_SIZE_DISABLED_MSG				(float)(22.50)	//Font size for disabled messages.
-#endif //!(((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER) && (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER))
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //!((DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER) && (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER))
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 //Updater.
 #define FONT_SIZE_UPDATER_STATE				(float)(15.00)	//Font size for state messages.
 #define FONT_SIZE_UPDATER_CLOSE				(float)(14.00)	//Font size for close app messages.
@@ -452,7 +452,7 @@
 #define FONT_SIZE_UPDATER_EDITION			(float)(18.00)	//Font size for edition messages.
 #define FONT_SIZE_UPDATER_INSTALL			(float)(18.00)	//Font size for install button messages.
 #define FONT_SIZE_UPDATER_3DSX_PATH			(float)(15.00)	//Font size for 3dsx download path messages.
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 //Languages.
 #define FONT_SIZE_LANG						(float)(22.50)	//Font size for each language button.
 #define FONT_SIZE_LANG_CN_DE_WORKAROUND		(float)(19.50)	//Font size for chinese button in German (temporal workaround).
@@ -719,14 +719,14 @@ typedef struct
 //Prototypes.
 static void Sem_scroll_bar(Draw_image_data* bar, double current_pos, double min_pos);
 static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y, uint32_t color);
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static void Sem_updater_status(Sem_update_state state, bool is_new_ver_available, const Str_data* additional_text, double x, double y, uint32_t color);
 static void Sem_updater_close_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color);
 static void Sem_updater_edition_button(const Sem_updater_edition* edition, Sem_edition selected_edition, double x, double y, uint32_t color, uint32_t disabled_color, uint32_t selected_color);
 static void Sem_updater_3dsx_path(Sem_msg msg_id, const Str_data* path, double x, double y, uint32_t color);
 static void Sem_updater_install_button(Draw_image_data* button, Sem_msg msg_id, double x, double y, uint32_t color);
 static void Sem_updater_patch_note(const Str_data* patch_note, double x, double y, uint32_t color);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color);
 static void Sem_font_button(Draw_image_data* button, uint8_t index, uint32_t color, double x, double y);
 static void Sem_license_button(const Sem_license* license, double x, double y, uint32_t color);
@@ -756,9 +756,9 @@ void Sem_record_thread(void* arg);
 void Sem_check_connectivity_thread(void* arg);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 void Sem_update_thread(void* arg);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 //Variables.
 static bool sem_main_run = false;
@@ -826,7 +826,7 @@ static bool sem_should_ram_usage_monitor_running = false;
 static Thread sem_check_connectivity_thread = NULL;
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static bool sem_check_update_request = false;
 static bool sem_new_version_available = false;
 static bool sem_dl_file_request = false;
@@ -839,7 +839,7 @@ static Thread sem_update_thread = NULL;
 static Draw_image_data sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_close_app_button = { 0, };
 static Sem_edition sem_selected_edition = EDTION_NONE;
 static Sem_update_state sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
 static Draw_image_data sem_monitor_cpu_usage_on_button = { 0, }, sem_monitor_cpu_usage_off_button = { 0, };
@@ -886,13 +886,13 @@ static const Sem_sub_menu sem_sub_menus[] =
 	{ .msg = MSG_BATTERY,	.menu_id = MENU_BATTERY,	},
 	{ .msg = MSG_RECORDING,	.menu_id = MENU_RECORDING,	},
 };
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static const Sem_updater_edition sem_updater_editions[] =
 {
 	{ .is_available = &sem_is_3dsx_available,	.msg = MSG_3DSX,	.edition_id = EDTION_3DSX,	.button = &sem_3dsx_button,	},
 	{ .is_available = &sem_is_cia_available,	.msg = MSG_CIA,		.edition_id = EDTION_CIA,	.button = &sem_cia_button,	},
 };
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static const Sem_language sem_languages[] =
 {
 	{ .lang = "en",		.msg = MSG_ENGLISH,		.button = &sem_english_button,		},
@@ -1424,9 +1424,9 @@ void Sem_init(void)
 	sem_check_connectivity_thread = threadCreate(Sem_check_connectivity_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 1, false);
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 	sem_update_thread = threadCreate(Sem_update_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_NORMAL, 0, false);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	sem_record_thread = threadCreate(Sem_record_thread, NULL, DEF_THREAD_STACKSIZE, DEF_THREAD_PRIORITY_HIGH, 0, false);
@@ -1449,7 +1449,7 @@ void Sem_init(void)
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected, sizeof(sem_menu_button[i].selected));
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 	//Updater.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request, sizeof(sem_dl_file_request));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request, sizeof(sem_check_update_request));
@@ -1461,7 +1461,7 @@ void Sem_init(void)
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected, sizeof(sem_cia_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected, sizeof(sem_dl_install_button.selected));
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected, sizeof(sem_close_app_button.selected));
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
 	Util_watch_add(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request, sizeof(sem_reload_msg_request));
@@ -1637,12 +1637,12 @@ void Sem_draw_init(void)
 	sem_dump_log_button = Draw_get_empty_image();
 	sem_license_this_app_button = Draw_get_empty_image();
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 	sem_3dsx_button = Draw_get_empty_image();
 	sem_cia_button = Draw_get_empty_image();
 	sem_dl_install_button = Draw_get_empty_image();
 	sem_close_app_button = Draw_get_empty_image();
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #if DEF_CPU_USAGE_API_ENABLE
 	sem_monitor_cpu_usage_on_button = Draw_get_empty_image();
@@ -1733,10 +1733,10 @@ void Sem_exit(void)
 	}
 
 	//Exit threads.
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_update_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
 	threadFree(sem_update_thread);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 	DEF_LOG_RESULT_SMART(result, threadJoin(sem_encode_thread, DEF_THREAD_WAIT_TIME), (result == DEF_SUCCESS), result);
@@ -1768,7 +1768,7 @@ void Sem_exit(void)
 	for(uint32_t i = 0; i < MENU_MAX; i++)
 		Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_menu_button[i].selected);
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 	//Updater.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_file_request);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_check_update_request);
@@ -1780,7 +1780,7 @@ void Sem_exit(void)
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_cia_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_dl_install_button.selected);
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_close_app_button.selected);
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 	//Languages.
 	Util_watch_remove(WATCH_HANDLE_SETTINGS_MENU, &sem_reload_msg_request);
@@ -2002,7 +2002,7 @@ void Sem_main(void)
 		}
 		else if (sem_selected_menu_mode == MENU_UPDATE)
 		{
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 			draw_x = UPDATER_X;
 			draw_y = (sem_y_offset + UPDATER_Y);
 
@@ -2077,7 +2077,7 @@ void Sem_main(void)
 #else
 			Draw_c("☢Updater is disabled\non this app.☢", 10, 25, FONT_SIZE_DISABLED_MSG, DEF_DRAW_RED);
 			sem_y_min = 0;
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 		}
 		else if (sem_selected_menu_mode == MENU_LANGAGES)
 		{
@@ -2551,9 +2551,9 @@ void Sem_hid(const Hid_info* key)
 	{
 		bool is_exfont_busy = (Exfont_is_loading_external_font() || Exfont_is_unloading_external_font());
 		bool record_request = false;
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 		const bool is_available[EDTION_MAX] = { sem_is_3dsx_available, sem_is_cia_available, };
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
 
@@ -2582,7 +2582,7 @@ void Sem_hid(const Hid_info* key)
 				sem_scroll_bar.selected = true;
 			else if (sem_selected_menu_mode == MENU_UPDATE)
 			{
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 				if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 				{
 					if (HID_UPDATE_3DSX_SEL(*key) && sem_is_3dsx_available)
@@ -2597,7 +2597,7 @@ void Sem_hid(const Hid_info* key)
 					if(HID_UPDATE_CLOSE_APP_SEL(*key))
 						sem_close_app_button.selected = true;
 				}
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 			}
 			else if (sem_selected_menu_mode == MENU_LANGAGES)
 			{
@@ -2768,11 +2768,11 @@ void Sem_hid(const Hid_info* key)
 						sem_selected_menu_mode = (Sem_menu)i;
 						if (sem_selected_menu_mode == MENU_UPDATE)
 						{
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 							if(sem_update_progress != UPDATE_STATE_CHECKING && sem_update_progress != UPDATE_STATE_DOWNLOADING
 							&& sem_update_progress != UPDATE_STATE_INSTALLING)
 								sem_check_update_request = true;
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 						}
 
 						//Reset key state on scene change.
@@ -2793,7 +2793,7 @@ void Sem_hid(const Hid_info* key)
 				}
 				else if (sem_selected_menu_mode == MENU_UPDATE)
 				{
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 					if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 					{
 						if (HID_UPDATE_3DSX_CFM(*key) && sem_is_3dsx_available)
@@ -2808,7 +2808,7 @@ void Sem_hid(const Hid_info* key)
 						if(HID_UPDATE_CLOSE_APP_CFM(*key))
 							Menu_set_must_exit_flag(true);
 					}
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 				}
 				else if (sem_selected_menu_mode == MENU_LANGAGES)
 				{
@@ -3211,7 +3211,7 @@ void Sem_hid(const Hid_info* key)
 		}
 		if(HID_BACK_DESEL(*key) || sem_scroll_mode)
 			sem_back_button.selected = false;
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 		if(HID_UPDATE_3DSX_DESEL(*key) || sem_scroll_mode)
 			sem_3dsx_button.selected = false;
 		if(HID_UPDATE_CIA_DESEL(*key) || sem_scroll_mode)
@@ -3220,7 +3220,7 @@ void Sem_hid(const Hid_info* key)
 			sem_dl_install_button.selected = false;
 		if(HID_UPDATE_CLOSE_APP_DESEL(*key) || sem_scroll_mode)
 			sem_close_app_button.selected = false;
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 		if(HID_LANG_EN_DESEL(*key) || sem_scroll_mode)
 			sem_english_button.selected = false;
 		if(HID_LANG_JP_DESEL(*key) || sem_scroll_mode)
@@ -3370,7 +3370,7 @@ static void Sem_sub_menu_button(const Sem_sub_menu* sub_menu, double x, double y
 	}
 }
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static void Sem_updater_status(Sem_update_state state, bool is_new_ver_available, const Str_data* additional_text, double x, double y, uint32_t color)
 {
 	double height = (state == UPDATE_STATE_UPDATE_SUCCESS ? UPDATER_STATUS_SUCCESS_HEIGHT : UPDATER_STATUS_HEIGHT);
@@ -3490,7 +3490,7 @@ static void Sem_updater_patch_note(const Str_data* patch_note, double x, double 
 		DRAW_BACKGROUND_ENTIRE_BOX_CROP, &background, DEF_DRAW_WEAK_LIME);
 	}
 }
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
 static void Sem_language_button(const Sem_language* language, const char* current_lang, double x, double y, uint32_t color, uint32_t selected_color)
 {
@@ -4606,7 +4606,7 @@ void Sem_check_connectivity_thread(void* arg)
 }
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 
-#if ((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 void Sem_update_thread(void* arg)
 {
 	(void)arg;
@@ -4669,11 +4669,7 @@ void Sem_update_thread(void* arg)
 				save_parameters.buffer_size = 0x20000;
 				save_parameters.downloaded_size = &sem_dled_size;
 
-#if DEF_CURL_API_ENABLE
 				DEF_LOG_RESULT_SMART(result, Util_curl_save_data(&save_parameters), (result == DEF_SUCCESS), result);
-#else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_save_data(&save_parameters), (result == DEF_SUCCESS), result);
-#endif //DEF_CURL_API_ENABLE
 			}
 			else
 			{
@@ -4684,11 +4680,7 @@ void Sem_update_thread(void* arg)
 				dl_parameters.max_size = 0x20000;
 				dl_parameters.downloaded_size = &sem_dled_size;
 
-#if DEF_CURL_API_ENABLE
 				DEF_LOG_RESULT_SMART(result, Util_curl_dl_data(&dl_parameters), (result == DEF_SUCCESS), result);
-#else
-				DEF_LOG_RESULT_SMART(result, Util_httpc_dl_data(&dl_parameters), (result == DEF_SUCCESS), result);
-#endif //DEF_CURL_API_ENABLE
 
 				buffer = dl_parameters.data;
 			}
@@ -4824,4 +4816,4 @@ void Sem_update_thread(void* arg)
 	DEF_LOG_STRING("Thread exit.");
 	threadExit(0);
 }
-#endif //((DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE) && DEF_SEM_ENABLE_UPDATER)
+#endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)

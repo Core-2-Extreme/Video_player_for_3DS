@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "system/util/hid_types.h"
 
-#define DEF_SEM_CHECK_UPDATE_URL		/*(const char*)(*/"https://script.google.com/macros/s/AKfycbwTd3jzV0npUE9MNKmZIv3isazVR5D9_7A8rexsG1vr9SE7iavDBxgtzlph8dZipwu9/exec"/*)*/
+#define DEF_SEM_CHECK_UPDATE_URL		/*(const char*)(*/"https://raw.githubusercontent.com/Core-2-Extreme/Video_player_for_3DS/refs/heads/main/updater/info.txt"/*)*/
 
 #define DEF_SEM_ENABLE_ICON
 //#define DEF_SEM_ENABLE_NAME
@@ -41,7 +41,7 @@ typedef uint8_t Sem_model;
 
 //You need to enable DEF_CONVERTER_SW_API_ENABLE **and** DEF_ENCODER_VIDEO_AUDIO_API_ENABLE as well to use screen recorder.
 #define DEF_SEM_ENABLE_SCREEN_RECORDER		/*(bool)(*/false/*)*/
-//You need to enable DEF_HTTPC_API_ENABLE **or** DEF_CURL_API_ENABLE as well to use updater.
+//You need to enable DEF_CURL_API_ENABLE as well to use updater.
 #define DEF_SEM_ENABLE_UPDATER				/*(bool)(*/true/*)*/
 
 typedef struct

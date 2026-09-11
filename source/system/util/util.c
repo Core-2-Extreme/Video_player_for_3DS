@@ -117,6 +117,11 @@ static const Util_lib_info util_lib_info[DEF_UTIL_LIB_INFO_COUNT] =
 		.license = "BSD 2-Clause", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/dav1d_for_3DS/c40d9602629d39ae63bedd50c31fd926fa5eb51e/COPYING",
 	},
 	{
+		//No version API, version below is based on latest tag "v1.1.0".
+		.name = "jsmn", .ver = "1.1.0",
+		.license = "MIT", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/jsmn_for_3DS/25647e692c7906b96ffd2b05ca54c097948e879c/LICENSE",
+	},
+	{
 		//No version API, version below is based on commit message "lame: add vanilla lame v3.99.5".
 		.name = "LAME", .ver = "3.99.5",
 		.license = "LGPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/libmp3lame_for_3DS/f416c19b3140a8610507ebb60ac7cd06e94472b8/COPYING",
@@ -159,6 +164,16 @@ static const Util_lib_info util_lib_info[DEF_UTIL_LIB_INFO_COUNT] =
 	{
 		.name = "TF-PSA-Crypto", .ver = TF_PSA_CRYPTO_VERSION_STRING,
 		.license = "GPLv2", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/TF-PSA-Crypto_for_3ds/961565a777395a8098342ab1e92ced8fb3ab5681/LICENSE",
+	},
+	{
+		//No version API, version below is based on header comment "stb_image - v2.30 - public domain image loader".
+		.name = "stb image", .ver = "2.3.0",
+		.license = "Public Domain", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/stb_for_3DS/8c3b4f1a58aa77f9d020a3c9f53847e231e37fc5/LICENSE",
+	},
+	{
+		//No version API, version below is based on header comment "stb_image_write - v1.16 - public domain".
+		.name = "stb image write", .ver = "1.1.6",
+		.license = "Public Domain", .full_license_url = "https://raw.githubusercontent.com/Core-2-Extreme/stb_for_3DS/8c3b4f1a58aa77f9d020a3c9f53847e231e37fc5/LICENSE",
 	},
 	{
 		.name = "x264", .ver = X264_POINTVER,

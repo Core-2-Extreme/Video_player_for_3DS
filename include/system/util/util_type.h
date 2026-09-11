@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DEF_UTIL_LIB_INFO_COUNT		(uint8_t)(16)
+#define DEF_UTIL_LIB_INFO_COUNT		(uint8_t)(19)
 
 typedef struct
 {

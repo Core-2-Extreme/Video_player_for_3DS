@@ -1,5 +1,5 @@
-#if !defined(DEF_VIDEO_PLAYER_HPP)
-#define DEF_VIDEO_PLAYER_HPP
+#if !defined(DEF_VIDEO_PLAYER_H)
+#define DEF_VIDEO_PLAYER_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/hid_types.h"
@@ -13,7 +13,7 @@
 #define DEF_VID_NAME_PLAIN				/*(const char*)(*/"Video player"/*)*/
 #define DEF_VID_VER						/*(const char*)(*/"v1.8.0"/*)*/
 #define DEF_VID_SPEAKER_SESSION_ID		(uint8_t)(0)
-#define DEF_VID_DECORDER_SESSION_ID		(uint8_t)(0)
+#define DEF_VID_DECODER_SESSION_ID		(uint8_t)(0)
 
 bool Vid_query_init_flag(void);
 
@@ -33,4 +33,4 @@ void Vid_exit(bool draw);
 
 void Vid_main(void);
 
-#endif //!defined(DEF_VIDEO_PLAYER_HPP)
+#endif //!defined(DEF_VIDEO_PLAYER_H)

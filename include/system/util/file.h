@@ -75,8 +75,8 @@ uint32_t Util_file_delete_file(const char* file_name, const char* dir_path);
 uint32_t Util_file_check_file_size(const char* file_name, const char* dir_path, uint64_t* file_size);
 
 /**
- * @brief Check if a file exist.
- * If file exist, return DEF_SUCCESS
+ * @brief Check if a file exists.
+ * If file exist, return DEF_SUCCESS.
  * @param file_name (in) File name.
  * @param dir_path (in) Directory path.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
@@ -93,7 +93,7 @@ uint32_t Util_file_check_file_exist(const char* file_name, const char* dir_path)
 uint32_t Util_file_create_directory(const char* dir_path);
 
 /**
- * @brief Read all files name and type in directory.
+ * @brief Read all file names and type in directory.
  * @param dir_path (in) Directory path.
  * @param detected (out) Number of files in directory.
  * @param file_name (out) Array for file name.
@@ -122,8 +122,8 @@ uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_pa
 uint32_t Util_file_delete_directory(const char* dir_path);
 
 /**
- * @brief Check if a directory exist.
- * If directory exist, return DEF_SUCCESS
+ * @brief Check if a directory exists.
+ * If directory exist, return DEF_SUCCESS.
  * @param dir_path (in) Directory path.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @note Thread safe.

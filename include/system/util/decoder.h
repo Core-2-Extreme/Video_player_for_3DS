@@ -20,7 +20,7 @@
 uint32_t Util_decoder_open_file(const char* path, uint8_t* num_of_audio_tracks, uint8_t* num_of_video_tracks, uint8_t* num_of_subtitle_tracks, uint8_t session);
 
 /**
- * @brief Initialize a audio decoder.
+ * @brief Initialize an audio decoder.
  * @param num_of_audio_tracks (in) Number of audio tracks.
  * @param session (in) Session number.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_*.
@@ -105,10 +105,10 @@ void Util_decoder_subtitle_get_info(Media_s_info* subtitle_info, uint8_t subtitl
 void Util_decoder_clear_cache_packet(uint8_t session);
 
 /**
- * @brief Get number of buffered packet.
+ * @brief Get number of buffered packets.
  * Always return 0 if file is not opened.
  * @param session (in) Session number.
- * @return Number of buffered packet.
+ * @return Number of buffered packets.
  * @warning Thread dangerous (untested).
 */
 uint16_t Util_decoder_get_available_packet_num(uint8_t session);

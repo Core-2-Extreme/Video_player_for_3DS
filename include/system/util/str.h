@@ -67,7 +67,7 @@ uint32_t Util_str_format(Str_data* string, const char* format_string, ...) DEF_S
 uint32_t Util_str_vformat(Str_data* string, const char* format_string, va_list args);
 
 /**
- * @brief Same as Util_str_format() except this will append text instead of overwrite old one.
+ * @brief Same as Util_str_format() except this will append text instead of overwriting old one.
  * @param string (in/out) Pointer for target struct.
  * @param format_string (in) Pointer for format string.
  * @param additional_parameters (in) Additional parameters for format_string.
@@ -120,7 +120,7 @@ bool Util_str_has_data(const Str_data* string);
 /**
  * @brief Check if string is same.
  * @note This is case sensitive.
- * This is same as Util_str_is_same_c() except second arg is Str_data* isntead of char*.
+ * This is same as Util_str_is_same_c() except second arg is Str_data* instead of char*.
  * @param string_a (in) Pointer for string to compare.
  * @param string_b (in) Pointer for string to compare.
  * @return True if both strings are empty (length == 0) or have the exact same string, otherwise false.
@@ -131,7 +131,7 @@ bool Util_str_is_same(const Str_data* string_a, const Str_data* string_b);
 /**
  * @brief Check if string is same.
  * @note This is case sensitive.
- * This is same as Util_str_is_same() except second arg is char* isntead of Str_data*.
+ * This is same as Util_str_is_same() except second arg is char* instead of Str_data*.
  * @param string_a (in) Pointer for string to compare.
  * @param string_b (in) Pointer for string to compare.
  * @return True if both strings are empty (length == 0) or have the exact same string, otherwise false.

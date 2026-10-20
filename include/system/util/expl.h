@@ -10,14 +10,14 @@
 #if DEF_EXPL_API_ENABLE
 
 /**
- * @brief Initialize a explorer API.
+ * @brief Initialize an explorer API.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested).
 */
 uint32_t Util_expl_init(void);
 
 /**
- * @brief Uninitialize a explorer API.
+ * @brief Uninitialize an explorer API.
  * Do nothing if explorer API is not initialized.
  * @warning Thread dangerous (untested).
 */
@@ -32,9 +32,9 @@ void Util_expl_exit(void);
 uint32_t Util_expl_query_current_dir(Str_data* dir_name);
 
 /**
- * @brief Query num of files in current directory.
+ * @brief Query number of files in current directory.
  * Always return 0 if explorer API is not initialized.
- * @return Num of file in current directory.
+ * @return Number of files in current directory.
  * @warning Thread dangerous (untested).
 */
 uint32_t Util_expl_query_num_of_file(void);

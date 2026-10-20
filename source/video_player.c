@@ -309,7 +309,7 @@
 #define HID_INFO_DECODING_GRAPH_SEL(k)				(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_decode_graph_button, (k)))
 #define HID_INFO_DECODING_GRAPH_CFM(k)				(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_decode_graph_button, (k)))
 #define HID_INFO_DECODING_GRAPH_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
-//Info: Toggle color converison time graph.
+//Info: Toggle color conversion time graph.
 #define HID_INFO_CONVERSION_GRAPH_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(vid_player.show_color_conversion_graph_button, (k)))
 #define HID_INFO_CONVERSION_GRAPH_CFM(k)			(bool)((DEF_HID_PR_EM((k).touch, 1) || DEF_HID_HD((k).touch)) && DEF_HID_INIT_LAST_IN(vid_player.show_color_conversion_graph_button, (k)))
 #define HID_INFO_CONVERSION_GRAPH_DESEL(k)			(bool)(DEF_HID_PHY_NP((k).touch))
@@ -448,7 +448,7 @@ typedef enum
 	MSG_REPEAT,
 	MSG_IN_ORDER,
 	MSG_RANDOM,
-	MSG_MOVE_MODE_DIABLE,
+	MSG_MOVE_MODE_DISABLE,
 	MSG_MOVE_MODE_ENABLE_BOTH,
 	MSG_MOVE_MODE_ENABLE_VIDEO,
 	MSG_MOVE_MODE_ENABLE_SUBTITLE,
@@ -696,7 +696,7 @@ typedef struct
 	Thread init_thread;								//Init thread handle.
 	Thread exit_thread;								//Exit thread handle.
 
-	//Mutexs.
+	//Mutexes.
 	Sync_data texture_init_free_lock;				//Mutex for initializing and freeing texture buffers.
 	Sync_data delay_update_lock;					//Mutex for updating video delay information.
 } Vid_player;
@@ -742,7 +742,7 @@ void frame_worker_thread_start(const void* ptr);
 void frame_worker_thread_end(const void* ptr);
 void dav1d_worker_task_start(const void* ptr);
 void dav1d_worker_task_end(const void* ptr);
-//Removed static from thread to make symbol accessble from other files (for debug).
+//Removed static from thread to make symbol accessible from other files (for debug).
 void Vid_init_thread(void* arg);
 void Vid_exit_thread(void* arg);
 void Vid_decode_thread(void* arg);
@@ -2577,7 +2577,7 @@ void Vid_main(void)
 					if(IS_X_IN_BOX(x_offset, MENU_SETTING_0_ITEM_WIDTH, MENU_BOX_X, MENU_BOX_X_END) && IS_Y_IN_BOX(y_offset, MENU_SETTING_0_ITEM_HEIGHT, MENU_BOX_Y, MENU_BOX_Y_END))
 					{
 						uint32_t temp_back_color = (vid_player.move_content_button.selected ? DEF_DRAW_CYAN : DEF_DRAW_WEAK_CYAN);
-						Vid_move current_move_content_mode = (Vid_move)(MSG_MOVE_MODE_DIABLE + vid_player.move_content_mode);
+						Vid_move current_move_content_mode = (Vid_move)(MSG_MOVE_MODE_DISABLE + vid_player.move_content_mode);
 
 						Util_str_format(&format_str, "%s%s", DEF_STR_NEVER_NULL(&vid_msg[MSG_MOVE_MODE]), DEF_STR_NEVER_NULL(&vid_msg[current_move_content_mode]));
 
@@ -2826,7 +2826,7 @@ void Vid_main(void)
 					//Decoding time.
 					if(vid_player.show_decoding_graph)
 					{
-						uint16_t displaying_frame_pos = (MENU_INFO_ITEM_WIDTH - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID)));
+						uint16_t displaying_frame_pos = (MENU_INFO_ITEM_WIDTH - ((vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECODER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECODER_SESSION_ID)));
 
 						for(uint16_t i = 0; i < (DEBUG_GRAPH_ELEMENTS - 1); i++)
 							Draw_line(i, (y_offset - (vid_player.video_decoding_time_list[i] / 2)), DEF_DRAW_RED, (i + 1), (y_offset - (vid_player.video_decoding_time_list[i + 1] / 2)), DEF_DRAW_RED, 1);
@@ -2878,7 +2878,7 @@ void Vid_main(void)
 						uint32_t temp_color = (vid_player.show_packet_buffer_graph ? DEF_DRAW_MAGENTA : color);
 						uint32_t temp_back_color = (vid_player.show_packet_buffer_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
-						Util_str_format(&format_str, "Compressed buffer: %" PRIu16, Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID));
+						Util_str_format(&format_str, "Compressed buffer: %" PRIu16, Util_decoder_get_available_packet_num(DEF_VID_DECODER_SESSION_ID));
 						Draw_texture(&vid_player.show_packet_buffer_graph_button, temp_back_color, x_offset, y_offset, MENU_INFO_LEFT_ITEM_WIDTH, MENU_INFO_ITEM_HEIGHT);
 						Draw(&format_str, x_offset, y_offset, FONT_SIZE_INFO, temp_color);
 					}
@@ -2898,9 +2898,9 @@ void Vid_main(void)
 						uint32_t temp_back_color = (vid_player.show_raw_video_buffer_graph_button.selected ? DEF_DRAW_LIME : DEF_DRAW_WEAK_LIME);
 
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-							buffer_health = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
+							buffer_health = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECODER_SESSION_ID);
 						else
-							buffer_health = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
+							buffer_health = Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECODER_SESSION_ID);
 
 						//Only display EYE_LEFT info.
 						buffer_health_ms = (buffer_health * vid_player.video_frametime[EYE_LEFT]);
@@ -3528,10 +3528,10 @@ static void Vid_update_decoding_statistics_every_100ms(void)
 				vid_player.raw_video_buffer_list[k][i - 1] = vid_player.raw_video_buffer_list[k][i];
 		}
 
-		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
+		vid_player.packet_buffer_list[last_index] = Util_decoder_get_available_packet_num(DEF_VID_DECODER_SESSION_ID);
 		vid_player.raw_audio_buffer_list[last_index] = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
-		vid_player.raw_video_buffer_list[EYE_LEFT][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECORDER_SESSION_ID);
-		vid_player.raw_video_buffer_list[EYE_RIGHT][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECORDER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_LEFT][last_index] = (vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING) ? Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECODER_SESSION_ID) : Util_decoder_video_get_available_raw_image_num(0, DEF_VID_DECODER_SESSION_ID);
+		vid_player.raw_video_buffer_list[EYE_RIGHT][last_index] = Util_decoder_video_get_available_raw_image_num(1, DEF_VID_DECODER_SESSION_ID);
 
 		vid_player.audio_decoding_avg_time = 0;
 		vid_player.video_decoding_avg_time = 0;
@@ -3699,7 +3699,7 @@ static bool Vid_can_use_hw_decoder(const Vid_player* player, uint8_t num_of_vide
 static bool Vid_can_use_hw_color_converter(const Vid_player* player, uint8_t num_of_video_tracks)
 {
 	if(!player->use_hw_color_conversion)
-		return false;//Used doesn't allow use of HW converter.
+		return false;//User doesn't allow use of HW converter.
 	if(player->sub_state & PLAYER_SUB_STATE_HW_DECODING)
 		return false;//HW decoder also converts color space, no conversion needed.
 
@@ -4250,7 +4250,7 @@ void frame_worker_thread_start(const void* frame_handle)
 		}
 	}
 
-	//Not registerd, find free space and register.
+	//Not registered, find free space and register.
 	if(index == UINT8_MAX)
 	{
 		for(uint8_t i = 0; i < DEBUG_GRAPH_TEMP_ELEMENTS; i++)
@@ -4294,7 +4294,7 @@ void frame_worker_thread_end(const void* frame_handle)
 	}
 	Util_sync_unlock(&vid_player.delay_update_lock);
 
-	//Not registerd.
+	//Not registered.
 	if(index == UINT8_MAX)
 		return;
 
@@ -4739,14 +4739,14 @@ void Vid_decode_thread(void* arg)
 						}
 
 						DEF_LOG_RESULT_SMART(result, Util_decoder_open_file(path.buffer, &num_of_audio_tracks, &num_of_video_tracks,
-						&num_of_subtitle_tracks, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
+						&num_of_subtitle_tracks, DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
 
 						Util_str_free(&path);
 
 						if(result != DEF_SUCCESS)
 							goto error;
 
-						//Overwirte number of tracks if disable flag is set.
+						//Overwrite number of tracks if disable flag is set.
 						if(vid_player.disable_audio)
 						{
 							num_of_audio_tracks = 0;
@@ -4777,13 +4777,13 @@ void Vid_decode_thread(void* arg)
 								//Continue initialization.
 							}
 
-							DEF_LOG_RESULT_SMART(result, Util_decoder_audio_init(num_of_audio_tracks, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
+							DEF_LOG_RESULT_SMART(result, Util_decoder_audio_init(num_of_audio_tracks, DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
 							if(result == DEF_SUCCESS)
 							{
 								uint8_t playing_ch = 0;
 
 								for(uint8_t i = 0; i < num_of_audio_tracks; i++)
-									Util_decoder_audio_get_info(&vid_player.audio_info[i], i, DEF_VID_DECORDER_SESSION_ID);
+									Util_decoder_audio_get_info(&vid_player.audio_info[i], i, DEF_VID_DECODER_SESSION_ID);
 
 								vid_player.selected_audio_track = 0;
 
@@ -4815,7 +4815,7 @@ void Vid_decode_thread(void* arg)
 							num_of_video_tracks = Util_min(num_of_video_tracks, EYE_MAX);
 
 							DEF_LOG_RESULT_SMART(result, Util_decoder_video_init(vid_player.lower_resolution, num_of_video_tracks,
-							request_threads, request_thread_type, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
+							request_threads, request_thread_type, DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
 							if(result == DEF_SUCCESS)
 							{
 								Sem_state state = { 0, };
@@ -4824,7 +4824,7 @@ void Vid_decode_thread(void* arg)
 
 								for(uint8_t i = 0; i < num_of_video_tracks; i++)
 								{
-									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECORDER_SESSION_ID);
+									Util_decoder_video_get_info(&vid_player.video_info[i], i, DEF_VID_DECODER_SESSION_ID);
 
 									if(vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_LEFT_RIGHT
 									|| vid_player.video_info[i]._3d_type == MEDIA_3D_TYPE_RIGHT_LEFT)
@@ -4856,7 +4856,7 @@ void Vid_decode_thread(void* arg)
 									//We can use HW decoding for this video.
 									vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state | PLAYER_SUB_STATE_HW_DECODING);
 
-									DEF_LOG_RESULT_SMART(result, Util_decoder_mvd_init(DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
+									DEF_LOG_RESULT_SMART(result, Util_decoder_mvd_init(DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
 									if(result != DEF_SUCCESS)
 									{
 										Util_err_set_error_message(Util_err_get_error_msg(result), "Couldn't initialize HW video decoder!!!!!", DEF_LOG_GET_FUNCTION_NAME(), result);
@@ -4941,11 +4941,11 @@ void Vid_decode_thread(void* arg)
 
 						if(num_of_subtitle_tracks > 0)
 						{
-							DEF_LOG_RESULT_SMART(result, Util_decoder_subtitle_init(num_of_subtitle_tracks, DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
+							DEF_LOG_RESULT_SMART(result, Util_decoder_subtitle_init(num_of_subtitle_tracks, DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
 							if(result == DEF_SUCCESS)
 							{
 								for(uint8_t i = 0; i < num_of_subtitle_tracks; i++)
-									Util_decoder_subtitle_get_info(&vid_player.subtitle_info[i], i, DEF_VID_DECORDER_SESSION_ID);
+									Util_decoder_subtitle_get_info(&vid_player.subtitle_info[i], i, DEF_VID_DECODER_SESSION_ID);
 
 								vid_player.selected_subtitle_track = 0;
 								vid_player.num_of_subtitle_tracks = num_of_subtitle_tracks;
@@ -5131,8 +5131,8 @@ void Vid_decode_thread(void* arg)
 
 					if(vid_player.state == PLAYER_STATE_PREPARE_SEEKING)
 					{
-						//Currently threre is on going seek request, retry later.
-						//Add seek request if threre is no another seek request.
+						//Currently there is on going seek request, retry later.
+						//Add seek request if there is no another seek request.
 						DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_command_queue, DECODE_THREAD_SEEK_REQUEST,
 						NULL, QUEUE_OP_TIMEOUT_US, QUEUE_OPTION_DO_NOT_ADD_IF_EXIST), (result == DEF_SUCCESS), result);
 
@@ -5293,7 +5293,7 @@ void Vid_decode_thread(void* arg)
 					if(vid_player.num_of_audio_tracks > 0)
 						Util_speaker_exit();
 
-					Util_decoder_close_file(DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_close_file(DEF_VID_DECODER_SESSION_ID);
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_CONVERSION)
 						Util_converter_y2r_exit();
 
@@ -5490,7 +5490,7 @@ void Vid_decode_thread(void* arg)
 						break;
 
 					//Do nothing if we completely reached EOF.
-					if(vid_player.is_eof && Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID) == 0)
+					if(vid_player.is_eof && Util_decoder_get_available_packet_num(DEF_VID_DECODER_SESSION_ID) == 0)
 						break;
 
 					if(vid_player.state == PLAYER_STATE_PLAYING)
@@ -5555,7 +5555,7 @@ void Vid_decode_thread(void* arg)
 			if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
 			{
 				required_free_ram = (vid_player.ram_to_keep_base + (HW_DECODER_RAW_IMAGE_SIZE * 2));
-				num_of_video_buffers = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
+				num_of_video_buffers = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECODER_SESSION_ID);
 			}
 			else
 			{
@@ -5567,10 +5567,10 @@ void Vid_decode_thread(void* arg)
 				for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
 				{
 					required_free_ram = Util_max(required_free_ram, (vid_player.ram_to_keep_base + (SW_DECODER_RAW_IMAGE_SIZE(i) * (num_of_active_threads + 1))));
-					num_of_video_buffers = Util_max(num_of_video_buffers, Util_decoder_video_get_available_raw_image_num(i, DEF_VID_DECORDER_SESSION_ID));
+					num_of_video_buffers = Util_max(num_of_video_buffers, Util_decoder_video_get_available_raw_image_num(i, DEF_VID_DECODER_SESSION_ID));
 				}
 			}
-			num_of_cached_packets = Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID);
+			num_of_cached_packets = Util_decoder_get_available_packet_num(DEF_VID_DECODER_SESSION_ID);
 			num_of_audio_buffers = Util_speaker_get_available_buffer_num(DEF_VID_SPEAKER_SESSION_ID);
 			audio_buffers_size = Util_speaker_get_available_buffer_size(DEF_VID_SPEAKER_SESSION_ID);
 
@@ -5591,7 +5591,7 @@ void Vid_decode_thread(void* arg)
 			if(!Vid_has_video(vid_player.num_of_video_tracks, vid_player.video_frametime))
 			{
 				//We want to update screen every 100ms hence divide by 100.
-				//(audio_bar_pos has been registerd in watch list.)
+				//(audio_bar_pos has been registered in watch list.)
 				audio_bar_pos = (uint32_t)(vid_player.media_current_pos / 100);
 			}
 
@@ -5705,7 +5705,7 @@ void Vid_decode_thread(void* arg)
 				}
 			}
 
-			result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, DEF_VID_DECORDER_SESSION_ID);
+			result = Util_decoder_parse_packet(&type, &packet_index, &key_frame, DEF_VID_DECODER_SESSION_ID);
 			if(result == DEF_ERR_TRY_AGAIN)//Packet is not ready, try again later.
 			{
 				Util_sleep(5000);
@@ -5735,7 +5735,7 @@ void Vid_decode_thread(void* arg)
 						vid_player.sub_state = (Vid_player_sub_state)(vid_player.sub_state & ~PLAYER_SUB_STATE_SEEK_BACKWARD_WAIT);//Remove seek backward wait bit.
 
 						if(vid_player.seek_start_pos_after_jump < 0)
-							vid_player.seek_start_pos_after_jump = vid_player.media_current_pos;//We've jumped behing destination.
+							vid_player.seek_start_pos_after_jump = vid_player.media_current_pos;//We've jumped behind destination.
 					}
 				}
 				else if(vid_player.seek_start_pos_after_jump < 0 && wait_count == 0)
@@ -5785,7 +5785,7 @@ void Vid_decode_thread(void* arg)
 			{
 				if(vid_player.num_of_audio_tracks > packet_index && packet_index == vid_player.selected_audio_track)
 				{
-					result = Util_decoder_ready_audio_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+					result = Util_decoder_ready_audio_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 					if(result == DEF_SUCCESS)
 					{
 						uint8_t* audio = NULL;
@@ -5797,7 +5797,7 @@ void Vid_decode_thread(void* arg)
 						parameters.converted = NULL;
 
 						osTickCounterStart(&counter);
-						result = Util_decoder_audio_decode(&audio_samples, &audio, &pos, packet_index, DEF_VID_DECORDER_SESSION_ID);
+						result = Util_decoder_audio_decode(&audio_samples, &audio, &pos, packet_index, DEF_VID_DECODER_SESSION_ID);
 						osTickCounterUpdate(&counter);
 						vid_player.audio_decoding_time_list[(DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&counter);
 
@@ -5874,16 +5874,16 @@ void Vid_decode_thread(void* arg)
 						DEF_LOG_RESULT(Util_decoder_ready_audio_packet, false, result);
 				}
 				else//This packet is not what we are looking for now, just skip it.
-					Util_decoder_skip_audio_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_skip_audio_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 			}
 			else if(type == MEDIA_PACKET_TYPE_SUBTITLE)
 			{
 				if(vid_player.num_of_subtitle_tracks > packet_index && packet_index == vid_player.selected_subtitle_track)
 				{
-					result = Util_decoder_ready_subtitle_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+					result = Util_decoder_ready_subtitle_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 					if(result == DEF_SUCCESS)
 					{
-						result = Util_decoder_subtitle_decode(&vid_player.subtitle_data[vid_player.subtitle_index], packet_index, DEF_VID_DECORDER_SESSION_ID);
+						result = Util_decoder_subtitle_decode(&vid_player.subtitle_data[vid_player.subtitle_index], packet_index, DEF_VID_DECODER_SESSION_ID);
 						if(result == DEF_SUCCESS)
 						{
 							Media_s_data* s_data = &vid_player.subtitle_data[vid_player.subtitle_index];
@@ -5905,7 +5905,7 @@ void Vid_decode_thread(void* arg)
 
 								if(vid_player.num_of_video_tracks > 0)
 								{
-									//We can't know if this subtitle is supposed to be shown on which video track, so we jsut use EYE_LEFT.
+									//We can't know if this subtitle is supposed to be shown on which video track, so we just use EYE_LEFT.
 									double sar_width_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_width : 1);
 									double sar_height_ratio = (vid_player.correct_aspect_ratio ? vid_player.video_info[EYE_LEFT].sar_height : 1);
 									double x_scale = ((vid_player.video_info[EYE_LEFT].width * sar_width_ratio) / (s_data->bitmap_x + s_data->bitmap_width));
@@ -5945,7 +5945,7 @@ void Vid_decode_thread(void* arg)
 
 				}
 				else//This packet is not what we are looking for now, just skip it.
-					Util_decoder_skip_subtitle_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_skip_subtitle_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 			}
 			else if(type == MEDIA_PACKET_TYPE_VIDEO)
 			{
@@ -5971,10 +5971,10 @@ void Vid_decode_thread(void* arg)
 							DEF_LOG_RESULT(Util_queue_add, false, result);
 					}
 					else
-						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 				}
 				else//This packet is not what we are looking for now, just skip it.
-					Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_skip_video_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 			}
 		}
 		else
@@ -6030,7 +6030,7 @@ void Vid_decode_video_thread(void* arg)
 					&& (!key_frame || vid_player.allow_skip_key_frames) && vid_player.video_frametime[packet_index] != 0)
 					{
 						skip[packet_index] -= vid_player.video_frametime[packet_index];
-						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+						Util_decoder_skip_video_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 
 						//Notify we've done copying packet to video decoder buffer (we skipped the frame here)
 						//so that decode thread can read the next packet.
@@ -6046,7 +6046,7 @@ void Vid_decode_video_thread(void* arg)
 					{
 						uint32_t queue_result = DEF_ERR_OTHER;
 
-						result = Util_decoder_ready_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+						result = Util_decoder_ready_video_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 
 						//Notify we've done copying packet to video decoder buffer
 						//so that decode thread can read the next packet.
@@ -6068,9 +6068,9 @@ void Vid_decode_video_thread(void* arg)
 								osTickCounterUpdate(&counter);
 
 								if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-									result = Util_decoder_mvd_decode(DEF_VID_DECORDER_SESSION_ID);
+									result = Util_decoder_mvd_decode(DEF_VID_DECODER_SESSION_ID);
 								else
-									result = Util_decoder_video_decode(packet_index, DEF_VID_DECORDER_SESSION_ID);
+									result = Util_decoder_video_decode(packet_index, DEF_VID_DECODER_SESSION_ID);
 
 								osTickCounterUpdate(&counter);
 
@@ -6161,7 +6161,7 @@ void Vid_decode_video_thread(void* arg)
 						}
 						else
 						{
-							Util_decoder_skip_video_packet(packet_index, DEF_VID_DECORDER_SESSION_ID);
+							Util_decoder_skip_video_packet(packet_index, DEF_VID_DECODER_SESSION_ID);
 							DEF_LOG_RESULT(Util_decoder_ready_video_packet, false, result);
 
 							if(result == DEF_ERR_OUT_OF_MEMORY || result == DEF_ERR_OUT_OF_LINEAR_MEMORY)
@@ -6186,11 +6186,11 @@ void Vid_decode_video_thread(void* arg)
 					while(true)
 					{
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-							result = Util_decoder_mvd_decode(DEF_VID_DECORDER_SESSION_ID);
+							result = Util_decoder_mvd_decode(DEF_VID_DECODER_SESSION_ID);
 						else
 						{
 							for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
-								result = Util_decoder_video_decode(i, DEF_VID_DECORDER_SESSION_ID);
+								result = Util_decoder_video_decode(i, DEF_VID_DECODER_SESSION_ID);
 						}
 
 						if(result != DEF_SUCCESS && result != DEF_ERR_DECODER_TRY_AGAIN_NO_OUTPUT && result != DEF_ERR_DECODER_TRY_AGAIN)
@@ -6211,11 +6211,11 @@ void Vid_decode_video_thread(void* arg)
 
 					//Clear cache.
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-						Util_decoder_mvd_clear_raw_image(DEF_VID_DECORDER_SESSION_ID);
+						Util_decoder_mvd_clear_raw_image(DEF_VID_DECODER_SESSION_ID);
 					else
 					{
 						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
-							Util_decoder_video_clear_raw_image(i, DEF_VID_DECORDER_SESSION_ID);
+							Util_decoder_video_clear_raw_image(i, DEF_VID_DECODER_SESSION_ID);
 					}
 
 					//Flush the command queue.
@@ -6306,11 +6306,11 @@ void Vid_convert_thread(void* arg)
 
 					//Clear cache.
 					if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-						Util_decoder_mvd_clear_raw_image(DEF_VID_DECORDER_SESSION_ID);
+						Util_decoder_mvd_clear_raw_image(DEF_VID_DECODER_SESSION_ID);
 					else
 					{
 						for(uint8_t i = 0; i < vid_player.num_of_video_tracks; i++)
-							Util_decoder_video_clear_raw_image(i, DEF_VID_DECORDER_SESSION_ID);
+							Util_decoder_video_clear_raw_image(i, DEF_VID_DECODER_SESSION_ID);
 					}
 
 					//Notify we've done clearing cache.
@@ -6353,9 +6353,9 @@ void Vid_convert_thread(void* arg)
 
 		//Check if we have cached raw images.
 		if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-			num_of_cached_raw_images = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECORDER_SESSION_ID);
+			num_of_cached_raw_images = Util_decoder_mvd_get_available_raw_image_num(DEF_VID_DECODER_SESSION_ID);
 		else
-			num_of_cached_raw_images = Util_decoder_video_get_available_raw_image_num(packet_index, DEF_VID_DECORDER_SESSION_ID);
+			num_of_cached_raw_images = Util_decoder_video_get_available_raw_image_num(packet_index, DEF_VID_DECODER_SESSION_ID);
 
 		//Check for audio buffer.
 		if(vid_player.num_of_audio_tracks > 0)
@@ -6431,19 +6431,19 @@ void Vid_convert_thread(void* arg)
 			{
 				double pos = 0;
 
-				//We doropped a frame.
+				//We dropped a frame.
 				if(vid_player.state != PLAYER_STATE_SEEKING && vid_player.state != PLAYER_STATE_PREPARE_SEEKING)
 					vid_player.total_dropped_frames++;
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
 				{
 					//Hardware decoder can't decode 2 tracks at the same time.
-					Util_decoder_mvd_skip_image(&pos, DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_mvd_skip_image(&pos, DEF_VID_DECODER_SESSION_ID);
 					vid_player.video_current_pos[EYE_LEFT] = pos;
 				}
 				else
 				{
-					Util_decoder_video_skip_image(&pos, packet_index, DEF_VID_DECORDER_SESSION_ID);
+					Util_decoder_video_skip_image(&pos, packet_index, DEF_VID_DECODER_SESSION_ID);
 					vid_player.video_current_pos[packet_index] = pos;
 				}
 			}
@@ -6529,9 +6529,9 @@ void Vid_convert_thread(void* arg)
 				osTickCounterUpdate(&conversion_time_counter);
 
 				if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)//Hardware decoder only supports 1 track at a time.
-					result = Util_decoder_mvd_get_image(&video, &pos, width, height, DEF_VID_DECORDER_SESSION_ID);
+					result = Util_decoder_mvd_get_image(&video, &pos, width, height, DEF_VID_DECODER_SESSION_ID);
 				else
-					result = Util_decoder_video_get_image(&yuv_video, &pos, width, height, packet_index, DEF_VID_DECORDER_SESSION_ID);
+					result = Util_decoder_video_get_image(&yuv_video, &pos, width, height, packet_index, DEF_VID_DECODER_SESSION_ID);
 
 				if(result == DEF_SUCCESS)
 				{
@@ -6593,9 +6593,9 @@ void Vid_convert_thread(void* arg)
 						//Since there's little hope that RAM to be freed by other thread,
 						//give up on this image on memory allocation failure.
 						if(vid_player.sub_state & PLAYER_SUB_STATE_HW_DECODING)
-							Util_decoder_mvd_skip_image(&pos, DEF_VID_DECORDER_SESSION_ID);
+							Util_decoder_mvd_skip_image(&pos, DEF_VID_DECODER_SESSION_ID);
 						else
-							Util_decoder_video_skip_image(&pos, packet_index, DEF_VID_DECORDER_SESSION_ID);
+							Util_decoder_video_skip_image(&pos, packet_index, DEF_VID_DECODER_SESSION_ID);
 					}
 				}
 
@@ -6689,10 +6689,10 @@ void Vid_read_packet_thread(void* arg)
 
 					while(true)
 					{
-						result = Util_decoder_read_packet(DEF_VID_DECORDER_SESSION_ID);
+						result = Util_decoder_read_packet(DEF_VID_DECODER_SESSION_ID);
 						if(result == DEF_SUCCESS)
 						{
-							if(Util_decoder_get_available_packet_num(DEF_VID_DECORDER_SESSION_ID) + 1 >= DEF_DECODER_MAX_CACHE_PACKETS)
+							if(Util_decoder_get_available_packet_num(DEF_VID_DECODER_SESSION_ID) + 1 >= DEF_DECODER_MAX_CACHE_PACKETS)
 							{
 								//Notify we've done reading.
 								DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_READING_NOTIFICATION,
@@ -6749,8 +6749,8 @@ void Vid_read_packet_thread(void* arg)
 						break;
 
 					DEF_LOG_RESULT_SMART(result, Util_decoder_seek(vid_player.seek_pos, MEDIA_SEEK_FLAG_BACKWARD,
-					DEF_VID_DECORDER_SESSION_ID), (result == DEF_SUCCESS), result);
-					Util_decoder_clear_cache_packet(DEF_VID_DECORDER_SESSION_ID);
+					DEF_VID_DECODER_SESSION_ID), (result == DEF_SUCCESS), result);
+					Util_decoder_clear_cache_packet(DEF_VID_DECODER_SESSION_ID);
 
 					//Notify we've done seeking.
 					DEF_LOG_RESULT_SMART(result, Util_queue_add(&vid_player.decode_thread_notification_queue, READ_PACKET_THREAD_FINISHED_SEEKING_NOTIFICATION,

@@ -51,7 +51,7 @@ typedef struct
 	bool is_night;					//Whether night mode is enabled.
 	bool is_flash;					//Whether flash mode is enabled.
 	bool is_eco;					//Whether eco mode is enabled.
-	bool is_wifi_on;				//Whether Wifi is enabled.
+	bool is_wifi_on;				//Whether Wi-Fi is enabled.
 	bool is_top_lcd_on;				//Whether top is enabled.
 	bool is_bottom_lcd_on;			//Whether bottom is enabled.
 	uint8_t top_lcd_brightness;		//Brightness for top LCD.
@@ -76,7 +76,7 @@ typedef struct
 typedef struct
 {
 	bool is_charging;				//Whether charger is active.
-	uint8_t battery_temp;			//Battery temperature in degrees celsius (℃).
+	uint8_t battery_temp;			//Battery temperature in degrees Celsius (℃).
 	uint32_t free_ram;				//Free heap in bytes.
 	uint32_t free_linear_ram;		//Free linear RAM in bytes.
 	uint32_t num_of_launch;			//Number of application launches.
@@ -85,7 +85,7 @@ typedef struct
 	double battery_voltage;			//Battery voltage in volts.
 	char connected_wifi[33];		//Connected network (access point) name (empty string if not connected).
 	char msg[128];					//Preformatted status message.
-	Sem_wifi_signal wifi_signal;	//Wifi signal strength and whether connected to the Internet.
+	Sem_wifi_signal wifi_signal;	//Wi-Fi signal strength and whether connected to the Internet.
 	Sem_model console_model;		//Console model ID.
 	Sem_time time;					//The time.
 } Sem_state;

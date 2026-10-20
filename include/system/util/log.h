@@ -99,7 +99,7 @@ uint32_t Util_log_save_result(const char* caller, const char* function_name, boo
 uint32_t Util_log_save_result_start(const char* caller, const char* function_name, bool is_smart_macro, bool omit_args);
 
 /**
- * @brief Save a end-of-function-call (with elapsed time).
+ * @brief Save an end-of-function-call (with elapsed time).
  * It's recommended to use DEF_LOG_RESULT_SMART or DEF_LOG_RESULT_END().
  * Always return DEF_LOG_INDEX_AUTO if log API is not initialized.
  * @param log_index (in) Log index to append log to, usually returned by Util_log_save_result_start().

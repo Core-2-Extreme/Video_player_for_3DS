@@ -470,7 +470,7 @@
 typedef enum
 {
 	MSG_UPDATE,
-	MSG_LANGAGES,
+	MSG_LANGUAGES,
 	MSG_LCD,
 	MSG_CONTROL,
 	MSG_FONT,
@@ -568,7 +568,7 @@ typedef enum
 	MENU_TOP = -1,
 
 	MENU_UPDATE,		//Updater menu is displayed.
-	MENU_LANGAGES,		//Languages menu is displayed.
+	MENU_LANGUAGES,		//Languages menu is displayed.
 	MENU_LCD,			//LCD menu is displayed.
 	MENU_CONTROL,		//Control menu is displayed.
 	MENU_FONT,			//Font menu is displayed.
@@ -592,17 +592,17 @@ typedef enum
 
 typedef enum
 {
-	EDTION_NONE = -1,
+	EDITION_NONE = -1,
 
-	EDTION_3DSX,		//.3dsx.
-	EDTION_CIA,			//.cia.
+	EDITION_3DSX,		//.3dsx.
+	EDITION_CIA,		//.cia.
 
-	EDTION_MAX,
+	EDITION_MAX,
 } Sem_edition;
 
 typedef enum
 {
-	UPDATE_STATE_UPDATE_FAILURE = -2,	//Downloading/instaling has failed.
+	UPDATE_STATE_UPDATE_FAILURE = -2,	//Downloading/installing has failed.
 	UPDATE_STATE_CHECK_FAILURE = -1,	//Downloading update info has failed.
 
 	UPDATE_STATE_CHECKING,				//Checking (downloading) for update info.
@@ -631,7 +631,7 @@ typedef enum
 
 typedef struct
 {
-	bool is_connect_test_succes;
+	bool is_connect_test_success;
 	uint8_t wifi_state;
 	Sem_model fake_model;
 } Sem_internal_state;
@@ -837,7 +837,7 @@ static uint32_t sem_total_cia_size = 0;
 static uint32_t sem_dled_size = 0;
 static Thread sem_update_thread = NULL;
 static Draw_image_data sem_3dsx_button = { 0, }, sem_cia_button = { 0, }, sem_dl_install_button = { 0, }, sem_close_app_button = { 0, };
-static Sem_edition sem_selected_edition = EDTION_NONE;
+static Sem_edition sem_selected_edition = EDITION_NONE;
 static Sem_update_state sem_update_progress = UPDATE_STATE_CHECK_FAILURE;
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 
@@ -877,7 +877,7 @@ static const Sem_sub_menu sem_sub_menus[] =
 {
 	{ .msg = MSG_LICENSE,	.menu_id = MENU_LICENSE,	},
 	{ .msg = MSG_UPDATE,	.menu_id = MENU_UPDATE,		},
-	{ .msg = MSG_LANGAGES,	.menu_id = MENU_LANGAGES,	},
+	{ .msg = MSG_LANGUAGES,	.menu_id = MENU_LANGUAGES,	},
 	{ .msg = MSG_LCD,		.menu_id = MENU_LCD,		},
 	{ .msg = MSG_CONTROL,	.menu_id = MENU_CONTROL,	},
 	{ .msg = MSG_FONT,		.menu_id = MENU_FONT,		},
@@ -889,8 +889,8 @@ static const Sem_sub_menu sem_sub_menus[] =
 #if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static const Sem_updater_edition sem_updater_editions[] =
 {
-	{ .is_available = &sem_is_3dsx_available,	.msg = MSG_3DSX,	.edition_id = EDTION_3DSX,	.button = &sem_3dsx_button,	},
-	{ .is_available = &sem_is_cia_available,	.msg = MSG_CIA,		.edition_id = EDTION_CIA,	.button = &sem_cia_button,	},
+	{ .is_available = &sem_is_3dsx_available,	.msg = MSG_3DSX,	.edition_id = EDITION_3DSX,	.button = &sem_3dsx_button,	},
+	{ .is_available = &sem_is_cia_available,	.msg = MSG_CIA,		.edition_id = EDITION_CIA,	.button = &sem_cia_button,	},
 };
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 static const Sem_language sem_languages[] =
@@ -2045,7 +2045,7 @@ void Sem_main(void)
 				}
 				draw_x = UPDATER_X;
 
-				if(sem_selected_edition == EDTION_3DSX)
+				if(sem_selected_edition == EDITION_3DSX)
 				{
 					Util_str_format(&format_str, "sdmc:" DEF_MENU_MAIN_DIR "ver/%s%s.3dsx", UPDATE_FILE_PREFIX, DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]));
 
@@ -2079,7 +2079,7 @@ void Sem_main(void)
 			sem_y_min = 0;
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 		}
-		else if (sem_selected_menu_mode == MENU_LANGAGES)
+		else if (sem_selected_menu_mode == MENU_LANGUAGES)
 		{
 			draw_x = LANG_X;
 			draw_y = (sem_y_offset + LANG_Y);
@@ -2552,7 +2552,7 @@ void Sem_hid(const Hid_info* key)
 		bool is_exfont_busy = (Exfont_is_loading_external_font() || Exfont_is_unloading_external_font());
 		bool record_request = false;
 #if (DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
-		const bool is_available[EDTION_MAX] = { sem_is_3dsx_available, sem_is_cia_available, };
+		const bool is_available[EDITION_MAX] = { sem_is_3dsx_available, sem_is_cia_available, };
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 #if (DEF_ENCODER_VIDEO_AUDIO_API_ENABLE && DEF_CONVERTER_SW_API_ENABLE && DEF_SEM_ENABLE_SCREEN_RECORDER)
 		bool can_record = (config.screen_mode == DEF_SEM_SCREEN_MODE_400PX || config.screen_mode == DEF_SEM_SCREEN_MODE_3D);
@@ -2589,7 +2589,7 @@ void Sem_hid(const Hid_info* key)
 						sem_3dsx_button.selected = true;
 					if (HID_UPDATE_CIA_SEL(*key) && sem_is_cia_available)
 						sem_cia_button.selected = true;
-					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDTION_NONE && is_available[sem_selected_edition])
+					if (HID_UPDATE_DL_INSTALL_SEL(*key) && sem_selected_edition != EDITION_NONE && is_available[sem_selected_edition])
 						sem_dl_install_button.selected = true;
 				}
 				else if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
@@ -2599,7 +2599,7 @@ void Sem_hid(const Hid_info* key)
 				}
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 			}
-			else if (sem_selected_menu_mode == MENU_LANGAGES)
+			else if (sem_selected_menu_mode == MENU_LANGUAGES)
 			{
 				if(!sem_reload_msg_request)
 				{
@@ -2797,10 +2797,10 @@ void Sem_hid(const Hid_info* key)
 					if(sem_update_progress == UPDATE_STATE_CHECK_SUCCESS || sem_update_progress == UPDATE_STATE_UPDATE_FAILURE)
 					{
 						if (HID_UPDATE_3DSX_CFM(*key) && sem_is_3dsx_available)
-							sem_selected_edition = EDTION_3DSX;
+							sem_selected_edition = EDITION_3DSX;
 						else if (HID_UPDATE_CIA_CFM(*key) && sem_is_cia_available)
-							sem_selected_edition = EDTION_CIA;
-						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDTION_NONE && is_available[sem_selected_edition])
+							sem_selected_edition = EDITION_CIA;
+						else if (HID_UPDATE_DL_INSTALL_CFM(*key) && sem_selected_edition != EDITION_NONE && is_available[sem_selected_edition])
 							sem_dl_file_request = true;
 					}
 					else if(sem_update_progress == UPDATE_STATE_UPDATE_SUCCESS)
@@ -2810,7 +2810,7 @@ void Sem_hid(const Hid_info* key)
 					}
 #endif //(DEF_CURL_API_ENABLE && DEF_SEM_ENABLE_UPDATER)
 				}
-				else if (sem_selected_menu_mode == MENU_LANGAGES)
+				else if (sem_selected_menu_mode == MENU_LANGUAGES)
 				{
 					if(!sem_reload_msg_request)
 					{
@@ -3847,14 +3847,14 @@ static void Sem_get_system_info(void)
 	if(sem_internal_state.wifi_state == 2)
 	{
 #if (DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
-		if (!sem_internal_state.is_connect_test_succes)
+		if (!sem_internal_state.is_connect_test_success)
 			state.wifi_signal += 4;//Without Internet access.
 #endif //(DEF_CURL_API_ENABLE || DEF_HTTPC_API_ENABLE)
 	}
 	else
 	{
 		state.wifi_signal = DEF_SEM_WIFI_SIGNAL_DISABLED;
-		sem_internal_state.is_connect_test_succes = false;
+		sem_internal_state.is_connect_test_success = false;
 	}
 
 	//Get time.
@@ -3913,7 +3913,7 @@ static void Sem_worker_callback(void)
 			Sem_get_config(&config);
 
 			//Try to load specified language messages, if it fails
-			//(i.e. no translation available), load English messags.
+			//(i.e. no translation available), load English messages.
 			DEF_LOG_RESULT_SMART(result, Sem_load_msg(config.lang), (result == DEF_SUCCESS), result);
 			if (result != DEF_SUCCESS)
 				DEF_LOG_RESULT_SMART(result, Sem_load_msg("en"), (result == DEF_SUCCESS), result);
@@ -4585,15 +4585,15 @@ void Sem_check_connectivity_thread(void* arg)
 
 				if(result == DEF_SUCCESS && (dl_size - 1) == strlen(CHECK_INTERNET_SUCCESS_TEXT)
 				&& strncmp((char*)dl_parameters.data, CHECK_INTERNET_SUCCESS_TEXT, (dl_size - 1)) == 0)
-					sem_internal_state.is_connect_test_succes = true;
+					sem_internal_state.is_connect_test_success = true;
 				else
-					sem_internal_state.is_connect_test_succes = false;
+					sem_internal_state.is_connect_test_success = false;
 
 				free(dl_parameters.data);
 				dl_parameters.data = NULL;
 			}
 			else
-				sem_internal_state.is_connect_test_succes = false;//Wi-Fi is disabled.
+				sem_internal_state.is_connect_test_success = false;//Wi-Fi is disabled.
 		}
 		else
 			Util_sleep(DEF_THREAD_ACTIVE_SLEEP_TIME);
@@ -4632,7 +4632,7 @@ void Sem_update_thread(void* arg)
 			if (sem_check_update_request)
 			{
 				sem_update_progress = UPDATE_STATE_CHECKING;
-				sem_selected_edition = EDTION_NONE;
+				sem_selected_edition = EDITION_NONE;
 				Util_str_set(&url, DEF_SEM_CHECK_UPDATE_URL);
 				sem_new_version_available = false;
 				for (uint32_t i = 0; i < UPDATE_DATA_MAX; i++)
@@ -4650,9 +4650,9 @@ void Sem_update_thread(void* arg)
 				Util_str_set(&dir_path, DEF_MENU_MAIN_DIR "ver/");
 
 				Util_str_format(&filename, UPDATE_FILE_PREFIX "%s.", DEF_STR_NEVER_NULL(&sem_newest_ver_data[UPDATE_DATA_NEWEST_VERSION]));
-				if(sem_selected_edition == EDTION_3DSX)
+				if(sem_selected_edition == EDITION_3DSX)
 					Util_str_format_append(&filename, "3dsx");
-				else if(sem_selected_edition == EDTION_CIA)
+				else if(sem_selected_edition == EDITION_CIA)
 					Util_str_format_append(&filename, "cia");
 
 				Util_file_delete_file(filename.buffer, dir_path.buffer);//Delete old file if exist.
@@ -4743,9 +4743,9 @@ void Sem_update_thread(void* arg)
 						sem_is_cia_available = Util_str_is_same_c(&sem_newest_ver_data[UPDATE_DATA_CIA_AVAILABLE], "1");
 
 						if(envIsHomebrew() && sem_is_3dsx_available)
-							sem_selected_edition = EDTION_3DSX;
+							sem_selected_edition = EDITION_3DSX;
 						else if(sem_is_cia_available)
-							sem_selected_edition = EDTION_CIA;
+							sem_selected_edition = EDITION_CIA;
 					}
 
 					sem_update_progress = UPDATE_STATE_CHECK_SUCCESS;
@@ -4754,11 +4754,11 @@ void Sem_update_thread(void* arg)
 				else if (sem_dl_file_request)
 				{
 					sem_update_progress = UPDATE_STATE_INSTALLING;
-					if (sem_selected_edition == EDTION_3DSX)
+					if (sem_selected_edition == EDITION_3DSX)
 						sem_update_progress = UPDATE_STATE_UPDATE_SUCCESS;
 
 					Draw_set_refresh_needed(true);
-					if (sem_selected_edition == EDTION_CIA)
+					if (sem_selected_edition == EDITION_CIA)
 					{
 						uint64_t offset = 0;
 						Handle am_handle = 0;

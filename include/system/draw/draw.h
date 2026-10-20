@@ -348,7 +348,7 @@ void Draw_free_texture(uint32_t sheet_map_num);
  * Do nothing if draw API is not initialized.
  * @param is_eco (in) Whether eco mode is enabled
  * @param is_charging (in) Whether charger is active.
- * @param wifi_signal (in) Wifi signal strength.
+ * @param wifi_signal (in) Wi-Fi signal strength.
  * @param battery_level (in) Battery level in %.
  * @param message (in) Optional message, can be NULL.
  * @warning Thread dangerous (untested).

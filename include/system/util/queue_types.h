@@ -6,7 +6,7 @@
 
 typedef uint8_t Queue_option;
 #define QUEUE_OPTION_NONE					(Queue_option)(0 << 0)	//Default.
-#define QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	(Queue_option)(1 << 0)	//Do not add the event if the same event ID exist.
+#define QUEUE_OPTION_DO_NOT_ADD_IF_EXIST	(Queue_option)(1 << 0)	//Do not add the event if the same event ID exists.
 #define QUEUE_OPTION_SEND_TO_FRONT			(Queue_option)(1 << 1)	//Send an event to the front of the queue, use it for high priority event.
 
 typedef struct

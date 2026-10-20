@@ -1,5 +1,5 @@
-#if !defined(DEF_JSON_HPP)
-#define DEF_JSON_HPP
+#if !defined(DEF_JSON_H)
+#define DEF_JSON_H
 #include <stdbool.h>
 #include <stdint.h>
 #include "system/util/json_types.h"
@@ -42,4 +42,4 @@ void Util_json_free(Json_data* parsed_json_data);
 
 #endif //DEF_JSON_API_ENABLE
 
-#endif //!defined(DEF_JSON_HPP)
+#endif //!defined(DEF_JSON_H)

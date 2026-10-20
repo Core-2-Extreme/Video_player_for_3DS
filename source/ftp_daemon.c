@@ -322,7 +322,7 @@ typedef struct
 	Thread init_thread;						//Init thread handle.
 	Thread exit_thread;						//Exit thread handle.
 
-	//Mutexs.
+	//Mutexes.
 	Sync_data mutex;						//Mutex for UI data and config.
 } Ftpd;
 

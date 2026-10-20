@@ -5,14 +5,14 @@
 #include "system/draw/exfont_types.h"
 
 /**
- * @brief Initialize a external font API.
+ * @brief Initialize an external font API.
  * @return On success DEF_SUCCESS, on failure DEF_ERR_* or Nintendo API's error.
  * @warning Thread dangerous (untested).
 */
 uint32_t Exfont_init(void);
 
 /**
- * @brief Uninitialize a external font API.
+ * @brief Uninitialize an external font API.
  * Do nothing if external font API is not initialized.
  * @warning Thread dangerous (untested).
 */

@@ -411,6 +411,8 @@ uint32_t Util_muxer_mux(const char* file_path, uint8_t session)
 
 	av_write_trailer(util_muxer_format_context[session]);
 	avio_close(util_muxer_format_context[session]->pb);
+	avcodec_free_context(&util_audio_muxer_context[session]);
+	avcodec_free_context(&util_video_muxer_context[session]);
 	avformat_free_context(util_muxer_format_context[session]);
 	return DEF_SUCCESS;
 
@@ -423,7 +425,11 @@ uint32_t Util_muxer_mux(const char* file_path, uint8_t session)
 	ffmpeg_api_failed:
 	av_packet_free(&util_audio_muxer_packet[session]);
 	av_packet_free(&util_video_muxer_packet[session]);
-	avio_close(util_muxer_format_context[session]->pb);
+	if(util_muxer_format_context[session])
+		avio_close(util_muxer_format_context[session]->pb);
+
+	avcodec_free_context(&util_audio_muxer_context[session]);
+	avcodec_free_context(&util_video_muxer_context[session]);
 	avformat_free_context(util_muxer_format_context[session]);
 	return DEF_ERR_FFMPEG_RETURNED_NOT_SUCCESS;
 }

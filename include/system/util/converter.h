@@ -95,15 +95,11 @@ uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t**
 
 #else
 
-#define Util_converter_yuv422_to_rgb565le(...) DEF_ERR_DISABLED
-#define Util_converter_yuv422_to_yuv420p(...) DEF_ERR_DISABLED
 #define Util_converter_yuv420p_to_rgb565le(...) DEF_ERR_DISABLED
 #define Util_converter_yuv420p_to_rgb888le(...) DEF_ERR_DISABLED
 #define Util_converter_rgba8888be_to_rgba8888le(...) DEF_ERR_DISABLED
 #define Util_converter_rgb888be_to_rgb888le(...) DEF_ERR_DISABLED
 #define Util_converter_rgb888_rotate_90_degree(...) DEF_ERR_DISABLED
-#define Util_converter_rgb888le_to_yuv420p(...) DEF_ERR_DISABLED
-#define Util_converter_rgb565le_to_rgb888le(...) DEF_ERR_DISABLED
 
 #endif //DEF_CONVERTER_SW_API_ENABLE
 

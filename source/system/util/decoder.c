@@ -2443,9 +2443,9 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 	double timebase = 0;
 
 #if DEF_DECODER_DMA_ENABLE
-	uint32_t dma_result[3] = { 0, 0, 0, };
-	Handle dma_handle[3] = { 0, 0, 0, };
-	DmaConfig dma_config;
+	uint32_t dma_result[3] = { 0, };
+	Handle dma_handle[3] = { 0, };
+	DmaConfig dma_config = { 0, };
 #endif //DEF_DECODER_DMA_ENABLE
 
 	if(!raw_data || !current_pos || width == 0 || height == 0
@@ -2578,7 +2578,7 @@ uint32_t Util_decoder_mvd_get_image(uint8_t** raw_data, double* current_pos, uin
 #if DEF_DECODER_DMA_ENABLE
 	uint32_t dma_result = 0;
 	Handle dma_handle = 0;
-	DmaConfig dma_config;
+	DmaConfig dma_config = { 0, };
 #endif //DEF_DECODER_DMA_ENABLE
 
 	if(!raw_data || !current_pos || width == 0 || height == 0 || session >= DEF_DECODER_MAX_SESSIONS)

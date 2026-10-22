@@ -664,7 +664,7 @@ uint32_t Util_converter_y2r_init(void)
 uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rgb565, uint16_t width, uint16_t height, bool texture_format)
 {
 	uint32_t result = DEF_ERR_OTHER;
-	Y2RU_ConversionParams y2r_parameters;
+	Y2RU_ConversionParams y2r_parameters = { 0, };
 	Handle conversion_finish_event_handle = 0;
 
 	if(!util_y2r_init)
@@ -678,7 +678,6 @@ uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t*
 	if(!*rgb565)
 		goto out_of_memory;
 
-	memset(&y2r_parameters, 0x0, sizeof(y2r_parameters));
 	y2r_parameters.input_format = INPUT_YUV420_INDIV_8;
 	y2r_parameters.output_format = OUTPUT_RGB_16_565;
 	y2r_parameters.rotation = ROTATION_NONE;

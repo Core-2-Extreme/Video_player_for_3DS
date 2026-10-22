@@ -1044,7 +1044,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 				}
 				else
 				{
-					//hiragana: U+3040[0xE3, 0x81, 0x80 ]~U+309F[0xE3, 0x82, 0x9F], passed
+					//hiragana: U+3040[0xE3, 0x81, 0x80]~U+309F[0xE3, 0x82, 0x9F], passed
 					if(block == DEF_EXFONT_BLOCK_HIRAGANA)
 					{
 						if(character->buffer[1] == 0x81)

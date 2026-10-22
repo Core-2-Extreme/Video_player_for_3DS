@@ -2428,9 +2428,8 @@ static void Ftpd_server_thread(void* arg)
 		bool has_data_connection = false;
 		int32_t poll_result = 0;
 		uint32_t id = 0;
-		uint32_t max_handles = ((MAX_CLIENTS * 3) + 1);
 		void* data = NULL;
-		struct pollfd handles[max_handles];
+		struct pollfd handles[((MAX_CLIENTS * 3) + 1)] = { 0, };
 		nfds_t count = 0;
 
 		//Listening sockets.

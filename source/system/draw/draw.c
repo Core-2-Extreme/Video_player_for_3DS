@@ -471,7 +471,7 @@ uint32_t Draw_texture_set_data_direct(Draw_image_data* image, uint8_t* raw_image
 #if DEF_DRAW_DMA_ENABLE
 	uint32_t dma_result = 0;
 	Handle dma_handle = 0;
-	DmaConfig dma_config;
+	DmaConfig dma_config = { 0, };
 #else
 	uint32_t tex_offset = 0;
 	uint32_t buffer_offset = 0;
@@ -545,10 +545,10 @@ uint32_t Draw_texture_set_data_direct(Draw_image_data* image, uint8_t* raw_image
 uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint32_t pic_width, uint32_t pic_height, uint32_t width_offset, uint32_t height_offset)
 {
 	uint8_t pixel_size = 0;
-	uint16_t increase_list_x[4]; //= { 4, 12, 4, 44, }
-	uint16_t increase_list_y[8]; //= { 2, 6, 2, 22, 2, 6, 2, ((tex_size_x * 8) - 42), };
 	uint8_t increase_list_x_offset = 0;
 	uint8_t increase_list_y_offset = 0;
+	uint16_t increase_list_x[4] = { 0, };
+	uint16_t increase_list_y[8] = { 0, };
 	uint32_t x_max = 0;
 	uint32_t y_max = 0;
 	uint32_t c3d_pos = 0;

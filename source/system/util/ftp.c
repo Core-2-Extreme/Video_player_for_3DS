@@ -2147,7 +2147,7 @@ static void Ftp_process_stor_stou_appe_data(Ftp_client* client)
 			}
 			else
 			{
-				DEF_LOG_FORMAT("Couldn't write to file \"%s%s\"!!!!!", client->retrieve.dir.buffer, client->retrieve.file_name.buffer);
+				DEF_LOG_FORMAT("Couldn't write to file \"%s%s\"!!!!!", client->store.dir.buffer, client->store.file_name.buffer);
 				DEF_LOG_RESULT(Util_file_save_to_file, false, result);
 				snprintf(client->message_buffer, sizeof(client->message_buffer), "Catastrophic internal failure!!!!!");
 				client->response = FTP_RESPONSE_STATUS_SERVICE_UNAVAILABLE;

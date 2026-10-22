@@ -909,7 +909,7 @@ void Ftp_process_pasv(Ftp_client* client)
 		uint32_t ip = 0;
 
 		if(Ftp_is_loopback_ip(ntohl(client->control_address.sin_addr.s_addr)))
-			ip = (127 | (0 << 16) | (0 << 16) | (1 << 24));
+			ip = (127 | (0 << 8) | (0 << 16) | (1 << 24));//"127.0.0.1".
 		else if(Ftp_is_local_ip(ntohl(client->control_address.sin_addr.s_addr)))
 			ip = client->my_local_address_passive;
 		else

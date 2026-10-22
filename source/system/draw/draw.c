@@ -31,8 +31,8 @@
 #define TOP_BATTERY_WIDTH			(double)(30)	//Element width for top UI battery icon in px.
 	#define TOP_BATTERY_LEVEL_WIDTH		(double)(20)//Element width for top UI battery level drawing area in px.
 	#define TOP_BATTERY_LEVEL_HEIGHT	(double)(9)	//Element height for top UI battery level drawing area in px.
-	#define TOP_BATTERY_LEVEL_OFFSET_X	(double)(7)	//Offset relatice to batter icon (for X direction) in px.
-	#define TOP_BATTERY_LEVEL_OFFSET_Y	(double)(3)	//Offset relatice to batter icon (for Y direction) in px.
+	#define TOP_BATTERY_LEVEL_OFFSET_X	(double)(7)	//Offset relative to battery icon (for X direction) in px.
+	#define TOP_BATTERY_LEVEL_OFFSET_Y	(double)(3)	//Offset relative to battery icon (for Y direction) in px.
 #define TOP_ICON_WIDTH				(double)(15)	//Element width for other top UI icons in px.
 
 #define BOT_BOX_X					(double)(0)		//Box X offset for bottom UI in px.

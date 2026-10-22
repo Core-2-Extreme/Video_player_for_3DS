@@ -858,4 +858,4 @@ static uint32_t Util_json_unescape(const char* escaped_string, Str_data* unescap
 	error:
 	return result;
 }
-#endif //DEF_CURL_API_ENABLE
+#endif //DEF_JSON_API_ENABLE

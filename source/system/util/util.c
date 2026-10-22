@@ -233,7 +233,7 @@ static void* Util_realloc_heap_to_linear(void* ptr, size_t size)
 
 	return new_ptr;
 
-	//Portable but need to realloc on heap onec
+	//Portable but need to realloc on heap once
 	//so that it may fail if we are running low on heap.
 
 	/*

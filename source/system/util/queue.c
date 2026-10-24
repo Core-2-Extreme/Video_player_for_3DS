@@ -73,15 +73,15 @@ uint32_t Util_queue_create(Queue_data* queue, uint32_t max_items)
 	if(queue->data || queue->event_id)
 		goto queue_already_inited;
 
-	memset(queue, 0x0, sizeof(Queue_data));
+	memset(queue, 0x00, sizeof(Queue_data));
 
 	queue->data = (void**)malloc(max_items * sizeof(void*));
 	queue->event_id = (uint32_t*)malloc(max_items * sizeof(uint32_t));
 	if(!queue->data || !queue->event_id)
 		goto out_of_memory;
 
-	memset(queue->data, 0x0, (max_items * sizeof(void*)));
-	memset(queue->event_id, 0x0, (max_items * sizeof(uint32_t)));
+	memset(queue->data, 0x00, (max_items * sizeof(void*)));
+	memset(queue->event_id, 0x00, (max_items * sizeof(uint32_t)));
 	queue->max_items = max_items;
 	queue->next_index = 0;
 	queue->reference_count = 0;
@@ -392,7 +392,7 @@ void Util_queue_delete(Queue_data* queue)
 	free(queue->event_id);
 	queue->data = NULL;
 	queue->event_id = NULL;
-	memset(queue, 0x0, sizeof(Queue_data));
+	memset(queue, 0x00, sizeof(Queue_data));
 
 	Util_sync_unlock(&util_queue_mutex);
 }

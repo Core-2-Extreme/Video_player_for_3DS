@@ -3911,8 +3911,8 @@ static void Vid_init_player_data(void)
 {
 	vid_player.state = PLAYER_STATE_IDLE;
 	vid_player.sub_state = PLAYER_SUB_STATE_NONE;
-	memset(vid_player.file.name, 0x0, sizeof(vid_player.file.name));
-	memset(vid_player.file.directory, 0x0, sizeof(vid_player.file.directory));
+	memset(vid_player.file.name, 0x00, sizeof(vid_player.file.name));
+	memset(vid_player.file.directory, 0x00, sizeof(vid_player.file.directory));
 	vid_player.file.index = 0;
 }
 
@@ -3965,8 +3965,8 @@ static void Vid_init_video_data(void)
 		vid_player.video_info[i].codec_width = 0;
 		vid_player.video_info[i].codec_height = 0;
 		vid_player.video_info[i].framerate = 0;
-		memset(vid_player.video_info[i].format_name, 0x0, sizeof(vid_player.video_info[i].format_name));
-		memset(vid_player.video_info[i].short_format_name, 0x0, sizeof(vid_player.video_info[i].short_format_name));
+		memset(vid_player.video_info[i].format_name, 0x00, sizeof(vid_player.video_info[i].format_name));
+		memset(vid_player.video_info[i].short_format_name, 0x00, sizeof(vid_player.video_info[i].short_format_name));
 		strcpy(vid_player.video_info[i].format_name, "n/a");
 		strcpy(vid_player.video_info[i].short_format_name, "n/a");
 		vid_player.video_info[i].duration = 0;
@@ -4000,9 +4000,9 @@ static void Vid_init_audio_data(void)
 		vid_player.audio_info[i].sample_rate = 0;
 		vid_player.audio_info[i].ch = 0;
 		vid_player.audio_info[i].duration = 0;
-		memset(vid_player.audio_info[i].format_name, 0x0, sizeof(vid_player.audio_info[i].format_name));
-		memset(vid_player.audio_info[i].short_format_name, 0x0, sizeof(vid_player.audio_info[i].short_format_name));
-		memset(vid_player.audio_info[i].track_lang, 0x0, sizeof(vid_player.audio_info[i].track_lang));
+		memset(vid_player.audio_info[i].format_name, 0x00, sizeof(vid_player.audio_info[i].format_name));
+		memset(vid_player.audio_info[i].short_format_name, 0x00, sizeof(vid_player.audio_info[i].short_format_name));
+		memset(vid_player.audio_info[i].track_lang, 0x00, sizeof(vid_player.audio_info[i].track_lang));
 		strcpy(vid_player.audio_info[i].format_name, "n/a");
 		strcpy(vid_player.audio_info[i].short_format_name, "n/a");
 		strcpy(vid_player.audio_info[i].track_lang, "n/a");
@@ -4022,9 +4022,9 @@ static void Vid_init_subtitle_data(void)
 
 	for(uint8_t i = 0; i < DEF_DECODER_MAX_SUBTITLE_TRACKS; i++)
 	{
-		memset(vid_player.subtitle_info[i].format_name, 0x0, sizeof(vid_player.subtitle_info[i].format_name));
-		memset(vid_player.subtitle_info[i].short_format_name, 0x0, sizeof(vid_player.subtitle_info[i].short_format_name));
-		memset(vid_player.subtitle_info[i].track_lang, 0x0, sizeof(vid_player.subtitle_info[i].track_lang));
+		memset(vid_player.subtitle_info[i].format_name, 0x00, sizeof(vid_player.subtitle_info[i].format_name));
+		memset(vid_player.subtitle_info[i].short_format_name, 0x00, sizeof(vid_player.subtitle_info[i].short_format_name));
+		memset(vid_player.subtitle_info[i].track_lang, 0x00, sizeof(vid_player.subtitle_info[i].track_lang));
 		strcpy(vid_player.subtitle_info[i].format_name, "n/a");
 		strcpy(vid_player.subtitle_info[i].short_format_name, "n/a");
 		strcpy(vid_player.subtitle_info[i].track_lang, "n/a");

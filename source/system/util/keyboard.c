@@ -105,7 +105,7 @@ uint32_t Util_keyboard_launch(Str_data* out_data, Keyboard_button* pressed_butto
 		goto api_error;
 	}
 
-	memset(input_text, 0x0, input_buffer_size);
+	memset(input_text, 0x00, input_buffer_size);
 	swkbdInit(&util_keyboard, util_keyboard_type, util_keyboard_num_of_buttons, util_keyboard_max_length);//Number of characters.
 	swkbdSetHintText(&util_keyboard, util_keyboard_hint_text.buffer);
 	swkbdSetValidation(&util_keyboard, util_keyboard_valid_type, 0, 0);

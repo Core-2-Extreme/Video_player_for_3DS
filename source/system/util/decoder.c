@@ -2281,7 +2281,7 @@ uint32_t Util_decoder_subtitle_decode(Media_s_data* subtitle_data, uint8_t packe
 						if(!subtitle_data->text)
 							goto out_of_memory;
 
-						memset(subtitle_data->text, 0x0, (size + 1));
+						memset(subtitle_data->text, 0x00, (size + 1));
 						destination = subtitle_data->text;
 						remaining = size;
 

@@ -46,7 +46,7 @@ uint32_t Util_mic_init(uint32_t buffer_size)
 	if(!util_mic_buffer)
 		goto out_of_memory;
 
-	memset(util_mic_buffer, 0x0, buffer_size);
+	memset(util_mic_buffer, 0x00, buffer_size);
 	result = micInit(util_mic_buffer, buffer_size);
 	if(result != DEF_SUCCESS)
 	{

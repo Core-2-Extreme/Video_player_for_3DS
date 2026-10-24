@@ -392,7 +392,7 @@ int __wrap_pthread_attr_destroy(pthread_attr_t* attr)
 	if(!attr)
 		return EINVAL;
 
-	memset(attr, 0x0, sizeof(pthread_attr_t));
+	memset(attr, 0x00, sizeof(pthread_attr_t));
 	return 0;
 }
 

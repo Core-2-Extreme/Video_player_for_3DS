@@ -93,7 +93,7 @@ uint32_t Util_sync_create(Sync_data* sync_object, Sync_type type)
 	if(Util_sync_is_valid(sync_object))
 		goto object_already_inited;
 
-	memset(sync_object, 0x0, sizeof(Sync_data));
+	memset(sync_object, 0x00, sizeof(Sync_data));
 	sync_object->internal_object = (Sync_internal_data*)malloc(sizeof(Sync_internal_data));
 	if(!sync_object->internal_object)
 		goto out_of_memory;

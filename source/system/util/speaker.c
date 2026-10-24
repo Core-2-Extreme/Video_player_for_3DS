@@ -88,7 +88,7 @@ uint32_t Util_speaker_set_audio_info(uint8_t play_ch, uint8_t music_ch, uint32_t
 		free(util_ndsp_buffer[play_ch][i].data_vaddr);
 		util_ndsp_buffer[play_ch][i].data_vaddr = NULL;
 	}
-	memset(util_ndsp_buffer[play_ch], 0, sizeof(util_ndsp_buffer[play_ch]));
+	memset(util_ndsp_buffer[play_ch], 0x00, sizeof(util_ndsp_buffer[play_ch]));
 
 	return DEF_SUCCESS;
 

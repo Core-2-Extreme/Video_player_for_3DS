@@ -4464,12 +4464,12 @@ void Sem_record_thread(void* arg)
 
 					for(uint16_t i = 0; i < 240; i++)
 					{
-						memset(both_bgr + offset, 0x0, 40 * 3);
+						memset(both_bgr + offset, 0x00, 40 * 3);
 						offset += 40 * 3;
 						memcpy(both_bgr + offset, bot_bgr + bot_bgr_offset, 320 * 3);
 						offset += 320 * 3;
 						bot_bgr_offset += 320 * 3;
-						memset(both_bgr + offset, 0x0, 40 * 3);
+						memset(both_bgr + offset, 0x00, 40 * 3);
 						offset += 40 * 3;
 					}
 					free(bot_bgr);

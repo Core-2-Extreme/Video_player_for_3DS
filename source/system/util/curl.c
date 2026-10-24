@@ -151,7 +151,7 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 			goto error;
 
 		allocated_size = buffer_size - http_data->current_size;
-		memset(http_data->data + http_data->current_size, 0x0, allocated_size);
+		memset(http_data->data + http_data->current_size, 0x00, allocated_size);
 		http_data->current_size = buffer_size;
 	}
 

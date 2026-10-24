@@ -257,13 +257,13 @@ void Exfont_text_parse_ignore_rtl(const char* source_string, Exfont_one_char out
 
 	for (uint32_t k = 0; k < max_loop; k++)
 	{
-		int32_t parse_string_length = mblen((source_string + offset), DEF_EXFONT_MAX_CHAR_LENGTH);
+		int32_t parse_string_length = mblen(&source_string[offset], DEF_EXFONT_MAX_CHAR_LENGTH);
 
 		if (offset >= source_string_length)
 			break;
 		else if (parse_string_length >= 1)
 		{
-			memcpy(out_string[out_index].buffer, (source_string + offset), parse_string_length);
+			memcpy(out_string[out_index].buffer, &source_string[offset], parse_string_length);
 			out_string[out_index].buffer[parse_string_length] = 0x00;
 			out_index++;
 			offset += parse_string_length;
@@ -312,13 +312,13 @@ void Exfont_text_parse(const char* source_string, Exfont_one_char out_string[], 
 		if(source_string_length <= offset)
 			break;
 
-		parse_string_length = mblen((source_string + offset), (source_string_length - offset >= 4 ? 4 : (source_string_length - offset)));
+		parse_string_length = mblen(&source_string[offset], (source_string_length - offset >= 4 ? 4 : (source_string_length - offset)));
 		if (parse_string_length >= 1)
 		{
 			bool rtl_found = false;
 			Exfont_one_char one_char = { 0, };
 
-			memcpy(one_char.buffer, (source_string + offset), parse_string_length);
+			memcpy(one_char.buffer, &source_string[offset], parse_string_length);
 			one_char.buffer[parse_string_length] = 0x0;
 
 			//Sort for RTL characters, currently only Arabic and Armenian are supported.

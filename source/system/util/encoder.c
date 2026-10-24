@@ -497,7 +497,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 	if(util_audio_encoder_cache_size[session] > 0)
 	{
 		memcpy(raw_audio, util_audio_encoder_cache[session], util_audio_encoder_cache_size[session]);
-		swr_out_cache[0] = (raw_audio + util_audio_encoder_cache_size[session]);
+		swr_out_cache[0] = &raw_audio[util_audio_encoder_cache_size[session]];
 	}
 	else
 		swr_out_cache[0] = raw_audio;
@@ -513,7 +513,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 
 	while(true)
 	{
-		memcpy(util_audio_encoder_raw_data[session]->data[0], raw_audio + encode_offset, one_frame_size);
+		memcpy(util_audio_encoder_raw_data[session]->data[0], &raw_audio[encode_offset], one_frame_size);
 		//Set pts.
 		util_audio_encoder_raw_data[session]->pts = util_audio_pos[session];
 		util_audio_pos[session] += util_audio_increase_pts[session];
@@ -555,7 +555,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 	if(!util_audio_encoder_cache[session])
 		goto out_of_memory;
 
-	memcpy(util_audio_encoder_cache[session], raw_audio + encode_offset, out_size);
+	memcpy(util_audio_encoder_cache[session], &raw_audio[encode_offset], out_size);
 	util_audio_encoder_cache_size[session] = out_size;
 
 	free(raw_audio);
@@ -601,8 +601,8 @@ uint32_t Util_encoder_video_encode(const uint8_t* raw_data, uint8_t session)
 	height = util_video_encoder_raw_data[session]->height;
 
 	memcpy(util_video_encoder_raw_data[session]->data[0], raw_data, width * height);
-	memcpy(util_video_encoder_raw_data[session]->data[1], raw_data + width * height, width * height / 4);
-	memcpy(util_video_encoder_raw_data[session]->data[2], raw_data + width * height + width * height / 4, width * height / 4);
+	memcpy(util_video_encoder_raw_data[session]->data[1], &raw_data[width * height], width * height / 4);
+	memcpy(util_video_encoder_raw_data[session]->data[2], &raw_data[width * height + width * height / 4], width * height / 4);
 	util_video_encoder_raw_data[session]->linesize[0] = width;
 	util_video_encoder_raw_data[session]->linesize[1] = width / 2;
 	util_video_encoder_raw_data[session]->linesize[2] = width / 2;

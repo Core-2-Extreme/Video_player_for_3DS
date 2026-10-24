@@ -134,7 +134,7 @@ uint32_t Ftp_receive_command(int32_t socket_handle, Ftp_command* command, char* 
 
 		errno = 0;
 		//Reserve 1 byte for NULL terminator.
-		received = recv(socket_handle, (arg + received_offset), (arg_size - received_offset - 1), 0);
+		received = recv(socket_handle, &arg[received_offset], (arg_size - received_offset - 1), 0);
 		if(received <= 0)
 		{
 			DEF_LOG_RESULT(recv, false, received);
@@ -160,7 +160,7 @@ uint32_t Ftp_receive_command(int32_t socket_handle, Ftp_command* command, char* 
 
 		//Check for name.
 		//RFC959: Upper and lower case alphabetic characters are to be treated identically.
-		if(Ftp_case_insensitive_compare((arg + buffer_offset), util_ftp_commands[i].name, name_length))
+		if(Ftp_case_insensitive_compare(&arg[buffer_offset], util_ftp_commands[i].name, name_length))
 		{
 			buffer_offset += name_length;
 
@@ -439,7 +439,7 @@ uint32_t Ftp_get_path(const char* current_dir, const char* cmd_path, Str_data* d
 			uint32_t new_length = ((last_slash_pos - dir->buffer) + 1);
 
 			//Split filename.
-			result = Util_str_set(file, (last_slash_pos + 1));
+			result = Util_str_set(file, &last_slash_pos[1]);
 			if(result != DEF_SUCCESS)
 			{
 				DEF_LOG_RESULT(Util_str_set, false, result);

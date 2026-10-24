@@ -366,14 +366,22 @@ uint32_t Util_converter_convert_audio(Converter_audio_parameters* parameters)
 	|| parameters->in_sample_format == RAW_SAMPLE_FLOAT32P || parameters->in_sample_format == RAW_SAMPLE_DOUBLE64P)
 	{
 		for(uint8_t i = 1; i < parameters->in_ch; i++)
-			src_data[i] = parameters->source + (parameters->in_samples * util_converter_sample_format_size_table[parameters->in_sample_format] * i);
+		{
+			uint32_t offset = (parameters->in_samples * util_converter_sample_format_size_table[parameters->in_sample_format] * i);
+
+			src_data[i] = &parameters->source[offset];
+		}
 	}
 	if(parameters->out_sample_format == RAW_SAMPLE_U8P || parameters->out_sample_format == RAW_SAMPLE_S16P
 	|| parameters->out_sample_format == RAW_SAMPLE_S32P || parameters->out_sample_format == RAW_SAMPLE_S64P
 	|| parameters->out_sample_format == RAW_SAMPLE_FLOAT32P || parameters->out_sample_format == RAW_SAMPLE_DOUBLE64P)
 	{
 		for(uint8_t i = 1; i < parameters->out_ch; i++)
-			dst_data[i] = parameters->converted + (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
+		{
+			uint32_t offset = (parameters->out_samples * util_converter_sample_format_size_table[parameters->out_sample_format] * i);
+
+			dst_data[i] = &parameters->converted[offset];
+		}
 	}
 
 	ffmpeg_result = swr_convert(swr_context, dst_data, parameters->out_samples, (const uint8_t* const*)src_data, parameters->in_samples);
@@ -424,8 +432,8 @@ uint32_t Util_converter_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rg
 		goto out_of_memory;
 
 	ybase = yuv420p;
-	ubase = yuv420p + width * height;
-	vbase = yuv420p + width * height + width * height / 4;
+	ubase = &yuv420p[width * height];
+	vbase = &yuv420p[width * height + width * height / 4];
 
 	for (uint32_t h = 0; h < height; h++)
 	{
@@ -441,8 +449,8 @@ uint32_t Util_converter_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t** rg
 			b[0] = b[0] >> 3;
 			g[0] = g[0] >> 2;
 			r[0] = r[0] >> 3;
-			*(*rgb565 + index++) = (g[0] & 0x07) << 5 | b[0];
-			*(*rgb565 + index++) = (g[0] & 0x38) >> 3 | (r[0] & 0x1F) << 3;
+			(*rgb565)[index++] = (g[0] & 0x07) << 5 | b[0];
+			(*rgb565)[index++] = (g[0] & 0x38) >> 3 | (r[0] & 0x1F) << 3;
 		}
 	}
 
@@ -472,8 +480,8 @@ uint32_t Util_converter_yuv420p_to_rgb888le(const uint8_t* yuv420p, uint8_t** rg
 		goto out_of_memory;
 
 	ybase = yuv420p;
-	ubase = yuv420p + width * height;
-	vbase = yuv420p + width * height + width * height / 4;
+	ubase = &yuv420p[width * height];
+	vbase = &yuv420p[width * height + width * height / 4];
 
 	for (uint32_t h = 0; h < height; h++)
 	{
@@ -484,9 +492,9 @@ uint32_t Util_converter_yuv420p_to_rgb888le(const uint8_t* yuv420p, uint8_t** rg
 			u = ubase[h / 2 * width / 2 + (w / 2)];
 			v = vbase[h / 2 * width / 2 + (w / 2)];
 
-			*(*rgb888 + index++) = YUV2B(y[0], u);
-			*(*rgb888 + index++) = YUV2G(y[0], u, v);
-			*(*rgb888 + index++) = YUV2R(y[0], v);
+			(*rgb888)[index++] = YUV2B(y[0], u);
+			(*rgb888)[index++] = YUV2G(y[0], u, v);
+			(*rgb888)[index++] = YUV2R(y[0], v);
 		}
 	}
 
@@ -510,15 +518,15 @@ uint32_t Util_converter_rgba8888be_to_rgba8888le(uint8_t* rgba8888, uint32_t wid
 	{
 		for (uint32_t h = 0; h < height; h++)
 		{
-			uint8_t r = *(rgba8888 + offset);
-			uint8_t g = *(rgba8888 + offset + 1);
-			uint8_t b = *(rgba8888 + offset + 2);
-			uint8_t a = *(rgba8888 + offset + 3);
+			uint8_t r = rgba8888[offset];
+			uint8_t g = rgba8888[offset + 1];
+			uint8_t b = rgba8888[offset + 2];
+			uint8_t a = rgba8888[offset + 3];
 
-			*(rgba8888 + offset) = a;
-			*(rgba8888 + offset + 1) = b;
-			*(rgba8888 + offset + 2) = g;
-			*(rgba8888 + offset + 3) = r;
+			rgba8888[offset] = a;
+			rgba8888[offset + 1] = b;
+			rgba8888[offset + 2] = g;
+			rgba8888[offset + 3] = r;
 			offset += 4;
 		}
 	}
@@ -540,13 +548,13 @@ uint32_t Util_converter_rgb888be_to_rgb888le(uint8_t* rgb888, uint32_t width, ui
 	{
 		for (uint32_t h = 0; h < height; h++)
 		{
-			uint8_t r = *(rgb888 + offset);
-			uint8_t g = *(rgb888 + offset + 1);
-			uint8_t b = *(rgb888 + offset + 2);
+			uint8_t r = rgb888[offset];
+			uint8_t g = rgb888[offset + 1];
+			uint8_t b = rgb888[offset + 2];
 
-			*(rgb888 + offset) = b;
-			*(rgb888 + offset + 1) = g;
-			*(rgb888 + offset + 2) = r;
+			rgb888[offset] = b;
+			rgb888[offset + 1] = g;
+			rgb888[offset + 2] = r;
 			offset += 3;
 		}
 	}
@@ -579,8 +587,8 @@ uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t**
 		for(uint32_t k = 0; k < height; k++)
 		{
 			(*rotated_rgb888)[rotated_offset++] = rgb888[offset];
-			(*rotated_rgb888)[rotated_offset++] = rgb888[(offset + 1)];
-			(*rotated_rgb888)[rotated_offset++] = rgb888[(offset + 2)];
+			(*rotated_rgb888)[rotated_offset++] = rgb888[offset + 1];
+			(*rotated_rgb888)[rotated_offset++] = rgb888[offset + 2];
 			offset += (width * 3);
 		}
 	}
@@ -702,14 +710,14 @@ uint32_t Util_converter_y2r_yuv420p_to_rgb565le(const uint8_t* yuv420p, uint8_t*
 		goto nintendo_api_failed;
 	}
 
-	result = Y2RU_SetSendingU(yuv420p + (width * height), width * height / 4, width / 2, 0);
+	result = Y2RU_SetSendingU(&yuv420p[width * height], width * height / 4, width / 2, 0);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Y2RU_SetSendingU, false, result);
 		goto nintendo_api_failed;
 	}
 
-	result = Y2RU_SetSendingV(yuv420p + ((width * height) + (width * height / 4)), width * height / 4, width / 2, 0);
+	result = Y2RU_SetSendingV(&yuv420p[(width * height) + (width * height / 4)], width * height / 4, width / 2, 0);
 	if(result != DEF_SUCCESS)
 	{
 		DEF_LOG_RESULT(Y2RU_SetSendingV, false, result);

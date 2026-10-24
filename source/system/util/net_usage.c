@@ -165,8 +165,8 @@ void Util_net_usage_draw(void)
 
 	//%f expects double.
 	char_length = snprintf(msg_cache, sizeof(msg_cache), "NET:");
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nDL: %s/s", DEF_STR_NEVER_NULL(&download_size_string));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nUL: %s/s", DEF_STR_NEVER_NULL(&upload_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\nDL: %s/s", DEF_STR_NEVER_NULL(&download_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\nUL: %s/s", DEF_STR_NEVER_NULL(&upload_size_string));
 
 	Util_str_free(&download_size_string);
 	Util_str_free(&upload_size_string);

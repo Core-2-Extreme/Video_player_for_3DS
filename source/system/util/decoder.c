@@ -1734,7 +1734,7 @@ uint32_t Util_decoder_audio_decode(uint32_t* samples, uint8_t** raw_data, double
 	|| util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_FLTP || util_audio_decoder_context[session][packet_index]->sample_fmt == AV_SAMPLE_FMT_DBLP)
 	{
 		for(uint8_t i = 0; i < util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels; i++)
-			memcpy(((*raw_data) + (copy_size_per_ch * i)), util_audio_decoder_raw_data[session][packet_index]->data[i], copy_size_per_ch);
+			memcpy(&((*raw_data)[copy_size_per_ch * i]), util_audio_decoder_raw_data[session][packet_index]->data[i], copy_size_per_ch);
 	}
 	else
 		memcpy(*raw_data, util_audio_decoder_raw_data[session][packet_index]->data[0], copy_size_per_ch * util_audio_decoder_context[session][packet_index]->ch_layout.nb_channels);
@@ -1928,6 +1928,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 
 	if(util_mvd_video_decoder_first)
 	{
+		uint8_t* extra_data = util_video_decoder_context[session][0]->extradata;
 		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, width, height, width, height, NULL, NULL, NULL);
 
 		offset = 0;
@@ -1938,8 +1939,8 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		util_mvd_video_decoder_packet[offset++] = 0x01;
 
 		//Set extra data.
-		memcpy(util_mvd_video_decoder_packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
-		offset += *(util_video_decoder_context[session][0]->extradata + 7);
+		memcpy(&util_mvd_video_decoder_packet[offset], &extra_data[8], extra_data[7]);
+		offset += extra_data[7];
 
 		mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
 
@@ -1951,8 +1952,8 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		util_mvd_video_decoder_packet[offset++] = 0x01;
 
 		//Set extra data.
-		memcpy(util_mvd_video_decoder_packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
-		offset += *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7));
+		memcpy(&util_mvd_video_decoder_packet[offset], &extra_data[11 + extra_data[7]], extra_data[10 + extra_data[7]]);
+		offset += extra_data[10 + extra_data[7]];
 
 		mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
 	}
@@ -1964,7 +1965,7 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 	while((source_offset + 4) < (uint32_t)util_video_decoder_packet[session][0]->size)
 	{
 		//Get nal size.
-		size = *((uint32_t*)(util_video_decoder_packet[session][0]->data + source_offset));
+		size = *((uint32_t*)(&util_video_decoder_packet[session][0]->data[source_offset]));
 		size = __builtin_bswap32(size);
 		source_offset += 4;
 		if((source_offset + size) > (uint32_t)util_video_decoder_packet[session][0]->size || size == 0)
@@ -1986,17 +1987,17 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		util_mvd_video_decoder_packet[offset++] = 0x01;
 
 		//Copy raw nal data.
-		memcpy(util_mvd_video_decoder_packet + offset, (util_video_decoder_packet[session][0]->data + source_offset), size);
+		memcpy(&util_mvd_video_decoder_packet[offset], &util_video_decoder_packet[session][0]->data[source_offset], size);
 		offset += size;
 		source_offset += size;
 	}
 
 	//Set 0x11 to top-left, top-right, bottom-left and bottom-right then check them later.
 	//For more information, see: https://gbatemp.net/threads/release-video-player-for-3ds.586094/page-20#post-9915780
-	*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] = 0x11;
-	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) = 0x11;
-	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) = 0x11;
-	*(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) = 0x11;
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][0] = 0x11;
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * 2 - 1)] = 0x11;
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][((width * height * 2) - (width * 2))] = 0x11;
+	util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * height * 2 - 1)] = 0x11;
 
 	// DEF_LOG_STRING("-------------------------------");
 
@@ -2022,10 +2023,10 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 		}
 
 		//If any of them got changed, it means MVD service wrote the frame data to the buffer.
-		if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
-		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
-		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
-		|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
+		if(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][0] != 0x11
+		|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * 2 - 1)] != 0x11
+		|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][((width * height * 2) - (width * 2))] != 0x11
+		|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * height * 2 - 1)] != 0x11)
 		{
 			// DEF_LOG_STRING("got a frame after mvdstdProcessVideoFrame()");
 			got_a_frame = true;
@@ -2053,10 +2054,10 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 			result = mvdstdRenderVideoFrame(NULL, false);
 
 			//If any of them got changed, it means MVD service wrote the frame data to the buffer.
-			if(*util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] != 0x11
-			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * 2 - 1)) != 0x11
-			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + ((width * height * 2) - (width * 2))) != 0x11
-			|| *(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0] + (width * height * 2 - 1)) != 0x11)
+			if(util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][0] != 0x11
+			|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * 2 - 1)] != 0x11
+			|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][((width * height * 2) - (width * 2))] != 0x11
+			|| util_mvd_video_decoder_raw_image[session][buffer_num]->data[0][(width * height * 2 - 1)] != 0x11)
 			{
 				// DEF_LOG_STRING("got a frame after mvdstdRenderVideoFrame()");
 				result = MVD_STATUS_OK;
@@ -2522,8 +2523,8 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 
 		dmaConfigInitDefault(&dma_config);
 		dma_result[0] = svcStartInterProcessDma(&dma_handle[0], CUR_PROCESS_HANDLE, (uint32_t)*raw_data, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size, &dma_config);
-		dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (uint32_t)(*raw_data) + y_size, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size, &dma_config);
-		dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (uint32_t)(*raw_data) + y_size + uv_size, CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size, &dma_config);
+		dma_result[1] = svcStartInterProcessDma(&dma_handle[1], CUR_PROCESS_HANDLE, (uint32_t)&((*raw_data)[y_size]), CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size, &dma_config);
+		dma_result[2] = svcStartInterProcessDma(&dma_handle[2], CUR_PROCESS_HANDLE, (uint32_t)&((*raw_data)[y_size + uv_size]), CUR_PROCESS_HANDLE, (uint32_t)util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size, &dma_config);
 
 		for(uint8_t i = 0; i < 3; i++)
 		{
@@ -2541,8 +2542,8 @@ uint32_t Util_decoder_video_get_image(uint8_t** raw_data, double* current_pos, u
 	else
 	{
 		memcpy_asm(*raw_data, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[0], y_size);
-		memcpy_asm((*raw_data) + y_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size);
-		memcpy_asm((*raw_data) + y_size + uv_size, util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size);
+		memcpy_asm(&((*raw_data)[y_size]), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[1], uv_size);
+		memcpy_asm(&((*raw_data)[y_size + uv_size]), util_video_decoder_raw_image[session][packet_index][buffer_num]->data[2], uv_size);
 	}
 #endif //DEF_DECODER_DMA_ENABLE
 

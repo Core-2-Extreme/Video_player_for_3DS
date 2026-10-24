@@ -32,7 +32,7 @@ int	__wrap_pthread_cond_wait(pthread_cond_t* __cond, pthread_mutex_t* __mutex);
 int	__wrap_pthread_cond_signal(pthread_cond_t* __cond);
 int	__wrap_pthread_cond_broadcast(pthread_cond_t* __cond);
 int	__wrap_pthread_cond_destroy(pthread_cond_t* __cond);
-int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg);
+int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t* __attr, void* (*__start_routine)(void*), void* __arg);
 int	__wrap_pthread_join(pthread_t __pthread, void** __value_ptr);
 int __wrap_pthread_attr_init(pthread_attr_t* attr);
 int __wrap_pthread_attr_destroy(pthread_attr_t* attr);
@@ -312,7 +312,7 @@ int	__wrap_pthread_cond_destroy(pthread_cond_t* __cond)
 	return 0;
 }
 
-int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t * __attr, void* (*__start_routine)(void*), void* __arg)
+int	__wrap_pthread_create(pthread_t* __pthread, const pthread_attr_t* __attr, void* (*__start_routine)(void*), void* __arg)
 {
 	Thread handle = 0;
 

@@ -5799,7 +5799,7 @@ void Vid_decode_thread(void* arg)
 						osTickCounterStart(&counter);
 						result = Util_decoder_audio_decode(&audio_samples, &audio, &pos, packet_index, DEF_VID_DECODER_SESSION_ID);
 						osTickCounterUpdate(&counter);
-						vid_player.audio_decoding_time_list[(DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&counter);
+						vid_player.audio_decoding_time_list[DEBUG_GRAPH_ELEMENTS - 1] = osTickCounterRead(&counter);
 
 						for(uint16_t i = 1; i < DEBUG_GRAPH_ELEMENTS; i++)
 							vid_player.audio_decoding_time_list[i - 1] = vid_player.audio_decoding_time_list[i];
@@ -5830,13 +5830,13 @@ void Vid_decode_thread(void* arg)
 									{
 										for(uint32_t i = 0; i < (parameters.out_samples * parameters.out_ch * 2); i += 2)
 										{
-											if(*(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100) > INT16_MAX)
+											if(*(int16_t*)(&parameters.converted[i]) * ((double)vid_player.volume / 100) > INT16_MAX)
 											{
-												*(int16_t*)(parameters.converted + i) = INT16_MAX;
+												*(int16_t*)(&parameters.converted[i]) = INT16_MAX;
 												too_big = true;
 											}
 											else
-												*(int16_t*)(parameters.converted + i) = *(int16_t*)(parameters.converted + i) * ((double)vid_player.volume / 100);
+												*(int16_t*)(&parameters.converted[i]) = *(int16_t*)(&parameters.converted[i]) * ((double)vid_player.volume / 100);
 										}
 
 										if(too_big)
@@ -6633,10 +6633,10 @@ void Vid_convert_thread(void* arg)
 					vid_player.conversion_time_list[i - 1] = vid_player.conversion_time_list[i];
 
 				osTickCounterUpdate(&conversion_time_counter);
-				vid_player.conversion_time_list[(DEBUG_GRAPH_ELEMENTS - 1)] = osTickCounterRead(&conversion_time_counter);
+				vid_player.conversion_time_list[DEBUG_GRAPH_ELEMENTS - 1] = osTickCounterRead(&conversion_time_counter);
 
 				if(vid_player.num_of_audio_tracks == 0)//No audio time reference available, use local delay.
-					total_delay += ((vid_player.conversion_time_list[(DEBUG_GRAPH_ELEMENTS - 1)]) - vid_player.video_frametime[packet_index]);
+					total_delay += ((vid_player.conversion_time_list[DEBUG_GRAPH_ELEMENTS - 1]) - vid_player.video_frametime[packet_index]);
 
 				if((packet_index + 1) < vid_player.num_of_video_tracks)
 					packet_index++;

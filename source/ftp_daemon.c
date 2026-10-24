@@ -1896,7 +1896,7 @@ static void Ftpd_process_stor_stou_appe_data(Ftp_client* client, uint8_t client_
 	buffer_size = (client->store.buffer_size - user_data->store_buffer_offset);
 	if(!user_data->is_store_eof_sent)
 	{
-		result = Ftp_receive_data(client->data_handle.fd, (client->store.buffer + user_data->store_buffer_offset), buffer_size, &received_size);
+		result = Ftp_receive_data(client->data_handle.fd, &client->store.buffer[user_data->store_buffer_offset], buffer_size, &received_size);
 		if(result == DEF_SUCCESS)
 		{
 			bool must_send = false;
@@ -2429,7 +2429,7 @@ static void Ftpd_server_thread(void* arg)
 		int32_t poll_result = 0;
 		uint32_t id = 0;
 		void* data = NULL;
-		struct pollfd handles[((MAX_CLIENTS * 3) + 1)] = { 0, };
+		struct pollfd handles[(MAX_CLIENTS * 3) + 1] = { 0, };
 		nfds_t count = 0;
 
 		//Listening sockets.

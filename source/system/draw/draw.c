@@ -525,7 +525,7 @@ uint32_t Draw_texture_set_data_direct(Draw_image_data* image, uint8_t* raw_image
 #else
 	for(uint32_t i = 0; i < pic_height / 8; i ++)
 	{
-		memcpy_asm(((uint8_t*)image->c2d.tex->data + tex_offset), (raw_image + buffer_offset), copy_size);
+		memcpy_asm(&((uint8_t*)image->c2d.tex->data)[tex_offset], &raw_image[buffer_offset], copy_size);
 		tex_offset += image->c2d.tex->width * pixel_size * 8;
 		buffer_offset += copy_size;
 	}
@@ -604,8 +604,9 @@ uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint3
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t src_offset = Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size);
+				uint32_t* dst = (uint32_t*)(&((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]);
+				uint32_t* src = (uint32_t*)(&raw_image[src_offset]);
 
 				*dst = *src;
 
@@ -629,8 +630,9 @@ uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint3
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t src_offset = Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size);
+				uint32_t* dst = (uint32_t*)(&((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]);
+				uint32_t* src = (uint32_t*)(&raw_image[src_offset]);
 
 				*dst = *src;
 
@@ -658,8 +660,9 @@ uint32_t Draw_texture_set_data(Draw_image_data* image, uint8_t* raw_image, uint3
 		{
 			for(uint32_t i = 0; i < x_max; i += 2)
 			{
-				uint32_t* dst = (uint32_t*)(((uint8_t*)image->c2d.tex->data) + (c3d_pos + c3d_offset));
-				uint32_t* src = (uint32_t*)(raw_image + (Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size)));
+				uint32_t src_offset = Draw_convert_to_pos((k + height_offset), (i + width_offset), pic_height, pic_width, pixel_size);
+				uint32_t* dst = (uint32_t*)(&((uint8_t*)image->c2d.tex->data)[c3d_pos + c3d_offset]);
+				uint32_t* src = (uint32_t*)(&raw_image[src_offset]);
 
 				*dst = *src;
 

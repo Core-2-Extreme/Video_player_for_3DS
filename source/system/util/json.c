@@ -225,7 +225,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 	}
 
 	key_info->key = key;
-	key_info->eof = (key + key_length);
+	key_info->eof = &key[key_length];
 	key_info->capacity = 0;
 	key_info->used = 0;
 	key_info->current_index = 0;
@@ -301,7 +301,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 				//It's also illegal if (start_pos + 1) is greater than or equal to end_pos.
 				//e.g object.array[].data
 				//                ^^
-				if((start_of_array_pos + 1) >= end_of_array_pos)
+				if(&start_of_array_pos[1] >= end_of_array_pos)
 				{
 					DEF_LOG_STRING("\"[\" and \"]\" exist, but its content is empty!!!!!");
 					goto invalid_arg_1;
@@ -363,7 +363,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 				//If dot exists, it must be just after "]", if not it's illegal.
 				//e.g. object[1]z.data
 				//              ^
-				if(is_dot_detected && (end_of_array_pos + 1) != dot_pos)
+				if(is_dot_detected && &end_of_array_pos[1] != dot_pos)
 				{
 					DEF_LOG_STRING("\".\" exists, but it's NOT just after \"]\"!!!!!");
 					goto invalid_arg_1;
@@ -474,7 +474,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 
 				//Check if key matches.
 				if(key_size == strlen(key_info->data[key_info->current_index].key)
-				&& memcmp((data->raw_json + data->tokens[i].start), key_info->data[key_info->current_index].key, key_size) == 0)
+				&& memcmp(&data->raw_json[data->tokens[i].start], key_info->data[key_info->current_index].key, key_size) == 0)
 				{
 					if((key_info->current_index + 1) == key_info->used)
 					{
@@ -547,7 +547,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 			}
 
 			//Get the actual value.
-			memcpy(escaped_text, (data->raw_json + data->tokens[i].start), escaped_size);
+			memcpy(escaped_text, &data->raw_json[data->tokens[i].start], escaped_size);
 			escaped_text[escaped_size] = 0x00;//Add a null terminator.
 
 			//Unescape it.
@@ -577,7 +577,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 		}
 		else if(data->tokens[i].type == JSMN_PRIMITIVE)
 		{
-			char type = *((char*)data->raw_json + data->tokens[i].start);
+			char type = data->raw_json[data->tokens[i].start];
 
 			if(type == 't' || type == 'f')//Data type: bool.
 			{
@@ -624,7 +624,7 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 						goto out_of_memory;
 					}
 
-					memcpy(value_cache, (data->raw_json + data->tokens[i].start), value_size);
+					memcpy(value_cache, &data->raw_json[data->tokens[i].start], value_size);
 					value_cache[value_size] = 0x00;//Null terminator.
 
 					*((double*)extracted_data->value) = atof(value_cache);

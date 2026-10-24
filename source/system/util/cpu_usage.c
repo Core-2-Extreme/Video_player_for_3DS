@@ -45,7 +45,7 @@ static uint8_t util_cpu_usage_core_id[DEF_CPU_USAGE_MAX_CORES] = { 0, };
 static uint16_t util_cpu_usage_counter_cache[DEF_CPU_USAGE_MAX_CORES] = { 0, };
 static float util_cpu_usage_per_core[DEF_CPU_USAGE_MAX_CORES] = { 0, };
 static float util_cpu_usage = NAN;
-static Thread util_cpu_usage_thread_handle[(DEF_CPU_USAGE_MAX_CORES + 1)] = { 0, };
+static Thread util_cpu_usage_thread_handle[DEF_CPU_USAGE_MAX_CORES + 1] = { 0, };
 static Handle util_cpu_usage_timer_handle = 0;
 
 //Code.
@@ -155,9 +155,9 @@ void Util_cpu_usage_draw(void)
 	//%f expects double.
 	char_length = snprintf(msg_cache, sizeof(msg_cache), "CPU: %.1f%%", (double)Util_cpu_usage_get_cpu_usage(DEF_CPU_USAGE_ALL_CORES));
 	for(uint8_t i = 0; i < DEF_CPU_USAGE_MAX_CORES; i++)//%f expects double.
-		char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nCore #%" PRIu8 ": %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
+		char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\nCore #%" PRIu8 ": %.1f%%", i, (double)Util_cpu_usage_get_cpu_usage(i));
 
-	snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(#1 max: %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
+	snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\n(#1 max: %" PRIu8 "%%)", Util_cpu_usage_get_core_1_limit());
 
 	Draw_with_scale_c(msg_cache, CPU_USAGE_X, CPU_USAGE_Y, FONT_SIZE_CPU_USAGE, DEF_DRAW_NORMAL_SCALE_AND_COMPACT, DEF_DRAW_BLACK,
 	DRAW_X_ALIGN_RIGHT, DRAW_Y_ALIGN_TOP, CPU_USAGE_WIDTH, CPU_USAGE_HEIGHT, DRAW_BACKGROUND_UNDER_TEXT, &background, DEF_DRAW_WEAK_WHITE);

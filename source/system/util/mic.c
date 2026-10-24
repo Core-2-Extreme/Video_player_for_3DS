@@ -216,12 +216,12 @@ uint32_t Util_mic_get_audio_data(uint8_t** raw_data, uint32_t* size)
 
 	*size = buffer_size;
 	if(util_mic_last_pos < last_pos)
-		memcpy(*raw_data, util_mic_buffer + util_mic_last_pos, buffer_size);
+		memcpy(*raw_data, &util_mic_buffer[util_mic_last_pos], buffer_size);
 	else
 	{
-		memcpy(*raw_data, util_mic_buffer + util_mic_last_pos, micGetSampleDataSize() - 4 - util_mic_last_pos);
+		memcpy(*raw_data, &util_mic_buffer[util_mic_last_pos], micGetSampleDataSize() - 4 - util_mic_last_pos);
 		buffer_offset += micGetSampleDataSize() - 4 - util_mic_last_pos;
-		memcpy((*raw_data) + buffer_offset, util_mic_buffer, last_pos);
+		memcpy(&((*raw_data)[buffer_offset]), util_mic_buffer, last_pos);
 	}
 
 	util_mic_last_pos = last_pos;

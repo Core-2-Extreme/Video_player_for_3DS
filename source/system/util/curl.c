@@ -151,11 +151,11 @@ static size_t Util_curl_write_callback(char* input_data, size_t size, size_t nme
 			goto error;
 
 		allocated_size = buffer_size - http_data->current_size;
-		memset(http_data->data + http_data->current_size, 0x00, allocated_size);
+		memset(&http_data->data[http_data->current_size], 0x00, allocated_size);
 		http_data->current_size = buffer_size;
 	}
 
-	memcpy((http_data->data + http_data->used_size_internal), input_data, input_size);
+	memcpy(&http_data->data[http_data->used_size_internal], input_data, input_size);
 	http_data->used_size_internal += input_size;
 	if(http_data->used_size)
 		*http_data->used_size = http_data->used_size_internal;
@@ -204,7 +204,7 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 	//If we run out of buffer, save it.
 	else if(http_data->current_size + input_size > http_data->max_size)
 	{
-		memcpy(http_data->data + http_data->current_size, input_data, http_data->max_size - http_data->current_size);
+		memcpy(&http_data->data[http_data->current_size], input_data, http_data->max_size - http_data->current_size);
 		input_data_offset = http_data->max_size - http_data->current_size;
 
 		http_data->current_size += input_data_offset;
@@ -216,7 +216,7 @@ static size_t Util_curl_save_callback(char* input_data, size_t size, size_t nmem
 	else
 		result = DEF_SUCCESS;
 
-	memcpy(http_data->data + http_data->current_size, input_data + input_data_offset, input_size);
+	memcpy(&http_data->data[http_data->current_size], &input_data[input_data_offset], input_size);
 	http_data->current_size += input_size;
 
 	if(result == DEF_SUCCESS)
@@ -257,7 +257,7 @@ static size_t Util_curl_read_callback(char* output_buffer, size_t size, size_t n
 	else
 		copy_size = upload_data->upload_size - upload_data->offset;
 
-	memcpy(output_buffer, upload_data->data + upload_data->offset, copy_size);
+	memcpy(output_buffer, &upload_data->data[upload_data->offset], copy_size);
 	if(upload_data->uploaded_size)
 		*upload_data->uploaded_size += copy_size;
 

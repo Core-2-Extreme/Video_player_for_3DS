@@ -213,8 +213,8 @@ void Util_ram_usage_draw(void)
 
 	//%f expects double.
 	char_length = snprintf(msg_cache, sizeof(msg_cache), "RAM: %.1f%%", usage);
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n(%s/", DEF_STR_NEVER_NULL(&used_size_string));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\n%s)", DEF_STR_NEVER_NULL(&total_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\n(%s/", DEF_STR_NEVER_NULL(&used_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\n%s)", DEF_STR_NEVER_NULL(&total_size_string));
 
 	Util_str_free(&used_size_string);
 	Util_str_free(&total_size_string);

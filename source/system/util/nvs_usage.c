@@ -229,8 +229,8 @@ void Util_nvs_usage_draw(void)
 
 	//%f expects double.
 	char_length = snprintf(msg_cache, sizeof(msg_cache), "NVS: %.1f%%", (double)Util_nvs_usage_get_nvs_usage());
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nR: %s/s", DEF_STR_NEVER_NULL(&read_size_string));
-	char_length += snprintf((msg_cache + char_length), (sizeof(msg_cache) - char_length), "\nW: %s/s", DEF_STR_NEVER_NULL(&write_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\nR: %s/s", DEF_STR_NEVER_NULL(&read_size_string));
+	char_length += snprintf(&msg_cache[char_length], (sizeof(msg_cache) - char_length), "\nW: %s/s", DEF_STR_NEVER_NULL(&write_size_string));
 
 	Util_str_free(&read_size_string);
 	Util_str_free(&write_size_string);

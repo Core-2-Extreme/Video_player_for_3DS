@@ -139,7 +139,7 @@ uint32_t Util_str_add(Str_data* string, const char* source_string)
 			goto error_other;
 	}
 
-	memcpy((string->buffer + string->length), source_string, source_string_length);
+	memcpy(&string->buffer[string->length], source_string, source_string_length);
 	string->buffer[new_length] = 0x00;//NULL terminator.
 	string->length = new_length;
 	string->sequential_id++;
@@ -297,7 +297,7 @@ static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, cons
 	else
 		old_length = 0;
 
-	buffer = (string->buffer + old_length);
+	buffer = &string->buffer[old_length];
 	remaining_capacity = ((string->capacity - old_length) + 1);
 
 	new_length = vsnprintf(buffer, remaining_capacity, format_string, args);
@@ -312,7 +312,7 @@ static uint32_t Util_str_vformat_internal(Str_data* string, bool is_append, cons
 
 		//Update pointer (since realloc may change pointer)
 		//and remaining size then retry.
-		buffer = (string->buffer + old_length);
+		buffer = &string->buffer[old_length];
 		remaining_capacity = ((string->capacity - old_length) + 1);
 		vsnprintf(buffer, remaining_capacity, format_string, args);
 	}

@@ -801,7 +801,7 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 
 	while(true)
 	{
-		result = httpcDownloadData(httpc_context, (*data) + buffer_offset, remain_buffer_size, &dl_size);
+		result = httpcDownloadData(httpc_context, &((*data)[buffer_offset]), remain_buffer_size, &dl_size);
 		if(downloaded_size)
 			*downloaded_size += dl_size;
 
@@ -820,7 +820,7 @@ static uint32_t Util_httpc_download_data(httpcContext* httpc_context, uint8_t** 
 					goto out_of_memory;
 
 				*data = new_buffer;
-				memset((*data) + buffer_offset, 0x00, remain_buffer_size);
+				memset(&((*data)[buffer_offset]), 0x00, remain_buffer_size);
 			}
 			else
 			{

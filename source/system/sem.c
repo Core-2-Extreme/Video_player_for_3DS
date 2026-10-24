@@ -166,7 +166,7 @@
 #define HID_LCD_AUTO_DESEL(k)				(bool)(DEF_HID_PHY_NP((k).touch))
 //Control: Scroll speed bar.
 #define HID_CTRL_SCROLL_SPEED_BAR_SEL(k)	(bool)(DEF_HID_PHY_PR((k).touch) && (DEF_HID_INIT_IN(sem_scroll_speed_bar, (k)) || DEF_HID_INIT_IN(sem_scroll_speed_slider, (k))))
-#define HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(HID_LCD_SLEEP_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
+#define HID_CTRL_SCROLL_SPEED_BAR_CFM(k)	(bool)(HID_CTRL_SCROLL_SPEED_BAR_SEL((k)) || (DEF_HID_PHY_HE((k).touch) && sem_scroll_speed_bar.selected))
 #define HID_CTRL_SCROLL_SPEED_BAR_DESEL(k)	(bool)(DEF_HID_PHY_NP((k).touch))
 //Font: Font loading (all fonts).
 #define HID_FONT_LOAD_ALL_SEL(k)			(bool)(DEF_HID_PHY_PR((k).touch) && DEF_HID_INIT_IN(sem_load_all_ex_font_button, (k)))

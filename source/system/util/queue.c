@@ -234,7 +234,7 @@ uint32_t Util_queue_get(Queue_data* queue, uint32_t* event_id, void** data, int6
 		LightEvent_WaitTimeout(&queue->receive_wait_event, wait_us * 1000);
 		Util_sync_lock(&util_queue_mutex, UINT64_MAX);
 
-		//It may possible to start delting this queue on different thread while waiting.
+		//It may possible to start deleting this queue on different thread while waiting.
 		if(queue->deleting)
 			goto deleting;
 	}

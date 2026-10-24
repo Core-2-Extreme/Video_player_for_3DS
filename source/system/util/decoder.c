@@ -1930,22 +1930,27 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 	{
 		mvdstdGenerateDefaultConfig(&util_decoder_mvd_config, width, height, width, height, NULL, NULL, NULL);
 
-		//Set extra data.
 		offset = 0;
-		memset(util_mvd_video_decoder_packet, 0x0, 0x2);
-		offset += 2;
-		memset(util_mvd_video_decoder_packet + offset, 0x1, 0x1);
-		offset += 1;
+
+		//Set nal prefix 0x00, 0x00, 0x01.
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x01;
+
+		//Set extra data.
 		memcpy(util_mvd_video_decoder_packet + offset, util_video_decoder_context[session][0]->extradata + 8, *(util_video_decoder_context[session][0]->extradata + 7));
 		offset += *(util_video_decoder_context[session][0]->extradata + 7);
 
 		mvdstdProcessVideoFrame(util_mvd_video_decoder_packet, offset, 0, NULL);
 
 		offset = 0;
-		memset(util_mvd_video_decoder_packet, 0x0, 0x2);
-		offset += 2;
-		memset(util_mvd_video_decoder_packet + offset, 0x1, 0x1);
-		offset += 1;
+
+		//Set nal prefix 0x00, 0x00, 0x01.
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x01;
+
+		//Set extra data.
 		memcpy(util_mvd_video_decoder_packet + offset, util_video_decoder_context[session][0]->extradata + 11 + *(util_video_decoder_context[session][0]->extradata + 7), *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7)));
 		offset += *(util_video_decoder_context[session][0]->extradata + 10 + *(util_video_decoder_context[session][0]->extradata + 7));
 
@@ -1975,11 +1980,10 @@ uint32_t Util_decoder_mvd_decode(uint8_t session)
 			goto ffmpeg_api_failed;
 		}
 
-		//Set nal prefix 0x0 0x0 0x1.
-		memset(util_mvd_video_decoder_packet + offset, 0x0, 0x2);
-		offset += 2;
-		memset(util_mvd_video_decoder_packet + offset, 0x1, 0x1);
-		offset += 1;
+		//Set nal prefix 0x00, 0x00, 0x01.
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x00;
+		util_mvd_video_decoder_packet[offset++] = 0x01;
 
 		//Copy raw nal data.
 		memcpy(util_mvd_video_decoder_packet + offset, (util_video_decoder_packet[session][0]->data + source_offset), size);

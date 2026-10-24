@@ -575,12 +575,13 @@ uint32_t Util_converter_rgb888_rotate_90_degree(const uint8_t* rgb888, uint8_t**
 
 	for(int32_t i = width - 1; i >= 0; i--)
 	{
-		offset = i * 3;
+		offset = (i * 3);
 		for(uint32_t k = 0; k < height; k++)
 		{
-			memcpy(*rotated_rgb888 + rotated_offset, rgb888 + offset, 0x3);
-			rotated_offset += 3;
-			offset += width * 3;
+			(*rotated_rgb888)[rotated_offset++] = rgb888[offset];
+			(*rotated_rgb888)[rotated_offset++] = rgb888[(offset + 1)];
+			(*rotated_rgb888)[rotated_offset++] = rgb888[(offset + 2)];
+			offset += (width * 3);
 		}
 	}
 

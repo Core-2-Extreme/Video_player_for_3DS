@@ -1244,7 +1244,7 @@ float y_min, float y_max, float base_size, float x_scale, float y_scale, uint32_
 							}
 							else
 							{
-								if(!(character->buffer[0] == 0xED && character->buffer[1] >= 0x9E && character->buffer[0] > 0xAF))
+								if(!(character->buffer[0] == 0xED && character->buffer[1] >= 0x9E && character->buffer[2] > 0xAF))
 								{
 									for(uint32_t i = start_pos; i < end_pos; i++)
 									{

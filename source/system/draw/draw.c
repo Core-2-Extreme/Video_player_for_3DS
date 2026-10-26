@@ -1490,12 +1490,7 @@ void Draw_apply_draw(void)
 static inline uint32_t Draw_convert_to_pos(uint32_t height, uint32_t width, uint32_t img_height, uint32_t img_width, uint8_t pixel_size)
 {
 	(void)img_height;
-	uint32_t pos = img_width * height;
-	if(pos == 0)
-		pos = img_width;
-
-	pos -= (img_width - width) - img_width;
-	return pos * pixel_size;
+	return (((img_width * height) + width) * pixel_size);
 }
 
 static uint32_t Draw_get_min_texture_size(uint32_t width_or_height)

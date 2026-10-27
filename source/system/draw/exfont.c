@@ -39,7 +39,7 @@ static uint32_t util_exfont_hangul_syllables_texture_num[11] = { 0, };
 static const uint16_t util_exfont_font_characters[DEF_EXFONT_NUM_OF_FONT_NAME] =
 {
 	128,  96, 128, 208,  96,  80, 112, 144, 256,  48,  96, 112, 256, 128, 128, 128,
-	128, 128, 128, 128, 128, 256,  96, 640, 128,  64, 256, 112,  48,  48, 112, 256,
+	128, 128, 128,  96, 128, 256,  96, 640, 128,  64, 256, 112,  48,  48, 112, 256,
 	256,  32, 160, 128,  32,  96, 256, 192, 128, 256,  64,  96,  96, 256, 20992, 1168,
 	64, 11184, 32, 240, 768,  80,
 };
@@ -91,7 +91,7 @@ static const Exfont_one_char util_exfont_samples_four_bytes[DEF_EXFONT_NUM_OF_FO
 {
 	{ .buffer = "\U0001F600", }, { .buffer = "\U0001F650", },
 };
-static C2D_Image util_exfont_font_images[41376] = { 0, };
+static C2D_Image util_exfont_font_images[41344] = { 0, };
 
 //Code.
 uint32_t Exfont_init(void)

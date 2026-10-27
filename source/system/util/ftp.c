@@ -1265,7 +1265,7 @@ void Ftp_process_rnto(Ftp_client* client)
 				else
 				{
 					if(is_file)
-						result = Util_file_rename_file(client->rename.file_name_from.buffer, client->rename.dir_to.buffer, client->rename.file_name_to.buffer);
+						result = Util_file_rename_file(client->rename.file_name_from.buffer, client->rename.dir_from.buffer, client->rename.file_name_to.buffer);
 					else
 						result = Util_file_rename_directory(client->rename.dir_from.buffer, client->rename.dir_to.buffer);
 

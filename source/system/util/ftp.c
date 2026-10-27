@@ -1352,6 +1352,8 @@ void Ftp_process_abor(Ftp_client* client)
 
 	//Clear state.
 	Ftp_list_clear(&client->list);
+	Ftp_rename_clear(&client->rename);
+	Ftp_retrieve_clear(&client->retrieve);
 	Ftp_store_clear(&client->store);
 	Ftp_dir_content_clear(&client->dir_content);
 }

@@ -511,7 +511,7 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 	out_size = out_samples * bytes_per_sample;
 	out_size += util_audio_encoder_cache_size[session];
 
-	while(true)
+	while(one_frame_size <= out_size)
 	{
 		memcpy(util_audio_encoder_raw_data[session]->data[0], &raw_audio[encode_offset], one_frame_size);
 		//Set pts.
@@ -545,8 +545,6 @@ uint32_t Util_encoder_audio_encode(uint32_t size, const uint8_t* raw_data, uint8
 
 		out_size -= one_frame_size;
 		encode_offset += one_frame_size;
-		if(one_frame_size > out_size)
-			break;
 	}
 
 	free(util_audio_encoder_cache[session]);

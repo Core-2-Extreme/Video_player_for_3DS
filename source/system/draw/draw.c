@@ -308,9 +308,10 @@ void Draw_exit(void)
 	if(!util_draw_init)
 		return;
 
-	util_draw_init = false;
 	for (uint32_t i = 0; i < DEF_DRAW_MAX_NUM_OF_SPRITE_SHEETS; i++)
 		Draw_free_texture(i);
+
+	util_draw_init = false;
 
 	//Without calling gspWaitForVBlank() twice before calling C3D_Fini(), it may hang in C3D_Fini().
 	//Not sure why.
@@ -1071,7 +1072,7 @@ uint32_t Draw_load_texture(const char* file_path, uint32_t sheet_map_num, C2D_Im
 	if (num_of_array < num_of_images)
 		goto out_of_memory;
 
-	for (uint32_t i = 0; i <= (num_of_array - 1); i++)
+	for (uint32_t i = 0; i < num_of_images; i++)
 		return_image[start_num + i] = C2D_SpriteSheetGetImage(util_draw_sheet_texture[sheet_map_num], i);
 
 	util_draw_sheet_texture_free[sheet_map_num] = false;

@@ -312,7 +312,6 @@ uint32_t Util_file_rename_file(const char* file_name, const char* dir_path, cons
 	uint16_t* utf16_path = NULL;
 	uint16_t* new_utf16_path = NULL;
 	uint32_t result = DEF_ERR_OTHER;
-	Handle handle = 0;
 	FS_Archive archive = 0;
 
 	if(!file_name || !dir_path || !new_file_name || strlen(file_name) == 0 || strlen(dir_path) == 0 || strlen(new_file_name) == 0)
@@ -350,7 +349,6 @@ uint32_t Util_file_rename_file(const char* file_name, const char* dir_path, cons
 	free(new_utf16_path);
 	utf16_path = NULL;
 	new_utf16_path = NULL;
-	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
 	return DEF_SUCCESS;
 
@@ -369,7 +367,6 @@ uint32_t Util_file_rename_file(const char* file_name, const char* dir_path, cons
 	free(new_utf16_path);
 	utf16_path = NULL;
 	new_utf16_path = NULL;
-	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
 	return result;
 }
@@ -709,7 +706,6 @@ uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_pa
 	uint16_t* utf16_dir_path = NULL;
 	uint16_t* new_utf16_dir_path = NULL;
 	uint32_t result = DEF_ERR_OTHER;
-	Handle handle = 0;
 	FS_Archive archive = 0;
 
 	if(!dir_path || !new_dir_path || strlen(dir_path) == 0 || strlen(new_dir_path) == 0)
@@ -753,7 +749,6 @@ uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_pa
 	free(new_utf16_dir_path);
 	utf16_dir_path = NULL;
 	new_utf16_dir_path = NULL;
-	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
 	return DEF_SUCCESS;
 
@@ -772,7 +767,6 @@ uint32_t Util_file_rename_directory(const char* dir_path, const char* new_dir_pa
 	free(new_utf16_dir_path);
 	utf16_dir_path = NULL;
 	new_utf16_dir_path = NULL;
-	FSFILE_Close(handle);
 	FSUSER_CloseArchive(archive);
 	return result;
 }

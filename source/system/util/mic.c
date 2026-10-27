@@ -210,6 +210,12 @@ uint32_t Util_mic_get_audio_data(uint8_t** raw_data, uint32_t* size)
 	else
 		buffer_size = (micGetSampleDataSize() - 4) - (util_mic_last_pos - last_pos);
 
+	if(buffer_size == 0)
+	{
+		DEF_LOG_STRING("No raw audio available.");
+		goto try_again;
+	}
+
 	*raw_data = (uint8_t*)linearAlloc(buffer_size);
 	if(!*raw_data)
 		goto out_of_memory;

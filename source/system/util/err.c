@@ -371,8 +371,8 @@ static void Util_err_save_callback(void)
 				DEF_LOG_RESULT(Util_file_save_to_file, false, result);
 
 			Util_err_set_show_flag(false);
-			util_err_save_request = false;
 		}
+		util_err_save_request = false;
 
 		Util_str_free(&file_name);
 		Util_str_free(&save_data);

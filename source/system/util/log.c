@@ -446,7 +446,8 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 		util_log_spend_time[log_index] = util_log_uptime_ms;
 
 		//If user sees last log, auto scroll logs.
-		auto_scroll = (util_log_y == (util_log_current_index - DISPLAYED_LINES));
+		if(util_log_current_index >= DISPLAYED_LINES)
+			auto_scroll = (util_log_y == (util_log_current_index - DISPLAYED_LINES));
 
 		//Increment log index.
 		util_log_current_index++;
@@ -458,7 +459,7 @@ static uint32_t Util_log_add_internal(uint32_t log_index, bool append_time, cons
 			if (util_log_current_index < DISPLAYED_LINES)
 				util_log_y = 0;
 			else
-				util_log_y = util_log_current_index - DISPLAYED_LINES;
+				util_log_y = (util_log_current_index - DISPLAYED_LINES);
 		}
 	}
 

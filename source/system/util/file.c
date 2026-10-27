@@ -167,18 +167,27 @@ uint32_t Util_file_load_from_file(const char* file_name, const char* dir_path, u
 		goto nintendo_api_failed;
 	}
 
-	max_read_size = (((file_size - read_offset) > (uint64_t)max_size) ? max_size : (file_size - read_offset));
+	if(read_offset < file_size)
+		max_read_size = (((file_size - read_offset) > (uint64_t)max_size) ? max_size : (file_size - read_offset));
+	else
+		max_read_size = 0;
+
 	free(*read_data);
 	*read_data = (uint8_t*)linearAlloc(max_read_size + 1);
 	if(!*read_data)
 		goto out_of_memory;
 
-	result = FSFILE_Read(handle, read_size, read_offset, *read_data, max_read_size);
-	if (result != DEF_SUCCESS)
+	if(max_read_size > 0)
 	{
-		DEF_LOG_RESULT(FSFILE_Read, false, result);
-		goto nintendo_api_failed;
+		result = FSFILE_Read(handle, read_size, read_offset, *read_data, max_read_size);
+		if (result != DEF_SUCCESS)
+		{
+			DEF_LOG_RESULT(FSFILE_Read, false, result);
+			goto nintendo_api_failed;
+		}
 	}
+	else
+		*read_size = 0;//Nothing to read.
 
 	(*read_data)[*read_size] = 0x00;//Add a null terminator.
 

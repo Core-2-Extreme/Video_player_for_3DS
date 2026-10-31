@@ -552,14 +552,16 @@ uint32_t Util_json_get_data(const char* key, const Json_data* json_data, Json_ex
 
 			//Unescape it.
 			result = Util_json_unescape(escaped_text, &unescaped_text);
+
+			free(escaped_text);
+			escaped_text = NULL;
+
 			if(result != DEF_SUCCESS)
 			{
 				Util_str_free(&unescaped_text);
 				DEF_LOG_RESULT(Util_json_unescape, false, result);
 				goto error;
 			}
-			free(escaped_text);
-			escaped_text = NULL;
 
 			extracted_data->value = (void*)malloc(unescaped_text.length + 1);
 			if(!extracted_data->value)

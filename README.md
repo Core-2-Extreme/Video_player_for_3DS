@@ -3,8 +3,9 @@
 [![Total downloads](https://img.shields.io/github/downloads/Core-2-Extreme/Video_player_for_3DS/total?color=red&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/releases)
 [![Commits since latest release](https://img.shields.io/github/commits-since/Core-2-Extreme/Video_player_for_3DS/latest?color=orange&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/commits)
 [![Commit activity](https://img.shields.io/github/commit-activity/m/Core-2-Extreme/Video_player_for_3DS?color=gold&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/commits)
-[![Latest release](https://img.shields.io/github/v/release/Core-2-Extreme/Video_player_for_3DS?color=green&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/releases/latest)
-[![Contributors](https://img.shields.io/github/contributors/Core-2-Extreme/Video_player_for_3DS?color=blue&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/graphs/contributors/)
+[![Coverity scan](https://img.shields.io/coverity/scan/29203.svg?color=green&style=flat-square)](https://scan.coverity.com/projects/core-2-extreme-video_player_for_3ds)
+[![Latest release](https://img.shields.io/github/v/release/Core-2-Extreme/Video_player_for_3DS?color=blue&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/releases/latest)
+[![Contributors](https://img.shields.io/github/contributors/Core-2-Extreme/Video_player_for_3DS?color=aqua&style=flat-square)](https://github.com/Core-2-Extreme/Video_player_for_3DS/graphs/contributors/)
 
 [![Stars](https://img.shields.io/github/stars/Core-2-Extreme/Video_player_for_3DS?style=social)](https://github.com/Core-2-Extreme/Video_player_for_3DS/stargazers)
 [![Forks](https://img.shields.io/github/forks/Core-2-Extreme/Video_player_for_3DS?style=social)](https://github.com/Core-2-Extreme/Video_player_for_3DS/forks)

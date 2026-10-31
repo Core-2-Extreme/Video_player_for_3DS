@@ -752,9 +752,10 @@ static uint32_t Util_json_unescape(const char* escaped_string, Str_data* unescap
 		goto error;
 	}
 
-	while ((escaped_string_length - string_index) > 0)
+	while (escaped_string_length > string_index)
 	{
 		int32_t char_length = mblen(&(escaped_string[string_index]), (escaped_string_length - string_index));
+
 		if(char_length == 1)
 		{
 			switch (state)
@@ -814,7 +815,7 @@ static uint32_t Util_json_unescape(const char* escaped_string, Str_data* unescap
 
 				case JSON_INTERNAL_UNESCAPE_STATE_SEARCHING_4_HEX_DIGITS:
 				{
-					if((escaped_string_length - string_index) >= 4)
+					if(escaped_string_length >= (string_index + 4))
 					{
 						char escaped_unicode_temp[5] = { 0, };
 						char out[5] = { 0, };
@@ -828,7 +829,7 @@ static uint32_t Util_json_unescape(const char* escaped_string, Str_data* unescap
 							Util_str_add(unescaped_string, out);
 					}
 
-					string_index += 3;
+					char_length += 3;
 					state = JSON_INTERNAL_UNESCAPE_STATE_SEARCHING_BACKSLASH;
 
 					break;

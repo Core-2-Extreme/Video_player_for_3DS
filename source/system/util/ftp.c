@@ -1848,7 +1848,10 @@ static bool Ftp_case_insensitive_compare(const char* a, const char* b, uint32_t 
 {
 	for(uint32_t i = 0; i < size; i++)
 	{
-		if(toupper(a[i]) != toupper(b[i]))
+		char upper_a = ((a[i] >= 'a' && a[i] <= 'z') ? toupper(a[i]) : a[i]);
+		char upper_b = ((b[i] >= 'a' && b[i] <= 'z') ? toupper(b[i]) : b[i]);
+
+		if(upper_a != upper_b)
 			return false;
 	}
 

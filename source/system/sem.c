@@ -3813,7 +3813,7 @@ static void Sem_get_system_info(void)
 	{
 		uint8_t ptmu_battery_level = 0;
 
-		PTMU_GetBatteryLevel(&ptmu_battery_level);
+		result = PTMU_GetBatteryLevel(&ptmu_battery_level);
 		if(result == DEF_SUCCESS)
 		{
 			if (ptmu_battery_level == 0)

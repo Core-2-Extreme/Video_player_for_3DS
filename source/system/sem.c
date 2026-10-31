@@ -3707,7 +3707,7 @@ static double Sem_estimate_battery_time(bool was_charging, bool is_charging, dou
 		uint16_t data_index = sem_battery_data.index;
 
 		if(data_index == 0)
-			data_index = DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history);
+			data_index = (DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history) - 1);
 		else
 			data_index--;
 
@@ -3741,7 +3741,7 @@ static double Sem_estimate_battery_time(bool was_charging, bool is_charging, dou
 		for(uint16_t i = 0; i < sem_battery_data.count; i++)
 		{
 			if(data_index == 0)
-				data_index = DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history);
+				data_index = (DEF_UTIL_ARRAY_NUM_OF_ELEMENTS(sem_battery_data.history) - 1);
 			else
 				data_index--;
 
